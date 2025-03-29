@@ -1,0 +1,17 @@
+{
+  "convert": {
+    "title": "Frontpage"
+  },
+  "description": "Convert preset files",
+  "help": {
+    "title": "Help"
+  },
+  "settings": {
+    "language": "Language",
+    "theme": "Theme",
+    "theme_dark": "Dark",
+    "theme_light": "Light",
+    "title": "Settings"
+  },
+  "title": "Preset Converter"
+}

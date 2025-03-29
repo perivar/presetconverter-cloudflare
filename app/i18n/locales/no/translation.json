@@ -1,0 +1,17 @@
+{
+  "convert": {
+    "title": "Forside"
+  },
+  "description": "Konverter preset filer",
+  "help": {
+    "title": "Hjelp"
+  },
+  "settings": {
+    "language": "Språk",
+    "theme": "Tema",
+    "theme_dark": "Mørk",
+    "theme_light": "Lys",
+    "title": "Innstillinger"
+  },
+  "title": "Preset konverterer"
+}
