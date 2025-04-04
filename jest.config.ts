@@ -9,13 +9,8 @@ const config: Config.InitialOptions = {
   preset: "ts-jest",
   testEnvironment: "node",
   roots: ["app"],
-  // had to add isolatedModules: true to make sure the jest tests did not take forever to start
-  // https://github.com/jestjs/jest/issues/10833
   transform: {
-    "\\.[jt]sx?$": [
-      "ts-jest",
-      { tsconfig: "tsconfig.json", isolatedModules: true },
-    ],
+    "\\.[jt]sx?$": ["ts-jest", { tsconfig: "tsconfig.json" }],
   },
   testRegex: "/__tests__/.*.(spec|test).ts$",
   transformIgnorePatterns: [

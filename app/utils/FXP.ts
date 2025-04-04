@@ -359,9 +359,13 @@ export class FXP {
       chunkSet.ChunkSize = bf.binaryReader?.readInt32() || 0;
 
       // Even though the main FXP is BigEndian format the preset chunk is saved in LittleEndian format
+      // chunkSet.ChunkData =
+      //   bf.binaryReader?.readBytes(chunkSet.ChunkSize).reverse() ||
+      //   new Uint8Array(0);
+
+      // TODO: Fix this. The chunk data is not in LittleEndian format anymore?!
       chunkSet.ChunkData =
-        bf.binaryReader?.readBytes(chunkSet.ChunkSize).reverse() ||
-        new Uint8Array(0);
+        bf.binaryReader?.readBytes(chunkSet.ChunkSize) || new Uint8Array(0);
 
       // Read the XML chunk into memory
       try {
@@ -397,9 +401,13 @@ export class FXP {
       programSet.ChunkSize = bf.binaryReader?.readInt32() || 0;
 
       // Even though the main FXP is BigEndian format the preset chunk is saved in LittleEndian format
+      // programSet.ChunkData =
+      //   bf.binaryReader?.readBytes(programSet.ChunkSize).reverse() ||
+      //   new Uint8Array(0);
+
+      // TODO: Fix this. The chunk data is not in LittleEndian format anymore?!
       programSet.ChunkData =
-        bf.binaryReader?.readBytes(programSet.ChunkSize).reverse() ||
-        new Uint8Array(0);
+        bf.binaryReader?.readBytes(programSet.ChunkSize) || new Uint8Array(0);
 
       // Read the XML chunk into memory
       try {

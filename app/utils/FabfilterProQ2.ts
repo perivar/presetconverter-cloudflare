@@ -1,5 +1,7 @@
 import { BinaryFile, ByteOrder } from "./BinaryFile";
 import { FabfilterProQBase } from "./FabfilterProQBase";
+import { FxSet } from "./FXP";
+import { ParameterType, VstPreset } from "./VstPreset";
 
 export enum ProQ2Shape {
   Bell = 0, // (default)
@@ -71,7 +73,7 @@ export class ProQ2Band {
   }
 }
 
-export class FabfilterProQ2 implements FabfilterProQBase {
+export class FabfilterProQ2 extends FabfilterProQBase {
   Bands: ProQ2Band[] = [];
   Version: number = 2; // Normally 2
   ParameterCount: number = 190; // Normally 190
@@ -101,34 +103,165 @@ export class FabfilterProQ2 implements FabfilterProQBase {
   SoloGain: number = 0; // 0.00
 
   // Ignore the Ex fields
-  // public float ExAutoGain;                   // (Other): 0.00
+  // public float ExAutoGain;
 
-  public ReadFFP(data: Uint8Array): boolean {
+  constructor() {
+    super();
+    this.Version = 2;
+    this.Vst3ClassID = VstPreset.VstClassIDs.FabFilterProQ2;
+    this.PlugInCategory = "Fx|EQ";
+    this.PlugInName = "FabFilter Pro-Q 2";
+    this.PlugInVendor = "FabFilter";
+  }
+
+  public initFromParameters(parameters?: number[], isIEEE = true): void {
+    if (parameters) {
+      this.initFromParameterArray(parameters, isIEEE);
+      return;
+    }
+
+    if (
+      this.FXP?.content instanceof FxSet &&
+      this.FXP.content.Programs?.length > 0
+    ) {
+      const program = this.FXP.content.Programs[0];
+      if (program.Parameters) {
+        this.initFromParameterArray([...program.Parameters], true);
+      }
+    } else if (this.Parameters) {
+      const floatParameters: number[] = [];
+      const sortedKeys = Array.from(this.Parameters.keys()).sort((a, b) => {
+        const numA = parseInt(a, 10);
+        const numB = parseInt(b, 10);
+        return !isNaN(numA) && !isNaN(numB) ? numA - numB : a.localeCompare(b);
+      });
+
+      for (const key of sortedKeys) {
+        const paramValue = this.Parameters.get(key);
+        if (paramValue?.Type === ParameterType.Number) {
+          floatParameters.push(paramValue.Value as number);
+        }
+      }
+
+      this.initFromParameterArray(floatParameters, false);
+    }
+  }
+
+  private initFromParameterArray(parameters: number[], isIEEE = true): void {
+    this.Bands = [];
+    let index = 0;
+
+    for (let i = 0; i < 24; i++) {
+      const band = new ProQ2Band();
+
+      band.Enabled = parameters[index++] === 1;
+
+      if (isIEEE) {
+        band.Frequency = FabfilterProQBase.freqConvertBack(
+          FabfilterProQBase.ieeeFloatToFrequencyFloat(parameters[index++])
+        );
+        band.Gain = parameters[index++] * 60 - 30;
+        band.Q = FabfilterProQBase.qConvertBack(parameters[index++]);
+      } else {
+        band.Frequency = FabfilterProQBase.freqConvertBack(parameters[index++]);
+        band.Gain = parameters[index++];
+        band.Q = FabfilterProQBase.qConvertBack(parameters[index++]);
+      }
+
+      const filterType = Math.floor(parameters[index++] * (isIEEE ? 7 : 1));
+      if (filterType >= 0 && filterType <= ProQ2Shape.TiltShelf) {
+        band.Shape = filterType;
+      } else {
+        band.Shape = ProQ2Shape.Bell;
+      }
+
+      const filterSlope = Math.floor(parameters[index++] * (isIEEE ? 8 : 1));
+      band.Slope = Math.min(Math.max(filterSlope, 0), ProQ2Slope.Slope96dB_oct);
+
+      const stereoPlacement = Math.floor(
+        parameters[index++] * (isIEEE ? 2 : 1)
+      );
+      if (
+        stereoPlacement >= 0 &&
+        stereoPlacement <= ProQ2StereoPlacement.Stereo
+      ) {
+        band.StereoPlacement = stereoPlacement;
+      } else {
+        band.StereoPlacement = ProQ2StereoPlacement.Stereo;
+      }
+
+      index++; // Skip unknown parameter
+
+      this.Bands.push(band);
+    }
+
+    if (parameters.length > 24 * 7) {
+      const remainingParams = parameters.slice(24 * 7);
+      if (remainingParams.length > 0) this.ProcessingMode = remainingParams[0];
+      if (remainingParams.length > 1)
+        this.ProcessingResolution = remainingParams[1];
+      if (remainingParams.length > 2) this.ChannelMode = remainingParams[2];
+      if (remainingParams.length > 3) this.GainScale = remainingParams[3];
+      if (remainingParams.length > 4) this.OutputLevel = remainingParams[4];
+      if (remainingParams.length > 5) this.OutputPan = remainingParams[5];
+      if (remainingParams.length > 6) this.ByPass = remainingParams[6];
+      if (remainingParams.length > 7)
+        this.OutputInvertPhase = remainingParams[7];
+      if (remainingParams.length > 8) this.AutoGain = remainingParams[8];
+      if (remainingParams.length > 9)
+        this.AnalyzerShowPreProcessing = remainingParams[9];
+      if (remainingParams.length > 10)
+        this.AnalyzerShowPostProcessing = remainingParams[10];
+      if (remainingParams.length > 11)
+        this.AnalyzerShowSidechain = remainingParams[11];
+      if (remainingParams.length > 12) this.AnalyzerRange = remainingParams[12];
+      if (remainingParams.length > 13)
+        this.AnalyzerResolution = remainingParams[13];
+      if (remainingParams.length > 14) this.AnalyzerSpeed = remainingParams[14];
+      if (remainingParams.length > 15) this.AnalyzerTilt = remainingParams[15];
+      if (remainingParams.length > 16)
+        this.AnalyzerFreeze = remainingParams[16];
+      if (remainingParams.length > 17) this.SpectrumGrab = remainingParams[17];
+      if (remainingParams.length > 18) this.DisplayRange = remainingParams[18];
+      if (remainingParams.length > 19) this.ReceiveMidi = remainingParams[19];
+      if (remainingParams.length > 20) this.SoloBand = remainingParams[20];
+      if (remainingParams.length > 21) this.SoloGain = remainingParams[21];
+    }
+
+    if (this.ChannelMode === ProQ2ChannelMode.MidSide) {
+      this.Bands.forEach(band => (band.ChannelMode = ProQ2ChannelMode.MidSide));
+    }
+  }
+
+  public readFFP(data: Uint8Array, doReadHeader = true): boolean {
     const bf = new BinaryFile(data, ByteOrder.LittleEndian);
+    if (!bf.binaryReader) return false;
 
-    const header = bf.binaryReader?.readString(4);
-    if (header !== "FQ2p") return false;
+    if (doReadHeader) {
+      const header = bf.binaryReader.readString(4);
+      if (header !== "FQ2p") return false;
+    }
 
-    this.Version = bf.binaryReader?.readUInt32() || 0;
-    this.ParameterCount = bf.binaryReader?.readUInt32() || 0;
+    this.Version = bf.binaryReader.readUInt32() || 0;
+    this.ParameterCount = bf.binaryReader.readUInt32() || 0;
 
     this.Bands = [];
     for (let i = 0; i < 24; i++) {
       const band = new ProQ2Band();
 
       // 1 = Enabled, 2 = Disabled
-      band.Enabled = bf.binaryReader?.readFloat32() == 1 ? true : false;
+      band.Enabled = bf.binaryReader.readFloat32() === 1;
 
-      const freq = bf.binaryReader?.readFloat32() || 0;
+      const freq = bf.binaryReader.readFloat32() || 0;
       band.Frequency = FabfilterProQBase.freqConvertBack(freq);
 
-      band.Gain = bf.binaryReader?.readFloat32() || 0; // actual gain in dB
+      band.Gain = bf.binaryReader.readFloat32() || 0;
 
-      const q = bf.binaryReader?.readFloat32() || 0;
+      const q = bf.binaryReader.readFloat32() || 0;
       band.Q = FabfilterProQBase.qConvertBack(q);
 
       // 0 - 7
-      const filterType = bf.binaryReader?.readFloat32();
+      const filterType = bf.binaryReader.readFloat32();
       switch (filterType) {
         case ProQ2Shape.Bell:
           band.Shape = ProQ2Shape.Bell;
@@ -158,7 +291,7 @@ export class FabfilterProQ2 implements FabfilterProQBase {
       }
 
       // 0 - 8
-      const filterSlope = bf.binaryReader?.readFloat32();
+      const filterSlope = bf.binaryReader.readFloat32();
       switch (filterSlope) {
         case ProQ2Slope.Slope6dB_oct:
           band.Slope = ProQ2Slope.Slope6dB_oct;
@@ -192,7 +325,7 @@ export class FabfilterProQ2 implements FabfilterProQBase {
       }
 
       // 0 = Left, 1 = Right, 2 = Stereo
-      const filterStereoPlacement = bf.binaryReader?.readFloat32();
+      const filterStereoPlacement = bf.binaryReader.readFloat32();
       switch (filterStereoPlacement) {
         case ProQ2StereoPlacement.LeftOrMid:
           band.StereoPlacement = ProQ2StereoPlacement.LeftOrMid;
@@ -215,35 +348,35 @@ export class FabfilterProQ2 implements FabfilterProQBase {
     // read the remaining floats
     // int remainingParameterCount = ParameterCount - 7 * Bands.Count;
     try {
-      this.ProcessingMode = bf.binaryReader?.readFloat32() || 0; // Zero Latency: 0.0, Natural Phase: 1.0, Linear Phase: 2.0
-      this.ProcessingResolution = bf.binaryReader?.readFloat32() || 0; // 0 - 4, Medium
-      this.ChannelMode = bf.binaryReader?.readFloat32() || 0; // 0 = Left/Right, 1 = Mid/Side
-      this.GainScale = bf.binaryReader?.readFloat32() || 0; // 100%
-      this.OutputLevel = bf.binaryReader?.readFloat32() || 0; // 0.0 dB, -1 to 1 (- Infinity to +36 dB , 0 = 0 dB)
-      this.OutputPan = bf.binaryReader?.readFloat32() || 0; // Left 0 dB, Right: 0 dB, -1 to 1 (0 = middle)
-      this.ByPass = bf.binaryReader?.readFloat32() || 0; // Not Bypassed
-      this.OutputInvertPhase = bf.binaryReader?.readFloat32() || 0; // Normal
-      this.AutoGain = bf.binaryReader?.readFloat32() || 0; // Off
-      this.AnalyzerShowPreProcessing = bf.binaryReader?.readFloat32() || 0; // Disabled - 0: Off, 1: On
-      this.AnalyzerShowPostProcessing = bf.binaryReader?.readFloat32() || 0; // Disabled - 0: Off, 1: On
-      this.AnalyzerShowSidechain = bf.binaryReader?.readFloat32() || 0; // Disabled - 0: Off, 1: On
-      this.AnalyzerRange = bf.binaryReader?.readFloat32() || 0; // Analyzer Range in dB. 0.0: 60dB, 1.0: 90dB, 2.0: 120dB
-      this.AnalyzerResolution = bf.binaryReader?.readFloat32() || 0; // Analyzer Resolution. 0.0: Low, 1.0: Medium, 2.0: High, 3.00: Maximum
-      this.AnalyzerSpeed = bf.binaryReader?.readFloat32() || 0; // Analyzer Speed. 0.0: Very Slow, 1.0: Slow, 2.0: Medium, 3.0 Fast, 4.0: Very Fast
-      this.AnalyzerTilt = bf.binaryReader?.readFloat32() || 0; // Analyzer Tilt in dB/oct. 0.0: 0.0, 1.0: 1.5, 2.0: 3.0, 3.0: 4.5, 4.0: 6.0
-      this.AnalyzerFreeze = bf.binaryReader?.readFloat32() || 0; // 0: Off, 1: On
-      this.SpectrumGrab = bf.binaryReader?.readFloat32() || 0; // Enabled
-      this.DisplayRange = bf.binaryReader?.readFloat32() || 0; // 12dB
-      this.ReceiveMidi = bf.binaryReader?.readFloat32() || 0; // Enabled
-      this.SoloBand = bf.binaryReader?.readFloat32() || 0; // -1
-      this.SoloGain = bf.binaryReader?.readFloat32() || 0; // 0.00
+      this.ProcessingMode = bf.binaryReader.readFloat32() || 0; // Zero Latency: 0.0, Natural Phase: 1.0, Linear Phase: 2.0
+      this.ProcessingResolution = bf.binaryReader.readFloat32() || 0; // 0 - 4, Medium
+      this.ChannelMode = bf.binaryReader.readFloat32() || 0; // 0 = Left/Right, 1 = Mid/Side
+      this.GainScale = bf.binaryReader.readFloat32() || 0; // 100%
+      this.OutputLevel = bf.binaryReader.readFloat32() || 0; // 0.0 dB, -1 to 1 (- Infinity to +36 dB , 0 = 0 dB)
+      this.OutputPan = bf.binaryReader.readFloat32() || 0; // Left 0 dB, Right: 0 dB, -1 to 1 (0 = middle)
+      this.ByPass = bf.binaryReader.readFloat32() || 0; // Not Bypassed
+      this.OutputInvertPhase = bf.binaryReader.readFloat32() || 0; // Normal
+      this.AutoGain = bf.binaryReader.readFloat32() || 0; // Off
+      this.AnalyzerShowPreProcessing = bf.binaryReader.readFloat32() || 0; // Disabled - 0: Off, 1: On
+      this.AnalyzerShowPostProcessing = bf.binaryReader.readFloat32() || 0; // Disabled - 0: Off, 1: On
+      this.AnalyzerShowSidechain = bf.binaryReader.readFloat32() || 0; // Disabled - 0: Off, 1: On
+      this.AnalyzerRange = bf.binaryReader.readFloat32() || 0; // Analyzer Range in dB. 0.0: 60dB, 1.0: 90dB, 2.0: 120dB
+      this.AnalyzerResolution = bf.binaryReader.readFloat32() || 0; // Analyzer Resolution. 0.0: Low, 1.0: Medium, 2.0: High, 3.00: Maximum
+      this.AnalyzerSpeed = bf.binaryReader.readFloat32() || 0; // Analyzer Speed. 0.0: Very Slow, 1.0: Slow, 2.0: Medium, 3.0 Fast, 4.0: Very Fast
+      this.AnalyzerTilt = bf.binaryReader.readFloat32() || 0; // Analyzer Tilt in dB/oct. 0.0: 0.0, 1.0: 1.5, 2.0: 3.0, 3.0: 4.5, 4.0: 6.0
+      this.AnalyzerFreeze = bf.binaryReader.readFloat32() || 0; // 0: Off, 1: On
+      this.SpectrumGrab = bf.binaryReader.readFloat32() || 0; // Enabled
+      this.DisplayRange = bf.binaryReader.readFloat32() || 0; // 12dB
+      this.ReceiveMidi = bf.binaryReader.readFloat32() || 0; // Enabled
+      this.SoloBand = bf.binaryReader.readFloat32() || 0; // -1
+      this.SoloGain = bf.binaryReader.readFloat32() || 0; // 0.00
     } catch (e) {
       console.error("Error reading additional floats:", e);
     }
 
     // check if mid/side
-    if (this.ChannelMode === 1) {
-      this.Bands.forEach(b => (b.ChannelMode = ProQ2ChannelMode.MidSide));
+    if (this.ChannelMode === ProQ2ChannelMode.MidSide) {
+      this.Bands.forEach(band => (band.ChannelMode = ProQ2ChannelMode.MidSide));
     }
 
     return true;
@@ -251,92 +384,130 @@ export class FabfilterProQ2 implements FabfilterProQBase {
 
   public writeFFP(): Uint8Array | undefined {
     const bf = new BinaryFile(undefined, ByteOrder.LittleEndian);
+    if (!bf.binaryWriter) return undefined;
 
     // Write the header
-    bf.binaryWriter?.writeString("FQ2p");
-    bf.binaryWriter?.writeUInt32(this.Version);
+    bf.binaryWriter.writeString("FQ2p");
+    bf.binaryWriter.writeUInt32(this.Version);
 
     // Write the bands content
     const bandsContent = this.getBandsContent();
-    if (bandsContent) {
-      bf.binaryWriter?.writeBytes(bandsContent);
-    } else {
-      console.warn("No bands content to write.");
-    }
+    if (!bandsContent) return undefined;
 
-    // Retrieve the buffer and convert it to Uint8Array
-    const buffer = bf.binaryWriter?.getBuffer();
-    if (!buffer) {
-      console.error("Failed to get buffer from binary writer.");
-      return undefined; // Explicitly return undefined if the buffer is not available
-    }
-
-    return new Uint8Array(buffer);
+    bf.binaryWriter.writeBytes(bandsContent);
+    const buffer = bf.binaryWriter.getBuffer();
+    return buffer ? new Uint8Array(buffer) : undefined;
   }
 
-  private getBandsContent(): ArrayBuffer | undefined {
+  private getBandsContent(): Uint8Array | undefined {
     const bf = new BinaryFile(undefined, ByteOrder.LittleEndian);
+    if (!bf.binaryWriter) return undefined;
 
     // write total parameter count
     // 24 bands with 7 parameters each = 168
     // pluss the 22 parameters at the end
-    bf.binaryWriter?.writeUInt32(24 * 7 + 22);
+    bf.binaryWriter.writeUInt32(24 * 7 + 22);
 
     for (let i = 0; i < 24; i++) {
       if (i < this.Bands.length) {
         const band = this.Bands[i];
-
-        bf.binaryWriter?.writeFloat32(band.Enabled ? 1 : 2);
-
-        const freq = FabfilterProQBase.freqConvert(band.Frequency);
-        bf.binaryWriter?.writeFloat32(freq);
-
-        bf.binaryWriter?.writeFloat32(band.Gain);
-
-        const q = FabfilterProQBase.qConvert(band.Q);
-        bf.binaryWriter?.writeFloat32(q);
-
-        bf.binaryWriter?.writeFloat32(band.Shape);
-        bf.binaryWriter?.writeFloat32(band.Slope);
-        bf.binaryWriter?.writeFloat32(band.StereoPlacement);
+        bf.binaryWriter.writeFloat32(band.Enabled ? 1 : 2);
+        bf.binaryWriter.writeFloat32(
+          FabfilterProQBase.freqConvert(band.Frequency)
+        );
+        bf.binaryWriter.writeFloat32(band.Gain);
+        bf.binaryWriter.writeFloat32(FabfilterProQBase.qConvert(band.Q));
+        bf.binaryWriter.writeFloat32(band.Shape);
+        bf.binaryWriter.writeFloat32(band.Slope);
+        bf.binaryWriter.writeFloat32(band.StereoPlacement);
       } else {
-        bf.binaryWriter?.writeFloat32(2);
-        bf.binaryWriter?.writeFloat32(FabfilterProQBase.freqConvert(1000));
-        bf.binaryWriter?.writeFloat32(0);
-        bf.binaryWriter?.writeFloat32(FabfilterProQBase.qConvert(1));
-        bf.binaryWriter?.writeFloat32(ProQ2Shape.Bell);
-        bf.binaryWriter?.writeFloat32(ProQ2Slope.Slope24dB_oct);
-        bf.binaryWriter?.writeFloat32(ProQ2StereoPlacement.Stereo);
+        bf.binaryWriter.writeFloat32(2);
+        bf.binaryWriter.writeFloat32(FabfilterProQBase.freqConvert(1000));
+        bf.binaryWriter.writeFloat32(0);
+        bf.binaryWriter.writeFloat32(FabfilterProQBase.qConvert(1));
+        bf.binaryWriter.writeFloat32(ProQ2Shape.Bell);
+        bf.binaryWriter.writeFloat32(ProQ2Slope.Slope24dB_oct);
+        bf.binaryWriter.writeFloat32(ProQ2StereoPlacement.Stereo);
       }
     }
 
-    // write the remaining floats
-    bf.binaryWriter?.writeFloat32(this.ProcessingMode); // Zero Latency: 0.0, Natural Phase: 1.0, Linear Phase: 2.0
-    bf.binaryWriter?.writeFloat32(this.ProcessingResolution); // 0 - 4, Medium
-    bf.binaryWriter?.writeFloat32(this.ChannelMode); // 0 = Left/Right, 1 = Mid/Side
-    bf.binaryWriter?.writeFloat32(this.GainScale); // 100%
-    bf.binaryWriter?.writeFloat32(this.OutputLevel); // 0.0 dB, -1 to 1 (- Infinity to +36 dB , 0 = 0 dB)
-    bf.binaryWriter?.writeFloat32(this.OutputPan); // Left 0 dB, Right: 0 dB, -1 to 1 (0 = middle)
-    bf.binaryWriter?.writeFloat32(this.ByPass); // Not Bypassed
-    bf.binaryWriter?.writeFloat32(this.OutputInvertPhase); // Normal
-    bf.binaryWriter?.writeFloat32(this.AutoGain); // Off
-    bf.binaryWriter?.writeFloat32(this.AnalyzerShowPreProcessing); // Disabled - 0: Off, 1: On
-    bf.binaryWriter?.writeFloat32(this.AnalyzerShowPostProcessing); // Disabled - 0: Off, 1: On
-    bf.binaryWriter?.writeFloat32(this.AnalyzerShowSidechain); // Disabled - 0: Off, 1: On
-    bf.binaryWriter?.writeFloat32(this.AnalyzerRange); // Analyzer Range in dB. 0.0: 60dB, 1.0: 90dB, 2.0: 120dB
-    bf.binaryWriter?.writeFloat32(this.AnalyzerResolution); // Analyzer Resolution. 0.0: Low, 1.0: Medium, 2.0: High, 3.00: Maximum
-    bf.binaryWriter?.writeFloat32(this.AnalyzerSpeed); // Analyzer Speed. 0.0: Very Slow, 1.0: Slow, 2.0: Medium, 3.0 Fast, 4.0: Very Fast
-    bf.binaryWriter?.writeFloat32(this.AnalyzerTilt); // Analyzer Tilt in dB/oct. 0.0: 0.0, 1.0: 1.5, 2.0: 3.0, 3.0: 4.5, 4.0: 6.0
-    bf.binaryWriter?.writeFloat32(this.AnalyzerFreeze); // 0: Off, 1: On
-    bf.binaryWriter?.writeFloat32(this.SpectrumGrab); // Enabled
-    bf.binaryWriter?.writeFloat32(this.DisplayRange); // 12dB
-    bf.binaryWriter?.writeFloat32(this.ReceiveMidi); // Enabled
-    bf.binaryWriter?.writeFloat32(this.SoloBand); // -1
-    bf.binaryWriter?.writeFloat32(this.SoloGain); // 0.00
+    bf.binaryWriter.writeFloat32(this.ProcessingMode);
+    bf.binaryWriter.writeFloat32(this.ProcessingResolution);
+    bf.binaryWriter.writeFloat32(this.ChannelMode);
+    bf.binaryWriter.writeFloat32(this.GainScale);
+    bf.binaryWriter.writeFloat32(this.OutputLevel);
+    bf.binaryWriter.writeFloat32(this.OutputPan);
+    bf.binaryWriter.writeFloat32(this.ByPass);
+    bf.binaryWriter.writeFloat32(this.OutputInvertPhase);
+    bf.binaryWriter.writeFloat32(this.AutoGain);
 
-    // Don't write the ex fields
-    // bf.binaryWriter?.writeFloat32(this.ExAutoGain);                   // (Other)
+    bf.binaryWriter.writeFloat32(this.AnalyzerShowPreProcessing);
+    bf.binaryWriter.writeFloat32(this.AnalyzerShowPostProcessing);
+    bf.binaryWriter.writeFloat32(this.AnalyzerShowSidechain);
+    bf.binaryWriter.writeFloat32(this.AnalyzerRange);
+    bf.binaryWriter.writeFloat32(this.AnalyzerResolution);
+    bf.binaryWriter.writeFloat32(this.AnalyzerSpeed);
+    bf.binaryWriter.writeFloat32(this.AnalyzerTilt);
+    bf.binaryWriter.writeFloat32(this.AnalyzerFreeze);
+    bf.binaryWriter.writeFloat32(this.SpectrumGrab);
+    bf.binaryWriter.writeFloat32(this.DisplayRange);
+    bf.binaryWriter.writeFloat32(this.ReceiveMidi);
+    bf.binaryWriter.writeFloat32(this.SoloBand);
+    bf.binaryWriter.writeFloat32(this.SoloGain);
 
-    return bf.binaryWriter?.getBuffer();
+    const buffer = bf.binaryWriter.getBuffer();
+    return buffer ? new Uint8Array(buffer) : undefined;
+  }
+
+  protected initCompChunkData(): void {
+    if (this.FXP) {
+      this.setCompChunkDataFromFXP(this.FXP);
+      return;
+    }
+
+    const bf = new BinaryFile(undefined, ByteOrder.LittleEndian);
+    if (!bf.binaryWriter) return;
+
+    bf.binaryWriter.writeString("FabF");
+    bf.binaryWriter.writeUInt32(this.Version);
+
+    const presetName =
+      this.getStringParameter("PresetName") ?? "Default Setting";
+    bf.binaryWriter.writeUInt32(presetName.length);
+    bf.binaryWriter.writeString(presetName);
+    bf.binaryWriter.writeUInt32(0);
+
+    const bandsContent = this.getBandsContent();
+    if (bandsContent) {
+      bf.binaryWriter.writeBytes(bandsContent);
+    }
+
+    bf.binaryWriter.writeInt32(1);
+    bf.binaryWriter.writeInt32(1);
+
+    const buffer = bf.binaryWriter.getBuffer();
+    this.CompChunkData = buffer ? new Uint8Array(buffer) : new Uint8Array();
+  }
+
+  protected initContChunkData(): void {
+    if (this.FXP) return;
+
+    const bf = new BinaryFile(undefined, ByteOrder.LittleEndian);
+    if (!bf.binaryWriter) return;
+
+    bf.binaryWriter.writeString("FFed");
+    bf.binaryWriter.writeFloat32(0.0);
+    bf.binaryWriter.writeFloat32(1.0);
+
+    const buffer = bf.binaryWriter.getBuffer();
+    this.ContChunkData = buffer ? new Uint8Array(buffer) : new Uint8Array();
+  }
+
+  protected preparedForWriting(): boolean {
+    this.initCompChunkData();
+    this.initContChunkData();
+    this.initInfoXml();
+    this.calculateBytePositions();
+    return true;
   }
 }

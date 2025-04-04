@@ -2,7 +2,42 @@
   "convert": {
     "title": "Frontpage"
   },
+  "conversion": {
+    "convertButton": "Convert",
+    "converting": "Converting...",
+    "selectTarget": "Select target format",
+    "selectTargetPlaceholder": "Select a format",
+    "title": "Convert to another format"
+  },
   "description": "Convert preset files",
+  "dropzone": {
+    "dropHere": "Drop the file here",
+    "loading": "Loading...",
+    "prompt": "Drag and drop a preset file here, or click to select",
+    "supportedFormats": "Supported formats: .ffp, .fxp, .vstpreset",
+    "title": "Upload Preset"
+  },
+  "error": {
+    "conversionError": "Error during conversion: {{message}}",
+    "conversionFailed": "Conversion failed",
+    "noFileSelected": "No file selected",
+    "parsingError": "Error parsing {{fileName}}: {{message}}",
+    "readFileError": "Error reading {{fileName}}",
+    "tryAgain": "Try Again",
+    "unsupportedFormat": "Unsupported format: {{fileName}}"
+  },
+  "fileInfo": {
+    "bands": "Bands",
+    "detectedFormat": "Detected Format",
+    "fileName": "File Name",
+    "size": "Size",
+    "title": "File Information"
+  },
+  "formats": {
+    "fabfilterProQ1": "FabFilter Pro-Q",
+    "fabfilterProQ2": "FabFilter Pro-Q 2",
+    "fabfilterProQ3": "FabFilter Pro-Q 3"
+  },
   "help": {
     "title": "Help"
   },
