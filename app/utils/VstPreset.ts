@@ -447,8 +447,6 @@ export abstract class VstPreset implements Preset {
         // Switch back to LittleEndian if necessary for the main VST3 structure,
         // but FXP itself is BigEndian, so we write its bytes directly.
         // The VstW container itself doesn't dictate the endianness of the contained data.
-        // However, the C# code writes the FXP data using the BinaryFile's current endianness,
-        // which is BigEndian in that context. Let's stick to that.
         writer.writeBytes(fxpData);
 
         // Get the combined buffer
@@ -784,9 +782,7 @@ export abstract class VstPreset implements Preset {
     // OK, seems to be a valid fxb or fxp chunk.
     // Get chunk size and add 8 bytes to include all bytes from 'CcnK' and the 4 chunk-size bytes
     // Note: FXP chunks use BigEndian byte order
-    const fxpChunkSizeBytes = reader.readBytes(4);
-    const fxpChunkSize =
-      new DataView(fxpChunkSizeBytes.buffer).getUint32(0, false) + 8; // false = big-endian
+    const fxpChunkSize = BinaryFile.readUInt32(reader, ByteOrder.BigEndian) + 8;
 
     // Read magic value to determine chunk type (FXP/FXB)
     const fxpMagicChunkID = reader.readString(4);
