@@ -9,7 +9,7 @@ export abstract class FabfilterProQBase extends VstPreset {
     super();
   }
 
-  abstract initFromParameters(parameters: number[], isIEEE?: boolean): void;
+  abstract initFromParameters(parameters?: number[], isIEEE?: boolean): void;
   abstract Bands: { Enabled: boolean }[];
 
   // Abstract method for writing Fabfilter Pro Q preset files.

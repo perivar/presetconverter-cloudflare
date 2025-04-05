@@ -1,7 +1,11 @@
 import * as fs from "fs";
 import * as path from "path";
 
+import { FabfilterProQ } from "../FabfilterProQ"; // Added import
+import { FabfilterProQ2 } from "../FabfilterProQ2"; // Added import
 import { FabfilterProQ3 } from "../FabfilterProQ3";
+import { FabfilterProQBase } from "../FabfilterProQBase"; // Added import for type hint
+import { FXP } from "../FXP";
 import { VstPresetFactory } from "../VstPresetFactory";
 import { areTypedArraysEqual, toPlainObject } from "./helpers/testUtils";
 
@@ -380,6 +384,61 @@ test("FabfilterProQ3-readFFP-Zedd-array", () => {
   if (uint8ArrayWrite) {
     expect(areTypedArraysEqual(uint8ArrayRead, uint8ArrayWrite)).toBe(true);
   }
+});
+
+test("FabfilterProQ3-compare-FXP-FFP-HighBass", () => {
+  // Load and parse FXP
+  const fxpPath = path.join(
+    __dirname,
+    "data/Fabfilter/Q3-Fabfilter Pro-Q 3 High Bass.fxp"
+  );
+  const fxpFileContent = fs.readFileSync(fxpPath);
+  const fxpUint8Array = new Uint8Array(fxpFileContent);
+  const fxp = new FXP(fxpUint8Array);
+  let fxpProQ: FabfilterProQBase | null = null; // Use base class for type hint
+
+  // Instantiate correct class based on FxID
+  switch (fxp.content?.FxID) {
+    case "FPQr":
+      fxpProQ = new FabfilterProQ();
+      break;
+    case "FQ2p":
+      fxpProQ = new FabfilterProQ2();
+      break;
+    case "FQ3p":
+      fxpProQ = new FabfilterProQ3();
+      break;
+    default:
+      throw new Error(`Unknown Fabfilter FxID: ${fxp.content?.FxID}`);
+  }
+
+  // add the fxp object to the fxpProQ object
+  fxpProQ.FXP = fxp;
+
+  // Initialize from FXP parameters
+  fxpProQ.initFromParameters();
+
+  expect(fxpProQ).toBeInstanceOf(FabfilterProQ3); // Keep this check as we know the test file is Q3
+  if (DO_DEBUG_OBJECT)
+    console.log(
+      `FXP Bands (${fxpProQ.constructor.name}):`,
+      JSON.stringify(fxpProQ.Bands, null, 2)
+    );
+
+  // Load and parse FFP
+  const ffpPath = path.join(
+    __dirname,
+    "data/Fabfilter/Q3-Fabfilter Pro-Q 3 High Bass.ffp"
+  );
+  const ffpFileContent = fs.readFileSync(ffpPath);
+  const ffpUint8Array = new Uint8Array(ffpFileContent);
+  const ffpProQ = new FabfilterProQ3();
+  ffpProQ.readFFP(ffpUint8Array);
+  if (DO_DEBUG_OBJECT)
+    console.log("FFP Bands:", JSON.stringify(ffpProQ.Bands, null, 2));
+
+  // Compare Bands
+  expect(toPlainObject(fxpProQ.Bands)).toEqual(toPlainObject(ffpProQ.Bands));
 });
 
 test("FabfilterProQ3-readVstPreset-Zedd-array", () => {

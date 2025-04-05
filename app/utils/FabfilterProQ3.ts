@@ -110,7 +110,6 @@ export class FabfilterProQ3 extends FabfilterProQBase {
         try {
           const header = bf.binaryReader?.readString(4);
           if (header === "FFBS") {
-            const ffbVersion = bf.binaryReader?.readUInt32();
             this.readFFPInternal(bf);
           } else {
             console.warn(
