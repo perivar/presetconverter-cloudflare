@@ -23,17 +23,17 @@ export class SteinbergVstPreset extends VstPreset {
   protected preparedForWriting(): boolean {
     // unless the Comp Chunk Data has already been set
     // set it here
-    if (!this.hasCompChunkData()) {
-      this.initCompChunkData();
-    }
+    // if (!this.hasCompChunkData()) {
+    //   this.initCompChunkData();
+    // }
 
     // ignore the Cont Chunk Data
 
     // unless the Info Xml Data has already been set
     // set it here
-    if (!this.hasInfoXml()) {
-      this.initInfoXml();
-    }
+    // if (!this.hasInfoXml()) {
+    //   this.initInfoXml();
+    // }
 
     this.calculateBytePositions();
     return true;

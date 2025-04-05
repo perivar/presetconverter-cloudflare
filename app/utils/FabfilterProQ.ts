@@ -221,7 +221,7 @@ export class FabfilterProQ extends FabfilterProQBase {
 
     if (doReadHeader) {
       const header = bf.binaryReader.readString(4);
-      if (header !== "FQ2p") return false;
+      if (header !== "FPQr") return false;
     }
 
     this.Version = bf.binaryReader.readUInt32() || 0;

@@ -1,3 +1,5 @@
+import { XMLParser } from "fast-xml-parser";
+
 import { BinaryFile, ByteOrder } from "./BinaryFile";
 import { BinaryReader } from "./BinaryReader";
 import { FXP } from "./FXP";
@@ -460,12 +462,12 @@ export abstract class VstPreset implements Preset {
 
   protected initInfoXml(): void {
     const xmlString = `<?xml version="1.0" encoding="utf-8"?>\r
-<MetaInfo>\r\n
-\t<Attribute id="MediaType" value="VstPreset" type="string" flags="writeProtected"/>\r\n
-\t<Attribute id="PlugInCategory" value="${this.PlugInCategory || "Unknown"}" type="string" flags="writeProtected"/>\r\n
-\t<Attribute id="PlugInName" value="${this.PlugInName || "Unknown"}" type="string" flags="writeProtected"/>\r\n
-\t<Attribute id="PlugInVendor" value="${this.PlugInVendor || "Unknown"}" type="string" flags="writeProtected"/>\r\n
-</MetaInfo>\r\n
+<MetaInfo>\r
+\t<Attribute id="MediaType" value="VstPreset" type="string" flags="writeProtected"/>\r
+\t<Attribute id="PlugInCategory" value="${this.PlugInCategory || "Unknown"}" type="string" flags="writeProtected"/>\r
+\t<Attribute id="PlugInName" value="${this.PlugInName || "Unknown"}" type="string" flags="writeProtected"/>\r
+\t<Attribute id="PlugInVendor" value="${this.PlugInVendor || "Unknown"}" type="string" flags="writeProtected"/>\r
+</MetaInfo>\r
 `;
 
     this.InfoXml = xmlString;
@@ -531,7 +533,7 @@ export abstract class VstPreset implements Preset {
     }
   }
 
-  async read(data: Uint8Array): Promise<boolean> {
+  read(data: Uint8Array): boolean {
     try {
       const bf = new BinaryFile(data, ByteOrder.LittleEndian);
       const reader = bf.binaryReader;
@@ -574,6 +576,12 @@ export abstract class VstPreset implements Preset {
       // Read chunk entries
       const chunks = [];
       for (let i = 0; i < numChunks; i++) {
+        //  +----------------------+
+        //  | chunk id             |    4 Bytes
+        //  | offset to chunk data |    8 Bytes (int64)
+        //  | size of chunk data   |    8 Bytes (int64)
+        //  +----------------------+
+
         const chunkId = reader.readString(4);
         const chunkOffset = Number(reader.readInt64());
         const chunkSize = Number(reader.readInt64());
@@ -595,9 +603,15 @@ export abstract class VstPreset implements Preset {
         reader.seek(chunk.offset);
 
         if (chunk.id === VstPreset.CHUNK_INFO) {
-          this.InfoXml = reader.readString(reader.readInt32());
+          this.InfoXmlStartPos = chunk.offset;
+          this.InfoXmlChunkSize = chunk.size;
+          this.tryReadInfoXml(reader);
         } else if (chunk.id === VstPreset.CHUNK_COMP) {
-          await this.readCompData(reader, chunk.size);
+          try {
+            this.readCompData(reader, chunk.size);
+          } catch (error) {
+            console.warn(error);
+          }
         } else if (chunk.id === VstPreset.CHUNK_CONT) {
           this.ContChunkData = reader.readBytes(chunk.size);
         }
@@ -611,25 +625,88 @@ export abstract class VstPreset implements Preset {
     }
   }
 
-  /**
-   * Reads and processes component state data from the preset file.
-   * Handles different chunk types including:
-   * - Standard Data chunks ("Data")
-   * - VST2 wrapper chunks ("VstW")
-   * - VST2 preset chunks ("CcnK"/FXP)
-   * - FabFilter binary state chunks ("FFBS")
-   * @param reader - Binary reader positioned at start of component data
-   * @param chunkSize - Size of the component data chunk
-   */
-  protected async readCompData(
-    reader: BinaryReader,
-    chunkSize: number
-  ): Promise<void> {
-    // Import necessary classes locally to avoid circular dependencies
-    const { FabfilterProQ } = await import("./FabfilterProQ");
-    const { FabfilterProQ2 } = await import("./FabfilterProQ2");
-    const { FabfilterProQ3 } = await import("./FabfilterProQ3");
+  protected tryReadInfoXml(reader: BinaryReader): void {
+    // Get current position before reading XML
+    const currentPos = reader.getPosition();
 
+    // Seek to start of meta xml
+    const skipBytes = this.InfoXmlStartPos - currentPos;
+    if (skipBytes > 0) {
+      console.log(`Skipping bytes: ${skipBytes}`);
+      reader.seek(this.InfoXmlStartPos);
+    }
+
+    // Read XML bytes with BOM
+    this.InfoXmlBytesWithBOM = reader.readBytes(Number(this.InfoXmlChunkSize));
+
+    // Convert to string
+    const textDecoder = new TextDecoder("utf-8");
+    this.InfoXml = textDecoder.decode(this.InfoXmlBytesWithBOM);
+
+    // Parse XML and extract plugin info
+    this.initFromInfoXml();
+  }
+
+  protected initFromInfoXml(): void {
+    if (!this.InfoXml) return;
+
+    // Remove BOM if present
+    const xmlString = this.removeByteOrderMark(this.InfoXml);
+
+    try {
+      const parser = new XMLParser({
+        ignoreAttributes: false,
+        attributeNamePrefix: "",
+        parseAttributeValue: true,
+      });
+
+      const result = parser.parse(xmlString);
+
+      // MetaInfo contains an array of Attribute elements
+      const attributes = result.MetaInfo.Attribute;
+      if (!Array.isArray(attributes)) return;
+
+      // Process each attribute
+      for (const attr of attributes) {
+        if (attr.id === "PlugInCategory") {
+          this.PlugInCategory = attr.value;
+        } else if (attr.id === "PlugInName") {
+          this.PlugInName = attr.value;
+        } else if (attr.id === "PlugInVendor") {
+          this.PlugInVendor = attr.value;
+        }
+      }
+    } catch (error) {
+      console.error("Error parsing Info XML:", error);
+    }
+  }
+
+  protected removeByteOrderMark(value: string): string {
+    // Convert string to UTF-8 bytes
+    const encoder = new TextEncoder();
+    let bytes = encoder.encode(value);
+
+    // Remove BOM from start if present
+    if (bytes[0] === 0xef && bytes[1] === 0xbb && bytes[2] === 0xbf) {
+      bytes = bytes.slice(3);
+    }
+
+    // Remove BOM from end if present
+    const byteLength = bytes.length;
+    if (
+      bytes[byteLength - 3] === 0xef &&
+      bytes[byteLength - 2] === 0xbb &&
+      bytes[byteLength - 1] === 0xbf
+    ) {
+      bytes = bytes.slice(0, -3);
+    }
+
+    // Convert back to string
+    const decoder = new TextDecoder("utf-8");
+    return decoder.decode(bytes);
+  }
+
+  protected readCompData(reader: BinaryReader, chunkSize: number): void {
     // First 4 bytes identify the chunk type (ASCII)
     const dataChunkIDBytes = reader.readBytes(4);
     const dataChunkID = String.fromCharCode(...dataChunkIDBytes);
@@ -638,9 +715,7 @@ export abstract class VstPreset implements Preset {
     if (dataChunkID === "VstW") {
       // Handle VstW chunk (VST2 wrapper)
       // Get the current position and read the next 12 bytes for BigEndian processing
-      const currentPosition = reader.getPosition();
       const headerBytes = reader.readBytes(12);
-      reader.seek(currentPosition);
 
       // Create a temporary BigEndian reader for the header
       const tempBf = new BinaryFile(headerBytes, ByteOrder.BigEndian);
@@ -657,66 +732,91 @@ export abstract class VstPreset implements Preset {
         );
       }
 
-      // Skip header in main reader
-      reader.seekOffset(12);
-      const remainingSize = chunkSize - 16;
-      this.CompChunkData = reader.readBytes(remainingSize);
+      // const remainingSize = chunkSize - 16;
+      // const chunkData = reader.readBytes(remainingSize);
+      // this.CompChunkData = new Uint8Array([...dataChunkIDBytes, ...chunkData]);
     } else if (dataChunkID === "FFBS") {
       // FFBS = FabFilter Binary State (proprietary format)
       // Just store the data since we can't parse it in the abstract class
       // Determine which FabFilter Pro-Q version to use based on vst3ClassId
       console.log("Found FabFilter binary state data");
 
-      const chunkData = reader.readBytes(chunkSize);
-      let success = false;
+      // let success = false;
 
-      // Check FabFilter Pro-Q version based on class ID
-      if (
-        // this.Vst3ClassID.includes(VstPreset.VstClassIDs.FabfilterProQ3VST3) ||
-        this.Vst3ClassID.includes(VstPreset.VstClassIDs.FabFilterProQ3)
-      ) {
-        const proQ3 = new FabfilterProQ3();
-        success = proQ3.readFFP(chunkData, false);
-        console.log("Loaded FabFilter Pro-Q 3 preset");
-      } else if (
-        this.Vst3ClassID.includes(VstPreset.VstClassIDs.FabFilterProQ2)
-      ) {
-        const proQ2 = new FabfilterProQ2();
-        success = proQ2.readFFP(chunkData, false);
-        console.log("Loaded FabFilter Pro-Q 2 preset");
-      } else if (
-        this.Vst3ClassID.includes(VstPreset.VstClassIDs.FabFilterProQ)
-      ) {
-        const proQ = new FabfilterProQ();
-        success = proQ.readFFP(chunkData, false);
-        console.log("Loaded FabFilter Pro-Q 1 preset");
-      }
-      this.CompChunkData = chunkData;
+      // // Check FabFilter Pro-Q version based on class ID
+      // if (
+      //   // this.Vst3ClassID.includes(VstPreset.VstClassIDs.FabfilterProQ3VST3) ||
+      //   this.Vst3ClassID.includes(VstPreset.VstClassIDs.FabFilterProQ3)
+      // ) {
+      //   const proQ3 = new FabfilterProQ3();
+      //   success = proQ3.readFFP(chunkData, false);
+      //   console.log("Loaded FabFilter Pro-Q 3 preset");
+      // } else if (
+      //   this.Vst3ClassID.includes(VstPreset.VstClassIDs.FabFilterProQ2)
+      // ) {
+      //   const proQ2 = new FabfilterProQ2();
+      //   success = proQ2.readFFP(chunkData, false);
+      //   console.log("Loaded FabFilter Pro-Q 2 preset");
+      // } else if (
+      //   this.Vst3ClassID.includes(VstPreset.VstClassIDs.FabFilterProQ)
+      // ) {
+      //   const proQ = new FabfilterProQ();
+      //   success = proQ.readFFP(chunkData, false);
+      //   console.log("Loaded FabFilter Pro-Q 1 preset");
+      // }
+
+      const remainingSize = chunkSize - 4;
+      const chunkData = reader.readBytes(remainingSize);
+      this.CompChunkData = new Uint8Array([...dataChunkIDBytes, ...chunkData]);
     } else {
       // Standard chunk format:
-      // - dataSize (4 bytes): Total size including componentDataSize
-      // - componentDataSize (4 bytes): Size of actual component data
-      // - uncompressedSize (4 bytes, unused): Reserved
-      // - chunkData (componentDataSize bytes): The actual data
-      const dataSize = reader.readInt32();
-      const componentDataSize = reader.readInt32();
-      reader.readInt32();
-      const chunkData = reader.readBytes(componentDataSize);
-
-      if (dataChunkID === VstPreset.CHUNK_DATA) {
-        // Handle standard parameter data chunk
-        this.parseParameterChunk(chunkData);
-      } else if (dataChunkID === "CcnK") {
-        // VST2 preset (FXP/FXB format)
-        // - format string (4 bytes, ASCII)
-        // - version (4 bytes)
-        // - preset data
-        this.FXP = new FXP(chunkData);
-      }
     }
+
+    // OK, getting here we should have access to a fxp/fxb chunk:
+    const fxpChunkStart = reader.getPosition();
+    const fxpDataChunkStart = reader.readString(4);
+    if (fxpDataChunkStart != "CcnK") {
+      throw new Error(
+        `Data does not contain any known formats or FXB or FXP data (DataChunkStart: ${fxpDataChunkStart})`
+      );
+    }
+
+    // OK, seems to be a valid fxb or fxp chunk.
+    // Get chunk size and add 8 bytes to include all bytes from 'CcnK' and the 4 chunk-size bytes
+    // Note: FXP chunks use BigEndian byte order
+    const fxpChunkSizeBytes = reader.readBytes(4);
+    const fxpChunkSize =
+      new DataView(fxpChunkSizeBytes.buffer).getUint32(0, false) + 8; // false = big-endian
+
+    // Read magic value to determine chunk type (FXP/FXB)
+    const fxpMagicChunkID = reader.readString(4);
+
+    if (
+      fxpMagicChunkID != "FxCk" &&
+      fxpMagicChunkID != "FPCh" &&
+      fxpMagicChunkID != "FxBk" &&
+      fxpMagicChunkID != "FBCh"
+    ) {
+      throw new Error(
+        `Data does not contain any known formats or FXB or FXP data (fxpMagicChunkID: ${fxpMagicChunkID})`
+      );
+    }
+
+    // Read fxp chunk data
+    reader.seek(fxpChunkStart);
+    const fxpChunkData = reader.readBytes(fxpChunkSize);
+
+    // Create new FXP object with chunk data
+    this.FXP = new FXP(fxpChunkData);
+
+    // Set the chunk data using FXP
+    this.setCompChunkDataFromFXP(this.FXP);
+
+    // try to read the info xml
+    // this.tryReadInfoXml(reader);
   }
 
-  async write(): Promise<Uint8Array | undefined> {
+  write(): Uint8Array | undefined {
     const bf = new BinaryFile(undefined, ByteOrder.LittleEndian);
     const writer = bf.binaryWriter;
     if (!writer) throw new Error("Failed to create binary writer");
@@ -773,7 +873,7 @@ export abstract class VstPreset implements Preset {
       }
 
       const buffer = writer.getBuffer();
-      return Promise.resolve(new Uint8Array(buffer));
+      return buffer ? new Uint8Array(buffer) : undefined;
     }
   }
 }

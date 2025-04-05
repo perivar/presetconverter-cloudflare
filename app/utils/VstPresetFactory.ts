@@ -54,7 +54,7 @@ export class VstPresetFactory {
       preset.read(presetBytes);
 
       // Set position/size properties
-      preset.Parameters.clear();
+      // preset.Parameters.clear();
       preset.CompDataStartPos = 0;
       preset.CompDataChunkSize = presetBytes.length;
       preset.ContDataStartPos = presetBytes.length;
@@ -72,7 +72,11 @@ export class VstPresetFactory {
         preset.Vst3ClassID === VstPreset.VstClassIDs.FabFilterProQ2x64
       ) {
         (preset as FabfilterProQ2).initFromParameters();
-      } else if (preset.Vst3ClassID === VstPreset.VstClassIDs.FabFilterProQ3) {
+      } else if (
+        preset.Vst3ClassID === VstPreset.VstClassIDs.FabFilterProQ3
+        // ||
+        // preset.Vst3ClassID === VstPreset.VstClassIDs.FabfilterProQ3VST3
+      ) {
         (preset as FabfilterProQ3).initFromParameters();
       }
 

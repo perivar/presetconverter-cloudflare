@@ -338,7 +338,7 @@ test("FabfilterProQ3-readFFP-HighBass-array", () => {
   }
 });
 
-test("FabfilterProQ3-readVstPreset-HighBass-array", async () => {
+test("FabfilterProQ3-readVstPreset-HighBass-array", () => {
   const filePath = path.join(
     __dirname,
     "data/Fabfilter/Q3-Fabfilter Pro-Q 3 High Bass.vstpreset"
@@ -352,7 +352,7 @@ test("FabfilterProQ3-readVstPreset-HighBass-array", async () => {
   }
   if (DO_DEBUG_OBJECT) console.log(JSON.stringify(vstPreset, null, 2));
 
-  const uint8ArrayWrite = await vstPreset?.write();
+  const uint8ArrayWrite = vstPreset?.write();
   if (uint8ArrayWrite) {
     const filePathWrite = path.join(
       __dirname,
@@ -382,7 +382,7 @@ test("FabfilterProQ3-readFFP-Zedd-array", () => {
   }
 });
 
-test("FabfilterProQ3-readVstPreset-Zedd-array", async () => {
+test("FabfilterProQ3-readVstPreset-Zedd-array", () => {
   const filePath = path.join(
     __dirname,
     "data/Fabfilter/Q3-Zedd Saw Chords.vstpreset"
@@ -396,14 +396,14 @@ test("FabfilterProQ3-readVstPreset-Zedd-array", async () => {
   }
   if (DO_DEBUG_OBJECT) console.log(JSON.stringify(vstPreset, null, 2));
 
-  const uint8ArrayWrite = await vstPreset?.write();
+  const uint8ArrayWrite = vstPreset?.write();
   if (uint8ArrayWrite) {
-    expect(areTypedArraysEqual(uint8ArrayRead, uint8ArrayWrite)).toBe(true);
+    const filePathWrite = path.join(
+      __dirname,
+      "data/Fabfilter/Q3-Zedd Saw Chords_tmp.vstpreset"
+    );
+    fs.writeFileSync(filePathWrite, uint8ArrayWrite);
 
-    // const filePathWrite = path.join(
-    //   __dirname,
-    //   "data/Fabfilter/Q3-Zedd Saw Chords_tmp.vstpreset"
-    // );
-    // fs.writeFileSync(filePathWrite, uint8ArrayWrite);
+    expect(areTypedArraysEqual(uint8ArrayRead, uint8ArrayWrite)).toBe(true);
   }
 });

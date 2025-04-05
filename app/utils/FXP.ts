@@ -1,3 +1,5 @@
+import { XMLBuilder, XMLParser } from "fast-xml-parser";
+
 import { BinaryFile, ByteOrder } from "./BinaryFile";
 
 export interface FxContent {
@@ -177,20 +179,19 @@ export class FXP {
     | FxProgram
     | FxSet
     | undefined;
-  public xmlDocument: XMLDocument | undefined;
+  public xmlContent: object | undefined;
 
   constructor(data?: Uint8Array) {
     if (data) {
       const bf = new BinaryFile(data, ByteOrder.BigEndian);
       const fxp = FXP.readFXP(bf);
       this.content = fxp.content;
-      this.xmlDocument = fxp.xmlDocument;
+      this.xmlContent = fxp.xmlContent;
     }
   }
-
   public writeFile(): Uint8Array | undefined {
     const bf = new BinaryFile(undefined, ByteOrder.BigEndian);
-    FXP.write(bf, this.content, this.xmlDocument);
+    FXP.write(bf, this.content, this.xmlContent);
 
     // Retrieve the buffer and convert it to Uint8Array
     const buffer = bf.binaryWriter?.getBuffer();
@@ -205,7 +206,7 @@ export class FXP {
   private static write(
     bf: BinaryFile,
     content?: FxContent,
-    xmlDocument?: XMLDocument
+    xmlContent?: object
   ): void {
     if (!content) {
       console.error("Error writing file. Missing preset content.");
@@ -215,11 +216,13 @@ export class FXP {
     // Determine if the chunk data should be saved as XML
     let writeXMLChunkData = false;
     let xmlChunkData = "";
-    if (xmlDocument) {
-      const serializer = new XMLSerializer();
-      xmlChunkData = serializer
-        .serializeToString(xmlDocument)
-        .replace(/'/g, "&apos;");
+    if (xmlContent) {
+      const builder = new XMLBuilder({
+        ignoreAttributes: false,
+        format: true,
+        suppressEmptyNode: true,
+      });
+      xmlChunkData = builder.build(xmlContent);
       writeXMLChunkData = true;
 
       if (content instanceof FxProgramSet) {
@@ -250,7 +253,7 @@ export class FXP {
       bf.binaryWriter?.writeString(chunkSet.FxID); // FxID, 4
       bf.binaryWriter?.writeInt32(chunkSet.FxVersion); // FxVersion, 4
       bf.binaryWriter?.writeInt32(chunkSet.NumPrograms); // NumPrograms, 4
-      bf.binaryWriter?.writeString(chunkSet.Future.padEnd(128)); // Future, 128
+      bf.binaryWriter?.writeString(chunkSet.Future.padEnd(128, "\0")); // Future, 128
       bf.binaryWriter?.writeInt32(chunkSet.ChunkSize); // ChunkSize, 4
 
       if (writeXMLChunkData) {
@@ -328,7 +331,7 @@ export class FXP {
     const bf = new BinaryFile(data, ByteOrder.BigEndian);
     const fxp = FXP.readFXP(bf);
     this.content = fxp.content;
-    this.xmlDocument = fxp.xmlDocument;
+    this.xmlContent = fxp.xmlContent;
   }
 
   private static readFXP(bf: BinaryFile): FXP {
@@ -373,15 +376,15 @@ export class FXP {
           const chunkAsString = new TextDecoder("utf-8").decode(
             chunkSet.ChunkData
           );
-          const parser = new DOMParser();
-          const xmlDocument = parser.parseFromString(
-            chunkAsString,
-            "application/xml"
-          );
-          fxp.xmlDocument = xmlDocument;
+          const parser = new XMLParser({
+            ignoreAttributes: false,
+            attributeNamePrefix: "",
+            parseAttributeValue: true,
+          });
+          fxp.xmlContent = parser.parse(chunkAsString);
         }
       } catch (error) {
-        console.error("Failed to parse XML:", error);
+        console.warn(`${fxMagic} ChunkData could not be parsed as XML:`, error);
       }
 
       fxp.content = chunkSet;
@@ -415,15 +418,15 @@ export class FXP {
           const chunkAsString = new TextDecoder("utf-8").decode(
             programSet.ChunkData
           );
-          const parser = new DOMParser();
-          const xmlDocument = parser.parseFromString(
-            chunkAsString,
-            "application/xml"
-          );
-          fxp.xmlDocument = xmlDocument;
+          const parser = new XMLParser({
+            ignoreAttributes: false,
+            attributeNamePrefix: "",
+            parseAttributeValue: true,
+          });
+          fxp.xmlContent = parser.parse(chunkAsString);
         }
       } catch (error) {
-        console.error("Failed to parse XML:", error);
+        console.warn(`${fxMagic} ChunkData could not be parsed as XML:`, error);
       }
 
       fxp.content = programSet;
