@@ -1,4 +1,7 @@
-import { FXP } from "../FXP";
+import * as fs from "fs";
+import * as path from "path";
+
+import { FXP, FxProgram, FxProgramSet } from "../FXP"; // Import FxProgram type
 import { toPlainObject } from "./helpers/testUtils";
 
 // set this to true to debug the outputs as objects
@@ -95,4 +98,60 @@ test("fxp-FxCk", () => {
       },
     },
   });
+});
+
+test("fxp-read-write-Q3-High-Bass", () => {
+  const filePath = path.join(
+    __dirname,
+    "data/Fabfilter/Q3-Fabfilter Pro-Q 3 High Bass.fxp"
+  );
+  const fileBuffer = fs.readFileSync(filePath);
+  const originalData = new Uint8Array(fileBuffer);
+
+  // 1. Read the FXP
+  const fxp = new FXP(originalData);
+
+  // 2. Verify parsed content (assuming FxCk format)
+  expect(fxp.content).toBeInstanceOf(FxProgramSet);
+  const content = fxp.content as FxProgramSet;
+  expect(content.ChunkMagic).toBe("CcnK");
+  expect(content.FxMagic).toBe("FPCh");
+  expect(content.Name).toBe("");
+  expect(content.NumPrograms).toBeGreaterThan(0); // Check if parameters exist
+  expect(fxp.xmlContent).toBeUndefined(); // FxCk shouldn't have XML content
+
+  // 3. Write the FXP back
+  const writtenData = fxp.writeFile();
+
+  // 4. Compare original and written data
+  expect(writtenData).toBeDefined();
+  expect(writtenData).toEqual(originalData);
+});
+
+test("fxp-read-write-Q1-genelec-boost", () => {
+  const filePath = path.join(
+    __dirname,
+    "data/Fabfilter/Q1-genelec eq filters 6 Generic max boost.fxp"
+  );
+  const fileBuffer = fs.readFileSync(filePath);
+  const originalData = new Uint8Array(fileBuffer);
+
+  // 1. Read the FXP
+  const fxp = new FXP(originalData);
+
+  // 2. Verify parsed content (assuming FPCh format for FXP)
+  expect(fxp.content).toBeInstanceOf(FxProgram);
+  const content = fxp.content as FxProgram;
+  expect(content.ChunkMagic).toBe("CcnK");
+  expect(content.FxMagic).toBe("FxCk");
+  expect(content.ProgramName).toBe("genelec eq filters 6 Ge"); // Check name based on file
+  expect(content.NumParameters).toBeGreaterThan(0); // Check if programs exist
+  expect(fxp.xmlContent).toBeUndefined(); // FPCh chunk data is often not XML
+
+  // 3. Write the FXP back
+  const writtenData = fxp.writeFile();
+
+  // 4. Compare original and written data
+  expect(writtenData).toBeDefined();
+  expect(writtenData).toEqual(originalData);
 });

@@ -260,7 +260,7 @@ export class FXP {
         bf.binaryWriter?.writeString(xmlChunkData); // ChunkData, <ChunkSize>
       } else {
         // Even though the main FXP is BigEndian format the preset chunk is saved in LittleEndian format
-        bf.binaryWriter?.writeBytes(chunkSet.ChunkData.reverse());
+        bf.binaryWriter?.writeBytes(chunkSet.ChunkData);
       }
     } else if (content.FxMagic === "FPCh") {
       // Preset (Program) (.fxp) with chunk (magic = 'FPCh')
@@ -273,14 +273,14 @@ export class FXP {
       bf.binaryWriter?.writeString(programSet.FxID); // FxID, 4
       bf.binaryWriter?.writeInt32(programSet.FxVersion); // FxVersion, 4
       bf.binaryWriter?.writeInt32(programSet.NumPrograms); // NumPrograms, 4
-      bf.binaryWriter?.writeString(programSet.Name.padEnd(28)); // Name, 28
+      bf.binaryWriter?.writeString(programSet.Name.padEnd(28, "\0")); // Name, 28
       bf.binaryWriter?.writeInt32(programSet.ChunkSize); // ChunkSize, 4
 
       if (writeXMLChunkData) {
         bf.binaryWriter?.writeString(xmlChunkData); // ChunkData, <ChunkSize>
       } else {
         // Even though the main FXP is BigEndian format the preset chunk is saved in LittleEndian format
-        bf.binaryWriter?.writeBytes(programSet.ChunkData.reverse());
+        bf.binaryWriter?.writeBytes(programSet.ChunkData);
       }
     } else if (content.FxMagic === "FxCk") {
       // For Preset (Program) (.fxp) without chunk (magic = 'FxCk')
@@ -293,7 +293,7 @@ export class FXP {
       bf.binaryWriter?.writeString(program.FxID); // FxID, 4
       bf.binaryWriter?.writeInt32(program.FxVersion); // FxVersion, 4
       bf.binaryWriter?.writeInt32(program.NumParameters); // NumParameters, 4
-      bf.binaryWriter?.writeString(program.ProgramName.padEnd(28)); // Name, 28
+      bf.binaryWriter?.writeString(program.ProgramName.padEnd(28, "\0")); // Name, 28
 
       // variable number of Parameters
       for (let i = 0; i < program.NumParameters; i++) {
@@ -361,31 +361,11 @@ export class FXP {
         bf.binaryReader?.readString(128).replace(/\0+$/, "") || "";
       chunkSet.ChunkSize = bf.binaryReader?.readInt32() || 0;
 
-      // Even though the main FXP is BigEndian format the preset chunk is saved in LittleEndian format
-      // chunkSet.ChunkData =
-      //   bf.binaryReader?.readBytes(chunkSet.ChunkSize).reverse() ||
-      //   new Uint8Array(0);
-
-      // TODO: Fix this. The chunk data is not in LittleEndian format anymore?!
       chunkSet.ChunkData =
         bf.binaryReader?.readBytes(chunkSet.ChunkSize) || new Uint8Array(0);
 
       // Read the XML chunk into memory
-      try {
-        if (chunkSet.ChunkData) {
-          const chunkAsString = new TextDecoder("utf-8").decode(
-            chunkSet.ChunkData
-          );
-          const parser = new XMLParser({
-            ignoreAttributes: false,
-            attributeNamePrefix: "",
-            parseAttributeValue: true,
-          });
-          fxp.xmlContent = parser.parse(chunkAsString);
-        }
-      } catch (error) {
-        console.warn(`${fxMagic} ChunkData could not be parsed as XML:`, error);
-      }
+      fxp.xmlContent = FXP.tryReadAsXml(chunkSet.ChunkData, fxMagic);
 
       fxp.content = chunkSet;
     } else if (fxMagic === "FPCh") {
@@ -403,31 +383,11 @@ export class FXP {
         bf.binaryReader?.readString(28).replace(/\0+$/, "") || "";
       programSet.ChunkSize = bf.binaryReader?.readInt32() || 0;
 
-      // Even though the main FXP is BigEndian format the preset chunk is saved in LittleEndian format
-      // programSet.ChunkData =
-      //   bf.binaryReader?.readBytes(programSet.ChunkSize).reverse() ||
-      //   new Uint8Array(0);
-
-      // TODO: Fix this. The chunk data is not in LittleEndian format anymore?!
       programSet.ChunkData =
         bf.binaryReader?.readBytes(programSet.ChunkSize) || new Uint8Array(0);
 
       // Read the XML chunk into memory
-      try {
-        if (programSet.ChunkData) {
-          const chunkAsString = new TextDecoder("utf-8").decode(
-            programSet.ChunkData
-          );
-          const parser = new XMLParser({
-            ignoreAttributes: false,
-            attributeNamePrefix: "",
-            parseAttributeValue: true,
-          });
-          fxp.xmlContent = parser.parse(chunkAsString);
-        }
-      } catch (error) {
-        console.warn(`${fxMagic} ChunkData could not be parsed as XML:`, error);
-      }
+      fxp.xmlContent = FXP.tryReadAsXml(programSet.ChunkData, fxMagic);
 
       fxp.content = programSet;
     } else if (fxMagic === "FxCk") {
@@ -475,6 +435,35 @@ export class FXP {
     }
 
     return fxp;
+  }
+
+  private static tryReadAsXml(
+    chunkData: Uint8Array | undefined,
+    fxMagic: string
+  ): object | undefined {
+    if (!chunkData) {
+      return undefined;
+    }
+    try {
+      const chunkAsString = new TextDecoder("utf-8").decode(chunkData);
+      const parser = new XMLParser({
+        ignoreAttributes: false,
+        attributeNamePrefix: "",
+        parseAttributeValue: true,
+      });
+
+      // Parse the XML
+      const parsedResult = parser.parse(chunkAsString);
+
+      // Check if parsing produced a meaningful result; throw error if not
+      if (!parsedResult || Object.keys(parsedResult).length === 0) {
+        throw new Error("Failed to parse XML: Invalid or empty content");
+      }
+      return parsedResult;
+    } catch (error) {
+      console.warn(`${fxMagic} ChunkData could not be parsed as XML:`, error);
+      return undefined;
+    }
   }
 
   public static WriteRaw2FXP(
