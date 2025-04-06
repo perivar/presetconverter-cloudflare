@@ -1,6 +1,8 @@
 import { FabfilterProQ } from "./FabfilterProQ";
 import { FabfilterProQ2 } from "./FabfilterProQ2";
 import { FabfilterProQ3 } from "./FabfilterProQ3";
+import { FabfilterProQBase } from "./FabfilterProQBase"; // Added import
+import { FXP } from "./FXP"; // Added import
 import { SteinbergVstPreset } from "./SteinbergVstPreset";
 import { VstPreset } from "./VstPreset";
 
@@ -88,6 +90,56 @@ export class VstPresetFactory {
         }. Error: ${error}`
       );
       return null;
+    }
+  }
+
+  /**
+   * Reads an FXP file, determines the Fabfilter Pro-Q version,
+   * initializes the corresponding class, and returns it.
+   * @param presetBytes - The Uint8Array content of the FXP file.
+   * @returns An initialized FabfilterProQBase instance or null if parsing fails or version is unknown.
+   */
+  static getFabFilterProQPresetFromFXP(
+    presetBytes: Uint8Array
+  ): FabfilterProQBase | null {
+    try {
+      const fxp = new FXP(presetBytes);
+      let proQInstance: FabfilterProQBase | null = null;
+
+      // Instantiate correct class based on FxID
+      switch (fxp.content?.FxID) {
+        case "FPQr":
+          proQInstance = new FabfilterProQ();
+          break;
+        case "FQ2p":
+          proQInstance = new FabfilterProQ2();
+          break;
+        case "FQ3p":
+          proQInstance = new FabfilterProQ3();
+          break;
+        default:
+          console.error(
+            `Unknown or missing Fabfilter FxID: ${fxp.content?.FxID}`
+          );
+          return null; // Unknown or missing FxID
+      }
+
+      // Check if fxp.content exists before accessing parameters
+      if (!fxp.content) {
+        console.error("Failed to parse FXP content.");
+        return null;
+      }
+
+      // Add the fxp object to the proQInstance object
+      proQInstance.FXP = fxp;
+
+      // Initialize from FXP parameters. The concrete implementations will use the attached FXP object.
+      proQInstance.initFromParameters();
+
+      return proQInstance;
+    } catch (error) {
+      console.error("Error reading or processing FXP file:", error);
+      return null; // Error during FXP parsing or processing
     }
   }
 }

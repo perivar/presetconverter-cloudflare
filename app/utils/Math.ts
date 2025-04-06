@@ -56,3 +56,27 @@ export function parseFloatWithSeparator(
   // Use parseFloat to convert the normalized string to a number
   return parseFloat(normalizedValue);
 }
+
+/**
+ * Maps a value from one range to another while maintaining the ratio.
+ * For example, converting a value from 0-1 range to -30 to +30 range.
+ *
+ * @param value - The value to convert
+ * @param fromMin - The minimum value of the source range
+ * @param fromMax - The maximum value of the source range
+ * @param toMin - The minimum value of the target range
+ * @param toMax - The maximum value of the target range
+ * @returns The converted value in the target range
+ */
+export function convertAndMaintainRatio(
+  value: number,
+  fromMin: number,
+  fromMax: number,
+  toMin: number,
+  toMax: number
+): number {
+  const fromRange = fromMax - fromMin;
+  const toRange = toMax - toMin;
+  const scaledValue = (value - fromMin) / fromRange;
+  return toMin + scaledValue * toRange;
+}

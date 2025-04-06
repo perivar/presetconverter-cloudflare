@@ -1,11 +1,7 @@
 import * as fs from "fs";
 import * as path from "path";
 
-import { FabfilterProQ } from "../FabfilterProQ"; // Added import
-import { FabfilterProQ2 } from "../FabfilterProQ2"; // Added import
 import { FabfilterProQ3 } from "../FabfilterProQ3";
-import { FabfilterProQBase } from "../FabfilterProQBase"; // Added import for type hint
-import { FXP } from "../FXP";
 import { VstPresetFactory } from "../VstPresetFactory";
 import { areTypedArraysEqual, toPlainObject } from "./helpers/testUtils";
 
@@ -394,29 +390,14 @@ test("FabfilterProQ3-compare-FXP-FFP-HighBass", () => {
   );
   const fxpFileContent = fs.readFileSync(fxpPath);
   const fxpUint8Array = new Uint8Array(fxpFileContent);
-  const fxp = new FXP(fxpUint8Array);
-  let fxpProQ: FabfilterProQBase | null = null; // Use base class for type hint
+  const fxpProQ = VstPresetFactory.getFabFilterProQPresetFromFXP(fxpUint8Array); // Use new method name
 
-  // Instantiate correct class based on FxID
-  switch (fxp.content?.FxID) {
-    case "FPQr":
-      fxpProQ = new FabfilterProQ();
-      break;
-    case "FQ2p":
-      fxpProQ = new FabfilterProQ2();
-      break;
-    case "FQ3p":
-      fxpProQ = new FabfilterProQ3();
-      break;
-    default:
-      throw new Error(`Unknown Fabfilter FxID: ${fxp.content?.FxID}`);
+  // Add a check to ensure fxpProQ is not null before proceeding
+  if (!fxpProQ) {
+    throw new Error(
+      "Failed to read or initialize FXP using FabfilterProQBase.readFXP"
+    );
   }
-
-  // add the fxp object to the fxpProQ object
-  fxpProQ.FXP = fxp;
-
-  // Initialize from FXP parameters
-  fxpProQ.initFromParameters();
 
   expect(fxpProQ).toBeInstanceOf(FabfilterProQ3); // Keep this check as we know the test file is Q3
   if (DO_DEBUG_OBJECT)

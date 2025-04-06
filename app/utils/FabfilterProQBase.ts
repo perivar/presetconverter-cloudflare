@@ -1,5 +1,11 @@
-import { BinaryFile, ByteOrder } from "./BinaryFile";
 import { VstPreset } from "./VstPreset";
+
+export interface FabfilterProQBand {
+  Frequency: number;
+  Gain: number;
+  Q: number;
+  Enabled: boolean;
+}
 
 /**
  * Base class for reading and writing Fabfilter Pro Q (1 or 2) Preset files.
@@ -10,42 +16,13 @@ export abstract class FabfilterProQBase extends VstPreset {
   }
 
   abstract initFromParameters(parameters?: number[], isIEEE?: boolean): void;
-  abstract Bands: { Enabled: boolean }[];
+  abstract Bands: FabfilterProQBand[];
 
   // Abstract method for writing Fabfilter Pro Q preset files.
   abstract writeFFP(): Uint8Array | undefined;
 
   // Abstract method for reading Fabfilter Pro Q preset files.
   abstract readFFP(data: Uint8Array, doReadHeader: boolean): boolean;
-
-  /**
-   * Reads floats from file content and checks for a specific header (FPQr, FQ2p or FQ3p).
-   * @param data - contents of the file to read.
-   * @param headerExpected - Expected file header.
-   * @returns An array of floats if the header matches; otherwise, null.
-   */
-  static readFloats(data: Uint8Array, headerExpected: string): number[] | null {
-    const bf = new BinaryFile(data, ByteOrder.LittleEndian);
-
-    const header = bf.binaryReader?.readString(4);
-    if (header === headerExpected) {
-      const version = bf.binaryReader?.readUInt32() || 0;
-      const parameterCount = bf.binaryReader?.readUInt32() || 0;
-
-      const floatArray = new Array<number>(parameterCount);
-      try {
-        for (let i = 0; i < parameterCount; i++) {
-          floatArray[i] = bf.binaryReader?.readFloat32() || 0;
-        }
-      } catch (e) {
-        console.error(`Failed reading floats: ${e}`);
-      }
-
-      return floatArray;
-    }
-
-    return null;
-  }
 
   /**
    * Converts a float value between 0 and 1 to the Fabfilter float equivalent.

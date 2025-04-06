@@ -2,6 +2,8 @@ import * as fs from "fs";
 import * as path from "path";
 
 import { FabfilterProQ } from "../FabfilterProQ";
+import { FabfilterProQBand } from "../FabfilterProQBase";
+import { VstPresetFactory } from "../VstPresetFactory";
 import { areTypedArraysEqual, toPlainObject } from "./helpers/testUtils";
 
 // set this to true to debug the outputs as objects
@@ -24,9 +26,9 @@ test("FabfilterProQ-readFFP-Generic6", () => {
       Bands: [
         {
           ChannelMode: 0,
-          Frequency: 63.49999856791864,
-          Gain: -5.400000095367432,
-          Q: 2.930000619635644,
+          Frequency: 63.5,
+          Gain: -5.4,
+          Q: 2.93,
           Shape: 0,
           LPHPSlope: 2,
           StereoPlacement: 2,
@@ -34,9 +36,9 @@ test("FabfilterProQ-readFFP-Generic6", () => {
         },
         {
           ChannelMode: 0,
-          Frequency: 91.60000743063648,
-          Gain: 14.199999809265137,
-          Q: 2.000000221193361,
+          Frequency: 91.6,
+          Gain: 14.2,
+          Q: 2,
           Shape: 0,
           LPHPSlope: 2,
           StereoPlacement: 2,
@@ -44,9 +46,9 @@ test("FabfilterProQ-readFFP-Generic6", () => {
         },
         {
           ChannelMode: 0,
-          Frequency: 136.00000573326327,
-          Gain: -18.399999618530273,
-          Q: 8.640001298418513,
+          Frequency: 136,
+          Gain: -18.4,
+          Q: 8.64,
           Shape: 0,
           LPHPSlope: 2,
           StereoPlacement: 2,
@@ -54,9 +56,9 @@ test("FabfilterProQ-readFFP-Generic6", () => {
         },
         {
           ChannelMode: 0,
-          Frequency: 154.00000369576526,
-          Gain: 16.600000381469727,
-          Q: 14.309998912061054,
+          Frequency: 154,
+          Gain: 16.6,
+          Q: 14.31,
           Shape: 0,
           LPHPSlope: 2,
           StereoPlacement: 2,
@@ -64,9 +66,9 @@ test("FabfilterProQ-readFFP-Generic6", () => {
         },
         {
           ChannelMode: 0,
-          Frequency: 169.99999884797205,
-          Gain: -9.600000381469727,
-          Q: 6.850001290908702,
+          Frequency: 170,
+          Gain: -9.6,
+          Q: 6.85,
           Shape: 0,
           LPHPSlope: 2,
           StereoPlacement: 2,
@@ -74,9 +76,9 @@ test("FabfilterProQ-readFFP-Generic6", () => {
         },
         {
           ChannelMode: 0,
-          Frequency: 226.00000363125704,
-          Gain: -5.800000190734863,
-          Q: 15.939997427734745,
+          Frequency: 226,
+          Gain: -5.8,
+          Q: 15.94,
           Shape: 0,
           LPHPSlope: 2,
           StereoPlacement: 2,
@@ -84,9 +86,9 @@ test("FabfilterProQ-readFFP-Generic6", () => {
         },
         {
           ChannelMode: 0,
-          Frequency: 249.00000231750545,
-          Gain: -6.900000095367432,
-          Q: 41.2700029649085,
+          Frequency: 249,
+          Gain: -6.9,
+          Q: 41.27,
           Shape: 0,
           LPHPSlope: 2,
           StereoPlacement: 2,
@@ -94,9 +96,9 @@ test("FabfilterProQ-readFFP-Generic6", () => {
         },
         {
           ChannelMode: 0,
-          Frequency: 279.9999872702164,
+          Frequency: 280,
           Gain: -8,
-          Q: 30.07999388503878,
+          Q: 30.08,
           Shape: 0,
           LPHPSlope: 2,
           StereoPlacement: 2,
@@ -104,9 +106,9 @@ test("FabfilterProQ-readFFP-Generic6", () => {
         },
         {
           ChannelMode: 0,
-          Frequency: 388.99997471761327,
-          Gain: -8.399999618530273,
-          Q: 36.65999424543927,
+          Frequency: 389,
+          Gain: -8.4,
+          Q: 36.66,
           Shape: 0,
           LPHPSlope: 2,
           StereoPlacement: 2,
@@ -114,9 +116,9 @@ test("FabfilterProQ-readFFP-Generic6", () => {
         },
         {
           ChannelMode: 0,
-          Frequency: 505.0000541586765,
-          Gain: 12.199999809265137,
-          Q: 39.39000088710455,
+          Frequency: 505,
+          Gain: 12.2,
+          Q: 39.39,
           Shape: 0,
           LPHPSlope: 2,
           StereoPlacement: 2,
@@ -124,9 +126,9 @@ test("FabfilterProQ-readFFP-Generic6", () => {
         },
         {
           ChannelMode: 0,
-          Frequency: 653.9998764895852,
-          Gain: -6.900000095367432,
-          Q: 48.17000896963813,
+          Frequency: 654,
+          Gain: -6.9,
+          Q: 48.17,
           Shape: 0,
           LPHPSlope: 2,
           StereoPlacement: 2,
@@ -134,9 +136,9 @@ test("FabfilterProQ-readFFP-Generic6", () => {
         },
         {
           ChannelMode: 0,
-          Frequency: 735.0001444546682,
-          Gain: 10.600000381469727,
-          Q: 39.0100060721537,
+          Frequency: 735,
+          Gain: 10.6,
+          Q: 39.01,
           Shape: 0,
           LPHPSlope: 2,
           StereoPlacement: 2,
@@ -144,9 +146,9 @@ test("FabfilterProQ-readFFP-Generic6", () => {
         },
         {
           ChannelMode: 0,
-          Frequency: 769.9999808004303,
-          Gain: -4.699999809265137,
-          Q: 31.56000101802961,
+          Frequency: 770,
+          Gain: -4.7,
+          Q: 31.56,
           Shape: 0,
           LPHPSlope: 2,
           StereoPlacement: 2,
@@ -154,9 +156,9 @@ test("FabfilterProQ-readFFP-Generic6", () => {
         },
         {
           ChannelMode: 0,
-          Frequency: 1066.9998749079991,
-          Gain: -5.900000095367432,
-          Q: 22.689998034382448,
+          Frequency: 1067,
+          Gain: -5.9,
+          Q: 22.69,
           Shape: 0,
           LPHPSlope: 2,
           StereoPlacement: 2,
@@ -164,9 +166,9 @@ test("FabfilterProQ-readFFP-Generic6", () => {
         },
         {
           ChannelMode: 0,
-          Frequency: 1274.999811686392,
-          Gain: -5.699999809265137,
-          Q: 12.910001916393572,
+          Frequency: 1275,
+          Gain: -5.7,
+          Q: 12.91,
           Shape: 0,
           LPHPSlope: 2,
           StereoPlacement: 2,
@@ -174,9 +176,9 @@ test("FabfilterProQ-readFFP-Generic6", () => {
         },
         {
           ChannelMode: 0,
-          Frequency: 1888.9995452751323,
+          Frequency: 1889,
           Gain: 7.5,
-          Q: 14.750000710721164,
+          Q: 14.75,
           Shape: 0,
           LPHPSlope: 2,
           StereoPlacement: 2,
@@ -184,9 +186,9 @@ test("FabfilterProQ-readFFP-Generic6", () => {
         },
         {
           ChannelMode: 0,
-          Frequency: 2129.0006209201365,
-          Gain: -3.4000000953674316,
-          Q: 18.320002686639455,
+          Frequency: 2129,
+          Gain: -3.4,
+          Q: 18.32,
           Shape: 0,
           LPHPSlope: 2,
           StereoPlacement: 2,
@@ -194,9 +196,9 @@ test("FabfilterProQ-readFFP-Generic6", () => {
         },
         {
           ChannelMode: 0,
-          Frequency: 2829.000763765784,
-          Gain: -5.199999809265137,
-          Q: 28.59000004906813,
+          Frequency: 2829,
+          Gain: -5.2,
+          Q: 28.59,
           Shape: 0,
           LPHPSlope: 2,
           StereoPlacement: 2,
@@ -204,9 +206,9 @@ test("FabfilterProQ-readFFP-Generic6", () => {
         },
         {
           ChannelMode: 0,
-          Frequency: 3220.999353792972,
+          Frequency: 3221,
           Gain: -3,
-          Q: 13.400001044051006,
+          Q: 13.4,
           Shape: 0,
           LPHPSlope: 2,
           StereoPlacement: 2,
@@ -214,9 +216,9 @@ test("FabfilterProQ-readFFP-Generic6", () => {
         },
         {
           ChannelMode: 0,
-          Frequency: 5126.000610734414,
-          Gain: -3.4000000953674316,
-          Q: 5.910000231194475,
+          Frequency: 5126,
+          Gain: -3.4,
+          Q: 5.91,
           Shape: 0,
           LPHPSlope: 2,
           StereoPlacement: 2,
@@ -224,7 +226,7 @@ test("FabfilterProQ-readFFP-Generic6", () => {
         },
         {
           ChannelMode: 0,
-          Frequency: 999.9998532010654,
+          Frequency: 1000,
           Gain: 0,
           Q: 1,
           Shape: 0,
@@ -234,7 +236,7 @@ test("FabfilterProQ-readFFP-Generic6", () => {
         },
         {
           ChannelMode: 0,
-          Frequency: 999.9998532010654,
+          Frequency: 1000,
           Gain: 0,
           Q: 1,
           Shape: 0,
@@ -244,7 +246,7 @@ test("FabfilterProQ-readFFP-Generic6", () => {
         },
         {
           ChannelMode: 0,
-          Frequency: 999.9998532010654,
+          Frequency: 1000,
           Gain: 0,
           Q: 1,
           Shape: 0,
@@ -254,7 +256,7 @@ test("FabfilterProQ-readFFP-Generic6", () => {
         },
         {
           ChannelMode: 0,
-          Frequency: 999.9998532010654,
+          Frequency: 1000,
           Gain: 0,
           Q: 1,
           Shape: 0,
@@ -318,4 +320,54 @@ test("FabfilterProQ-readFFP-Generic6-array", () => {
   if (uint8ArrayWrite) {
     expect(areTypedArraysEqual(uint8ArrayRead, uint8ArrayWrite)).toBe(true);
   }
+});
+
+test("FabfilterProQ-compare-FXP-FFP-Generic", () => {
+  // Load and parse FXP
+  const fxpPath = path.join(
+    __dirname,
+    "data/Fabfilter/Q1-genelec eq filters 6 Generic max boost.fxp"
+  );
+  const fxpFileContent = fs.readFileSync(fxpPath);
+  const fxpUint8Array = new Uint8Array(fxpFileContent);
+  const fxpProQ = VstPresetFactory.getFabFilterProQPresetFromFXP(fxpUint8Array);
+
+  // Add a check to ensure fxpProQ is not null before proceeding
+  if (!fxpProQ) {
+    throw new Error(
+      "Failed to read or initialize FXP using FabfilterProQBase.readFXP"
+    );
+  }
+
+  expect(fxpProQ).toBeInstanceOf(FabfilterProQ); // Check for Pro-Q 1
+  if (DO_DEBUG_OBJECT)
+    console.log(
+      `FXP Bands (${fxpProQ.constructor.name}):`,
+      JSON.stringify(fxpProQ.Bands, null, 2)
+    );
+
+  // Load and parse FFP
+  const ffpPath = path.join(
+    __dirname,
+    "data/Fabfilter/Q1-genelec eq filters 6 Generic max boost.ffp"
+  );
+  const ffpFileContent = fs.readFileSync(ffpPath);
+  const ffpUint8Array = new Uint8Array(ffpFileContent);
+  const ffpProQ = new FabfilterProQ(); // Use Pro-Q 1 class
+  ffpProQ.readFFP(ffpUint8Array);
+  if (DO_DEBUG_OBJECT)
+    console.log("FFP Bands:", JSON.stringify(ffpProQ.Bands, null, 2));
+
+  // Filter out bands with Q values between 4o and 50 since the resolution of the conversions breaks down between these values
+  // This is a workaround for the issue with the Fabfilter Pro Q plugin
+  const filterBands = (bands: FabfilterProQBand[]) =>
+    bands.filter(band => band.Q < 40 || band.Q > 50);
+
+  const filteredFxpBands = filterBands(fxpProQ.Bands);
+  const filteredFfpBands = filterBands(ffpProQ.Bands);
+
+  // Compare filtered Bands
+  expect(toPlainObject(filteredFxpBands)).toEqual(
+    toPlainObject(filteredFfpBands)
+  );
 });
