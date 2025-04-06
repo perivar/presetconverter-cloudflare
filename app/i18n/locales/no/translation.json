@@ -13,5 +13,59 @@
     "theme_light": "Lys",
     "title": "Innstillinger"
   },
+  "bandShapes": {
+    "Bell": "Klokke",
+    "LowShelf": "Lav Hylle",
+    "LowCut": "Lav Kutt",
+    "HighShelf": "Høy Hylle",
+    "HighCut": "Høy Kutt",
+    "Notch": "Notch",
+    "BandPass": "Båndpass",
+    "TiltShelf": "Vipp Hylle",
+    "FlatTilt": "Flat Vipp"
+  },
+  "conversion": {
+    "convertButton": "Konverter",
+    "converting": "Konverterer...",
+    "selectTarget": "Velg målformat",
+    "selectTargetPlaceholder": "Velg et format",
+    "title": "Konverter til annet format"
+  },
+  "dropzone": {
+    "dropHere": "Slipp filen her",
+    "loading": "Laster...",
+    "prompt": "Dra og slipp en preset fil her, eller klikk for å velge",
+    "supportedFormats": "Støttede formater: .ffp, .fxp, .vstpreset",
+    "title": "Last opp Preset"
+  },
+  "error": {
+    "conversionError": "Feil under konvertering: {{message}}",
+    "conversionFailed": "Konvertering mislyktes",
+    "noFileSelected": "Ingen fil valgt",
+    "parsingError": "Feil ved lesing av {{fileName}}: {{message}}",
+    "readFileError": "Feil ved lesing av {{fileName}}",
+    "tryAgain": "Prøv Igjen",
+    "unsupportedFormat": "Ikke støttet format: {{fileName}}"
+  },
+  "fileInfo": {
+    "band": "Bånd",
+    "bandDetails": "Bånddetaljer",
+    "bands": "Bånd",
+    "detectedFormat": "Oppdaget Format",
+    "disabled": "Deaktivert",
+    "enabled": "Aktivert",
+    "fileName": "Filnavn",
+    "frequency": "Frekvens",
+    "gain": "Forsterkning",
+    "q": "Q",
+    "size": "Størrelse",
+    "title": "Filinformasjon",
+    "type": "Type"
+  },
+  "formats": {
+    "fabfilterProQ1": "FabFilter Pro-Q",
+    "fabfilterProQ2": "FabFilter Pro-Q 2",
+    "fabfilterProQ3": "FabFilter Pro-Q 3"
+  },
   "title": "Preset konverterer"
 }

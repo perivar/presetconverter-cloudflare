@@ -4,25 +4,19 @@
  */
 
 import {
-  FabfilterProQ,
   ProQChannelMode,
   ProQLPHPSlope,
   ProQShape,
   ProQStereoPlacement,
 } from "./FabfilterProQ";
 import {
-  FabfilterProQ2,
   ProQ2ChannelMode,
   ProQ2Shape,
   ProQ2Slope,
   ProQ2StereoPlacement,
 } from "./FabfilterProQ2";
-import {
-  FabfilterProQ3,
-  ProQ3Shape,
-  ProQ3Slope,
-  ProQ3StereoPlacement,
-} from "./FabfilterProQ3";
+import { ProQ3Shape, ProQ3Slope, ProQ3StereoPlacement } from "./FabfilterProQ3";
+import { FabfilterProQBase } from "./FabfilterProQBase";
 import {
   BandMode1And8,
   BandMode2To7,
@@ -153,7 +147,7 @@ function getCutSlope(slope: Slope): BandMode1And8 {
 }
 
 export function toSteinbergFrequency(
-  eq: FabfilterProQ | FabfilterProQ2 | FabfilterProQ3
+  eq: FabfilterProQBase
 ): SteinbergFrequency {
   const frequency = new SteinbergFrequency();
 

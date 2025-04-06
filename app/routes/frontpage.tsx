@@ -4,9 +4,13 @@ import { useCallback, useState } from "react";
 import type { LoaderFunctionArgs, MetaFunction } from "@remix-run/cloudflare";
 import { json } from "@remix-run/react";
 import i18next from "~/i18n/i18n.server";
-import { FabfilterProQ, type ProQBand } from "~/utils/FabfilterProQ";
-import { FabfilterProQ2, type ProQ2Band } from "~/utils/FabfilterProQ2";
-import { FabfilterProQ3, type ProQ3Band } from "~/utils/FabfilterProQ3";
+import { FabfilterProQ } from "~/utils/FabfilterProQ";
+import { FabfilterProQ2 } from "~/utils/FabfilterProQ2";
+import { FabfilterProQ3 } from "~/utils/FabfilterProQ3";
+import {
+  FabfilterProQBand,
+  FabfilterProQBase,
+} from "~/utils/FabfilterProQBase";
 import { toSteinbergFrequency } from "~/utils/FabfilterToSteinbergAdapter";
 import { FxChunkSet, FXP, FxProgramSet } from "~/utils/FXP";
 import { VstPresetFactory } from "~/utils/VstPresetFactory";
@@ -22,11 +26,13 @@ import {
   SelectTrigger,
   SelectValue,
 } from "~/components/ui/select";
+import { EqualizerBandTable } from "~/components/EqualizerBandTable";
+import { EqualizerChart } from "~/components/EqualizerChart";
 
 type TargetFormat = "steinberg-frequency";
 
-export type EQPreset = FabfilterProQ | FabfilterProQ2 | FabfilterProQ3;
-export type EQBand = ProQBand | ProQ2Band | ProQ3Band;
+export type EQPreset = FabfilterProQBase;
+export type EQBand = FabfilterProQBand;
 
 export async function loader({ request }: LoaderFunctionArgs) {
   const t = await i18next.getFixedT(request);
@@ -47,21 +53,34 @@ export const meta: MetaFunction<typeof loader> = ({ data }) => {
 interface FxpData {
   fxId: string | null;
   chunkData: Uint8Array | null;
+  preset: FabfilterProQBase | null;
 }
 
 const readFxpChunk = (data: Uint8Array): FxpData => {
   const fxp = new FXP();
   fxp.readFile(data);
+
+  let preset: FabfilterProQBase | null = null;
+  let fxId: string | null = null;
+  let chunkData: Uint8Array | null = null;
+
+  // First try to parse as a Pro-Q preset using VstPresetFactory
+  if (fxp.content?.FxID) {
+    preset = VstPresetFactory.getFabFilterProQPresetFromFXP(data);
+    fxId = fxp.content.FxID;
+  }
+
+  // If not a Pro-Q preset or parsing failed, get the raw chunk data
   if (
+    !preset &&
     fxp.content &&
     (fxp.content instanceof FxProgramSet || fxp.content instanceof FxChunkSet)
   ) {
-    return {
-      fxId: fxp.content.FxID ?? null,
-      chunkData: fxp.content.ChunkData ?? null,
-    };
+    fxId = fxp.content.FxID ?? null;
+    chunkData = fxp.content.ChunkData ?? null;
   }
-  return { fxId: null, chunkData: null };
+
+  return { fxId, chunkData, preset };
 };
 
 const downloadBlob = (blob: Blob, fileName: string) => {
@@ -83,6 +102,7 @@ export default function Index() {
   const [parsedData, setParsedData] = useState<EQPreset | null>(null);
   const [sourceFormat, setSourceFormat] = useState<string | null>(null);
   const [targetFormat, setTargetFormat] = useState<TargetFormat | null>(null);
+  const [hoveredFrequency, setHoveredFrequency] = useState<number | null>(null);
 
   const onDrop = useCallback(
     (acceptedFiles: File[]) => {
@@ -117,42 +137,28 @@ export default function Index() {
           if (ext === "ffp" || ext === "fxp") {
             let chunkData = data;
             if (ext === "fxp") {
-              const { fxId, chunkData: fxpChunkData } = readFxpChunk(data);
+              const {
+                fxId,
+                chunkData: fxpChunkData,
+                preset,
+              } = readFxpChunk(data);
+              if (preset) {
+                // Successfully parsed a Pro-Q preset
+                setParsedData(preset);
+                if (fxId === "FPQr") {
+                  setSourceFormat(t("formats.fabfilterProQ1"));
+                } else if (fxId === "FQ2p") {
+                  setSourceFormat(t("formats.fabfilterProQ2"));
+                } else if (fxId === "FQ3p") {
+                  setSourceFormat(t("formats.fabfilterProQ3"));
+                }
+                setIsLoading(false);
+                return;
+              }
+
+              // Not a Pro-Q preset but we have chunk data
               if (fxpChunkData) {
                 chunkData = fxpChunkData.slice(4, fxpChunkData.length - 4);
-
-                // Create appropriate Pro-Q instance based on FX ID
-                if (fxId) {
-                  switch (fxId) {
-                    case "FPQr":
-                      const proQ1 = new FabfilterProQ();
-                      if (proQ1.readFFP(chunkData, false)) {
-                        setParsedData(proQ1);
-                        setSourceFormat(t("formats.fabfilterProQ1"));
-                        setIsLoading(false);
-                        return;
-                      }
-                      break;
-                    case "FQ2p":
-                      const proQ2 = new FabfilterProQ2();
-                      if (proQ2.readFFP(chunkData, false)) {
-                        setParsedData(proQ2);
-                        setSourceFormat(t("formats.fabfilterProQ2"));
-                        setIsLoading(false);
-                        return;
-                      }
-                      break;
-                    case "FQ3p":
-                      const proQ3 = new FabfilterProQ3();
-                      if (proQ3.readFFP(chunkData, false)) {
-                        setParsedData(proQ3);
-                        setSourceFormat(t("formats.fabfilterProQ3"));
-                        setIsLoading(false);
-                        return;
-                      }
-                      break;
-                  }
-                }
               }
             }
 
@@ -183,7 +189,7 @@ export default function Index() {
             try {
               const vstPreset = VstPresetFactory.getVstPreset(data);
               if (vstPreset) {
-                // setParsedData(vstPreset);
+                setParsedData(vstPreset as EQPreset);
                 setSourceFormat(t(`${vstPreset.constructor.name}`));
               }
             } catch (err) {
@@ -319,6 +325,24 @@ export default function Index() {
                 {parsedData.Bands.filter((b: EQBand) => b.Enabled).length}{" "}
                 enabled
               </p>
+            )}
+            {parsedData && parsedData.Bands.length > 0 && (
+              <div>
+                <div className="mt-4">
+                  {/* EQ Graph */}
+                  <EqualizerChart
+                    bands={parsedData.Bands}
+                    onFrequencyHover={setHoveredFrequency}
+                  />
+                </div>
+                <div className="mt-4">
+                  <strong>{t("fileInfo.bandDetails")}:</strong>
+                  <EqualizerBandTable
+                    bands={parsedData.Bands}
+                    hoveredFrequency={hoveredFrequency}
+                  />
+                </div>
+              </div>
             )}
           </CardContent>
         </Card>

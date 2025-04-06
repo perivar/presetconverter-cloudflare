@@ -1,10 +1,23 @@
+import { ProQShape } from "./FabfilterProQ";
+import { ProQ2Shape } from "./FabfilterProQ2";
+import { ProQ3Shape } from "./FabfilterProQ3";
 import { VstPreset } from "./VstPreset";
+
+export enum FabfilterProQShape {
+  Bell = 0,
+  LowShelf = 1,
+  LowCut = 2,
+  HighShelf = 3,
+  HighCut = 4,
+  Notch = 5,
+}
 
 export interface FabfilterProQBand {
   Frequency: number;
   Gain: number;
   Q: number;
   Enabled: boolean;
+  Shape: FabfilterProQShape | ProQShape | ProQ2Shape | ProQ3Shape;
 }
 
 // Fabfilter Q factor typically ranges from 0.025 to 40

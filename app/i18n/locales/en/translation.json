@@ -27,11 +27,30 @@
     "unsupportedFormat": "Unsupported format: {{fileName}}"
   },
   "fileInfo": {
+    "band": "Band",
+    "bandDetails": "Band Details",
     "bands": "Bands",
     "detectedFormat": "Detected Format",
+    "disabled": "Disabled",
+    "enabled": "Enabled",
     "fileName": "File Name",
+    "frequency": "Frequency",
+    "gain": "Gain",
+    "q": "Q",
+    "type": "Type",
     "size": "Size",
     "title": "File Information"
+  },
+  "bandShapes": {
+    "Bell": "Bell",
+    "LowShelf": "Low Shelf",
+    "LowCut": "Low Cut",
+    "HighShelf": "High Shelf",
+    "HighCut": "High Cut",
+    "Notch": "Notch",
+    "BandPass": "Band Pass",
+    "TiltShelf": "Tilt Shelf",
+    "FlatTilt": "Flat Tilt"
   },
   "formats": {
     "fabfilterProQ1": "FabFilter Pro-Q",

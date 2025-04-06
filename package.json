@@ -59,6 +59,7 @@
     "react-dropzone": "^14.3.8",
     "react-i18next": "^15.4.1",
     "react-svg": "^16.3.0",
+    "recharts": "^2.12.3",
     "remix-i18next": "^6.4.1",
     "remix-themes": "^1.6.1",
     "tailwind-merge": "^3.0.2",
