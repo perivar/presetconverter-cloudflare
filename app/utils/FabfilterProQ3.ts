@@ -1,6 +1,6 @@
 import { BinaryFile, ByteOrder } from "./BinaryFile";
 import { FabfilterProQBand, FabfilterProQBase } from "./FabfilterProQBase";
-import { FxChunkSet, FXP, FxProgramSet } from "./FXP";
+import { FxChunkSet, FXP, FxProgram, FxProgramSet, FxSet } from "./FXP"; // Added FxSet, FxProgram
 import { VstPreset } from "./VstPreset";
 
 export enum ProQ3Shape {
@@ -98,17 +98,49 @@ export class FabfilterProQ3 extends FabfilterProQBase {
 
     if (this.FXP?.content) {
       let chunkData: Uint8Array | undefined;
+      let shouldHaveFXPChunkData = false; // Keep track if chunk data was expected
 
-      if (this.FXP.content instanceof FxProgramSet) {
+      // Check for FxSet with programs
+      if (
+        this.FXP.content instanceof FxSet &&
+        this.FXP.content.Programs?.length > 0
+      ) {
+        const program = this.FXP.content.Programs[0];
+        if (program.Parameters) {
+          // Parameters from FXP are in IEEE format (0.0 - 1.0)
+          this.initFromParameterArray([...program.Parameters], true);
+          return; // Parameters handled, exit
+        }
+      }
+      // Check for FxProgram with parameters
+      else if (
+        this.FXP.content instanceof FxProgram &&
+        this.FXP.content.NumParameters > 0
+      ) {
+        const paramArray = this.FXP.content.Parameters;
+        if (paramArray) {
+          // Parameters from FXP are in IEEE format (0.0 - 1.0)
+          this.initFromParameterArray([...paramArray], true);
+          return; // Parameters handled, exit
+        }
+      }
+      // Check for FxProgramSet (chunk data expected)
+      else if (this.FXP.content instanceof FxProgramSet) {
+        shouldHaveFXPChunkData = true;
         chunkData = this.FXP.content.ChunkData;
-      } else if (this.FXP.content instanceof FxChunkSet) {
+      }
+      // Check for FxChunkSet (chunk data expected)
+      else if (this.FXP.content instanceof FxChunkSet) {
+        shouldHaveFXPChunkData = true;
         chunkData = this.FXP.content.ChunkData;
       }
 
+      // Process chunk data if found
       if (chunkData) {
         const bf = new BinaryFile(chunkData, ByteOrder.LittleEndian);
         try {
           const header = bf.binaryReader?.readString(4);
+          // ProQ3 uses 'FFBS' in its chunk data
           if (header === "FFBS") {
             this.readFFPInternal(bf);
           } else {
@@ -120,7 +152,10 @@ export class FabfilterProQ3 extends FabfilterProQBase {
           console.error("Error reading FXP chunk data:", e);
         }
       } else {
-        console.warn("FXP content does not contain chunk data.");
+        // Only warn if chunk data was expected but not found
+        if (shouldHaveFXPChunkData) {
+          console.warn("FXP content does not contain chunk data.");
+        }
       }
     } else if (this.Parameters) {
       const floatParameters: number[] = [];
@@ -144,54 +179,128 @@ export class FabfilterProQ3 extends FabfilterProQBase {
     }
   }
 
+  private static convert2FabfilterProQ3Floats(
+    ieeeFloatParameters: number[]
+  ): number[] {
+    const floatArray: number[] = [];
+    let counter = 0;
+    const expectedBandParams = 13; // Based on initFromParameterArray
+
+    for (let i = 0; i < 24; i++) {
+      if (counter + expectedBandParams > ieeeFloatParameters.length) {
+        // Not enough parameters for a full band, fill with defaults or break
+        // For simplicity, we'll fill remaining expected slots with defaults
+        // matching the writeFFP logic for empty bands
+        floatArray.push(0); // Enabled = false
+        floatArray.push(1); // unknown 1
+        floatArray.push(FabfilterProQBase.freqConvert(1000)); // Frequency
+        floatArray.push(0); // Gain
+        floatArray.push(0); // Dynamic Range
+        floatArray.push(1); // unknown 3 (matching writeFFP)
+        floatArray.push(1); // Dynamic Threshold (1 = auto)
+        floatArray.push(FabfilterProQBase.qConvert(1)); // Q
+        floatArray.push(ProQ3Shape.Bell); // Shape
+        floatArray.push(ProQ3Slope.Slope24dB_oct); // Slope
+        floatArray.push(ProQ3StereoPlacement.Stereo); // Stereo Placement
+        floatArray.push(1); // unknown 5 (matching writeFFP)
+        floatArray.push(0); // unknown 6 (matching writeFFP)
+        continue; // Move to next band index
+      }
+
+      // Enabled
+      floatArray.push(ieeeFloatParameters[counter++]); // Directly use 0 or 1
+      // unknown 1
+      floatArray.push(1.0); // Assuming unknown1 is always 1.0 based on writeFFP
+      counter++; // Skip the input parameter corresponding to unknown1
+
+      // Frequency
+      floatArray.push(
+        FabfilterProQBase.ieeeFloatToFrequencyFloat(
+          ieeeFloatParameters[counter++]
+        )
+      );
+      // Gain (-30 to +30)
+      floatArray.push(ieeeFloatParameters[counter++] * 60 - 30);
+      // Dynamic Range (-30 to +30)
+      floatArray.push(ieeeFloatParameters[counter++] * 60 - 30);
+      // unknown 3
+      floatArray.push(1.0); // Assuming unknown3 is always 1.0 based on writeFFP
+      counter++; // Skip the input parameter corresponding to unknown3
+      // Dynamic Threshold (0 to 1, where 1 might mean auto)
+      floatArray.push(ieeeFloatParameters[counter++]);
+      // Q (0.025 to 40.0) -> internal float
+      floatArray.push(ieeeFloatParameters[counter++]); // Q is already 0-1, qConvertBack expects 0-1
+
+      // Shape (0 to 8)
+      const shapeRaw = ieeeFloatParameters[counter++];
+      floatArray.push(shapeRaw * ProQ3Shape.FlatTilt);
+      // Slope (0 to 9)
+      const slopeRaw = ieeeFloatParameters[counter++];
+      floatArray.push(slopeRaw * ProQ3Slope.SlopeBrickwall);
+      // Stereo Placement (0 to 4)
+      const stereoPlacementRaw = ieeeFloatParameters[counter++];
+      floatArray.push(stereoPlacementRaw * ProQ3StereoPlacement.Side);
+
+      // unknown 5
+      floatArray.push(1.0); // Assuming unknown5 is always 1.0 based on writeFFP
+      counter++; // Skip the input parameter corresponding to unknown5
+      // unknown 6
+      floatArray.push(0.0); // Assuming unknown6 is always 0.0 based on writeFFP
+      counter++; // Skip the input parameter corresponding to unknown6
+    }
+
+    // Handle remaining parameters (UnknownParameters)
+    if (counter < ieeeFloatParameters.length) {
+      // Assuming remaining parameters are direct floats (0-1)
+      floatArray.push(...ieeeFloatParameters.slice(counter));
+    }
+
+    return floatArray;
+  }
+
   private initFromParameterArray(parameters: number[], isIEEE = true): void {
+    // Convert IEEE parameters to FabFilter values if needed
+    const floatArray = isIEEE
+      ? FabfilterProQ3.convert2FabfilterProQ3Floats(parameters)
+      : parameters;
+
     this.Bands = [];
     this.UnknownParameters = [];
     let index = 0;
     const expectedBandParams = 13;
-
     for (let i = 0; i < 24; i++) {
-      if (index + expectedBandParams > parameters.length) {
+      // Check against the potentially converted floatArray length
+      if (index + expectedBandParams > floatArray.length) {
         break;
       }
 
       const band = new ProQ3Band();
 
-      band.Enabled = parameters[index++] === 1;
-      index++; // Skip unknown1
+      // Parameters are now always in FabFilter format in floatArray
+      band.Enabled = floatArray[index++] === 1;
+      index++; // Skip unknown1 (parameter 2)
 
-      if (isIEEE) {
-        band.Frequency = FabfilterProQBase.freqConvertBack(
-          FabfilterProQBase.ieeeFloatToFrequencyFloat(parameters[index++])
-        );
-        band.Gain = parameters[index++] * 60 - 30;
-        band.DynamicRange = parameters[index++] * 60 - 30;
-        index++;
-        band.DynamicThreshold = parameters[index++];
-        band.Q = FabfilterProQBase.qConvertBack(parameters[index++]);
-      } else {
-        band.Frequency = FabfilterProQBase.freqConvertBack(parameters[index++]);
-        band.Gain = parameters[index++];
-        band.DynamicRange = parameters[index++];
-        index++;
-        band.DynamicThreshold = parameters[index++];
-        band.Q = FabfilterProQBase.qConvertBack(parameters[index++]);
-      }
+      band.Frequency = FabfilterProQBase.freqConvertBack(floatArray[index++]); // parameter 3
+      band.Gain = floatArray[index++]; // parameter 4
+      band.DynamicRange = floatArray[index++]; // parameter 5
+      index++; // Skip unknown3 (parameter 6)
+      band.DynamicThreshold = floatArray[index++]; // parameter 7
+      band.Q = FabfilterProQBase.qConvertBack(floatArray[index++]); // parameter 8
 
-      const shapeRaw = parameters[index++];
-      const shapeValue = Math.round(
-        shapeRaw * (isIEEE ? ProQ3Shape.FlatTilt : 1)
-      );
+      // parameter 9
+      const shapeRaw = floatArray[index++];
+      // The floatArray already contains the direct enum value (0-8)
+      const shapeValue = shapeRaw;
       if (shapeValue >= ProQ3Shape.Bell && shapeValue <= ProQ3Shape.FlatTilt) {
         band.Shape = shapeValue;
       } else {
         band.Shape = ProQ3Shape.Bell;
       }
 
-      const slopeRaw = parameters[index++];
-      const slopeValue = Math.round(
-        slopeRaw * (isIEEE ? ProQ3Slope.SlopeBrickwall : 1)
-      );
+      // parameter 10
+      const slopeRaw = floatArray[index++];
+      // The floatArray already contains the direct enum value (0-9)
+      const slopeValue = slopeRaw;
       if (
         slopeValue >= ProQ3Slope.Slope6dB_oct &&
         slopeValue <= ProQ3Slope.SlopeBrickwall
@@ -201,10 +310,10 @@ export class FabfilterProQ3 extends FabfilterProQBase {
         band.Slope = ProQ3Slope.Slope24dB_oct;
       }
 
-      const stereoPlacementRaw = parameters[index++];
-      const stereoPlacementValue = Math.round(
-        stereoPlacementRaw * (isIEEE ? ProQ3StereoPlacement.Side : 1)
-      );
+      // parameter 11
+      const stereoPlacementRaw = floatArray[index++];
+      // The floatArray already contains the direct enum value (0-4)
+      const stereoPlacementValue = stereoPlacementRaw;
       if (
         stereoPlacementValue >= ProQ3StereoPlacement.Left &&
         stereoPlacementValue <= ProQ3StereoPlacement.Side
@@ -214,12 +323,13 @@ export class FabfilterProQ3 extends FabfilterProQBase {
         band.StereoPlacement = ProQ3StereoPlacement.Stereo;
       }
 
-      index += 2;
+      index += 2; // Skip unknown5 (parameter 12) and unknown6 (parameter 13)
       this.Bands.push(band);
     }
 
-    if (index < parameters.length) {
-      this.UnknownParameters = parameters.slice(index);
+    // Handle remaining parameters from floatArray
+    if (index < floatArray.length) {
+      this.UnknownParameters = floatArray.slice(index);
     }
   }
 
@@ -241,9 +351,13 @@ export class FabfilterProQ3 extends FabfilterProQBase {
         const freq = bf.binaryReader.readFloat32() || 0;
         band.Frequency = FabfilterProQBase.freqConvertBack(freq);
 
-        band.Gain = bf.binaryReader.readFloat32() || 0;
+        // actual gain in dB
+        const gain = bf.binaryReader.readFloat32() || 0;
+        band.Gain = gain;
+
         band.DynamicRange = bf.binaryReader.readFloat32() || 0;
         bf.binaryReader.readFloat32(); // Skip unknown3
+
         band.DynamicThreshold = bf.binaryReader.readFloat32() || 0;
 
         const q = bf.binaryReader.readFloat32() || 0;

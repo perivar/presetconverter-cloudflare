@@ -1,6 +1,7 @@
 import { BinaryFile, ByteOrder } from "./BinaryFile";
 import { FabfilterProQBand, FabfilterProQBase } from "./FabfilterProQBase";
-import { FxSet } from "./FXP";
+import { FxChunkSet, FxProgram, FxProgramSet, FxSet } from "./FXP"; // Added FxProgram, FxProgramSet, FxChunkSet
+import { convertAndMaintainRatio } from "./Math"; // Added Math utils
 import { ParameterType, VstPreset } from "./VstPreset";
 
 export enum ProQ2Shape {
@@ -116,19 +117,78 @@ export class FabfilterProQ2 extends FabfilterProQBase {
 
   public initFromParameters(parameters?: number[], isIEEE = true): void {
     if (parameters) {
+      // Direct parameter array provided
       this.initFromParameterArray(parameters, isIEEE);
       return;
     }
 
-    if (
-      this.FXP?.content instanceof FxSet &&
-      this.FXP.content.Programs?.length > 0
-    ) {
-      const program = this.FXP.content.Programs[0];
-      if (program.Parameters) {
-        this.initFromParameterArray([...program.Parameters], true);
+    if (this.FXP?.content) {
+      let chunkData: Uint8Array | undefined;
+      let shouldHaveFXPChunkData = false; // Keep track if chunk data was expected
+
+      // Check for FxSet with programs
+      if (
+        this.FXP.content instanceof FxSet &&
+        this.FXP.content.Programs?.length > 0
+      ) {
+        const program = this.FXP.content.Programs[0];
+        if (program.Parameters) {
+          // Parameters from FXP are in IEEE format (0.0 - 1.0)
+          this.initFromParameterArray([...program.Parameters], true);
+          return; // Parameters handled, exit
+        }
       }
-    } else if (this.Parameters) {
+      // Check for FxProgram with parameters
+      else if (
+        this.FXP.content instanceof FxProgram &&
+        this.FXP.content.NumParameters > 0
+      ) {
+        const paramArray = this.FXP.content.Parameters;
+        if (paramArray) {
+          // Parameters from FXP are in IEEE format (0.0 - 1.0)
+          this.initFromParameterArray([...paramArray], true);
+          return; // Parameters handled, exit
+        }
+      }
+      // Check for FxProgramSet (chunk data expected)
+      else if (this.FXP.content instanceof FxProgramSet) {
+        shouldHaveFXPChunkData = true;
+        chunkData = this.FXP.content.ChunkData;
+      }
+      // Check for FxChunkSet (chunk data expected)
+      else if (this.FXP.content instanceof FxChunkSet) {
+        shouldHaveFXPChunkData = true;
+        chunkData = this.FXP.content.ChunkData;
+      }
+
+      // Process chunk data if found
+      if (chunkData) {
+        const bf = new BinaryFile(chunkData, ByteOrder.LittleEndian);
+        try {
+          const header = bf.binaryReader?.readString(4);
+          // ProQ2 uses 'FFBS' in its chunk data
+          if (header === "FFBS") {
+            this.readFFPInternal(bf);
+          } else {
+            console.warn(
+              `FXP chunk data header mismatch. Expected 'FFBS', got '${header}'. Attempting to read as FFP anyway.`
+            );
+          }
+        } catch (e) {
+          console.error("Error reading FXP chunk data for ProQ2:", e);
+        }
+        return; // Chunk data processed (or attempted), exit
+      } else {
+        // Only warn if chunk data was expected but not found
+        if (shouldHaveFXPChunkData) {
+          console.warn(
+            "FXP content was expected to have chunk data, but none was found."
+          );
+        }
+      }
+    }
+
+    if (this.Parameters) {
       const floatParameters: number[] = [];
       const sortedKeys = Array.from(this.Parameters.keys()).sort((a, b) => {
         const numA = parseInt(a, 10);
@@ -142,55 +202,171 @@ export class FabfilterProQ2 extends FabfilterProQBase {
           floatParameters.push(paramValue.Value as number);
         }
       }
-
+      // Assume internal Parameters are NOT IEEE 0-1 range
       this.initFromParameterArray(floatParameters, false);
     }
   }
 
+  // Added conversion function similar to ProQ and ProQ3
+  private static convert2FabfilterProQ2Floats(
+    ieeeFloatParameters: number[]
+  ): number[] {
+    const floatArray: number[] = [];
+    let counter = 0;
+
+    // Convert Band Parameters (24 bands * 8 params each)
+    for (let i = 0; i < 24; i++) {
+      // Enabled (Parameter 1) - Assuming 0/1 from IEEE
+      floatArray.push(ieeeFloatParameters[counter++]); // Direct 0 or 1
+      // Frequency (Parameter 2)
+      floatArray.push(
+        FabfilterProQBase.ieeeFloatToFrequencyFloat(
+          ieeeFloatParameters[counter++]
+        )
+      );
+      // Gain (Parameter 3)
+      floatArray.push(ieeeFloatParameters[counter++] * 60 - 30); // -30 to +30
+      // Q (Parameter 4)
+      floatArray.push(ieeeFloatParameters[counter++]); // Direct 0-1 for qConvertBack
+      // Shape (Parameter 5)
+      floatArray.push(
+        Math.floor(ieeeFloatParameters[counter++] * ProQ2Shape.TiltShelf)
+      ); // 0-7
+      // Slope (Parameter 6)
+      floatArray.push(
+        Math.floor(ieeeFloatParameters[counter++] * ProQ2Slope.Slope96dB_oct)
+      ); // 0-8
+      // Stereo Placement (Parameter 7)
+      floatArray.push(
+        Math.floor(ieeeFloatParameters[counter++] * ProQ2StereoPlacement.Stereo)
+      ); // 0-2
+      // Unknown/Skipped (Parameter 8)
+      floatArray.push(1.0); // Placeholder value, matches ProQ1 write logic
+      counter++; // Consume the 8th parameter from input
+    }
+
+    // Convert Global Parameters (22 params)
+    try {
+      // ProcessingMode (0-2)
+      floatArray.push(
+        convertAndMaintainRatio(ieeeFloatParameters[counter++], 0, 1, 0, 2)
+      );
+      // ProcessingResolution (0-4) - Based on writeFFP range
+      floatArray.push(
+        convertAndMaintainRatio(ieeeFloatParameters[counter++], 0, 1, 0, 4)
+      );
+      // ChannelMode (0-1)
+      floatArray.push(ieeeFloatParameters[counter++]);
+      // GainScale (0-1?) - Assuming 0-1 maps to 0-100%
+      floatArray.push(ieeeFloatParameters[counter++]);
+      // OutputLevel (-1 to 1)
+      floatArray.push(
+        convertAndMaintainRatio(ieeeFloatParameters[counter++], 0, 1, -1, 1)
+      );
+      // OutputPan (-1 to 1)
+      floatArray.push(
+        convertAndMaintainRatio(ieeeFloatParameters[counter++], 0, 1, -1, 1)
+      );
+      // ByPass (0-1)
+      floatArray.push(ieeeFloatParameters[counter++]);
+      // OutputInvertPhase (0-1)
+      floatArray.push(ieeeFloatParameters[counter++]);
+      // AutoGain (0-1)
+      floatArray.push(ieeeFloatParameters[counter++]);
+      // AnalyzerShowPreProcessing (0-1)
+      floatArray.push(ieeeFloatParameters[counter++]);
+      // AnalyzerShowPostProcessing (0-1)
+      floatArray.push(ieeeFloatParameters[counter++]);
+      // AnalyzerShowSidechain (0-1)
+      floatArray.push(ieeeFloatParameters[counter++]);
+      // AnalyzerRange (0-2)
+      floatArray.push(
+        convertAndMaintainRatio(ieeeFloatParameters[counter++], 0, 1, 0, 2)
+      );
+      // AnalyzerResolution (0-3)
+      floatArray.push(
+        convertAndMaintainRatio(ieeeFloatParameters[counter++], 0, 1, 0, 3)
+      );
+      // AnalyzerSpeed (0-4)
+      floatArray.push(
+        convertAndMaintainRatio(ieeeFloatParameters[counter++], 0, 1, 0, 4)
+      );
+      // AnalyzerTilt (0-4)
+      floatArray.push(
+        convertAndMaintainRatio(ieeeFloatParameters[counter++], 0, 1, 0, 4)
+      );
+      // AnalyzerFreeze (0-1)
+      floatArray.push(ieeeFloatParameters[counter++]);
+      // SpectrumGrab (0-1)
+      floatArray.push(ieeeFloatParameters[counter++]);
+      // DisplayRange (0-3) - Assuming same range as ProQ1
+      floatArray.push(
+        convertAndMaintainRatio(ieeeFloatParameters[counter++], 0, 1, 0, 3)
+      );
+      // ReceiveMidi (0-1)
+      floatArray.push(ieeeFloatParameters[counter++]);
+      // SoloBand (-1 to 23)
+      floatArray.push(
+        convertAndMaintainRatio(ieeeFloatParameters[counter++], 0, 1, -1, 23)
+      );
+      // SoloGain (0-1?) - Assuming 0-1 maps to 0dB
+      floatArray.push(ieeeFloatParameters[counter++]);
+    } catch (e) {
+      console.error("Error converting remaining parameters:", e);
+    }
+
+    return floatArray;
+  }
+
   private initFromParameterArray(parameters: number[], isIEEE = true): void {
+    // Convert IEEE parameters to FabFilter values if needed
+    const floatArray = isIEEE
+      ? FabfilterProQ2.convert2FabfilterProQ2Floats(parameters)
+      : parameters;
+
     this.Bands = [];
     let index = 0;
 
     for (let i = 0; i < 24; i++) {
       const band = new ProQ2Band();
 
-      band.Enabled = parameters[index++] === 1;
+      // Parameters are now always in FabFilter format in floatArray
+      band.Enabled = floatArray[index++] === 1; // Param 1
+      band.Frequency = FabfilterProQBase.freqConvertBack(floatArray[index++]); // Param 2
+      band.Gain = floatArray[index++]; // Param 3
+      band.Q = FabfilterProQBase.qConvertBack(floatArray[index++]); // Param 4
 
-      if (isIEEE) {
-        band.Frequency = FabfilterProQBase.freqConvertBack(
-          FabfilterProQBase.ieeeFloatToFrequencyFloat(parameters[index++])
-        );
-        band.Gain = parameters[index++] * 60 - 30;
-        band.Q = FabfilterProQBase.qConvertBack(parameters[index++]);
+      // Shape (Param 5)
+      const shapeValue = floatArray[index++];
+      if (shapeValue >= ProQ2Shape.Bell && shapeValue <= ProQ2Shape.TiltShelf) {
+        band.Shape = shapeValue;
       } else {
-        band.Frequency = FabfilterProQBase.freqConvertBack(parameters[index++]);
-        band.Gain = parameters[index++];
-        band.Q = FabfilterProQBase.qConvertBack(parameters[index++]);
+        band.Shape = ProQ2Shape.Bell; // Default
       }
 
-      const filterType = Math.floor(parameters[index++] * (isIEEE ? 7 : 1));
-      if (filterType >= 0 && filterType <= ProQ2Shape.TiltShelf) {
-        band.Shape = filterType;
-      } else {
-        band.Shape = ProQ2Shape.Bell;
-      }
-
-      const filterSlope = Math.floor(parameters[index++] * (isIEEE ? 8 : 1));
-      band.Slope = Math.min(Math.max(filterSlope, 0), ProQ2Slope.Slope96dB_oct);
-
-      const stereoPlacement = Math.floor(
-        parameters[index++] * (isIEEE ? 2 : 1)
-      );
+      // Slope (Param 6)
+      const slopeValue = floatArray[index++];
       if (
-        stereoPlacement >= 0 &&
-        stereoPlacement <= ProQ2StereoPlacement.Stereo
+        slopeValue >= ProQ2Slope.Slope6dB_oct &&
+        slopeValue <= ProQ2Slope.Slope96dB_oct
       ) {
-        band.StereoPlacement = stereoPlacement;
+        band.Slope = slopeValue;
       } else {
-        band.StereoPlacement = ProQ2StereoPlacement.Stereo;
+        band.Slope = ProQ2Slope.Slope24dB_oct; // Default
       }
 
-      index++; // Skip unknown parameter
+      // Stereo Placement (Param 7)
+      const stereoPlacementValue = floatArray[index++];
+      if (
+        stereoPlacementValue >= ProQ2StereoPlacement.LeftOrMid &&
+        stereoPlacementValue <= ProQ2StereoPlacement.Stereo
+      ) {
+        band.StereoPlacement = stereoPlacementValue;
+      } else {
+        band.StereoPlacement = ProQ2StereoPlacement.Stereo; // Default
+      }
+
+      index++; // Skip unknown parameter (Param 8)
 
       this.Bands.push(band);
     }
@@ -233,155 +409,196 @@ export class FabfilterProQ2 extends FabfilterProQBase {
     }
   }
 
-  public readFFP(data: Uint8Array, doReadHeader = true): boolean {
-    const bf = new BinaryFile(data, ByteOrder.LittleEndian);
+  // Extracted internal reading logic
+  private readFFPInternal(bf: BinaryFile): boolean {
     if (!bf.binaryReader) return false;
 
-    if (doReadHeader) {
-      const header = bf.binaryReader.readString(4);
-      if (header !== "FQ2p") return false;
-    }
-
-    this.Version = bf.binaryReader.readUInt32() || 0;
-    this.ParameterCount = bf.binaryReader.readUInt32() || 0;
-
-    this.Bands = [];
-    for (let i = 0; i < 24; i++) {
-      const band = new ProQ2Band();
-
-      // 1 = Enabled, 2 = Disabled
-      band.Enabled = bf.binaryReader.readFloat32() === 1;
-
-      const freq = bf.binaryReader.readFloat32() || 0;
-      band.Frequency = FabfilterProQBase.freqConvertBack(freq);
-
-      band.Gain = bf.binaryReader.readFloat32() || 0;
-
-      const q = bf.binaryReader.readFloat32() || 0;
-      band.Q = FabfilterProQBase.qConvertBack(q);
-
-      // 0 - 7
-      const filterType = bf.binaryReader.readFloat32();
-      switch (filterType) {
-        case ProQ2Shape.Bell:
-          band.Shape = ProQ2Shape.Bell;
-          break;
-        case ProQ2Shape.LowShelf:
-          band.Shape = ProQ2Shape.LowShelf;
-          break;
-        case ProQ2Shape.LowCut:
-          band.Shape = ProQ2Shape.LowCut;
-          break;
-        case ProQ2Shape.HighShelf:
-          band.Shape = ProQ2Shape.HighShelf;
-          break;
-        case ProQ2Shape.HighCut:
-          band.Shape = ProQ2Shape.HighCut;
-          break;
-        case ProQ2Shape.Notch:
-          band.Shape = ProQ2Shape.Notch;
-          break;
-        case ProQ2Shape.BandPass:
-          band.Shape = ProQ2Shape.BandPass;
-          break;
-        case ProQ2Shape.TiltShelf:
-          band.Shape = ProQ2Shape.TiltShelf;
-        default:
-          throw new Error(`Filter type is outside range: ${filterType}`);
-      }
-
-      // 0 - 8
-      const filterSlope = bf.binaryReader.readFloat32();
-      switch (filterSlope) {
-        case ProQ2Slope.Slope6dB_oct:
-          band.Slope = ProQ2Slope.Slope6dB_oct;
-          break;
-        case ProQ2Slope.Slope12dB_oct:
-          band.Slope = ProQ2Slope.Slope12dB_oct;
-          break;
-        case ProQ2Slope.Slope18dB_oct:
-          band.Slope = ProQ2Slope.Slope18dB_oct;
-          break;
-        case ProQ2Slope.Slope24dB_oct:
-          band.Slope = ProQ2Slope.Slope24dB_oct;
-          break;
-        case ProQ2Slope.Slope30dB_oct:
-          band.Slope = ProQ2Slope.Slope30dB_oct;
-          break;
-        case ProQ2Slope.Slope36dB_oct:
-          band.Slope = ProQ2Slope.Slope36dB_oct;
-          break;
-        case ProQ2Slope.Slope48dB_oct:
-          band.Slope = ProQ2Slope.Slope48dB_oct;
-          break;
-        case ProQ2Slope.Slope72dB_oct:
-          band.Slope = ProQ2Slope.Slope72dB_oct;
-          break;
-        case ProQ2Slope.Slope96dB_oct:
-          band.Slope = ProQ2Slope.Slope96dB_oct;
-          break;
-        default:
-          throw new Error(`Filter slope is outside range: ${filterSlope}`);
-      }
-
-      // 0 = Left, 1 = Right, 2 = Stereo
-      const filterStereoPlacement = bf.binaryReader.readFloat32();
-      switch (filterStereoPlacement) {
-        case ProQ2StereoPlacement.LeftOrMid:
-          band.StereoPlacement = ProQ2StereoPlacement.LeftOrMid;
-          break;
-        case ProQ2StereoPlacement.RightOrSide:
-          band.StereoPlacement = ProQ2StereoPlacement.RightOrSide;
-          break;
-        case ProQ2StereoPlacement.Stereo:
-          band.StereoPlacement = ProQ2StereoPlacement.Stereo;
-          break;
-        default:
-          throw new Error(
-            `Filter stereo placement is outside range: ${filterStereoPlacement}`
-          );
-      }
-
-      this.Bands.push(band);
-    }
-
-    // read the remaining floats
-    // int remainingParameterCount = ParameterCount - 7 * Bands.Count;
     try {
-      this.ProcessingMode = bf.binaryReader.readFloat32() || 0; // Zero Latency: 0.0, Natural Phase: 1.0, Linear Phase: 2.0
-      this.ProcessingResolution = bf.binaryReader.readFloat32() || 0; // 0 - 4, Medium
-      this.ChannelMode = bf.binaryReader.readFloat32() || 0; // 0 = Left/Right, 1 = Mid/Side
-      this.GainScale = bf.binaryReader.readFloat32() || 0; // 100%
-      this.OutputLevel = bf.binaryReader.readFloat32() || 0; // 0.0 dB, -1 to 1 (- Infinity to +36 dB , 0 = 0 dB)
-      this.OutputPan = bf.binaryReader.readFloat32() || 0; // Left 0 dB, Right: 0 dB, -1 to 1 (0 = middle)
-      this.ByPass = bf.binaryReader.readFloat32() || 0; // Not Bypassed
-      this.OutputInvertPhase = bf.binaryReader.readFloat32() || 0; // Normal
-      this.AutoGain = bf.binaryReader.readFloat32() || 0; // Off
-      this.AnalyzerShowPreProcessing = bf.binaryReader.readFloat32() || 0; // Disabled - 0: Off, 1: On
-      this.AnalyzerShowPostProcessing = bf.binaryReader.readFloat32() || 0; // Disabled - 0: Off, 1: On
-      this.AnalyzerShowSidechain = bf.binaryReader.readFloat32() || 0; // Disabled - 0: Off, 1: On
-      this.AnalyzerRange = bf.binaryReader.readFloat32() || 0; // Analyzer Range in dB. 0.0: 60dB, 1.0: 90dB, 2.0: 120dB
-      this.AnalyzerResolution = bf.binaryReader.readFloat32() || 0; // Analyzer Resolution. 0.0: Low, 1.0: Medium, 2.0: High, 3.00: Maximum
-      this.AnalyzerSpeed = bf.binaryReader.readFloat32() || 0; // Analyzer Speed. 0.0: Very Slow, 1.0: Slow, 2.0: Medium, 3.0 Fast, 4.0: Very Fast
-      this.AnalyzerTilt = bf.binaryReader.readFloat32() || 0; // Analyzer Tilt in dB/oct. 0.0: 0.0, 1.0: 1.5, 2.0: 3.0, 3.0: 4.5, 4.0: 6.0
-      this.AnalyzerFreeze = bf.binaryReader.readFloat32() || 0; // 0: Off, 1: On
-      this.SpectrumGrab = bf.binaryReader.readFloat32() || 0; // Enabled
-      this.DisplayRange = bf.binaryReader.readFloat32() || 0; // 12dB
-      this.ReceiveMidi = bf.binaryReader.readFloat32() || 0; // Enabled
-      this.SoloBand = bf.binaryReader.readFloat32() || 0; // -1
-      this.SoloGain = bf.binaryReader.readFloat32() || 0; // 0.00
-    } catch (e) {
-      console.error("Error reading additional floats:", e);
-    }
+      this.Version = bf.binaryReader.readUInt32() || 0;
+      this.ParameterCount = bf.binaryReader.readUInt32() || 0;
 
-    // check if mid/side
-    if (this.ChannelMode === ProQ2ChannelMode.MidSide) {
-      this.Bands.forEach(band => (band.ChannelMode = ProQ2ChannelMode.MidSide));
+      this.Bands = [];
+      for (let i = 0; i < 24; i++) {
+        const band = new ProQ2Band();
+
+        // 1 = Enabled, 2 = Disabled
+        band.Enabled = bf.binaryReader.readFloat32() === 1;
+
+        const freq = bf.binaryReader.readFloat32() || 0;
+        band.Frequency = FabfilterProQBase.freqConvertBack(freq);
+
+        // actual gain in dB
+        const gain = bf.binaryReader.readFloat32() || 0;
+        band.Gain = gain;
+
+        const q = bf.binaryReader.readFloat32() || 0;
+        band.Q = FabfilterProQBase.qConvertBack(q);
+
+        // 0 - 7
+        const filterType = bf.binaryReader.readFloat32();
+        switch (filterType) {
+          case ProQ2Shape.Bell:
+            band.Shape = ProQ2Shape.Bell;
+            break;
+          case ProQ2Shape.LowShelf:
+            band.Shape = ProQ2Shape.LowShelf;
+            break;
+          case ProQ2Shape.LowCut:
+            band.Shape = ProQ2Shape.LowCut;
+            break;
+          case ProQ2Shape.HighShelf:
+            band.Shape = ProQ2Shape.HighShelf;
+            break;
+          case ProQ2Shape.HighCut:
+            band.Shape = ProQ2Shape.HighCut;
+            break;
+          case ProQ2Shape.Notch:
+            band.Shape = ProQ2Shape.Notch;
+            break;
+          case ProQ2Shape.BandPass:
+            band.Shape = ProQ2Shape.BandPass;
+            break;
+          case ProQ2Shape.TiltShelf:
+            band.Shape = ProQ2Shape.TiltShelf;
+            break; // Added missing break
+          default:
+            console.warn(
+              `Filter type is outside range: ${filterType}. Defaulting to Bell.`
+            );
+            band.Shape = ProQ2Shape.Bell; // Default instead of throwing error
+        }
+
+        // 0 - 8
+        const filterSlope = bf.binaryReader.readFloat32();
+        switch (filterSlope) {
+          case ProQ2Slope.Slope6dB_oct:
+            band.Slope = ProQ2Slope.Slope6dB_oct;
+            break;
+          case ProQ2Slope.Slope12dB_oct:
+            band.Slope = ProQ2Slope.Slope12dB_oct;
+            break;
+          case ProQ2Slope.Slope18dB_oct:
+            band.Slope = ProQ2Slope.Slope18dB_oct;
+            break;
+          case ProQ2Slope.Slope24dB_oct:
+            band.Slope = ProQ2Slope.Slope24dB_oct;
+            break;
+          case ProQ2Slope.Slope30dB_oct:
+            band.Slope = ProQ2Slope.Slope30dB_oct;
+            break;
+          case ProQ2Slope.Slope36dB_oct:
+            band.Slope = ProQ2Slope.Slope36dB_oct;
+            break;
+          case ProQ2Slope.Slope48dB_oct:
+            band.Slope = ProQ2Slope.Slope48dB_oct;
+            break;
+          case ProQ2Slope.Slope72dB_oct:
+            band.Slope = ProQ2Slope.Slope72dB_oct;
+            break;
+          case ProQ2Slope.Slope96dB_oct:
+            band.Slope = ProQ2Slope.Slope96dB_oct;
+            break;
+          default:
+            console.warn(
+              `Filter slope is outside range: ${filterSlope}. Defaulting to 24dB/oct.`
+            );
+            band.Slope = ProQ2Slope.Slope24dB_oct; // Default instead of throwing error
+        }
+
+        // 0 = Left, 1 = Right, 2 = Stereo
+        const filterStereoPlacement = bf.binaryReader.readFloat32();
+        switch (filterStereoPlacement) {
+          case ProQ2StereoPlacement.LeftOrMid:
+            band.StereoPlacement = ProQ2StereoPlacement.LeftOrMid;
+            break;
+          case ProQ2StereoPlacement.RightOrSide:
+            band.StereoPlacement = ProQ2StereoPlacement.RightOrSide;
+            break;
+          case ProQ2StereoPlacement.Stereo:
+            band.StereoPlacement = ProQ2StereoPlacement.Stereo;
+            break;
+          default:
+            console.warn(
+              `Filter stereo placement is outside range: ${filterStereoPlacement}. Defaulting to Stereo.`
+            );
+            band.StereoPlacement = ProQ2StereoPlacement.Stereo; // Default instead of throwing error
+        }
+
+        this.Bands.push(band);
+      }
+
+      // read the remaining floats
+      // int remainingParameterCount = ParameterCount - 7 * Bands.Count;
+      try {
+        this.ProcessingMode = bf.binaryReader.readFloat32() || 0; // Zero Latency: 0.0, Natural Phase: 1.0, Linear Phase: 2.0
+        this.ProcessingResolution = bf.binaryReader.readFloat32() || 0; // 0 - 4, Medium
+        this.ChannelMode = bf.binaryReader.readFloat32() || 0; // 0 = Left/Right, 1 = Mid/Side
+        this.GainScale = bf.binaryReader.readFloat32() || 0; // 100%
+        this.OutputLevel = bf.binaryReader.readFloat32() || 0; // 0.0 dB, -1 to 1 (- Infinity to +36 dB , 0 = 0 dB)
+        this.OutputPan = bf.binaryReader.readFloat32() || 0; // Left 0 dB, Right: 0 dB, -1 to 1 (0 = middle)
+        this.ByPass = bf.binaryReader.readFloat32() || 0; // Not Bypassed
+        this.OutputInvertPhase = bf.binaryReader.readFloat32() || 0; // Normal
+        this.AutoGain = bf.binaryReader.readFloat32() || 0; // Off
+        this.AnalyzerShowPreProcessing = bf.binaryReader.readFloat32() || 0; // Disabled - 0: Off, 1: On
+        this.AnalyzerShowPostProcessing = bf.binaryReader.readFloat32() || 0; // Disabled - 0: Off, 1: On
+        this.AnalyzerShowSidechain = bf.binaryReader.readFloat32() || 0; // Disabled - 0: Off, 1: On
+        this.AnalyzerRange = bf.binaryReader.readFloat32() || 0; // Analyzer Range in dB. 0.0: 60dB, 1.0: 90dB, 2.0: 120dB
+        this.AnalyzerResolution = bf.binaryReader.readFloat32() || 0; // Analyzer Resolution. 0.0: Low, 1.0: Medium, 2.0: High, 3.00: Maximum
+        this.AnalyzerSpeed = bf.binaryReader.readFloat32() || 0; // Analyzer Speed. 0.0: Very Slow, 1.0: Slow, 2.0: Medium, 3.0 Fast, 4.0: Very Fast
+        this.AnalyzerTilt = bf.binaryReader.readFloat32() || 0; // Analyzer Tilt in dB/oct. 0.0: 0.0, 1.0: 1.5, 2.0: 3.0, 3.0: 4.5, 4.0: 6.0
+        this.AnalyzerFreeze = bf.binaryReader.readFloat32() || 0; // 0: Off, 1: On
+        this.SpectrumGrab = bf.binaryReader.readFloat32() || 0; // Enabled
+        this.DisplayRange = bf.binaryReader.readFloat32() || 0; // 12dB
+        this.ReceiveMidi = bf.binaryReader.readFloat32() || 0; // Enabled
+        this.SoloBand = bf.binaryReader.readFloat32() || 0; // -1
+        this.SoloGain = bf.binaryReader.readFloat32() || 0; // 0.00
+      } catch (e) {
+        console.error("Error reading ProQ2 additional floats:", e);
+        // Don't stop processing, just log the error
+      }
+
+      // check if mid/side
+      if (this.ChannelMode === ProQ2ChannelMode.MidSide) {
+        this.Bands.forEach(
+          band => (band.ChannelMode = ProQ2ChannelMode.MidSide)
+        );
+      } else {
+        this.Bands.forEach(
+          band => (band.ChannelMode = ProQ2ChannelMode.LeftRight)
+        );
+      }
+    } catch (e) {
+      console.error("Error during ReadFFPInternal (ProQ2):", e);
+      return false;
     }
 
     return true;
   }
 
+  public readFFP(data: Uint8Array, doReadHeader = true): boolean {
+    // Removed duplicate bf declaration here
+    const bf = new BinaryFile(data, ByteOrder.LittleEndian);
+    if (!bf.binaryReader) return false;
+
+    if (doReadHeader) {
+      try {
+        const header = bf.binaryReader.readString(4);
+        // ProQ2 uses 'FQ2p' in its FFP header
+        if (header !== "FQ2p") {
+          console.error(`Invalid FFP header. Expected 'FQ2p', got '${header}'`);
+          return false;
+        }
+      } catch (e) {
+        console.error("Error reading FFP header:", e);
+        return false;
+      }
+    }
+
+    // Call the internal reading function
+    return this.readFFPInternal(bf);
+  }
+
+  // Added back writeFFP method
   public writeFFP(): Uint8Array | undefined {
     const bf = new BinaryFile(undefined, ByteOrder.LittleEndian);
     if (!bf.binaryWriter) return undefined;
@@ -392,7 +609,10 @@ export class FabfilterProQ2 extends FabfilterProQBase {
 
     // Write the bands content
     const bandsContent = this.getBandsContent();
-    if (!bandsContent) return undefined;
+    if (!bandsContent) {
+      console.warn("No ProQ2 bands content to write.");
+      return undefined; // Or handle as appropriate
+    }
 
     bf.binaryWriter.writeBytes(bandsContent);
     const buffer = bf.binaryWriter.getBuffer();
@@ -403,15 +623,14 @@ export class FabfilterProQ2 extends FabfilterProQBase {
     const bf = new BinaryFile(undefined, ByteOrder.LittleEndian);
     if (!bf.binaryWriter) return undefined;
 
-    // write total parameter count
-    // 24 bands with 7 parameters each = 168
-    // pluss the 22 parameters at the end
-    bf.binaryWriter.writeUInt32(24 * 7 + 22);
+    // write total parameter count (190 for ProQ2)
+    bf.binaryWriter.writeUInt32(this.ParameterCount);
 
+    // Write Band Parameters (24 bands * 7 params each)
     for (let i = 0; i < 24; i++) {
       if (i < this.Bands.length) {
         const band = this.Bands[i];
-        bf.binaryWriter.writeFloat32(band.Enabled ? 1 : 2);
+        bf.binaryWriter.writeFloat32(band.Enabled ? 1 : 2); // 1 = Enabled, 2 = Disabled
         bf.binaryWriter.writeFloat32(
           FabfilterProQBase.freqConvert(band.Frequency)
         );
@@ -421,16 +640,18 @@ export class FabfilterProQ2 extends FabfilterProQBase {
         bf.binaryWriter.writeFloat32(band.Slope);
         bf.binaryWriter.writeFloat32(band.StereoPlacement);
       } else {
-        bf.binaryWriter.writeFloat32(2);
+        // Write default values for unused bands
+        bf.binaryWriter.writeFloat32(2); // Disabled
         bf.binaryWriter.writeFloat32(FabfilterProQBase.freqConvert(1000));
-        bf.binaryWriter.writeFloat32(0);
-        bf.binaryWriter.writeFloat32(FabfilterProQBase.qConvert(1));
-        bf.binaryWriter.writeFloat32(ProQ2Shape.Bell);
-        bf.binaryWriter.writeFloat32(ProQ2Slope.Slope24dB_oct);
-        bf.binaryWriter.writeFloat32(ProQ2StereoPlacement.Stereo);
+        bf.binaryWriter.writeFloat32(0); // Gain
+        bf.binaryWriter.writeFloat32(FabfilterProQBase.qConvert(1)); // Q
+        bf.binaryWriter.writeFloat32(ProQ2Shape.Bell); // Shape
+        bf.binaryWriter.writeFloat32(ProQ2Slope.Slope24dB_oct); // Slope
+        bf.binaryWriter.writeFloat32(ProQ2StereoPlacement.Stereo); // Stereo Placement
       }
     }
 
+    // Write Global Parameters (22 params)
     bf.binaryWriter.writeFloat32(this.ProcessingMode);
     bf.binaryWriter.writeFloat32(this.ProcessingResolution);
     bf.binaryWriter.writeFloat32(this.ChannelMode);
@@ -440,7 +661,6 @@ export class FabfilterProQ2 extends FabfilterProQBase {
     bf.binaryWriter.writeFloat32(this.ByPass);
     bf.binaryWriter.writeFloat32(this.OutputInvertPhase);
     bf.binaryWriter.writeFloat32(this.AutoGain);
-
     bf.binaryWriter.writeFloat32(this.AnalyzerShowPreProcessing);
     bf.binaryWriter.writeFloat32(this.AnalyzerShowPostProcessing);
     bf.binaryWriter.writeFloat32(this.AnalyzerShowSidechain);

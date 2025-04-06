@@ -100,10 +100,11 @@ export class FabfilterProQ extends FabfilterProQBase {
       return;
     }
 
-    let shouldHaveFXPChunkData = false;
     if (this.FXP?.content) {
-      let fxpChunkData: Uint8Array | undefined;
+      let chunkData: Uint8Array | undefined;
+      let shouldHaveFXPChunkData = false; // Keep track if chunk data was expected
 
+      // Check for FxSet with programs
       if (
         this.FXP?.content instanceof FxSet &&
         this.FXP.content.Programs?.length > 0
@@ -112,8 +113,11 @@ export class FabfilterProQ extends FabfilterProQBase {
         if (program.Parameters) {
           // Parameters from FXP are in IEEE format (0.0 - 1.0)
           this.initFromParameterArray([...program.Parameters], true);
+          return; // Parameters handled, exit
         }
-      } else if (
+      }
+      // Check for FxProgram with parameters
+      else if (
         this.FXP?.content instanceof FxProgram &&
         this.FXP.content.NumParameters > 0
       ) {
@@ -121,19 +125,26 @@ export class FabfilterProQ extends FabfilterProQBase {
         if (paramArray) {
           // Parameters from FXP are in IEEE format (0.0 - 1.0)
           this.initFromParameterArray([...paramArray], true);
+          return; // Parameters handled, exit
         }
-      } else if (this.FXP?.content instanceof FxProgramSet) {
+      }
+      // Check for FxProgramSet (chunk data expected)
+      else if (this.FXP?.content instanceof FxProgramSet) {
         shouldHaveFXPChunkData = true;
-        fxpChunkData = this.FXP.content.ChunkData;
-      } else if (this.FXP?.content instanceof FxChunkSet) {
+        chunkData = this.FXP.content.ChunkData;
+      }
+      // Check for FxChunkSet (chunk data expected)
+      else if (this.FXP?.content instanceof FxChunkSet) {
         shouldHaveFXPChunkData = true;
-        fxpChunkData = this.FXP.content.ChunkData;
+        chunkData = this.FXP.content.ChunkData;
       }
 
-      if (fxpChunkData) {
-        const bf = new BinaryFile(fxpChunkData, ByteOrder.LittleEndian);
+      // Process chunk data if found
+      if (chunkData) {
+        const bf = new BinaryFile(chunkData, ByteOrder.LittleEndian);
         try {
           const header = bf.binaryReader?.readString(4);
+          // ProQ uses 'FFBS' in its chunk data
           if (header === "FFBS") {
             this.readFFPInternal(bf);
           } else {
@@ -145,6 +156,7 @@ export class FabfilterProQ extends FabfilterProQBase {
           console.error("Error reading FXP chunk data:", e);
         }
       } else {
+        // Only warn if chunk data was expected but not found
         if (shouldHaveFXPChunkData) {
           console.warn("FXP content does not contain chunk data.");
         }
@@ -267,7 +279,7 @@ export class FabfilterProQ extends FabfilterProQBase {
       const freq = floatArray[index++];
       band.Frequency = roundToNumber(
         FabfilterProQBase.freqConvertBack(freq),
-        1
+        2
       );
       band.Gain = roundToNumber(floatArray[index++], 2);
       const q = floatArray[index++];
@@ -309,17 +321,17 @@ export class FabfilterProQ extends FabfilterProQBase {
 
     // Handle remaining parameters if available
     if (floatArray.length > index) {
-      this.OutputGain = roundToNumber(floatArray[index++], 2);
-      this.OutputPan = roundToNumber(floatArray[index++], 2);
-      this.DisplayRange = roundToNumber(floatArray[index++], 2);
-      this.ProcessMode = roundToNumber(floatArray[index++], 2);
-      this.ChannelMode = roundToNumber(floatArray[index++], 2);
-      this.Bypass = roundToNumber(floatArray[index++], 2);
-      this.ReceiveMidi = roundToNumber(floatArray[index++], 2);
-      this.Analyzer = roundToNumber(floatArray[index++], 2);
-      this.AnalyzerResolution = roundToNumber(floatArray[index++], 2);
-      this.AnalyzerSpeed = roundToNumber(floatArray[index++], 2);
-      this.SoloBand = roundToNumber(floatArray[index++], 2);
+      this.OutputGain = floatArray[index++];
+      this.OutputPan = floatArray[index++];
+      this.DisplayRange = floatArray[index++];
+      this.ProcessMode = floatArray[index++];
+      this.ChannelMode = floatArray[index++];
+      this.Bypass = floatArray[index++];
+      this.ReceiveMidi = floatArray[index++];
+      this.Analyzer = floatArray[index++];
+      this.AnalyzerResolution = floatArray[index++];
+      this.AnalyzerSpeed = floatArray[index++];
+      this.SoloBand = floatArray[index++];
     }
 
     // Update channel mode on bands if needed
@@ -345,7 +357,7 @@ export class FabfilterProQ extends FabfilterProQBase {
         const freq = bf.binaryReader.readFloat32() || 0;
         band.Frequency = roundToNumber(
           FabfilterProQBase.freqConvertBack(freq),
-          1
+          2
         );
 
         // actual gain in dB
@@ -430,26 +442,17 @@ export class FabfilterProQ extends FabfilterProQBase {
 
       // read the remaining floats
       try {
-        this.OutputGain = roundToNumber(bf.binaryReader.readFloat32() || 0, 2); // -1 to 1 (- Infinity to +36 dB , 0 = 0 dB)
-        this.OutputPan = roundToNumber(bf.binaryReader.readFloat32() || 0, 2); // -1 to 1 (0 = middle)
-        this.DisplayRange = roundToNumber(
-          bf.binaryReader.readFloat32() || 0,
-          2
-        ); // 0 = 6dB, 1 = 12dB, 2 = 30dB, 3 = 3dB
-        this.ProcessMode = roundToNumber(bf.binaryReader.readFloat32() || 0, 2); // 0 = zero latency, 1 = lin.phase.low - medium - high - maximum
-        this.ChannelMode = roundToNumber(bf.binaryReader.readFloat32() || 0, 2); // 0 = Left/Right, 1 = Mid/Side
-        this.Bypass = roundToNumber(bf.binaryReader.readFloat32() || 0, 2); // 0 = No bypass
-        this.ReceiveMidi = roundToNumber(bf.binaryReader.readFloat32() || 0, 2); // 0 = Enabled?
-        this.Analyzer = roundToNumber(bf.binaryReader.readFloat32() || 0, 2); // 0 = Off, 1 = Pre, 2 = Post, 3 = Pre+Post
-        this.AnalyzerResolution = roundToNumber(
-          bf.binaryReader.readFloat32() || 0,
-          2
-        ); // 0 - 3 : low - medium[x] - high - maximum
-        this.AnalyzerSpeed = roundToNumber(
-          bf.binaryReader.readFloat32() || 0,
-          2
-        ); // 0 - 3 : very slow, slow, medium[x], fast
-        this.SoloBand = roundToNumber(bf.binaryReader.readFloat32() || 0, 2); // -1
+        this.OutputGain = bf.binaryReader.readFloat32() || 0; // -1 to 1 (- Infinity to +36 dB , 0 = 0 dB)
+        this.OutputPan = bf.binaryReader.readFloat32() || 0; // -1 to 1 (0 = middle)
+        this.DisplayRange = bf.binaryReader.readFloat32() || 0; // 0 = 6dB, 1 = 12dB, 2 = 30dB, 3 = 3dB
+        this.ProcessMode = bf.binaryReader.readFloat32() || 0; // 0 = zero latency, 1 = lin.phase.low - medium - high - maximum
+        this.ChannelMode = bf.binaryReader.readFloat32() || 0; // 0 = Left/Right, 1 = Mid/Side
+        this.Bypass = bf.binaryReader.readFloat32() || 0; // 0 = No bypass
+        this.ReceiveMidi = bf.binaryReader.readFloat32() || 0; // 0 = Enabled?
+        this.Analyzer = bf.binaryReader.readFloat32() || 0; // 0 = Off, 1 = Pre, 2 = Post, 3 = Pre+Post
+        this.AnalyzerResolution = bf.binaryReader.readFloat32() || 0; // 0 - 3 : low - medium[x] - high - maximum
+        this.AnalyzerSpeed = bf.binaryReader.readFloat32() || 0; // 0 - 3 : very slow, slow, medium[x], fast
+        this.SoloBand = bf.binaryReader.readFloat32() || 0; // -1
       } catch (e) {
         console.error("Error reading additional floats:", e);
       }

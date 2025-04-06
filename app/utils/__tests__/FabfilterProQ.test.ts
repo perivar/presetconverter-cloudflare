@@ -4,7 +4,7 @@ import * as path from "path";
 import { FabfilterProQ } from "../FabfilterProQ";
 import { FabfilterProQBand } from "../FabfilterProQBase";
 import { VstPresetFactory } from "../VstPresetFactory";
-import { areTypedArraysEqual, toPlainObject } from "./helpers/testUtils";
+import { expectUint8ArraysToBeEqual, toPlainObject } from "./helpers/testUtils";
 
 // set this to true to debug the outputs as objects
 const DO_DEBUG_OBJECT = false;
@@ -318,7 +318,8 @@ test("FabfilterProQ-readFFP-Generic6-array", () => {
 
   const uint8ArrayWrite = proQRead.writeFFP();
   if (uint8ArrayWrite) {
-    expect(areTypedArraysEqual(uint8ArrayRead, uint8ArrayWrite)).toBe(true);
+    // Compare arrays using the helper function for better diff output on failure
+    expectUint8ArraysToBeEqual(uint8ArrayWrite, uint8ArrayRead);
   }
 });
 

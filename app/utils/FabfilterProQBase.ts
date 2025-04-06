@@ -7,6 +7,9 @@ export interface FabfilterProQBand {
   Enabled: boolean;
 }
 
+// Fabfilter Q factor typically ranges from 0.025 to 40
+// 0.312098175
+const FABFILTER_Q_SCALING_FACTOR = 1 / Math.log10(40 / 0.025);
 /**
  * Base class for reading and writing Fabfilter Pro Q (1 or 2) Preset files.
  */
@@ -29,8 +32,9 @@ export abstract class FabfilterProQBase extends VstPreset {
    * @param value - The value to convert.
    * @returns Converted frequency float.
    */
-  static ieeeFloatToFrequencyFloat(value: number): number {
-    return 11.5507311008828 * value + 3.32193432374016;
+  static ieeeFloatToFrequencyFloat(ieeeFloat: number): number {
+    // return 11.5507311008828 * ieeeFloat + 3.32193432374016;
+    return 11.550746344 * ieeeFloat + Math.log2(10);
   }
 
   // log and inverse log
@@ -44,7 +48,8 @@ export abstract class FabfilterProQBase extends VstPreset {
    */
   static freqConvert(value: number): number {
     // =LOG(A1)/LOG(2) (default = 1000 Hz)
-    return Math.log10(value) / Math.log10(2);
+    // return Math.log10(value) / Math.log10(2);
+    return Math.log2(value);
   }
 
   /**
@@ -64,7 +69,7 @@ export abstract class FabfilterProQBase extends VstPreset {
    */
   static qConvert(value: number): number {
     // =LOG(F1)*0,312098175+0,5 (default = 1)
-    return Math.log10(value) * 0.312098175 + 0.5;
+    return Math.log10(value) * FABFILTER_Q_SCALING_FACTOR + 0.5;
   }
 
   /**
@@ -74,6 +79,6 @@ export abstract class FabfilterProQBase extends VstPreset {
    */
   static qConvertBack(value: number): number {
     // =POWER(10;((B3-0,5)/0,312098175))
-    return Math.pow(10, (value - 0.5) / 0.312098175);
+    return Math.pow(10, (value - 0.5) / FABFILTER_Q_SCALING_FACTOR);
   }
 }

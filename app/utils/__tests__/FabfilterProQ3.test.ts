@@ -3,7 +3,11 @@ import * as path from "path";
 
 import { FabfilterProQ3 } from "../FabfilterProQ3";
 import { VstPresetFactory } from "../VstPresetFactory";
-import { areTypedArraysEqual, toPlainObject } from "./helpers/testUtils";
+import {
+  areTypedArraysEqual,
+  expectUint8ArraysToBeEqual,
+  toPlainObject,
+} from "./helpers/testUtils";
 
 // set this to true to debug the outputs as objects
 const DO_DEBUG_OBJECT = false;
@@ -29,7 +33,7 @@ test("FabfilterProQ3-readFFP-HighBass", () => {
           Gain: 0,
           DynamicRange: 0,
           DynamicThreshold: 0,
-          Q: 0.7071067420847195,
+          Q: 0.707106742313133,
           Shape: 1,
           Slope: 3,
           StereoPlacement: 2,
@@ -40,7 +44,7 @@ test("FabfilterProQ3-readFFP-HighBass", () => {
           Gain: 0,
           DynamicRange: 0,
           DynamicThreshold: 0,
-          Q: 0.7071067420847195,
+          Q: 0.707106742313133,
           Shape: 2,
           Slope: 6,
           StereoPlacement: 2,
@@ -51,7 +55,7 @@ test("FabfilterProQ3-readFFP-HighBass", () => {
           Gain: 0,
           DynamicRange: 0,
           DynamicThreshold: 0,
-          Q: 0.7071067420847195,
+          Q: 0.707106742313133,
           Shape: 0,
           Slope: 3,
           StereoPlacement: 2,
@@ -62,7 +66,7 @@ test("FabfilterProQ3-readFFP-HighBass", () => {
           Gain: -8.553718566894531,
           DynamicRange: 0,
           DynamicThreshold: 0,
-          Q: 0.7071067420847195,
+          Q: 0.707106742313133,
           Shape: 3,
           Slope: 3,
           StereoPlacement: 2,
@@ -73,7 +77,7 @@ test("FabfilterProQ3-readFFP-HighBass", () => {
           Gain: 0,
           DynamicRange: 0,
           DynamicThreshold: 0,
-          Q: 0.7071067420847195,
+          Q: 0.707106742313133,
           Shape: 0,
           Slope: 3,
           StereoPlacement: 2,
@@ -84,7 +88,7 @@ test("FabfilterProQ3-readFFP-HighBass", () => {
           Gain: 0,
           DynamicRange: 0,
           DynamicThreshold: 0,
-          Q: 0.7071067420847195,
+          Q: 0.707106742313133,
           Shape: 0,
           Slope: 3,
           StereoPlacement: 2,
@@ -95,7 +99,7 @@ test("FabfilterProQ3-readFFP-HighBass", () => {
           Gain: 0,
           DynamicRange: 0,
           DynamicThreshold: 0,
-          Q: 0.7071067420847195,
+          Q: 0.707106742313133,
           Shape: 0,
           Slope: 3,
           StereoPlacement: 2,
@@ -106,7 +110,7 @@ test("FabfilterProQ3-readFFP-HighBass", () => {
           Gain: 0,
           DynamicRange: 0,
           DynamicThreshold: 0,
-          Q: 0.7071067420847195,
+          Q: 0.707106742313133,
           Shape: 4,
           Slope: 1,
           StereoPlacement: 2,
@@ -334,7 +338,8 @@ test("FabfilterProQ3-readFFP-HighBass-array", () => {
 
   const uint8ArrayWrite = proQRead.writeFFP();
   if (uint8ArrayWrite) {
-    expect(areTypedArraysEqual(uint8ArrayRead, uint8ArrayWrite)).toBe(true);
+    // Compare arrays using the helper function for better diff output on failure
+    expectUint8ArraysToBeEqual(uint8ArrayWrite, uint8ArrayRead);
   }
 });
 
@@ -378,7 +383,8 @@ test("FabfilterProQ3-readFFP-Zedd-array", () => {
 
   const uint8ArrayWrite = proQRead.writeFFP();
   if (uint8ArrayWrite) {
-    expect(areTypedArraysEqual(uint8ArrayRead, uint8ArrayWrite)).toBe(true);
+    // Compare arrays using the helper function for better diff output on failure
+    expectUint8ArraysToBeEqual(uint8ArrayWrite, uint8ArrayRead);
   }
 });
 
@@ -444,6 +450,7 @@ test("FabfilterProQ3-readVstPreset-Zedd-array", () => {
     );
     fs.writeFileSync(filePathWrite, uint8ArrayWrite);
 
-    expect(areTypedArraysEqual(uint8ArrayRead, uint8ArrayWrite)).toBe(true);
+    // Compare arrays using the helper function for better diff output on failure
+    expectUint8ArraysToBeEqual(uint8ArrayWrite, uint8ArrayRead);
   }
 });
