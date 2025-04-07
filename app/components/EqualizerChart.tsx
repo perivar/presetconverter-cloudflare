@@ -120,6 +120,7 @@ const calculateFrequencyResponse = (bands: EQBand[]) => {
           a2 = A + 1 - (A - 1) * cos_w0 - 2 * Math.sqrt(A) * shelfAlphaHS;
           break;
         case FabfilterProQShape.LowCut: // High-pass (Gain/A are not used)
+          // Use standard biquad coefficients for a 12 dB/octave high-pass filter
           b0 = (1 + cos_w0) / 2;
           b1 = -(1 + cos_w0);
           b2 = (1 + cos_w0) / 2;
@@ -128,6 +129,7 @@ const calculateFrequencyResponse = (bands: EQBand[]) => {
           a2 = 1 - alpha;
           break;
         case FabfilterProQShape.HighCut: // Low-pass (Gain/A are not used)
+          // Use standard biquad coefficients for a 12 dB/octave low-pass filter
           b0 = (1 - cos_w0) / 2;
           b1 = 1 - cos_w0;
           b2 = (1 - cos_w0) / 2;
@@ -143,8 +145,9 @@ const calculateFrequencyResponse = (bands: EQBand[]) => {
           a1 = -2 * cos_w0;
           a2 = 1 - alpha;
           break;
-          // Removed duplicate default case
-          continue; // Skip this band's contribution
+        default:
+          // Skip this band's contribution if shape is not recognized
+          continue;
       }
 
       // Calculate magnitude response |H(z)| at the current frequency 'freq'
@@ -171,7 +174,18 @@ const calculateFrequencyResponse = (bands: EQBand[]) => {
       let bandGainDb = 0;
       if (denominatorMagSq > 1e-10) {
         // Avoid division by zero or near-zero
-        const magnitudeSquared = numeratorMagSq / denominatorMagSq;
+        let magnitudeSquared = numeratorMagSq / denominatorMagSq;
+
+        // For cut filters, apply 24 dB/octave slope by raising the magnitude to the power of 2
+        // (since 2 * 12 dB = 24 dB)
+        if (
+          shape === FabfilterProQShape.LowCut ||
+          shape === FabfilterProQShape.HighCut
+        ) {
+          // Apply power of 2 to simulate 2 cascaded 12 dB/octave filters
+          magnitudeSquared = Math.pow(magnitudeSquared, 2);
+        }
+
         // Ensure magnitudeSquared is non-negative before log
         bandGainDb = 10 * Math.log10(Math.max(1e-10, magnitudeSquared)); // 10*log10 for power/magnitude squared
       } else {
