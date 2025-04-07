@@ -188,9 +188,17 @@ export default function Index() {
           } else if (ext === "vstpreset") {
             try {
               const vstPreset = VstPresetFactory.getVstPreset(data);
-              if (vstPreset) {
+              if (
+                vstPreset &&
+                (vstPreset instanceof FabfilterProQ ||
+                  vstPreset instanceof FabfilterProQ2 ||
+                  vstPreset instanceof FabfilterProQ3)
+              ) {
                 setParsedData(vstPreset as EQPreset);
                 setSourceFormat(t(`${vstPreset.constructor.name}`));
+              } else if (vstPreset) {
+                // If vstPreset exists but is not a supported FabfilterProQ type
+                setError(t("error.unsupportedFormat", { fileName: file.name }));
               }
             } catch (err) {
               setError(t("error.unsupportedFormat", { fileName: file.name }));
