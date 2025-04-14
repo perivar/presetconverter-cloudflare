@@ -2,6 +2,7 @@ import * as fs from "fs";
 import * as path from "path";
 
 import { FabfilterProQ3 } from "../FabfilterProQ3";
+import { SteinbergVstPreset } from "../SteinbergVstPreset";
 import { VstPresetFactory } from "../VstPresetFactory";
 import { expectUint8ArraysToBeEqual, toPlainObject } from "./helpers/testUtils";
 
@@ -347,13 +348,27 @@ test("FabfilterProQ3-readVstPreset-HighBass-array", () => {
   const fileContent = fs.readFileSync(filePath);
   const uint8ArrayRead = new Uint8Array(fileContent);
 
-  const vstPreset = VstPresetFactory.getVstPreset(uint8ArrayRead);
-  if (vstPreset) {
-    console.log(`${vstPreset.constructor.name}`);
+  // Get original preset (will be FabfilterProQ3 as a VST3 version)
+  const originalPreset = VstPresetFactory.getVstPreset(uint8ArrayRead);
+  if (!originalPreset) {
+    throw new Error("Failed to read VST preset");
   }
-  if (DO_DEBUG_OBJECT) console.log(JSON.stringify(vstPreset, null, 2));
+  if (DO_DEBUG_OBJECT) console.log(JSON.stringify(originalPreset, null, 2));
 
-  const uint8ArrayWrite = vstPreset?.write();
+  // Create new SteinbergVstPreset and copy data since the original is a VST3 version
+  const steinbergPreset = new SteinbergVstPreset();
+  steinbergPreset.Vst3ClassID = originalPreset.Vst3ClassID;
+  steinbergPreset.PlugInCategory = originalPreset.PlugInCategory;
+  steinbergPreset.PlugInName = originalPreset.PlugInName;
+  steinbergPreset.PlugInVendor = originalPreset.PlugInVendor;
+  steinbergPreset.CompChunkData =
+    originalPreset.CompChunkData ?? new Uint8Array();
+  steinbergPreset.ContChunkData =
+    originalPreset.ContChunkData ?? new Uint8Array();
+  steinbergPreset.InfoXml = originalPreset.InfoXml;
+  steinbergPreset.InfoXmlBytesWithBOM = originalPreset.InfoXmlBytesWithBOM;
+
+  const uint8ArrayWrite = steinbergPreset.write();
   if (uint8ArrayWrite) {
     const filePathWrite = path.join(
       __dirname,

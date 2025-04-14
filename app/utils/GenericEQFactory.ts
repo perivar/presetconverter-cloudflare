@@ -1,11 +1,4 @@
 import {
-  EQBand,
-  EQPreset,
-  EQShape,
-  EQSlope,
-  EQStereoPlacement,
-} from "./EQTypes";
-import {
   ProQBand,
   ProQLPHPSlope,
   ProQShape,
@@ -24,12 +17,19 @@ import {
   ProQ3StereoPlacement,
 } from "./FabfilterProQ3";
 import { FabfilterProQBase } from "./FabfilterProQBase";
+import {
+  GenericEQBand,
+  GenericEQPreset,
+  GenericEQShape,
+  GenericEQSlope,
+  GenericEQStereoPlacement,
+} from "./GenericEQTypes";
 
 type FabFilterBand = ProQBand | ProQ2Band | ProQ3Band;
 
-export class EQFactory {
-  static fromFabFilterProQ(preset: FabfilterProQBase): EQPreset {
-    const result: EQPreset = {
+export class GenericEQFactory {
+  static fromFabFilterProQ(preset: FabfilterProQBase): GenericEQPreset {
+    const result: GenericEQPreset = {
       Name: preset.PlugInName || "Unknown Preset",
       Bands: [],
       Version: "1", // Version is not available on base class
@@ -44,8 +44,8 @@ export class EQFactory {
     return result;
   }
 
-  private static convertBand(band: FabFilterBand): EQBand {
-    const convertedBand: EQBand = {
+  private static convertBand(band: FabFilterBand): GenericEQBand {
+    const convertedBand: GenericEQBand = {
       Enabled: band.Enabled,
       Frequency: band.Frequency,
       Gain: band.Gain,
@@ -72,121 +72,121 @@ export class EQFactory {
     return "LPHPSlope" in band;
   }
 
-  private static convertShape(band: FabFilterBand): EQShape {
+  private static convertShape(band: FabFilterBand): GenericEQShape {
     const shape = band.Shape;
 
     // ProQ1 shapes
     if (this.isProQ1Band(band)) {
       switch (shape as ProQShape) {
         case ProQShape.Bell:
-          return EQShape.Bell;
+          return GenericEQShape.Bell;
         case ProQShape.LowShelf:
-          return EQShape.LowShelf;
+          return GenericEQShape.LowShelf;
         case ProQShape.LowCut:
-          return EQShape.LowCut;
+          return GenericEQShape.LowCut;
         case ProQShape.HighShelf:
-          return EQShape.HighShelf;
+          return GenericEQShape.HighShelf;
         case ProQShape.HighCut:
-          return EQShape.HighCut;
+          return GenericEQShape.HighCut;
         case ProQShape.Notch:
-          return EQShape.Notch;
+          return GenericEQShape.Notch;
       }
     }
     // ProQ2/3 shapes
     else {
       switch (shape as ProQ2Shape | ProQ3Shape) {
         case ProQ2Shape.Bell:
-          return EQShape.Bell;
+          return GenericEQShape.Bell;
         case ProQ2Shape.LowShelf:
-          return EQShape.LowShelf;
+          return GenericEQShape.LowShelf;
         case ProQ2Shape.LowCut:
-          return EQShape.LowCut;
+          return GenericEQShape.LowCut;
         case ProQ2Shape.HighShelf:
-          return EQShape.HighShelf;
+          return GenericEQShape.HighShelf;
         case ProQ2Shape.HighCut:
-          return EQShape.HighCut;
+          return GenericEQShape.HighCut;
         case ProQ2Shape.Notch:
-          return EQShape.Notch;
+          return GenericEQShape.Notch;
         case ProQ2Shape.BandPass:
-          return EQShape.BandPass;
+          return GenericEQShape.BandPass;
         case ProQ2Shape.TiltShelf:
-          return EQShape.TiltShelf;
+          return GenericEQShape.TiltShelf;
         case ProQ3Shape.FlatTilt:
-          return EQShape.FlatTilt;
+          return GenericEQShape.FlatTilt;
       }
     }
 
-    return EQShape.Bell;
+    return GenericEQShape.Bell;
   }
 
-  private static convertSlope(band: FabFilterBand): EQSlope {
+  private static convertSlope(band: FabFilterBand): GenericEQSlope {
     if (this.isProQ1Band(band)) {
       switch (band.LPHPSlope) {
         case ProQLPHPSlope.Slope6dB_oct:
-          return EQSlope.Slope6dB_oct;
+          return GenericEQSlope.Slope6dB_oct;
         case ProQLPHPSlope.Slope12dB_oct:
-          return EQSlope.Slope12dB_oct;
+          return GenericEQSlope.Slope12dB_oct;
         case ProQLPHPSlope.Slope24dB_oct:
-          return EQSlope.Slope24dB_oct;
+          return GenericEQSlope.Slope24dB_oct;
         case ProQLPHPSlope.Slope48dB_oct:
-          return EQSlope.Slope48dB_oct;
+          return GenericEQSlope.Slope48dB_oct;
       }
     } else {
       switch ((band as ProQ2Band | ProQ3Band).Slope) {
         case ProQ2Slope.Slope6dB_oct:
-          return EQSlope.Slope6dB_oct;
+          return GenericEQSlope.Slope6dB_oct;
         case ProQ2Slope.Slope12dB_oct:
-          return EQSlope.Slope12dB_oct;
+          return GenericEQSlope.Slope12dB_oct;
         case ProQ2Slope.Slope18dB_oct:
-          return EQSlope.Slope18dB_oct;
+          return GenericEQSlope.Slope18dB_oct;
         case ProQ2Slope.Slope24dB_oct:
-          return EQSlope.Slope24dB_oct;
+          return GenericEQSlope.Slope24dB_oct;
         case ProQ2Slope.Slope30dB_oct:
-          return EQSlope.Slope30dB_oct;
+          return GenericEQSlope.Slope30dB_oct;
         case ProQ2Slope.Slope36dB_oct:
-          return EQSlope.Slope36dB_oct;
+          return GenericEQSlope.Slope36dB_oct;
         case ProQ2Slope.Slope48dB_oct:
-          return EQSlope.Slope48dB_oct;
+          return GenericEQSlope.Slope48dB_oct;
         case ProQ2Slope.Slope72dB_oct:
-          return EQSlope.Slope72dB_oct;
+          return GenericEQSlope.Slope72dB_oct;
         case ProQ2Slope.Slope96dB_oct:
-          return EQSlope.Slope96dB_oct;
+          return GenericEQSlope.Slope96dB_oct;
         case ProQ3Slope.SlopeBrickwall:
-          return EQSlope.SlopeBrickwall;
+          return GenericEQSlope.SlopeBrickwall;
       }
     }
-    return EQSlope.Slope24dB_oct;
+    return GenericEQSlope.Slope24dB_oct;
   }
 
   private static convertStereoPlacement(
     band: FabFilterBand
-  ): EQStereoPlacement {
+  ): GenericEQStereoPlacement {
     const placement = band.StereoPlacement;
 
     if (this.isProQ1Band(band)) {
       switch (placement as ProQStereoPlacement) {
         case ProQStereoPlacement.LeftOrMid:
-          return EQStereoPlacement.Left;
+          return GenericEQStereoPlacement.Left;
         case ProQStereoPlacement.RightOrSide:
-          return EQStereoPlacement.Right;
+          return GenericEQStereoPlacement.Right;
         case ProQStereoPlacement.Stereo:
-          return EQStereoPlacement.Stereo;
+          return GenericEQStereoPlacement.Stereo;
       }
     } else {
       switch (placement as ProQ2StereoPlacement | ProQ3StereoPlacement) {
         case ProQ2StereoPlacement.LeftOrMid:
-          return EQStereoPlacement.Left;
+          return GenericEQStereoPlacement.Left;
         case ProQ2StereoPlacement.RightOrSide:
-          return EQStereoPlacement.Right;
+          return GenericEQStereoPlacement.Right;
         case ProQ2StereoPlacement.Stereo:
-          return EQStereoPlacement.Stereo;
+          return GenericEQStereoPlacement.Stereo;
         case ProQ3StereoPlacement.Mid:
-          return EQStereoPlacement.Mid;
+          return GenericEQStereoPlacement.Mid;
         case ProQ3StereoPlacement.Side:
-          return EQStereoPlacement.Side;
+          return GenericEQStereoPlacement.Side;
       }
     }
 
-    return EQStereoPlacement.Stereo;
+    return GenericEQStereoPlacement.Stereo;
   }
 }

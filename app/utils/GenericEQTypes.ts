@@ -2,7 +2,7 @@
  * Standardized EQ types that can represent multiple EQ plugin formats
  */
 
-export enum EQShape {
+export enum GenericEQShape {
   Bell = 0,
   LowShelf = 1,
   LowCut = 2,
@@ -14,7 +14,7 @@ export enum EQShape {
   FlatTilt = 8,
 }
 
-export enum EQSlope {
+export enum GenericEQSlope {
   Slope6dB_oct = 0,
   Slope12dB_oct = 1,
   Slope18dB_oct = 2,
@@ -27,7 +27,7 @@ export enum EQSlope {
   SlopeBrickwall = 9,
 }
 
-export enum EQStereoPlacement {
+export enum GenericEQStereoPlacement {
   Left = 0,
   Right = 1,
   Stereo = 2,
@@ -35,21 +35,21 @@ export enum EQStereoPlacement {
   Side = 4,
 }
 
-export interface EQBand {
+export interface GenericEQBand {
   Enabled: boolean;
   Frequency: number;
   Gain: number;
   Q: number;
-  Shape: EQShape;
-  Slope: EQSlope;
-  StereoPlacement: EQStereoPlacement;
+  Shape: GenericEQShape;
+  Slope: GenericEQSlope;
+  StereoPlacement: GenericEQStereoPlacement;
   DynamicRange?: number;
   DynamicThreshold?: number;
 }
 
-export interface EQPreset {
+export interface GenericEQPreset {
   Name: string;
-  Bands: EQBand[];
+  Bands: GenericEQBand[];
   Version?: string;
   Vendor?: string;
 }

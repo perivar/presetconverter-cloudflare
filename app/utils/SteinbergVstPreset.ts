@@ -23,14 +23,16 @@ export class SteinbergVstPreset extends VstPreset {
   protected preparedForWriting(): boolean {
     // unless the Comp Chunk Data has already been set
     // set it here
-    // if (!this.hasCompChunkData()) {
-    //   this.initCompChunkData();
-    // }
+    if (!this.hasCompChunkData()) {
+      this.initCompChunkData();
+    }
 
     // ignore the Cont Chunk Data
 
     // unless the Info Xml Data has already been set
     // set it here
+    // TODO: when uncommenting this, we include InfoXml that the original VST3 does not
+    // like Q3-Fabfilter Pro-Q 3 High Bass.vstpreset
     // if (!this.hasInfoXml()) {
     //   this.initInfoXml();
     // }

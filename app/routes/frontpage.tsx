@@ -4,14 +4,14 @@ import { useCallback, useState } from "react";
 import type { LoaderFunctionArgs, MetaFunction } from "@remix-run/cloudflare";
 import { json } from "@remix-run/react";
 import i18next from "~/i18n/i18n.server";
-import { EQFactory } from "~/utils/EQFactory";
-import { EQBand, EQPreset } from "~/utils/EQTypes";
 import { FabfilterProQ } from "~/utils/FabfilterProQ";
 import { FabfilterProQ2 } from "~/utils/FabfilterProQ2";
 import { FabfilterProQ3 } from "~/utils/FabfilterProQ3";
 import { FabfilterProQBase } from "~/utils/FabfilterProQBase";
-import { toSteinbergFrequency } from "~/utils/FabfilterToSteinbergAdapter";
 import { FxChunkSet, FXP, FxProgramSet } from "~/utils/FXP";
+import { GenericEQFactory } from "~/utils/GenericEQFactory";
+import { eqPresetToSteinbergFrequency } from "~/utils/GenericEQToSteinbergAdapter";
+import { GenericEQBand, GenericEQPreset } from "~/utils/GenericEQTypes";
 import { VstPresetFactory } from "~/utils/VstPresetFactory";
 import { useDropzone } from "react-dropzone";
 import { useTranslation } from "react-i18next";
@@ -110,7 +110,7 @@ export default function Index() {
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [droppedFile, setDroppedFile] = useState<File | null>(null);
-  const [parsedData, setParsedData] = useState<EQPreset | null>(null);
+  const [parsedData, setParsedData] = useState<GenericEQPreset | null>(null);
   const [sourceFormat, setSourceFormat] = useState<string | null>(null);
   const [targetFormat, setTargetFormat] = useState<TargetFormat | null>(null);
   const [hoveredFrequency, setHoveredFrequency] = useState<number | null>(null);
@@ -158,7 +158,8 @@ export default function Index() {
                 setSourceFormat(fabfilterEQSource);
 
                 // convert to common eqpreset format
-                const eqPreset = EQFactory.fromFabFilterProQ(fabfilterEQPreset);
+                const eqPreset =
+                  GenericEQFactory.fromFabFilterProQ(fabfilterEQPreset);
                 setParsedData(eqPreset);
 
                 setIsLoading(false);
@@ -175,19 +176,19 @@ export default function Index() {
             // Try reading with each version in sequence
             const proQ3 = new FabfilterProQ3();
             if (proQ3.readFFP(chunkData)) {
-              const eqPreset = EQFactory.fromFabFilterProQ(proQ3);
+              const eqPreset = GenericEQFactory.fromFabFilterProQ(proQ3);
               setParsedData(eqPreset);
               setSourceFormat(t("formats.fabfilterProQ3"));
             } else {
               const proQ2 = new FabfilterProQ2();
               if (proQ2.readFFP(chunkData)) {
-                const eqPreset = EQFactory.fromFabFilterProQ(proQ2);
+                const eqPreset = GenericEQFactory.fromFabFilterProQ(proQ2);
                 setParsedData(eqPreset);
                 setSourceFormat(t("formats.fabfilterProQ2"));
               } else {
                 const proQ1 = new FabfilterProQ();
                 if (proQ1.readFFP(chunkData)) {
-                  const eqPreset = EQFactory.fromFabFilterProQ(proQ1);
+                  const eqPreset = GenericEQFactory.fromFabFilterProQ(proQ1);
                   setParsedData(eqPreset);
                   setSourceFormat(t("formats.fabfilterProQ1"));
                 } else {
@@ -206,7 +207,7 @@ export default function Index() {
                   vstPreset instanceof FabfilterProQ2 ||
                   vstPreset instanceof FabfilterProQ3)
               ) {
-                const eqPreset = EQFactory.fromFabFilterProQ(vstPreset);
+                const eqPreset = GenericEQFactory.fromFabFilterProQ(vstPreset);
                 setParsedData(eqPreset);
                 setSourceFormat(t(`${vstPreset.constructor.name}`));
               } else if (vstPreset) {
@@ -242,13 +243,8 @@ export default function Index() {
       const mimeType = "application/octet-stream";
 
       let convertedData: Uint8Array | undefined;
-      if (
-        targetFormat === "steinberg-frequency" &&
-        (parsedData instanceof FabfilterProQ ||
-          parsedData instanceof FabfilterProQ2 ||
-          parsedData instanceof FabfilterProQ3)
-      ) {
-        const steinbergPreset = toSteinbergFrequency(parsedData);
+      if (targetFormat === "steinberg-frequency") {
+        const steinbergPreset = eqPresetToSteinbergFrequency(parsedData);
         convertedData = await steinbergPreset.write();
       }
 
@@ -350,7 +346,10 @@ export default function Index() {
             {parsedData && (
               <p>
                 <strong>{t("fileInfo.bands")}:</strong>{" "}
-                {parsedData.Bands.filter((b: EQBand) => b.Enabled).length}{" "}
+                {
+                  parsedData.Bands.filter((b: GenericEQBand) => b.Enabled)
+                    .length
+                }{" "}
                 enabled
               </p>
             )}

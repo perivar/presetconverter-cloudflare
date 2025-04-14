@@ -1,4 +1,8 @@
-import { EQPreset, EQShape, EQSlope } from "~/utils/EQTypes";
+import {
+  GenericEQPreset,
+  GenericEQShape,
+  GenericEQSlope,
+} from "~/utils/GenericEQTypes";
 import { CheckCircle2, XCircle } from "lucide-react";
 import { useTranslation } from "react-i18next";
 
@@ -12,13 +16,13 @@ import {
 } from "~/components/ui/table";
 
 interface EqualizerBandTableProps {
-  preset: EQPreset;
+  preset: GenericEQPreset;
   hoveredFrequency: number | null;
 }
 
 // Helper function to get the shape name from a numeric value
-const getShapeName = (shape: EQShape): string => {
-  return EQShape[shape] || "Unknown";
+const getShapeName = (shape: GenericEQShape): string => {
+  return GenericEQShape[shape] || "Unknown";
 };
 
 export function EqualizerBandTable({
@@ -62,13 +66,13 @@ export function EqualizerBandTable({
               <TableCell>{band.Q.toFixed(2)}</TableCell>
               <TableCell>
                 {[
-                  EQShape.LowCut,
-                  EQShape.HighCut,
-                  EQShape.LowShelf,
-                  EQShape.HighShelf,
-                  EQShape.TiltShelf,
+                  GenericEQShape.LowCut,
+                  GenericEQShape.HighCut,
+                  GenericEQShape.LowShelf,
+                  GenericEQShape.HighShelf,
+                  GenericEQShape.TiltShelf,
                 ].includes(band.Shape)
-                  ? t(`bandSlopes.${EQSlope[band.Slope]}`)
+                  ? t(`bandSlopes.${GenericEQSlope[band.Slope]}`)
                   : "-"}
               </TableCell>
               <TableCell className="text-center">

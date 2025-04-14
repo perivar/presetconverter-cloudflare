@@ -1,6 +1,6 @@
 import { useMemo, useState } from "react";
-import { EQShape, EQSlope } from "~/utils/EQTypes";
-import type { EQBand, EQPreset } from "~/utils/EQTypes";
+import { GenericEQShape, GenericEQSlope } from "~/utils/GenericEQTypes";
+import type { GenericEQBand, GenericEQPreset } from "~/utils/GenericEQTypes";
 import {
   Area,
   CartesianGrid,
@@ -23,27 +23,27 @@ const MIN_GAIN_DB = -36; // Min dB for display range
 const MAX_GAIN_DB = 36; // Max dB for display range
 
 // Helper to get shape name
-const getShapeName = (shape: EQShape | number): string => {
+const getShapeName = (shape: GenericEQShape | number): string => {
   // Handle potential number values if type union isn't fully resolved at runtime
   const shapeValue = typeof shape === "number" ? shape : shape;
   switch (shapeValue) {
-    case EQShape.Bell:
+    case GenericEQShape.Bell:
       return "Bell";
-    case EQShape.LowShelf:
+    case GenericEQShape.LowShelf:
       return "Low Shelf";
-    case EQShape.LowCut:
+    case GenericEQShape.LowCut:
       return "Low Cut";
-    case EQShape.HighShelf:
+    case GenericEQShape.HighShelf:
       return "High Shelf";
-    case EQShape.HighCut:
+    case GenericEQShape.HighCut:
       return "High Cut";
-    case EQShape.Notch:
+    case GenericEQShape.Notch:
       return "Notch";
-    case EQShape.BandPass:
+    case GenericEQShape.BandPass:
       return "Band Pass";
-    case EQShape.TiltShelf:
+    case GenericEQShape.TiltShelf:
       return "Tilt Shelf";
-    case EQShape.FlatTilt:
+    case GenericEQShape.FlatTilt:
       return "Flat Tilt";
 
     default:
@@ -52,28 +52,28 @@ const getShapeName = (shape: EQShape | number): string => {
 };
 
 // Helper to get slope name
-const getSlopeName = (slope: EQSlope | number): string => {
+const getSlopeName = (slope: GenericEQSlope | number): string => {
   const slopeValue = typeof slope === "number" ? slope : slope;
   switch (slopeValue) {
-    case EQSlope.Slope6dB_oct:
+    case GenericEQSlope.Slope6dB_oct:
       return "6 dB/oct";
-    case EQSlope.Slope12dB_oct:
+    case GenericEQSlope.Slope12dB_oct:
       return "12 dB/oct";
-    case EQSlope.Slope18dB_oct:
+    case GenericEQSlope.Slope18dB_oct:
       return "18 dB/oct";
-    case EQSlope.Slope24dB_oct:
+    case GenericEQSlope.Slope24dB_oct:
       return "24 dB/oct";
-    case EQSlope.Slope30dB_oct:
+    case GenericEQSlope.Slope30dB_oct:
       return "30 dB/oct";
-    case EQSlope.Slope36dB_oct:
+    case GenericEQSlope.Slope36dB_oct:
       return "36 dB/oct";
-    case EQSlope.Slope48dB_oct:
+    case GenericEQSlope.Slope48dB_oct:
       return "48 dB/oct";
-    case EQSlope.Slope72dB_oct:
+    case GenericEQSlope.Slope72dB_oct:
       return "72 dB/oct";
-    case EQSlope.Slope96dB_oct:
+    case GenericEQSlope.Slope96dB_oct:
       return "96 dB/oct";
-    case EQSlope.SlopeBrickwall:
+    case GenericEQSlope.SlopeBrickwall:
       return "Brickwall";
     default:
       return `Unknown (${slopeValue})`;
@@ -82,7 +82,7 @@ const getSlopeName = (slope: EQSlope | number): string => {
 
 // Accurate Frequency Response Calculation using Audio EQ Cookbook formulas
 // Calculates the combined dB gain of all enabled bands at various frequencies.
-const calculateFrequencyResponse = (bands: EQBand[]) => {
+const calculateFrequencyResponse = (bands: GenericEQBand[]) => {
   const frequencies = Array.from({ length: FREQ_POINTS }, (_, i) => {
     // Generate frequencies on a logarithmic scale
     return (
@@ -122,7 +122,7 @@ const calculateFrequencyResponse = (bands: EQBand[]) => {
 
       // Determine biquad coefficients based on filter shape
       switch (shape) {
-        case EQShape.Bell: // Peaking EQ
+        case GenericEQShape.Bell: // Peaking EQ
           b0 = 1 + alpha * A;
           b1 = -2 * cos_w0;
           b2 = 1 - alpha * A;
@@ -130,7 +130,7 @@ const calculateFrequencyResponse = (bands: EQBand[]) => {
           a1 = -2 * cos_w0;
           a2 = 1 - alpha / A;
           break;
-        case EQShape.LowShelf:
+        case GenericEQShape.LowShelf:
           // Using cookbook shelf filter formula with Q affecting the transition slope/shape
           const shelfAlphaLS =
             (sin_w0 / 2) * Math.sqrt((A + 1 / A) * (1 / Q - 1) + 2); // Q definition for shelf slope
@@ -141,7 +141,7 @@ const calculateFrequencyResponse = (bands: EQBand[]) => {
           a1 = -2 * (A - 1 + (A + 1) * cos_w0);
           a2 = A + 1 + (A - 1) * cos_w0 - 2 * Math.sqrt(A) * shelfAlphaLS;
           break;
-        case EQShape.HighShelf:
+        case GenericEQShape.HighShelf:
           const shelfAlphaHS =
             (sin_w0 / 2) * Math.sqrt((A + 1 / A) * (1 / Q - 1) + 2); // Q definition for shelf slope
           b0 = A * (A + 1 + (A - 1) * cos_w0 + 2 * Math.sqrt(A) * shelfAlphaHS);
@@ -151,7 +151,7 @@ const calculateFrequencyResponse = (bands: EQBand[]) => {
           a1 = 2 * (A - 1 - (A + 1) * cos_w0);
           a2 = A + 1 - (A - 1) * cos_w0 - 2 * Math.sqrt(A) * shelfAlphaHS;
           break;
-        case EQShape.LowCut: // High-pass (Gain/A are not used)
+        case GenericEQShape.LowCut: // High-pass (Gain/A are not used)
           // Use standard biquad coefficients for a 12 dB/octave high-pass filter
           b0 = (1 + cos_w0) / 2;
           b1 = -(1 + cos_w0);
@@ -160,7 +160,7 @@ const calculateFrequencyResponse = (bands: EQBand[]) => {
           a1 = -2 * cos_w0;
           a2 = 1 - alpha;
           break;
-        case EQShape.HighCut: // Low-pass (Gain/A are not used)
+        case GenericEQShape.HighCut: // Low-pass (Gain/A are not used)
           // Use standard biquad coefficients for a 12 dB/octave low-pass filter
           b0 = (1 - cos_w0) / 2;
           b1 = 1 - cos_w0;
@@ -169,7 +169,7 @@ const calculateFrequencyResponse = (bands: EQBand[]) => {
           a1 = -2 * cos_w0;
           a2 = 1 - alpha;
           break;
-        case EQShape.Notch: // Gain/A are not used
+        case GenericEQShape.Notch: // Gain/A are not used
           b0 = 1;
           b1 = -2 * cos_w0;
           b2 = 1;
@@ -177,7 +177,7 @@ const calculateFrequencyResponse = (bands: EQBand[]) => {
           a1 = -2 * cos_w0;
           a2 = 1 - alpha;
           break;
-        case EQShape.BandPass:
+        case GenericEQShape.BandPass:
           b0 = alpha;
           b1 = 0;
           b2 = -alpha;
@@ -185,7 +185,7 @@ const calculateFrequencyResponse = (bands: EQBand[]) => {
           a1 = -2 * cos_w0;
           a2 = 1 - alpha;
           break;
-        case EQShape.TiltShelf:
+        case GenericEQShape.TiltShelf:
           // Tilt shelf filter implementation
           const tiltGain = Math.pow(10, gainDb / 20);
           const tiltAlpha = (tiltGain - 1) / (tiltGain + 1);
@@ -196,7 +196,7 @@ const calculateFrequencyResponse = (bands: EQBand[]) => {
           a1 = -2 * cos_w0;
           a2 = 1 - tiltAlpha * cos_w0;
           break;
-        case EQShape.FlatTilt:
+        case GenericEQShape.FlatTilt:
           // Flat tilt filter implementation
           const flatTiltGain = Math.pow(10, gainDb / 20);
           b0 = flatTiltGain;
@@ -238,38 +238,41 @@ const calculateFrequencyResponse = (bands: EQBand[]) => {
         let magnitudeSquared = numeratorMagSq / denominatorMagSq;
 
         // Apply slope based on EQSlope parameter
-        if (shape === EQShape.LowCut || shape === EQShape.HighCut) {
+        if (
+          shape === GenericEQShape.LowCut ||
+          shape === GenericEQShape.HighCut
+        ) {
           // Calculate number of cascades needed based on slope
           let cascades = 1;
           switch (band.Slope) {
-            case EQSlope.Slope6dB_oct:
+            case GenericEQSlope.Slope6dB_oct:
               cascades = 0.5; // Half cascade for 6dB/oct
               break;
-            case EQSlope.Slope12dB_oct:
+            case GenericEQSlope.Slope12dB_oct:
               cascades = 1;
               break;
-            case EQSlope.Slope18dB_oct:
+            case GenericEQSlope.Slope18dB_oct:
               cascades = 1.5;
               break;
-            case EQSlope.Slope24dB_oct:
+            case GenericEQSlope.Slope24dB_oct:
               cascades = 2;
               break;
-            case EQSlope.Slope30dB_oct:
+            case GenericEQSlope.Slope30dB_oct:
               cascades = 2.5;
               break;
-            case EQSlope.Slope36dB_oct:
+            case GenericEQSlope.Slope36dB_oct:
               cascades = 3;
               break;
-            case EQSlope.Slope48dB_oct:
+            case GenericEQSlope.Slope48dB_oct:
               cascades = 4;
               break;
-            case EQSlope.Slope72dB_oct:
+            case GenericEQSlope.Slope72dB_oct:
               cascades = 6;
               break;
-            case EQSlope.Slope96dB_oct:
+            case GenericEQSlope.Slope96dB_oct:
               cascades = 8;
               break;
-            case EQSlope.SlopeBrickwall:
+            case GenericEQSlope.SlopeBrickwall:
               // Approximate brickwall with very steep slope
               cascades = 16;
               break;
@@ -288,7 +291,7 @@ const calculateFrequencyResponse = (bands: EQBand[]) => {
               const slopeFactor = cascades * 6; // 6dB per octave per cascade
               const octaves = Math.log2(normalizedFreq);
               // Apply slope in correct direction based on filter type
-              if (shape === EQShape.LowCut) {
+              if (shape === GenericEQShape.LowCut) {
                 // Only attenuate below cutoff (high-pass)
                 magnitudeSquared =
                   octaves < 0
@@ -335,7 +338,7 @@ const calculateFrequencyResponse = (bands: EQBand[]) => {
 }; // End calculateFrequencyResponse
 
 interface EqualizerChartProps {
-  preset: EQPreset;
+  preset: GenericEQPreset;
   onFrequencyHover?: (frequency: number | null) => void;
 }
 
@@ -363,7 +366,8 @@ const CustomScatterTooltip = ({
         <p>Gain: {band.Gain.toFixed(1)} dB</p>
         <p>Q: {band.Q.toFixed(2)}</p>
         <p>Shape: {shapeName}</p>
-        {band.Shape === EQShape.LowCut || band.Shape === EQShape.HighCut ? (
+        {band.Shape === GenericEQShape.LowCut ||
+        band.Shape === GenericEQShape.HighCut ? (
           <p>Slope: {getSlopeName(band.Slope)}</p>
         ) : null}
       </div>
@@ -409,7 +413,7 @@ export function EqualizerChart({
     payload?: {
       frequency: number;
       gain: number;
-      bandInfo: EQBand;
+      bandInfo: GenericEQBand;
     };
   } | null;
 
