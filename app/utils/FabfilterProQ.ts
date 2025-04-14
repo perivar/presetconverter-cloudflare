@@ -141,20 +141,7 @@ export class FabfilterProQ extends FabfilterProQBase {
 
       // Process chunk data if found
       if (chunkData) {
-        const bf = new BinaryFile(chunkData, ByteOrder.LittleEndian);
-        try {
-          const header = bf.binaryReader?.readString(4);
-          // ProQ uses 'FFBS' in its chunk data
-          if (header === "FFBS") {
-            this.readFFPInternal(bf);
-          } else {
-            console.warn(
-              `FXP chunk data header mismatch. Expected 'FFBS', got '${header}'`
-            );
-          }
-        } catch (e) {
-          console.error("Error reading FXP chunk data:", e);
-        }
+        this.readFabFilterBinaryState(chunkData);
       } else {
         // Only warn if chunk data was expected but not found
         if (shouldHaveFXPChunkData) {
@@ -162,27 +149,23 @@ export class FabfilterProQ extends FabfilterProQBase {
         }
       }
     } else if (this.Parameters) {
-      // Init from internal Parameters map
-      const floatParameters: number[] = [];
-
-      // Sort parameters by key to ensure consistent order if keys are numeric strings
-      const sortedKeys = Array.from(this.Parameters.keys()).sort((a, b) => {
-        const numA = parseInt(a, 10);
-        const numB = parseInt(b, 10);
-        if (!isNaN(numA) && !isNaN(numB)) {
-          return numA - numB;
-        }
-        return a.localeCompare(b);
-      });
-
-      for (const key of sortedKeys) {
-        const paramValue = this.Parameters.get(key);
-        if (paramValue?.Type === ParameterType.Number) {
-          floatParameters.push(paramValue.Value as number);
+      const compChunkData = this.CompChunkData;
+      if (compChunkData) {
+        if (this.readFabFilterBinaryState(compChunkData)) {
+          // Successfully read from Fabfilter Binary State from CompChunkData
+          return;
         }
       }
 
-      // Call the internal method with extracted parameters, assuming they are NOT IEEE 0-1 range
+      // if we get here, try to use the Parameters that have been added to the preset
+      // and treat them as floats
+      const floatParameters: number[] = [];
+      for (const [_key, param] of this.Parameters) {
+        if (param.Type === ParameterType.Number && param.Value !== undefined) {
+          floatParameters.push(param.Value as number);
+        }
+      }
+
       this.initFromParameterArray(floatParameters, false);
     }
   }
@@ -340,7 +323,7 @@ export class FabfilterProQ extends FabfilterProQBase {
     }
   }
 
-  private readFFPInternal(bf: BinaryFile): boolean {
+  readFFPInternal(bf: BinaryFile): boolean {
     if (!bf.binaryReader) return false;
 
     try {

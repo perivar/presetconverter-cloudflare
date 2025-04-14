@@ -1,8 +1,4 @@
-import type { EQBand } from "~/routes/frontpage";
-import { ProQShape } from "~/utils/FabfilterProQ";
-import { ProQ2Shape } from "~/utils/FabfilterProQ2";
-import { ProQ3Shape } from "~/utils/FabfilterProQ3";
-import { FabfilterProQShape } from "~/utils/FabfilterProQBase";
+import { EQPreset, EQShape, EQSlope } from "~/utils/EQTypes";
 import { CheckCircle2, XCircle } from "lucide-react";
 import { useTranslation } from "react-i18next";
 
@@ -16,32 +12,17 @@ import {
 } from "~/components/ui/table";
 
 interface EqualizerBandTableProps {
-  bands: EQBand[];
+  preset: EQPreset;
   hoveredFrequency: number | null;
 }
 
 // Helper function to get the shape name from a numeric value
-const getShapeName = (
-  shape: FabfilterProQShape | ProQShape | ProQ2Shape | ProQ3Shape
-): string => {
-  // Try each enum in sequence
-  if (shape in FabfilterProQShape) {
-    return FabfilterProQShape[shape];
-  }
-  if (shape in ProQShape) {
-    return ProQShape[shape];
-  }
-  if (shape in ProQ2Shape) {
-    return ProQ2Shape[shape];
-  }
-  if (shape in ProQ3Shape) {
-    return ProQ3Shape[shape];
-  }
-  return "Unknown";
+const getShapeName = (shape: EQShape): string => {
+  return EQShape[shape] || "Unknown";
 };
 
 export function EqualizerBandTable({
-  bands,
+  preset,
   hoveredFrequency,
 }: EqualizerBandTableProps) {
   const { t } = useTranslation();
@@ -56,13 +37,14 @@ export function EqualizerBandTable({
             <TableHead>{t("fileInfo.frequency")}</TableHead>
             <TableHead>{t("fileInfo.gain")}</TableHead>
             <TableHead>{t("fileInfo.q")}</TableHead>
+            <TableHead>{t("fileInfo.slope")}</TableHead>
             <TableHead className="w-[100px] text-center">
               {t("fileInfo.enabled")}
             </TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
-          {bands.map((band, index) => (
+          {preset.Bands.map((band, index) => (
             <TableRow
               key={index}
               className={
@@ -78,6 +60,17 @@ export function EqualizerBandTable({
               <TableCell>{band.Frequency.toFixed(2)} Hz</TableCell>
               <TableCell>{band.Gain.toFixed(2)} dB</TableCell>
               <TableCell>{band.Q.toFixed(2)}</TableCell>
+              <TableCell>
+                {[
+                  EQShape.LowCut,
+                  EQShape.HighCut,
+                  EQShape.LowShelf,
+                  EQShape.HighShelf,
+                  EQShape.TiltShelf,
+                ].includes(band.Shape)
+                  ? t(`bandSlopes.${EQSlope[band.Slope]}`)
+                  : "-"}
+              </TableCell>
               <TableCell className="text-center">
                 {band.Enabled ? (
                   <CheckCircle2 className="mx-auto size-4 text-green-500" />

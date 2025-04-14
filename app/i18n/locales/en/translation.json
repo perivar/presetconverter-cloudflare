@@ -37,6 +37,7 @@
     "frequency": "Frequency",
     "gain": "Gain",
     "q": "Q",
+    "slope": "Slope",
     "type": "Type",
     "size": "Size",
     "title": "File Information"
@@ -51,6 +52,18 @@
     "BandPass": "Band Pass",
     "TiltShelf": "Tilt Shelf",
     "FlatTilt": "Flat Tilt"
+  },
+  "bandSlopes": {
+    "Slope6dB_oct": "6 dB/oct",
+    "Slope12dB_oct": "12 dB/oct",
+    "Slope18dB_oct": "18 dB/oct",
+    "Slope24dB_oct": "24 dB/oct",
+    "Slope30dB_oct": "30 dB/oct",
+    "Slope36dB_oct": "36 dB/oct",
+    "Slope48dB_oct": "48 dB/oct",
+    "Slope72dB_oct": "72 dB/oct",
+    "Slope96dB_oct": "96 dB/oct",
+    "SlopeBrickwall": "Brickwall"
   },
   "formats": {
     "fabfilterProQ1": "FabFilter Pro-Q",

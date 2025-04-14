@@ -163,21 +163,7 @@ export class FabfilterProQ2 extends FabfilterProQBase {
 
       // Process chunk data if found
       if (chunkData) {
-        const bf = new BinaryFile(chunkData, ByteOrder.LittleEndian);
-        try {
-          const header = bf.binaryReader?.readString(4);
-          // ProQ2 uses 'FFBS' in its chunk data
-          if (header === "FFBS") {
-            this.readFFPInternal(bf);
-          } else {
-            console.warn(
-              `FXP chunk data header mismatch. Expected 'FFBS', got '${header}'. Attempting to read as FFP anyway.`
-            );
-          }
-        } catch (e) {
-          console.error("Error reading FXP chunk data for ProQ2:", e);
-        }
-        return; // Chunk data processed (or attempted), exit
+        this.readFabFilterBinaryState(chunkData);
       } else {
         // Only warn if chunk data was expected but not found
         if (shouldHaveFXPChunkData) {
@@ -186,23 +172,24 @@ export class FabfilterProQ2 extends FabfilterProQBase {
           );
         }
       }
-    }
-
-    if (this.Parameters) {
-      const floatParameters: number[] = [];
-      const sortedKeys = Array.from(this.Parameters.keys()).sort((a, b) => {
-        const numA = parseInt(a, 10);
-        const numB = parseInt(b, 10);
-        return !isNaN(numA) && !isNaN(numB) ? numA - numB : a.localeCompare(b);
-      });
-
-      for (const key of sortedKeys) {
-        const paramValue = this.Parameters.get(key);
-        if (paramValue?.Type === ParameterType.Number) {
-          floatParameters.push(paramValue.Value as number);
+    } else if (this.Parameters) {
+      const compChunkData = this.CompChunkData;
+      if (compChunkData) {
+        if (this.readFabFilterBinaryState(compChunkData)) {
+          // Successfully read from Fabfilter Binary State from CompChunkData
+          return;
         }
       }
-      // Assume internal Parameters are NOT IEEE 0-1 range
+
+      // if we get here, try to use the Parameters that have been added to the preset
+      // and treat them as floats
+      const floatParameters: number[] = [];
+      for (const [_key, param] of this.Parameters) {
+        if (param.Type === ParameterType.Number && param.Value !== undefined) {
+          floatParameters.push(param.Value as number);
+        }
+      }
+
       this.initFromParameterArray(floatParameters, false);
     }
   }
@@ -409,8 +396,7 @@ export class FabfilterProQ2 extends FabfilterProQBase {
     }
   }
 
-  // Extracted internal reading logic
-  private readFFPInternal(bf: BinaryFile): boolean {
+  readFFPInternal(bf: BinaryFile): boolean {
     if (!bf.binaryReader) return false;
 
     try {

@@ -44,7 +44,7 @@ export class VstPresetFactory {
           preset = new FabfilterProQ2();
           break;
         case VstPreset.VstClassIDs.FabFilterProQ3:
-          // case VstPreset.VstClassIDs.FabfilterProQ3VST3:
+        case VstPreset.VstClassIDs.FabfilterProQ3VST3:
           preset = new FabfilterProQ3();
           break;
         default:
@@ -56,7 +56,6 @@ export class VstPresetFactory {
       preset.read(presetBytes);
 
       // Set position/size properties
-      // preset.Parameters.clear();
       preset.CompDataStartPos = 0;
       preset.CompDataChunkSize = presetBytes.length;
       preset.ContDataStartPos = presetBytes.length;
@@ -75,9 +74,8 @@ export class VstPresetFactory {
       ) {
         (preset as FabfilterProQ2).initFromParameters();
       } else if (
-        preset.Vst3ClassID === VstPreset.VstClassIDs.FabFilterProQ3
-        // ||
-        // preset.Vst3ClassID === VstPreset.VstClassIDs.FabfilterProQ3VST3
+        preset.Vst3ClassID === VstPreset.VstClassIDs.FabFilterProQ3 ||
+        preset.Vst3ClassID === VstPreset.VstClassIDs.FabfilterProQ3VST3
       ) {
         (preset as FabfilterProQ3).initFromParameters();
       }
@@ -99,35 +97,40 @@ export class VstPresetFactory {
    * @param presetBytes - The Uint8Array content of the FXP file.
    * @returns An initialized FabfilterProQBase instance or null if parsing fails or version is unknown.
    */
-  static getFabFilterProQPresetFromFXP(
-    presetBytes: Uint8Array
-  ): FabfilterProQBase | null {
+  static getFabFilterProQPresetFromFXP(presetBytes: Uint8Array): {
+    preset: FabfilterProQBase | null;
+    source: string | null;
+  } {
     try {
       const fxp = new FXP(presetBytes);
       let proQInstance: FabfilterProQBase | null = null;
+      let source: string | null = null;
 
       // Instantiate correct class based on FxID
       switch (fxp.content?.FxID) {
         case "FPQr":
+          source = "FabfilterProQ";
           proQInstance = new FabfilterProQ();
           break;
         case "FQ2p":
+          source = "FabfilterProQ2";
           proQInstance = new FabfilterProQ2();
           break;
         case "FQ3p":
+          source = "FabfilterProQ3";
           proQInstance = new FabfilterProQ3();
           break;
         default:
           console.error(
             `Unknown or missing Fabfilter FxID: ${fxp.content?.FxID}`
           );
-          return null; // Unknown or missing FxID
+          return { preset: null, source: null }; // Unknown or missing FxID
       }
 
       // Check if fxp.content exists before accessing parameters
       if (!fxp.content) {
         console.error("Failed to parse FXP content.");
-        return null;
+        return { preset: null, source: null };
       }
 
       // Add the fxp object to the proQInstance object
@@ -136,10 +139,10 @@ export class VstPresetFactory {
       // Initialize from FXP parameters. The concrete implementations will use the attached FXP object.
       proQInstance.initFromParameters();
 
-      return proQInstance;
+      return { preset: proQInstance, source: source };
     } catch (error) {
       console.error("Error reading or processing FXP file:", error);
-      return null; // Error during FXP parsing or processing
+      return { preset: null, source: null }; // Error during FXP parsing or processing
     }
   }
 }

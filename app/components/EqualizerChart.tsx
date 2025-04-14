@@ -1,6 +1,6 @@
 import { useMemo, useState } from "react";
-import type { EQBand } from "~/routes/frontpage";
-import { FabfilterProQShape } from "~/utils/FabfilterProQBase";
+import { EQShape, EQSlope } from "~/utils/EQTypes";
+import type { EQBand, EQPreset } from "~/utils/EQTypes";
 import {
   Area,
   CartesianGrid,
@@ -19,32 +19,64 @@ const SAMPLE_RATE = 48000; // Assume a sample rate for calculations
 const MIN_FREQ = 20;
 const MAX_FREQ = 20000;
 const FREQ_POINTS = 100; // Number of points for the curve
-const MIN_GAIN_DB = -30; // Min dB for display range
-const MAX_GAIN_DB = 30; // Max dB for display range
+const MIN_GAIN_DB = -36; // Min dB for display range
+const MAX_GAIN_DB = 36; // Max dB for display range
 
 // Helper to get shape name
-const getShapeName = (shape: FabfilterProQShape | number): string => {
+const getShapeName = (shape: EQShape | number): string => {
   // Handle potential number values if type union isn't fully resolved at runtime
-  const shapeValue =
-    typeof shape === "number"
-      ? shape
-      : FabfilterProQShape[shape as keyof typeof FabfilterProQShape];
+  const shapeValue = typeof shape === "number" ? shape : shape;
   switch (shapeValue) {
-    case FabfilterProQShape.Bell:
+    case EQShape.Bell:
       return "Bell";
-    case FabfilterProQShape.LowShelf:
+    case EQShape.LowShelf:
       return "Low Shelf";
-    case FabfilterProQShape.LowCut:
+    case EQShape.LowCut:
       return "Low Cut";
-    case FabfilterProQShape.HighShelf:
+    case EQShape.HighShelf:
       return "High Shelf";
-    case FabfilterProQShape.HighCut:
+    case EQShape.HighCut:
       return "High Cut";
-    case FabfilterProQShape.Notch:
+    case EQShape.Notch:
       return "Notch";
-    // Add cases for ProQ specific shapes if needed and known
+    case EQShape.BandPass:
+      return "Band Pass";
+    case EQShape.TiltShelf:
+      return "Tilt Shelf";
+    case EQShape.FlatTilt:
+      return "Flat Tilt";
+
     default:
       return `Unknown (${shapeValue})`;
+  }
+};
+
+// Helper to get slope name
+const getSlopeName = (slope: EQSlope | number): string => {
+  const slopeValue = typeof slope === "number" ? slope : slope;
+  switch (slopeValue) {
+    case EQSlope.Slope6dB_oct:
+      return "6 dB/oct";
+    case EQSlope.Slope12dB_oct:
+      return "12 dB/oct";
+    case EQSlope.Slope18dB_oct:
+      return "18 dB/oct";
+    case EQSlope.Slope24dB_oct:
+      return "24 dB/oct";
+    case EQSlope.Slope30dB_oct:
+      return "30 dB/oct";
+    case EQSlope.Slope36dB_oct:
+      return "36 dB/oct";
+    case EQSlope.Slope48dB_oct:
+      return "48 dB/oct";
+    case EQSlope.Slope72dB_oct:
+      return "72 dB/oct";
+    case EQSlope.Slope96dB_oct:
+      return "96 dB/oct";
+    case EQSlope.SlopeBrickwall:
+      return "Brickwall";
+    default:
+      return `Unknown (${slopeValue})`;
   }
 };
 
@@ -90,7 +122,7 @@ const calculateFrequencyResponse = (bands: EQBand[]) => {
 
       // Determine biquad coefficients based on filter shape
       switch (shape) {
-        case FabfilterProQShape.Bell: // Peaking EQ
+        case EQShape.Bell: // Peaking EQ
           b0 = 1 + alpha * A;
           b1 = -2 * cos_w0;
           b2 = 1 - alpha * A;
@@ -98,7 +130,7 @@ const calculateFrequencyResponse = (bands: EQBand[]) => {
           a1 = -2 * cos_w0;
           a2 = 1 - alpha / A;
           break;
-        case FabfilterProQShape.LowShelf:
+        case EQShape.LowShelf:
           // Using cookbook shelf filter formula with Q affecting the transition slope/shape
           const shelfAlphaLS =
             (sin_w0 / 2) * Math.sqrt((A + 1 / A) * (1 / Q - 1) + 2); // Q definition for shelf slope
@@ -109,7 +141,7 @@ const calculateFrequencyResponse = (bands: EQBand[]) => {
           a1 = -2 * (A - 1 + (A + 1) * cos_w0);
           a2 = A + 1 + (A - 1) * cos_w0 - 2 * Math.sqrt(A) * shelfAlphaLS;
           break;
-        case FabfilterProQShape.HighShelf:
+        case EQShape.HighShelf:
           const shelfAlphaHS =
             (sin_w0 / 2) * Math.sqrt((A + 1 / A) * (1 / Q - 1) + 2); // Q definition for shelf slope
           b0 = A * (A + 1 + (A - 1) * cos_w0 + 2 * Math.sqrt(A) * shelfAlphaHS);
@@ -119,7 +151,7 @@ const calculateFrequencyResponse = (bands: EQBand[]) => {
           a1 = 2 * (A - 1 - (A + 1) * cos_w0);
           a2 = A + 1 - (A - 1) * cos_w0 - 2 * Math.sqrt(A) * shelfAlphaHS;
           break;
-        case FabfilterProQShape.LowCut: // High-pass (Gain/A are not used)
+        case EQShape.LowCut: // High-pass (Gain/A are not used)
           // Use standard biquad coefficients for a 12 dB/octave high-pass filter
           b0 = (1 + cos_w0) / 2;
           b1 = -(1 + cos_w0);
@@ -128,7 +160,7 @@ const calculateFrequencyResponse = (bands: EQBand[]) => {
           a1 = -2 * cos_w0;
           a2 = 1 - alpha;
           break;
-        case FabfilterProQShape.HighCut: // Low-pass (Gain/A are not used)
+        case EQShape.HighCut: // Low-pass (Gain/A are not used)
           // Use standard biquad coefficients for a 12 dB/octave low-pass filter
           b0 = (1 - cos_w0) / 2;
           b1 = 1 - cos_w0;
@@ -137,13 +169,42 @@ const calculateFrequencyResponse = (bands: EQBand[]) => {
           a1 = -2 * cos_w0;
           a2 = 1 - alpha;
           break;
-        case FabfilterProQShape.Notch: // Gain/A are not used
+        case EQShape.Notch: // Gain/A are not used
           b0 = 1;
           b1 = -2 * cos_w0;
           b2 = 1;
           a0 = 1 + alpha;
           a1 = -2 * cos_w0;
           a2 = 1 - alpha;
+          break;
+        case EQShape.BandPass:
+          b0 = alpha;
+          b1 = 0;
+          b2 = -alpha;
+          a0 = 1 + alpha;
+          a1 = -2 * cos_w0;
+          a2 = 1 - alpha;
+          break;
+        case EQShape.TiltShelf:
+          // Tilt shelf filter implementation
+          const tiltGain = Math.pow(10, gainDb / 20);
+          const tiltAlpha = (tiltGain - 1) / (tiltGain + 1);
+          b0 = tiltGain * (1 + tiltAlpha * cos_w0);
+          b1 = tiltGain * (-2 * cos_w0);
+          b2 = tiltGain * (1 - tiltAlpha * cos_w0);
+          a0 = 1 + tiltAlpha * cos_w0;
+          a1 = -2 * cos_w0;
+          a2 = 1 - tiltAlpha * cos_w0;
+          break;
+        case EQShape.FlatTilt:
+          // Flat tilt filter implementation
+          const flatTiltGain = Math.pow(10, gainDb / 20);
+          b0 = flatTiltGain;
+          b1 = 0;
+          b2 = 0;
+          a0 = 1;
+          a1 = 0;
+          a2 = 0;
           break;
         default:
           // Skip this band's contribution if shape is not recognized
@@ -176,14 +237,75 @@ const calculateFrequencyResponse = (bands: EQBand[]) => {
         // Avoid division by zero or near-zero
         let magnitudeSquared = numeratorMagSq / denominatorMagSq;
 
-        // For cut filters, apply 24 dB/octave slope by raising the magnitude to the power of 2
-        // (since 2 * 12 dB = 24 dB)
-        if (
-          shape === FabfilterProQShape.LowCut ||
-          shape === FabfilterProQShape.HighCut
-        ) {
-          // Apply power of 2 to simulate 2 cascaded 12 dB/octave filters
-          magnitudeSquared = Math.pow(magnitudeSquared, 2);
+        // Apply slope based on EQSlope parameter
+        if (shape === EQShape.LowCut || shape === EQShape.HighCut) {
+          // Calculate number of cascades needed based on slope
+          let cascades = 1;
+          switch (band.Slope) {
+            case EQSlope.Slope6dB_oct:
+              cascades = 0.5; // Half cascade for 6dB/oct
+              break;
+            case EQSlope.Slope12dB_oct:
+              cascades = 1;
+              break;
+            case EQSlope.Slope18dB_oct:
+              cascades = 1.5;
+              break;
+            case EQSlope.Slope24dB_oct:
+              cascades = 2;
+              break;
+            case EQSlope.Slope30dB_oct:
+              cascades = 2.5;
+              break;
+            case EQSlope.Slope36dB_oct:
+              cascades = 3;
+              break;
+            case EQSlope.Slope48dB_oct:
+              cascades = 4;
+              break;
+            case EQSlope.Slope72dB_oct:
+              cascades = 6;
+              break;
+            case EQSlope.Slope96dB_oct:
+              cascades = 8;
+              break;
+            case EQSlope.SlopeBrickwall:
+              // Approximate brickwall with very steep slope
+              cascades = 16;
+              break;
+            default:
+              cascades = 1;
+          }
+
+          // Apply cascaded filter effect with proper slope modeling
+          if (cascades > 0) {
+            // Calculate the actual cascaded response (not just power)
+            const normalizedFreq = freq / f0;
+
+            // For high slopes, use a more accurate model
+            if (cascades >= 4) {
+              // Steeper slopes use logarithmic scaling
+              const slopeFactor = cascades * 6; // 6dB per octave per cascade
+              const octaves = Math.log2(normalizedFreq);
+              // Apply slope in correct direction based on filter type
+              if (shape === EQShape.LowCut) {
+                // Only attenuate below cutoff (high-pass)
+                magnitudeSquared =
+                  octaves < 0
+                    ? Math.pow(10, -Math.abs(octaves * slopeFactor) / 10)
+                    : 1;
+              } else {
+                // Only attenuate above cutoff (low-pass)
+                magnitudeSquared =
+                  octaves > 0
+                    ? Math.pow(10, -Math.abs(octaves * slopeFactor) / 10)
+                    : 1;
+              }
+            } else {
+              // Smoother transition for lower slopes
+              magnitudeSquared = Math.pow(magnitudeSquared, cascades);
+            }
+          }
         }
 
         // Ensure magnitudeSquared is non-negative before log
@@ -200,10 +322,8 @@ const calculateFrequencyResponse = (bands: EQBand[]) => {
     } // End for...of loop
 
     // Clamp the total gain for the final display range
-    totalGainDb = Math.max(
-      MIN_GAIN_DB - 5,
-      Math.min(MAX_GAIN_DB + 5, totalGainDb)
-    );
+    // Use stricter clamping for LowCut/HighCut to prevent excessive attenuation
+    totalGainDb = Math.max(MIN_GAIN_DB, Math.min(MAX_GAIN_DB, totalGainDb));
 
     return {
       frequency: freq,
@@ -215,7 +335,7 @@ const calculateFrequencyResponse = (bands: EQBand[]) => {
 }; // End calculateFrequencyResponse
 
 interface EqualizerChartProps {
-  bands: EQBand[];
+  preset: EQPreset;
   onFrequencyHover?: (frequency: number | null) => void;
 }
 
@@ -243,6 +363,9 @@ const CustomScatterTooltip = ({
         <p>Gain: {band.Gain.toFixed(1)} dB</p>
         <p>Q: {band.Q.toFixed(2)}</p>
         <p>Shape: {shapeName}</p>
+        {band.Shape === EQShape.LowCut || band.Shape === EQShape.HighCut ? (
+          <p>Slope: {getSlopeName(band.Slope)}</p>
+        ) : null}
       </div>
     );
   }
@@ -250,7 +373,7 @@ const CustomScatterTooltip = ({
 };
 
 export function EqualizerChart({
-  bands,
+  preset,
   onFrequencyHover,
 }: EqualizerChartProps) {
   // State to track the currently hovered band for highlighting and tooltip
@@ -260,14 +383,14 @@ export function EqualizerChart({
 
   // Memoize the calculation of the overall frequency response curve
   const frequencyResponseData = useMemo(
-    () => calculateFrequencyResponse(bands || []),
-    [bands]
+    () => calculateFrequencyResponse(preset.Bands || []),
+    [preset.Bands]
   );
 
   // Memoize the data prepared for the Scatter plot (only enabled bands)
   const enabledBandsData = useMemo(() => {
     return (
-      (bands || [])
+      (preset.Bands || [])
         .filter(
           band =>
             band.Enabled && band.Frequency > 0 && band.Frequency <= MAX_FREQ
@@ -279,7 +402,7 @@ export function EqualizerChart({
           bandInfo: band,
         }))
     );
-  }, [bands]);
+  }, [preset.Bands]);
 
   // Define a type for the Scatter hover payload
   type ScatterHoverPayload = {

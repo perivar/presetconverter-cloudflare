@@ -331,16 +331,19 @@ test("FabfilterProQ-compare-FXP-FFP-Generic", () => {
   );
   const fxpFileContent = fs.readFileSync(fxpPath);
   const fxpUint8Array = new Uint8Array(fxpFileContent);
-  const fxpProQ = VstPresetFactory.getFabFilterProQPresetFromFXP(fxpUint8Array);
+
+  const { preset: fxpProQ, source } =
+    VstPresetFactory.getFabFilterProQPresetFromFXP(fxpUint8Array);
 
   // Add a check to ensure fxpProQ is not null before proceeding
   if (!fxpProQ) {
     throw new Error(
-      "Failed to read or initialize FXP using FabfilterProQBase.readFXP"
+      "Failed to read or initialize FXP using VstPresetFactory.getFabFilterProQPresetFromFXP"
     );
   }
 
   expect(fxpProQ).toBeInstanceOf(FabfilterProQ); // Check for Pro-Q 1
+  expect(source).toBe("FabfilterProQ");
   if (DO_DEBUG_OBJECT)
     console.log(
       `FXP Bands (${fxpProQ.constructor.name}):`,

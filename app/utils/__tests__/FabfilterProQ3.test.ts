@@ -3,11 +3,7 @@ import * as path from "path";
 
 import { FabfilterProQ3 } from "../FabfilterProQ3";
 import { VstPresetFactory } from "../VstPresetFactory";
-import {
-  areTypedArraysEqual,
-  expectUint8ArraysToBeEqual,
-  toPlainObject,
-} from "./helpers/testUtils";
+import { expectUint8ArraysToBeEqual, toPlainObject } from "./helpers/testUtils";
 
 // set this to true to debug the outputs as objects
 const DO_DEBUG_OBJECT = false;
@@ -365,7 +361,8 @@ test("FabfilterProQ3-readVstPreset-HighBass-array", () => {
     );
     fs.writeFileSync(filePathWrite, uint8ArrayWrite);
 
-    expect(areTypedArraysEqual(uint8ArrayRead, uint8ArrayWrite)).toBe(true);
+    // Compare arrays using the helper function for better diff output on failure
+    expectUint8ArraysToBeEqual(uint8ArrayWrite, uint8ArrayRead);
   }
 });
 
@@ -396,16 +393,18 @@ test("FabfilterProQ3-compare-FXP-FFP-HighBass", () => {
   );
   const fxpFileContent = fs.readFileSync(fxpPath);
   const fxpUint8Array = new Uint8Array(fxpFileContent);
-  const fxpProQ = VstPresetFactory.getFabFilterProQPresetFromFXP(fxpUint8Array); // Use new method name
+  const { preset: fxpProQ, source } =
+    VstPresetFactory.getFabFilterProQPresetFromFXP(fxpUint8Array);
 
   // Add a check to ensure fxpProQ is not null before proceeding
   if (!fxpProQ) {
     throw new Error(
-      "Failed to read or initialize FXP using FabfilterProQBase.readFXP"
+      "Failed to read or initialize FXP using VstPresetFactory.getFabFilterProQPresetFromFXP"
     );
   }
 
   expect(fxpProQ).toBeInstanceOf(FabfilterProQ3); // Keep this check as we know the test file is Q3
+  expect(source).toBe("FabfilterProQ3");
   if (DO_DEBUG_OBJECT)
     console.log(
       `FXP Bands (${fxpProQ.constructor.name}):`,

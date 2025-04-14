@@ -733,41 +733,12 @@ export abstract class VstPreset implements Preset {
       // const remainingSize = chunkSize - 16;
       // const chunkData = reader.readBytes(remainingSize);
       // this.CompChunkData = new Uint8Array([...dataChunkIDBytes, ...chunkData]);
-    } else if (dataChunkID === "FFBS") {
-      // FFBS = FabFilter Binary State (proprietary format)
-      // Just store the data since we can't parse it in the abstract class
-      // Determine which FabFilter Pro-Q version to use based on vst3ClassId
-      console.log("Found FabFilter binary state data");
-
-      // let success = false;
-
-      // // Check FabFilter Pro-Q version based on class ID
-      // if (
-      //   // this.Vst3ClassID.includes(VstPreset.VstClassIDs.FabfilterProQ3VST3) ||
-      //   this.Vst3ClassID.includes(VstPreset.VstClassIDs.FabFilterProQ3)
-      // ) {
-      //   const proQ3 = new FabfilterProQ3();
-      //   success = proQ3.readFFP(chunkData, false);
-      //   console.log("Loaded FabFilter Pro-Q 3 preset");
-      // } else if (
-      //   this.Vst3ClassID.includes(VstPreset.VstClassIDs.FabFilterProQ2)
-      // ) {
-      //   const proQ2 = new FabfilterProQ2();
-      //   success = proQ2.readFFP(chunkData, false);
-      //   console.log("Loaded FabFilter Pro-Q 2 preset");
-      // } else if (
-      //   this.Vst3ClassID.includes(VstPreset.VstClassIDs.FabFilterProQ)
-      // ) {
-      //   const proQ = new FabfilterProQ();
-      //   success = proQ.readFFP(chunkData, false);
-      //   console.log("Loaded FabFilter Pro-Q 1 preset");
-      // }
+    } else {
+      // Standard chunk format
 
       const remainingSize = chunkSize - 4;
       const chunkData = reader.readBytes(remainingSize);
       this.CompChunkData = new Uint8Array([...dataChunkIDBytes, ...chunkData]);
-    } else {
-      // Standard chunk format:
     }
 
     // OK, getting here we should have access to a fxp/fxb chunk:

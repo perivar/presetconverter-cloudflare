@@ -1,3 +1,4 @@
+import { BinaryFile, ByteOrder } from "./BinaryFile";
 import { ProQShape } from "./FabfilterProQ";
 import { ProQ2Shape } from "./FabfilterProQ2";
 import { ProQ3Shape } from "./FabfilterProQ3";
@@ -39,6 +40,28 @@ export abstract class FabfilterProQBase extends VstPreset {
 
   // Abstract method for reading Fabfilter Pro Q preset files.
   abstract readFFP(data: Uint8Array, doReadHeader: boolean): boolean;
+
+  // Abstract method for reading Fabfilter Pro Q preset files using a BinaryFile.
+  abstract readFFPInternal(bf: BinaryFile): boolean;
+
+  // method for reading FFBS (FabFilter Binary State)
+  public readFabFilterBinaryState(data: Uint8Array): boolean {
+    const bf = new BinaryFile(data, ByteOrder.LittleEndian);
+    if (!bf.binaryReader) return false;
+
+    try {
+      const header = bf.binaryReader.readString(4);
+      if (header !== "FFBS") {
+        console.error(`Invalid header. Expected 'FFBS', got '${header}'`);
+        return false;
+      }
+    } catch (e) {
+      console.error("Error reading FXP chunk data:", e);
+      return false;
+    }
+
+    return this.readFFPInternal(bf);
+  }
 
   /**
    * Converts a float value between 0 and 1 to the Fabfilter float equivalent.

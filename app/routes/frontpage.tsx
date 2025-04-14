@@ -4,13 +4,12 @@ import { useCallback, useState } from "react";
 import type { LoaderFunctionArgs, MetaFunction } from "@remix-run/cloudflare";
 import { json } from "@remix-run/react";
 import i18next from "~/i18n/i18n.server";
+import { EQFactory } from "~/utils/EQFactory";
+import { EQBand, EQPreset } from "~/utils/EQTypes";
 import { FabfilterProQ } from "~/utils/FabfilterProQ";
 import { FabfilterProQ2 } from "~/utils/FabfilterProQ2";
 import { FabfilterProQ3 } from "~/utils/FabfilterProQ3";
-import {
-  FabfilterProQBand,
-  FabfilterProQBase,
-} from "~/utils/FabfilterProQBase";
+import { FabfilterProQBase } from "~/utils/FabfilterProQBase";
 import { toSteinbergFrequency } from "~/utils/FabfilterToSteinbergAdapter";
 import { FxChunkSet, FXP, FxProgramSet } from "~/utils/FXP";
 import { VstPresetFactory } from "~/utils/VstPresetFactory";
@@ -19,6 +18,11 @@ import { useTranslation } from "react-i18next";
 
 import { Button } from "~/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "~/components/ui/card";
+import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from "~/components/ui/collapsible";
 import {
   Select,
   SelectContent,
@@ -30,9 +34,6 @@ import { EqualizerBandTable } from "~/components/EqualizerBandTable";
 import { EqualizerChart } from "~/components/EqualizerChart";
 
 type TargetFormat = "steinberg-frequency";
-
-export type EQPreset = FabfilterProQBase;
-export type EQBand = FabfilterProQBand;
 
 export async function loader({ request }: LoaderFunctionArgs) {
   const t = await i18next.getFixedT(request);
@@ -50,29 +51,34 @@ export const meta: MetaFunction<typeof loader> = ({ data }) => {
   ];
 };
 
-interface FxpData {
+interface FxpPresetData {
   fxId: string | null;
   chunkData: Uint8Array | null;
-  preset: FabfilterProQBase | null;
+  fabfilterEQPreset: FabfilterProQBase | null;
+  fabfilterEQSource: string | null;
 }
 
-const readFxpChunk = (data: Uint8Array): FxpData => {
+const readFxpAsFabfilterEQ = (data: Uint8Array): FxpPresetData => {
   const fxp = new FXP();
   fxp.readFile(data);
 
-  let preset: FabfilterProQBase | null = null;
+  let fabfilterEQPreset: FabfilterProQBase | null = null;
+  let fabfilterEQSource: string | null = null;
   let fxId: string | null = null;
   let chunkData: Uint8Array | null = null;
 
   // First try to parse as a Pro-Q preset using VstPresetFactory
   if (fxp.content?.FxID) {
-    preset = VstPresetFactory.getFabFilterProQPresetFromFXP(data);
+    const { preset, source } =
+      VstPresetFactory.getFabFilterProQPresetFromFXP(data);
+    fabfilterEQPreset = preset;
+    fabfilterEQSource = source;
     fxId = fxp.content.FxID;
   }
 
   // If not a Pro-Q preset or parsing failed, get the raw chunk data
   if (
-    !preset &&
+    !fabfilterEQPreset &&
     fxp.content &&
     (fxp.content instanceof FxProgramSet || fxp.content instanceof FxChunkSet)
   ) {
@@ -80,7 +86,12 @@ const readFxpChunk = (data: Uint8Array): FxpData => {
     chunkData = fxp.content.ChunkData ?? null;
   }
 
-  return { fxId, chunkData, preset };
+  return {
+    fxId,
+    chunkData,
+    fabfilterEQPreset,
+    fabfilterEQSource,
+  };
 };
 
 const downloadBlob = (blob: Blob, fileName: string) => {
@@ -138,20 +149,18 @@ export default function Index() {
             let chunkData = data;
             if (ext === "fxp") {
               const {
-                fxId,
                 chunkData: fxpChunkData,
-                preset,
-              } = readFxpChunk(data);
-              if (preset) {
+                fabfilterEQPreset,
+                fabfilterEQSource,
+              } = readFxpAsFabfilterEQ(data);
+              if (fabfilterEQPreset) {
                 // Successfully parsed a Pro-Q preset
-                setParsedData(preset);
-                if (fxId === "FPQr") {
-                  setSourceFormat(t("formats.fabfilterProQ1"));
-                } else if (fxId === "FQ2p") {
-                  setSourceFormat(t("formats.fabfilterProQ2"));
-                } else if (fxId === "FQ3p") {
-                  setSourceFormat(t("formats.fabfilterProQ3"));
-                }
+                setSourceFormat(fabfilterEQSource);
+
+                // convert to common eqpreset format
+                const eqPreset = EQFactory.fromFabFilterProQ(fabfilterEQPreset);
+                setParsedData(eqPreset);
+
                 setIsLoading(false);
                 return;
               }
@@ -166,17 +175,20 @@ export default function Index() {
             // Try reading with each version in sequence
             const proQ3 = new FabfilterProQ3();
             if (proQ3.readFFP(chunkData)) {
-              setParsedData(proQ3);
+              const eqPreset = EQFactory.fromFabFilterProQ(proQ3);
+              setParsedData(eqPreset);
               setSourceFormat(t("formats.fabfilterProQ3"));
             } else {
               const proQ2 = new FabfilterProQ2();
               if (proQ2.readFFP(chunkData)) {
-                setParsedData(proQ2);
+                const eqPreset = EQFactory.fromFabFilterProQ(proQ2);
+                setParsedData(eqPreset);
                 setSourceFormat(t("formats.fabfilterProQ2"));
               } else {
                 const proQ1 = new FabfilterProQ();
                 if (proQ1.readFFP(chunkData)) {
-                  setParsedData(proQ1);
+                  const eqPreset = EQFactory.fromFabFilterProQ(proQ1);
+                  setParsedData(eqPreset);
                   setSourceFormat(t("formats.fabfilterProQ1"));
                 } else {
                   setError(
@@ -194,13 +206,16 @@ export default function Index() {
                   vstPreset instanceof FabfilterProQ2 ||
                   vstPreset instanceof FabfilterProQ3)
               ) {
-                setParsedData(vstPreset as EQPreset);
+                const eqPreset = EQFactory.fromFabFilterProQ(vstPreset);
+                setParsedData(eqPreset);
                 setSourceFormat(t(`${vstPreset.constructor.name}`));
               } else if (vstPreset) {
-                // If vstPreset exists but is not a supported FabfilterProQ type
-                setError(t("error.unsupportedFormat", { fileName: file.name }));
+                // If vstPreset exists but is not a supported type
+                setError(
+                  `Unsupported Vst3ClassID: ${vstPreset.Vst3ClassID} (${file.name})`
+                );
               }
-            } catch (err) {
+            } catch (_err) {
               setError(t("error.unsupportedFormat", { fileName: file.name }));
             }
           }
@@ -227,7 +242,12 @@ export default function Index() {
       const mimeType = "application/octet-stream";
 
       let convertedData: Uint8Array | undefined;
-      if (targetFormat === "steinberg-frequency") {
+      if (
+        targetFormat === "steinberg-frequency" &&
+        (parsedData instanceof FabfilterProQ ||
+          parsedData instanceof FabfilterProQ2 ||
+          parsedData instanceof FabfilterProQ3)
+      ) {
         const steinbergPreset = toSteinbergFrequency(parsedData);
         convertedData = await steinbergPreset.write();
       }
@@ -339,16 +359,40 @@ export default function Index() {
                 <div className="mt-4">
                   {/* EQ Graph */}
                   <EqualizerChart
-                    bands={parsedData.Bands}
+                    preset={parsedData}
                     onFrequencyHover={setHoveredFrequency}
                   />
                 </div>
                 <div className="mt-4">
-                  <strong>{t("fileInfo.bandDetails")}:</strong>
-                  <EqualizerBandTable
-                    bands={parsedData.Bands}
-                    hoveredFrequency={hoveredFrequency}
-                  />
+                  <Collapsible defaultOpen={false}>
+                    <div className="flex items-center justify-between">
+                      <strong>{t("fileInfo.bandDetails")}:</strong>
+                      <CollapsibleTrigger asChild>
+                        <Button variant="ghost" size="sm" className="w-9 p-0">
+                          <svg
+                            xmlns="http://www.w3.org/2000/svg"
+                            width="24"
+                            height="24"
+                            viewBox="0 0 24 24"
+                            fill="none"
+                            stroke="currentColor"
+                            strokeWidth="2"
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            className="size-4">
+                            <path d="m6 9 6 6 6-6" />
+                          </svg>
+                          <span className="sr-only">Toggle</span>
+                        </Button>
+                      </CollapsibleTrigger>
+                    </div>
+                    <CollapsibleContent>
+                      <EqualizerBandTable
+                        preset={parsedData}
+                        hoveredFrequency={hoveredFrequency}
+                      />
+                    </CollapsibleContent>
+                  </Collapsible>
                 </div>
               </div>
             )}
