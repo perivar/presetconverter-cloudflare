@@ -4,6 +4,7 @@ import { BinaryFile, ByteOrder } from "./BinaryFile";
 import { BinaryReader } from "./BinaryReader";
 import { FXP } from "./FXP";
 import { Preset } from "./Preset";
+import { VstClassIDs } from "./VstClassIDs";
 
 export enum ParameterType {
   Number,
@@ -85,133 +86,6 @@ export abstract class VstPreset implements Preset {
         |  +----------------------+ |
     EOF +---------------------------+   
   */
-
-  // VST3 Class IDs
-  public static readonly VstClassIDs = {
-    // Steinberg
-    SteinbergAmpSimulator: "E4B91D8420B74C48A8B10F2DB9CB707E",
-    SteinbergAutoPan: "1CA6E894E4624F73ADEB29CD01DDE9EE",
-    SteinbergBrickwallLimiter: "94DEB7BF378041EE9E2FEDA24E19EF60",
-    SteinbergCompressor: "5B38F28281144FFE80285FF7CCF20483",
-    SteinbergDeEsser: "75FD13A528D24880982197D541BC582A",
-    SteinbergDeEsserNew: "464DF4539C164C03869900DF86BD887F",
-    SteinbergDistortion: "A990C1062CDE43839ECEF8FE91743DA5",
-    SteinbergDJEq: "B023870608424FABBCF5516BB15FF0EE",
-    SteinbergDualFilter: "6143DAECD6184AE2A570FE9F35065E24",
-    SteinbergEnvelopeShaper: "C3D60417A5BB4FB288CB1A75FA641EDF",
-    SteinbergEQ: "297BA567D83144E1AE921DEF07B41156",
-    SteinbergExpander: "2A4C06FF24F14078868891D184CEFB73",
-    SteinbergFrequency: "01F6CCC94CAE4668B7C6EC85E681E419",
-    SteinbergGate: "3B660266B3CA4B57BBD487AE1E6C0D2A",
-    SteinbergGEQ10: "7C215D9E31E2419E9925056D19310ACD",
-    SteinbergGrooveAgentONE: "D3F57B09EC6B49998C534F50787A9F86",
-    SteinbergGrooveAgentSE: "91585860BA1748E581441ECD96B153ED",
-    SteinbergHALionSonicSE: "5B6D6402C5F74C35B3BE88ADF7FC7D27",
-    SteinbergLimiter: "B94789B3C4C944EFB0058694DAB8704E",
-    SteinbergMagnetoII: "B8874B5BFF884A93A524C74D7FFB1D54",
-    SteinbergMaximizer: "44A0C349905B45D0B97C72D2C6F5B565",
-    SteinbergModMachine: "27994C1910A04BA991A20C402B922E35",
-    SteinbergMonoDelay: "42A36F8AEE394B98BB2E8B63CB68E3E7",
-    SteinbergMorphFilter: "25B0872DB12B44B89E32ABBC1D0B3D8A",
-    SteinbergMultibandCompressor: "86DFC3F5415C40388D3AA69030C380B1",
-    SteinbergMultibandEnvelopeShaper: "F7E6BFADFCD947BEB0A726EF32CBFC70",
-    SteinbergNoiseGate: "C3B0615A2A444991B423673DEE2379A7",
-    SteinbergOctaver: "4114D8E30C024C1DB0DE375FC53CDBED",
-    SteinbergPadShop: "F38B6C9C04CC45C8B98A682A6F45424A",
-    SteinbergPingPongDelay: "37A3AA84E3A24D069C39030EC68768E1",
-    SteinbergPitchCorrect: "10F9FE4142694F1EAC21E294B42577C6",
-    SteinbergPrologue: "FFF583CCDFB246F894308DB9C5D94C8D",
-    SteinbergRetrologue: "CC3695D88FE74881B46E6CCFFB291CFF",
-    SteinbergREVerence: "ED824AB48E0846D5959682F5626D0972",
-    SteinbergSamplerTrack: "D1B42E80F1124DFEAFEDE2480EFB4298",
-    SteinbergSpector: "6790343791E94AE79D617D85146881AC",
-    SteinbergStandardPanner: "44E1149EDB3E4387BDD827FEA3A39EE7",
-    SteinbergStereoDelay: "001DCD3345D14A13B59DAECF75A37536",
-    SteinbergStereoEnhancer: "77BBA7CA90F14C9BB298BA9010D6DD78",
-    SteinbergStudioChorus: "8545543739404DEB84F4E6CF0DC687B5",
-    SteinbergStudioEQ: "946051208E29496E804F64A825C8A047",
-    SteinbergTremolo: "E97A6873690F40E986F3EE1007B5C8FC",
-    SteinbergTuner: "6B9B08D2CA294270BF092A62865521BF",
-    SteinbergUV22HR: "56535455564852757632326872000000",
-    SteinbergVintageCompressor: "E0E5F5FC9F854334B69096445A7B2FA8",
-    SteinbergVSTAmpRack: "04F35DB10F0C47B9965EA7D63B0CCE67",
-    SteinbergVSTDynamics: "A920B15DBBF04B359CB8A471C58E3B91",
-    SteinbergRotary: "54B0BB1DD40B4222BE4E876A87430F64",
-
-    // Waves
-    WavesAPI2500Mono: "5653544150434D6170692D3235303020",
-    WavesBassRiderStereo: "56535442534C53626173732072696465",
-    WavesC1CompStereo: "565354434D5053633120636F6D702073",
-    WavesC4Stereo: "5653544445515363342073746572656F",
-    WavesCLAGuitarsStereo: "56535443475453636C61206775697461",
-    WavesDeBreathMono: "5653544252544D646562726561746820",
-    WavesDeEsserStereo: "56535444534153646565737365722073",
-    WavesDoubler2Stereo: "56535457443253646F75626C65723220",
-    WavesDoubler4Stereo: "56535457443453646F75626C65723420",
-    WavesHDelayStereo: "56535448424453682D64656C61792073",
-    WavesKramerTapeStereo: "565354544150536B72616D6572207461",
-    WavesL3LLMultiStereo: "565354523350536C332D6C6C206D756C",
-    WavesL3MultiMaximizerStereo: "5653544C3350536C33206D756C74696D",
-    WavesLinEQLowbandStereo: "5653544C5153536C696E6571206C6F77",
-    WavesMannyMReverbStereo: "5653544D4D52536D616E6E796D207265",
-    WavesMaseratiACGStereo: "565354544E41536D6173657261746920",
-    WavesMaseratiVX1Stereo: "565354544E56536D6173657261746920",
-    WavesMetaFlangerStereo: "565354464C4E536D657461666C616E67",
-    WavesOneKnobFilterStereo: "565354525346536F6E656B6E6F622066",
-    WavesPuigChild670Stereo: "56535446434853707569676368696C64",
-    WavesPuigTecEQP1AStereo: "56535450314153707569677465632065",
-    WavesQ10Stereo: "56535445514153713130207374657265",
-    WavesQ2Stereo: "5653544551325371322073746572656F",
-    WavesRBassStereo: "565354524E4253726261737320737465",
-    WavesRChannelStereo: "565354524E5453726368616E6E656C20",
-    WavesRCompressorStereo: "5653545552435372636F6D7072657373",
-    WavesRDeEsserStereo: "56535452445353726465657373657220",
-    WavesREQ6Stereo: "56535452513653726571203620737465",
-    WavesRVerbStereo: "56535452524653727665726220737465",
-    WavesS1ImagerStereo: "5653544E534853733120696D61676572",
-    WavesSSLChannelStereo: "5653545343485373736C6368616E6E65",
-    WavesSSLCompStereo: "565354534C435373736L636F6D702073",
-    WavesSSLEQMono: "565354534C514D73736C6571206D6F6E",
-    WavesSSLEQStereo: "565354534C515373736C657120737465",
-    WavesSuperTap2TapsMonoStereo: "5653544D543258737570657274617020",
-    WavesSuperTap2TapsStereo: "5653544D543253737570657274617020",
-    WavesTrueVerbStereo: "56535454563453747275657665726220",
-    WavesTuneLTStereo: "565354544E4C5377617665732074756E",
-    WavesVitaminStereo: "56535456544D53766974616D696E2073",
-    WavesVocalRiderStereo: "56535452445253766F63616C20726964",
-
-    // UAD
-    UADSSLEChannel: "5653544A3941557561642073736C2065",
-
-    // Solid State Logic
-    SSLNativeChannel2: "5653544E43533273736C206E6174696",
-
-    // Native Instruments
-    NIKontakt5: "5653544E694F356B6F6E74616B742035",
-    NIKontakt6: "5653544E694F356B6F6E74616B740000",
-    NIKontakt6_64out: "5653544E6924446B6F6E74616B740000",
-
-    // Fabfilter
-    FabFilterProQ: "E45D59E8CB2540FAB0F346E115F8AFD4",
-    FabFilterProQx64: "5653544650517266616266696C746572",
-    FabFilterProQ2: "55FD08E6C00B44A697DA68F61C6FD576",
-    FabFilterProQ2x64: "5653544651327066616266696C746572",
-    FabFilterProQ3: "5653544651337066616266696C746572", // vst2
-    FabfilterProQ3VST3: "72C4DB717A4D459AB97E51745D84B39D", // vst3
-
-    // East West
-    EastWestPlay: "ABCDEF019182FAEB2D45572D4577506C",
-    EastWestPlayx64: "565354706C6179706C61795F7673745F",
-
-    // MusicLab
-    MusicLabRealStrat: "5653544D526C537265616C7374726174",
-    MusicLabRealEight: "5653544D526C457265616L6569676874",
-    MusicLabRealGuitarClassic: "5653544D526C477265616C6775697461",
-    MusicLabRealLPC: "565354524C50437265616C6C70630000",
-
-    // Other
-    TBProAudioGainRider2: "F2AEE70D00DE4F4E5442504154425044",
-  };
 
   /// <summary>
   /// Ensure all variables are ready and populated before writing the preset
@@ -733,9 +607,85 @@ export abstract class VstPreset implements Preset {
       // const remainingSize = chunkSize - 16;
       // const chunkData = reader.readBytes(remainingSize);
       // this.CompChunkData = new Uint8Array([...dataChunkIDBytes, ...chunkData]);
+    } else if (
+      this.Vst3ClassID === VstClassIDs.SteinbergAmpSimulator ||
+      this.Vst3ClassID === VstClassIDs.SteinbergAutoPan ||
+      this.Vst3ClassID === VstClassIDs.SteinbergBrickwallLimiter ||
+      this.Vst3ClassID === VstClassIDs.SteinbergCompressor ||
+      this.Vst3ClassID === VstClassIDs.SteinbergDeEsser ||
+      this.Vst3ClassID === VstClassIDs.SteinbergDeEsserNew ||
+      this.Vst3ClassID === VstClassIDs.SteinbergDistortion ||
+      this.Vst3ClassID === VstClassIDs.SteinbergDJEq ||
+      this.Vst3ClassID === VstClassIDs.SteinbergDualFilter ||
+      this.Vst3ClassID === VstClassIDs.SteinbergEnvelopeShaper ||
+      this.Vst3ClassID === VstClassIDs.SteinbergEQ ||
+      this.Vst3ClassID === VstClassIDs.SteinbergExpander ||
+      this.Vst3ClassID === VstClassIDs.SteinbergFrequency ||
+      this.Vst3ClassID === VstClassIDs.SteinbergGate ||
+      this.Vst3ClassID === VstClassIDs.SteinbergGEQ10 ||
+      this.Vst3ClassID === VstClassIDs.SteinbergLimiter ||
+      this.Vst3ClassID === VstClassIDs.SteinbergMagnetoII ||
+      this.Vst3ClassID === VstClassIDs.SteinbergMaximizer ||
+      this.Vst3ClassID === VstClassIDs.SteinbergModMachine ||
+      this.Vst3ClassID === VstClassIDs.SteinbergMonoDelay ||
+      this.Vst3ClassID === VstClassIDs.SteinbergMorphFilter ||
+      this.Vst3ClassID === VstClassIDs.SteinbergMultibandCompressor ||
+      this.Vst3ClassID === VstClassIDs.SteinbergMultibandEnvelopeShaper ||
+      this.Vst3ClassID === VstClassIDs.SteinbergNoiseGate ||
+      this.Vst3ClassID === VstClassIDs.SteinbergOctaver ||
+      this.Vst3ClassID === VstClassIDs.SteinbergPingPongDelay ||
+      this.Vst3ClassID === VstClassIDs.SteinbergPitchCorrect ||
+      this.Vst3ClassID === VstClassIDs.SteinbergStereoDelay ||
+      this.Vst3ClassID === VstClassIDs.SteinbergStereoEnhancer ||
+      this.Vst3ClassID === VstClassIDs.SteinbergStudioChorus ||
+      this.Vst3ClassID === VstClassIDs.SteinbergStudioEQ ||
+      this.Vst3ClassID === VstClassIDs.SteinbergTremolo ||
+      this.Vst3ClassID === VstClassIDs.SteinbergTuner ||
+      this.Vst3ClassID === VstClassIDs.SteinbergUV22HR ||
+      this.Vst3ClassID === VstClassIDs.SteinbergVintageCompressor ||
+      this.Vst3ClassID === VstClassIDs.SteinbergVSTDynamics ||
+      this.Vst3ClassID === VstClassIDs.SteinbergRotary
+    ) {
+      // rewind 4 bytes (seek to comp data start pos)
+      reader.seek(reader.getPosition() - 4);
+
+      // Read version bytes (4 bytes)
+      const versionBytes = reader.readBytes(4);
+      const versionNumber = new DataView(versionBytes.buffer).getInt32(0, true);
+      console.log("Version number: ", versionNumber);
+      this.setBytesParameter("StartBytes", versionBytes);
+
+      // Read parameters until end of chunk
+      while (reader.getPosition() < chunkSize) {
+        // Read null-terminated string
+        let parameterName = "";
+        let byte;
+        while ((byte = reader.readUInt8()) !== 0) {
+          parameterName += String.fromCharCode(byte);
+        }
+
+        // Read remaining bytes to complete 128 bytes
+        const remainingBytes = 128 - parameterName.length - 1;
+        reader.readBytes(remainingBytes); // Ignore these bytes
+
+        const parameterNumber = reader.readInt32();
+        const parameterNumberValue = new DataView(
+          reader.readBytes(8).buffer
+        ).getFloat64(0, true);
+
+        console.log(
+          `Found parameter no ${parameterNumber}: ${parameterName}, value: ${parameterNumberValue}`
+        );
+
+        this.setNumberParameter(parameterName, parameterNumberValue);
+      }
+
+      // try to read the info xml
+      // this.tryReadInfoXml(reader);
+
+      return;
     } else {
       // Standard chunk format
-
       const remainingSize = chunkSize - 4;
       const chunkData = reader.readBytes(remainingSize);
       this.CompChunkData = new Uint8Array([...dataChunkIDBytes, ...chunkData]);

@@ -56,7 +56,7 @@ export class SteinbergVstPreset extends VstPreset {
     );
   }
 
-  public initNumberParameter(name: string, index: number, value: number): void {
+  public initNumParam(name: string, index: number, value: number): void {
     const parameter = new Parameter(name, index, value, ParameterType.Number);
     this.Parameters.set(name, parameter);
   }

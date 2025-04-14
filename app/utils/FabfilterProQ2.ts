@@ -2,7 +2,8 @@ import { BinaryFile, ByteOrder } from "./BinaryFile";
 import { FabfilterProQBand, FabfilterProQBase } from "./FabfilterProQBase";
 import { FxChunkSet, FxProgram, FxProgramSet, FxSet } from "./FXP"; // Added FxProgram, FxProgramSet, FxChunkSet
 import { convertAndMaintainRatio } from "./Math"; // Added Math utils
-import { ParameterType, VstPreset } from "./VstPreset";
+import { VstClassIDs } from "./VstClassIDs";
+import { ParameterType } from "./VstPreset";
 
 export enum ProQ2Shape {
   Bell = 0, // (default)
@@ -109,7 +110,7 @@ export class FabfilterProQ2 extends FabfilterProQBase {
   constructor() {
     super();
     this.Version = 2;
-    this.Vst3ClassID = VstPreset.VstClassIDs.FabFilterProQ2;
+    this.Vst3ClassID = VstClassIDs.FabFilterProQ2;
     this.PlugInCategory = "Fx|EQ";
     this.PlugInName = "FabFilter Pro-Q 2";
     this.PlugInVendor = "FabFilter";

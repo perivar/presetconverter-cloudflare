@@ -4,6 +4,7 @@ import { FabfilterProQ3 } from "./FabfilterProQ3";
 import { FabfilterProQBase } from "./FabfilterProQBase"; // Added import
 import { FXP } from "./FXP"; // Added import
 import { SteinbergVstPreset } from "./SteinbergVstPreset";
+import { VstClassIDs } from "./VstClassIDs";
 import { VstPreset } from "./VstPreset";
 
 /**
@@ -35,16 +36,16 @@ export class VstPresetFactory {
 
       // Create appropriate preset based on guid
       switch (vst3ClassID) {
-        case VstPreset.VstClassIDs.FabFilterProQ:
-        case VstPreset.VstClassIDs.FabFilterProQx64:
+        case VstClassIDs.FabFilterProQ:
+        case VstClassIDs.FabFilterProQx64:
           preset = new FabfilterProQ();
           break;
-        case VstPreset.VstClassIDs.FabFilterProQ2:
-        case VstPreset.VstClassIDs.FabFilterProQ2x64:
+        case VstClassIDs.FabFilterProQ2:
+        case VstClassIDs.FabFilterProQ2x64:
           preset = new FabfilterProQ2();
           break;
-        case VstPreset.VstClassIDs.FabFilterProQ3:
-        case VstPreset.VstClassIDs.FabfilterProQ3VST3:
+        case VstClassIDs.FabFilterProQ3:
+        case VstClassIDs.FabfilterProQ3VST3:
           preset = new FabfilterProQ3();
           break;
         default:
@@ -64,18 +65,18 @@ export class VstPresetFactory {
 
       // Handle special cases
       if (
-        preset.Vst3ClassID === VstPreset.VstClassIDs.FabFilterProQ ||
-        preset.Vst3ClassID === VstPreset.VstClassIDs.FabFilterProQx64
+        preset.Vst3ClassID === VstClassIDs.FabFilterProQ ||
+        preset.Vst3ClassID === VstClassIDs.FabFilterProQx64
       ) {
         (preset as FabfilterProQ).initFromParameters();
       } else if (
-        preset.Vst3ClassID === VstPreset.VstClassIDs.FabFilterProQ2 ||
-        preset.Vst3ClassID === VstPreset.VstClassIDs.FabFilterProQ2x64
+        preset.Vst3ClassID === VstClassIDs.FabFilterProQ2 ||
+        preset.Vst3ClassID === VstClassIDs.FabFilterProQ2x64
       ) {
         (preset as FabfilterProQ2).initFromParameters();
       } else if (
-        preset.Vst3ClassID === VstPreset.VstClassIDs.FabFilterProQ3 ||
-        preset.Vst3ClassID === VstPreset.VstClassIDs.FabfilterProQ3VST3
+        preset.Vst3ClassID === VstClassIDs.FabFilterProQ3 ||
+        preset.Vst3ClassID === VstClassIDs.FabfilterProQ3VST3
       ) {
         (preset as FabfilterProQ3).initFromParameters();
       }
