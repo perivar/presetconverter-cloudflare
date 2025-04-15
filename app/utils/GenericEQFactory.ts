@@ -45,22 +45,22 @@ export class GenericEQFactory {
     };
 
     for (const band of preset.Bands) {
-      const convertedBand = this.convertBand(band as FabFilterBand);
+      const convertedBand = this.convertFabFilterBand(band as FabFilterBand);
       result.Bands.push(convertedBand);
     }
 
     return result;
   }
 
-  private static convertBand(band: FabFilterBand): GenericEQBand {
+  private static convertFabFilterBand(band: FabFilterBand): GenericEQBand {
     const convertedBand: GenericEQBand = {
       Enabled: band.Enabled,
       Frequency: band.Frequency,
       Gain: band.Gain,
       Q: band.Q,
-      Shape: this.convertShape(band),
-      Slope: this.convertSlope(band),
-      StereoPlacement: this.convertStereoPlacement(band),
+      Shape: this.convertFabFilterShape(band),
+      Slope: this.convertFabFilterSlope(band),
+      StereoPlacement: this.convertFabFilterStereoPlacement(band),
     };
 
     // Handle ProQ3 specific properties
@@ -80,7 +80,7 @@ export class GenericEQFactory {
     return "LPHPSlope" in band;
   }
 
-  private static convertShape(band: FabFilterBand): GenericEQShape {
+  private static convertFabFilterShape(band: FabFilterBand): GenericEQShape {
     const shape = band.Shape;
 
     // ProQ1 shapes
@@ -127,7 +127,7 @@ export class GenericEQFactory {
     return GenericEQShape.Bell;
   }
 
-  private static convertSlope(band: FabFilterBand): GenericEQSlope {
+  private static convertFabFilterSlope(band: FabFilterBand): GenericEQSlope {
     if (this.isProQ1Band(band)) {
       switch (band.LPHPSlope) {
         case ProQLPHPSlope.Slope6dB_oct:
@@ -166,7 +166,7 @@ export class GenericEQFactory {
     return GenericEQSlope.Slope24dB_oct;
   }
 
-  private static convertStereoPlacement(
+  private static convertFabFilterStereoPlacement(
     band: FabFilterBand
   ): GenericEQStereoPlacement {
     const placement = band.StereoPlacement;
@@ -226,6 +226,7 @@ export class GenericEQFactory {
         console.warn(
           "SteinbergFrequency preset bands array is empty or parameters not processed into bands."
         );
+
         // Attempt to proceed might fail if bands aren't populated.
         // Consider if returning here is safer. For now, let's log and continue,
         // it might be populated by external logic before calling this factory.
