@@ -138,6 +138,15 @@ describe("SteinbergFrequency", () => {
     // Ensure the write operation produced a result
     if (!uint8ArrayWrite) {
       throw new Error("Failed to write VST preset");
+    } else {
+      const filePathWrite = path.join(
+        __dirname,
+        "data",
+        "Steinberg",
+        "Frequency",
+        "Boost High Side (Stereo)_tmp.vstpreset"
+      );
+      fs.writeFileSync(filePathWrite, uint8ArrayWrite);
     }
 
     // Parse the written buffer back and compare Parameters ---
@@ -179,6 +188,15 @@ describe("SteinbergFrequency", () => {
     // Ensure the write operation produced a result
     if (!uint8ArrayWrite) {
       throw new Error("Failed to write VST preset");
+    } else {
+      const filePathWrite = path.join(
+        __dirname,
+        "data",
+        "Steinberg",
+        "Frequency",
+        "Cut Low Side (Stereo)_tmp.vstpreset"
+      );
+      fs.writeFileSync(filePathWrite, uint8ArrayWrite);
     }
 
     // Parse the written buffer back and compare Parameters ---
