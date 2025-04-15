@@ -24,6 +24,7 @@ export interface FabfilterProQBand {
 // Fabfilter Q factor typically ranges from 0.025 to 40
 // 0.312098175
 const FABFILTER_Q_SCALING_FACTOR = 1 / Math.log10(40 / 0.025);
+
 /**
  * Base class for reading and writing Fabfilter Pro Q (1 or 2) Preset files.
  */
@@ -32,7 +33,6 @@ export abstract class FabfilterProQBase extends VstPreset {
     super();
   }
 
-  abstract initFromParameters(parameters?: number[], isIEEE?: boolean): void;
   abstract Bands: FabfilterProQBand[];
 
   // Abstract method for writing Fabfilter Pro Q preset files.

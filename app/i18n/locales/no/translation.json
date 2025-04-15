@@ -13,17 +13,6 @@
     "theme_light": "Lys",
     "title": "Innstillinger"
   },
-  "bandShapes": {
-    "Bell": "Klokke",
-    "LowShelf": "Lav Hylle",
-    "LowCut": "Lav Kutt",
-    "HighShelf": "Høy Hylle",
-    "HighCut": "Høy Kutt",
-    "Notch": "Notch",
-    "BandPass": "Båndpass",
-    "TiltShelf": "Vipp Hylle",
-    "FlatTilt": "Flat Vipp"
-  },
   "conversion": {
     "convertButton": "Konverter",
     "converting": "Konverterer...",
@@ -61,24 +50,8 @@
     "slope": "Stigning",
     "size": "Størrelse",
     "title": "Filinformasjon",
-    "type": "Type"
-  },
-  "bandSlopes": {
-    "Slope6dB_oct": "6 dB/okt",
-    "Slope12dB_oct": "12 dB/okt",
-    "Slope18dB_oct": "18 dB/okt",
-    "Slope24dB_oct": "24 dB/okt",
-    "Slope30dB_oct": "30 dB/okt",
-    "Slope36dB_oct": "36 dB/okt",
-    "Slope48dB_oct": "48 dB/okt",
-    "Slope72dB_oct": "72 dB/okt",
-    "Slope96dB_oct": "96 dB/okt",
-    "SlopeBrickwall": "Murvegg"
-  },
-  "formats": {
-    "fabfilterProQ1": "FabFilter Pro-Q",
-    "fabfilterProQ2": "FabFilter Pro-Q 2",
-    "fabfilterProQ3": "FabFilter Pro-Q 3"
+    "type": "Type",
+    "stereoPlacement": "Stereoplassering"
   },
   "title": "Preset konverterer"
 }

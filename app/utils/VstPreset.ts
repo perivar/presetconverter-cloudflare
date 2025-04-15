@@ -14,7 +14,7 @@ export enum ParameterType {
 
 export class Parameter {
   constructor(
-    public Name: string,
+    public Key: string,
     public Index: number,
     public Value: number | string | Uint8Array,
     public Type: ParameterType
@@ -23,22 +23,22 @@ export class Parameter {
   public toString(): string {
     switch (this.Type) {
       case ParameterType.Number:
-        return `${this.Index.toString().padEnd(6)} | ${this.Name.padEnd(20)} | ${(this.Value as number).toFixed(2).padStart(8)}`;
+        return `${this.Index.toString().padEnd(6)} | ${this.Key.padEnd(20)} | ${(this.Value as number).toFixed(2).padStart(8)}`;
       case ParameterType.String: {
         const str = this.Value as string;
         const shortenedString =
           str.substring(0, 200) + (str.length > 200 ? " ..." : "");
-        return `${this.Index.toString().padEnd(6)} | ${this.Name.padEnd(20)} | ${shortenedString}`;
+        return `${this.Index.toString().padEnd(6)} | ${this.Key.padEnd(20)} | ${shortenedString}`;
       }
       case ParameterType.Bytes: {
         const bytes = this.Value as Uint8Array;
         const hexString = Array.from(bytes)
           .map(byte => byte.toString(16).padStart(2, "0"))
           .join(" ");
-        return `${this.Index.toString().padEnd(6)} | ${this.Name.padEnd(20)} | ${hexString}`;
+        return `${this.Index.toString().padEnd(6)} | ${this.Key.padEnd(20)} | ${hexString}`;
       }
       default:
-        return `${this.Index.toString().padEnd(6)} | ${this.Name.padEnd(20)} | No Values Set`;
+        return `${this.Index.toString().padEnd(6)} | ${this.Key.padEnd(20)} | No Values Set`;
     }
   }
 }
@@ -95,6 +95,11 @@ export abstract class VstPreset implements Preset {
   /// <returns>true if ready</returns>
   protected abstract preparedForWriting(): boolean;
 
+  // <summary>
+  // Reads parameters from the internal Parameters map populated by the base class constructor
+  // </summary>
+  public abstract initFromParameters(): void;
+
   protected static readonly CLASS_ID_SIZE = 32;
   protected static readonly HEADER = "VST3";
   protected static readonly VERSION = 1;
@@ -110,8 +115,10 @@ export abstract class VstPreset implements Preset {
   public PlugInCategory: string = "";
   public PlugInName: string = "";
   public PlugInVendor: string = "";
+
   public InfoXml: string = "";
   public InfoXmlBytesWithBOM: Uint8Array = new Uint8Array();
+  public doSkipInfoXml: boolean = false; // determine if InfoXml should be skipped
 
   // Byte positions and sizes within a vstpreset (for writing)
   public ListPos: number = 0;
@@ -135,11 +142,19 @@ export abstract class VstPreset implements Preset {
     return this.Parameters.get(key)?.Value;
   }
 
-  public setNumberParameter(key: string, value: number): void {
+  public setNumberParameterWithIndex(
+    key: string,
+    index: number,
+    value: number
+  ): void {
     this.Parameters.set(
       key,
-      new Parameter(key, this.Parameters.size, value, ParameterType.Number)
+      new Parameter(key, index, value, ParameterType.Number)
     );
+  }
+
+  public setNumberParameter(key: string, value: number): void {
+    return this.setNumberParameterWithIndex(key, this.Parameters.size, value);
   }
 
   public getNumberParameter(key: string): number | undefined {
@@ -149,14 +164,24 @@ export abstract class VstPreset implements Preset {
     ) {
       return this.Parameters.get(key)?.Value as number;
     }
+
+    console.warn(`Number parameter "${key}" not found or not of type Number.`);
     return undefined;
   }
 
-  public setStringParameter(key: string, value: string): void {
+  public setStringParameterWithIndex(
+    key: string,
+    index: number,
+    value: string
+  ): void {
     this.Parameters.set(
       key,
-      new Parameter(key, this.Parameters.size, value, ParameterType.String)
+      new Parameter(key, index, value, ParameterType.String)
     );
+  }
+
+  public setStringParameter(key: string, value: string): void {
+    return this.setStringParameterWithIndex(key, this.Parameters.size, value);
   }
 
   public getStringParameter(key: string): string | undefined {
@@ -166,14 +191,24 @@ export abstract class VstPreset implements Preset {
     ) {
       return this.Parameters.get(key)?.Value as string;
     }
+
+    console.warn(`String parameter "${key}" not found or not of type String.`);
     return undefined;
   }
 
-  public setBytesParameter(key: string, value: Uint8Array): void {
+  public setBytesParameterWithIndex(
+    key: string,
+    index: number,
+    value: Uint8Array
+  ): void {
     this.Parameters.set(
       key,
-      new Parameter(key, this.Parameters.size, value, ParameterType.Bytes)
+      new Parameter(key, index, value, ParameterType.Bytes)
     );
+  }
+
+  public setBytesParameter(key: string, value: Uint8Array): void {
+    return this.setBytesParameterWithIndex(key, this.Parameters.size, value);
   }
 
   public getBytesParameter(key: string): Uint8Array | undefined {
@@ -183,6 +218,8 @@ export abstract class VstPreset implements Preset {
     ) {
       return this.Parameters.get(key)?.Value as Uint8Array;
     }
+
+    console.warn(`Bytes parameter "${key}" not found or not of type Bytes.`);
     return undefined;
   }
 
@@ -658,26 +695,27 @@ export abstract class VstPreset implements Preset {
       // Read parameters until end of chunk
       while (reader.getPosition() < chunkSize) {
         // Read null-terminated string
-        let parameterName = "";
+        let paramName = "";
         let byte;
         while ((byte = reader.readUInt8()) !== 0) {
-          parameterName += String.fromCharCode(byte);
+          paramName += String.fromCharCode(byte);
         }
 
         // Read remaining bytes to complete 128 bytes
-        const remainingBytes = 128 - parameterName.length - 1;
+        const remainingBytes = 128 - paramName.length - 1;
         reader.readBytes(remainingBytes); // Ignore these bytes
 
-        const parameterNumber = reader.readInt32();
-        const parameterNumberValue = new DataView(
-          reader.readBytes(8).buffer
-        ).getFloat64(0, true);
-
-        console.log(
-          `Found parameter no ${parameterNumber}: ${parameterName}, value: ${parameterNumberValue}`
+        const paramIndex = reader.readInt32();
+        const paramValue = new DataView(reader.readBytes(8).buffer).getFloat64(
+          0,
+          true
         );
 
-        this.setNumberParameter(parameterName, parameterNumberValue);
+        console.log(
+          `Found parameter ${paramName}, index: ${paramIndex}, value: ${paramValue}`
+        );
+
+        this.setNumberParameterWithIndex(paramName, paramIndex, paramValue);
       }
 
       // try to read the info xml

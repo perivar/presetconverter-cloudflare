@@ -1,5 +1,9 @@
 import { useMemo, useState } from "react";
-import { GenericEQShape, GenericEQSlope } from "~/utils/GenericEQTypes";
+import {
+  GenericEQShape,
+  GenericEQSlope,
+  GenericEQStereoPlacement,
+} from "~/utils/GenericEQTypes";
 import type { GenericEQBand, GenericEQPreset } from "~/utils/GenericEQTypes";
 import {
   Area,
@@ -80,6 +84,27 @@ const getSlopeName = (slope: GenericEQSlope | number): string => {
   }
 };
 
+// Helper to get stereo placement name
+const getStereoPlacementName = (
+  placement: GenericEQStereoPlacement | number
+): string => {
+  const placementValue = typeof placement === "number" ? placement : placement;
+  switch (placementValue) {
+    case GenericEQStereoPlacement.Left:
+      return "Left";
+    case GenericEQStereoPlacement.Right:
+      return "Right";
+    case GenericEQStereoPlacement.Stereo:
+      return "Stereo";
+    case GenericEQStereoPlacement.Mid:
+      return "Mid";
+    case GenericEQStereoPlacement.Side:
+      return "Side";
+    default:
+      return `Unknown (${placementValue})`;
+  }
+};
+
 // Accurate Frequency Response Calculation using Audio EQ Cookbook formulas
 // Calculates the combined dB gain of all enabled bands at various frequencies.
 const calculateFrequencyResponse = (bands: GenericEQBand[]) => {
@@ -104,6 +129,12 @@ const calculateFrequencyResponse = (bands: GenericEQBand[]) => {
       // Ensure Q is positive and reasonably small for stability if needed
       const Q = Math.max(0.025, band.Q);
       const shape = band.Shape;
+
+      // Optimization: A Bell filter with 0dB gain should have no effect.
+      // Skip calculations to avoid potential numerical issues with A=1 and low Q.
+      if (shape === GenericEQShape.Bell && gainDb === 0) {
+        continue; // Skip to the next band for this frequency point
+      }
 
       // Precompute common values for biquad calculations
       const A = Math.pow(10, gainDb / 40); // Amplitude factor for peaking/shelf
@@ -354,6 +385,7 @@ const CustomScatterTooltip = ({
     if (!band || typeof band.Frequency !== "number") return null;
 
     const shapeName = getShapeName(band.Shape);
+    const stereoPlacementName = getStereoPlacementName(band.StereoPlacement);
     return (
       <div className="rounded-lg border border-border bg-background p-2 text-sm text-foreground shadow-lg">
         <p className="font-medium">
@@ -370,6 +402,7 @@ const CustomScatterTooltip = ({
         band.Shape === GenericEQShape.HighCut ? (
           <p>Slope: {getSlopeName(band.Slope)}</p>
         ) : null}
+        <p>Placement: {stereoPlacementName}</p>
       </div>
     );
   }

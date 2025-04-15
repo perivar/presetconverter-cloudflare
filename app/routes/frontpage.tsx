@@ -12,6 +12,7 @@ import { FxChunkSet, FXP, FxProgramSet } from "~/utils/FXP";
 import { GenericEQFactory } from "~/utils/GenericEQFactory";
 import { eqPresetToSteinbergFrequency } from "~/utils/GenericEQToSteinbergAdapter";
 import { GenericEQBand, GenericEQPreset } from "~/utils/GenericEQTypes";
+import { SteinbergFrequency } from "~/utils/SteinbergFrequency";
 import { VstPresetFactory } from "~/utils/VstPresetFactory";
 import { useDropzone } from "react-dropzone";
 import { useTranslation } from "react-i18next";
@@ -208,6 +209,11 @@ export default function Index() {
                   vstPreset instanceof FabfilterProQ3)
               ) {
                 const eqPreset = GenericEQFactory.fromFabFilterProQ(vstPreset);
+                setParsedData(eqPreset);
+                setSourceFormat(t(`${vstPreset.constructor.name}`));
+              } else if (vstPreset && vstPreset instanceof SteinbergFrequency) {
+                const eqPreset =
+                  GenericEQFactory.fromSteinbergFrequency(vstPreset);
                 setParsedData(eqPreset);
                 setSourceFormat(t(`${vstPreset.constructor.name}`));
               } else if (vstPreset) {

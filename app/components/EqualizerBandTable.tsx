@@ -2,6 +2,7 @@ import {
   GenericEQPreset,
   GenericEQShape,
   GenericEQSlope,
+  GenericEQStereoPlacement,
 } from "~/utils/GenericEQTypes";
 import { CheckCircle2, XCircle } from "lucide-react";
 import { useTranslation } from "react-i18next";
@@ -25,6 +26,13 @@ const getShapeName = (shape: GenericEQShape): string => {
   return GenericEQShape[shape] || "Unknown";
 };
 
+// Helper function to get the stereo placement name from a numeric value
+const getStereoPlacementName = (
+  placement: GenericEQStereoPlacement
+): string => {
+  return GenericEQStereoPlacement[placement] || "Unknown";
+};
+
 export function EqualizerBandTable({
   preset,
   hoveredFrequency,
@@ -42,6 +50,7 @@ export function EqualizerBandTable({
             <TableHead>{t("fileInfo.gain")}</TableHead>
             <TableHead>{t("fileInfo.q")}</TableHead>
             <TableHead>{t("fileInfo.slope")}</TableHead>
+            <TableHead>{t("fileInfo.stereoPlacement")}</TableHead>
             <TableHead className="w-[100px] text-center">
               {t("fileInfo.enabled")}
             </TableHead>
@@ -58,9 +67,7 @@ export function EqualizerBandTable({
                   : undefined
               }>
               <TableCell>{index + 1}</TableCell>
-              <TableCell>
-                {t(`bandShapes.${getShapeName(band.Shape)}`)}
-              </TableCell>
+              <TableCell>{t(`${getShapeName(band.Shape)}`)}</TableCell>
               <TableCell>{band.Frequency.toFixed(2)} Hz</TableCell>
               <TableCell>{band.Gain.toFixed(2)} dB</TableCell>
               <TableCell>{band.Q.toFixed(2)}</TableCell>
@@ -72,8 +79,11 @@ export function EqualizerBandTable({
                   GenericEQShape.HighShelf,
                   GenericEQShape.TiltShelf,
                 ].includes(band.Shape)
-                  ? t(`bandSlopes.${GenericEQSlope[band.Slope]}`)
+                  ? t(`${GenericEQSlope[band.Slope]}`)
                   : "-"}
+              </TableCell>
+              <TableCell>
+                {t(`${getStereoPlacementName(band.StereoPlacement)}`)}
               </TableCell>
               <TableCell className="text-center">
                 {band.Enabled ? (

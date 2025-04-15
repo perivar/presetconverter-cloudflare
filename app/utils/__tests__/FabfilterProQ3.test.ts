@@ -365,8 +365,7 @@ test("FabfilterProQ3-readVstPreset-HighBass-array", () => {
     originalPreset.CompChunkData ?? new Uint8Array();
   steinbergPreset.ContChunkData =
     originalPreset.ContChunkData ?? new Uint8Array();
-  steinbergPreset.InfoXml = originalPreset.InfoXml;
-  steinbergPreset.InfoXmlBytesWithBOM = originalPreset.InfoXmlBytesWithBOM;
+  steinbergPreset.doSkipInfoXml = true;
 
   const uint8ArrayWrite = steinbergPreset.write();
   if (uint8ArrayWrite) {

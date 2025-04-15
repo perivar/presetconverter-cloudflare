@@ -3,6 +3,7 @@ import { FabfilterProQ2 } from "./FabfilterProQ2";
 import { FabfilterProQ3 } from "./FabfilterProQ3";
 import { FabfilterProQBase } from "./FabfilterProQBase"; // Added import
 import { FXP } from "./FXP"; // Added import
+import { SteinbergFrequency } from "./SteinbergFrequency";
 import { SteinbergVstPreset } from "./SteinbergVstPreset";
 import { VstClassIDs } from "./VstClassIDs";
 import { VstPreset } from "./VstPreset";
@@ -48,6 +49,9 @@ export class VstPresetFactory {
         case VstClassIDs.FabfilterProQ3VST3:
           preset = new FabfilterProQ3();
           break;
+        case VstClassIDs.SteinbergFrequency:
+          preset = new SteinbergFrequency();
+          break;
         default:
           preset = new SteinbergVstPreset();
           break;
@@ -63,23 +67,8 @@ export class VstPresetFactory {
       preset.ContDataChunkSize = 0;
       preset.InfoXmlStartPos = presetBytes.length;
 
-      // Handle special cases
-      if (
-        preset.Vst3ClassID === VstClassIDs.FabFilterProQ ||
-        preset.Vst3ClassID === VstClassIDs.FabFilterProQx64
-      ) {
-        (preset as FabfilterProQ).initFromParameters();
-      } else if (
-        preset.Vst3ClassID === VstClassIDs.FabFilterProQ2 ||
-        preset.Vst3ClassID === VstClassIDs.FabFilterProQ2x64
-      ) {
-        (preset as FabfilterProQ2).initFromParameters();
-      } else if (
-        preset.Vst3ClassID === VstClassIDs.FabFilterProQ3 ||
-        preset.Vst3ClassID === VstClassIDs.FabfilterProQ3VST3
-      ) {
-        (preset as FabfilterProQ3).initFromParameters();
-      }
+      // Reads parameters from the internal Parameters map populated by the base class constructor
+      preset.initFromParameters();
 
       return preset as T;
     } catch (error) {

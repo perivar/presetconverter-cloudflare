@@ -1,4 +1,4 @@
-// SteinbergFrequency.ts - Port of the C# SteinbergFrequency class
+// SteinbergFrequency.ts
 
 import { SteinbergVstPreset } from "./SteinbergVstPreset";
 import { VstClassIDs } from "./VstClassIDs";
@@ -30,7 +30,51 @@ export enum ChannelMode {
   MidSideModeSide = 4.0,
 }
 
+export interface FrequencyBandParameters {
+  enabled: number;
+  gain: number;
+  freq: number;
+  q: number;
+  type: number; // BandMode1And8 or BandMode2To7
+  invert: number;
+}
+
+export interface FrequencyBandParametersCh2 extends FrequencyBandParameters {}
+
+export interface FrequencySharedParameters {
+  editChannel: number; // ChannelMode
+  bandOn: number;
+  linearPhase: number;
+}
+
+export interface FrequencyPostParameters {
+  bypass: number;
+  output: number;
+  masterBypass: number;
+  reset: number;
+  autoListen: number;
+  spectrumOnOff: number;
+  spectrum2ChMode: number;
+  spectrumIntegrate: number;
+  spectrumPHOnOff: number;
+  spectrumSlope: number;
+  drawEQ: number;
+  drawEQFilled: number;
+  spectrumBarGraph: number;
+  showPianoRoll: number;
+  transparency: number;
+  autoGainOutputValue: number;
+}
+
 export class SteinbergFrequency extends SteinbergVstPreset {
+  // Properties to store read values
+  public bands: Array<{
+    ch1: FrequencyBandParameters;
+    ch2: FrequencyBandParametersCh2;
+    shared: FrequencySharedParameters;
+  }> = [];
+  public postParams: FrequencyPostParameters | null = null;
+
   constructor() {
     super();
     this.Vst3ClassID = VstClassIDs.SteinbergFrequency;
@@ -38,7 +82,7 @@ export class SteinbergFrequency extends SteinbergVstPreset {
     this.PlugInName = "Frequency";
     this.PlugInVendor = "Steinberg Media Technologies";
 
-    this.initStartBytes(19728);
+    this.setStartBytes(19728);
 
     this.initParameters();
   }
@@ -55,55 +99,152 @@ export class SteinbergFrequency extends SteinbergVstPreset {
     const inc = bandNum - 1;
 
     // Channel 1 parameters
-    this.initNumParam(`equalizerAon${bandNum}`, 100 + inc, 1.0);
-    this.initNumParam(`equalizerAgain${bandNum}`, 108 + inc, 0.0);
-    this.initNumParam(`equalizerAfreq${bandNum}`, 116 + inc, 100.0 * bandNum);
-    this.initNumParam(`equalizerAq${bandNum}`, 124 + inc, 1.0);
-    this.initNumParam(
+    this.setNumberParameterWithIndex(`equalizerAon${bandNum}`, 100 + inc, 1.0);
+    this.setNumberParameterWithIndex(
+      `equalizerAgain${bandNum}`,
+      108 + inc,
+      0.0
+    );
+    this.setNumberParameterWithIndex(
+      `equalizerAfreq${bandNum}`,
+      116 + inc,
+      100.0 * bandNum
+    );
+    this.setNumberParameterWithIndex(`equalizerAq${bandNum}`, 124 + inc, 1.0);
+    this.setNumberParameterWithIndex(
       `equalizerAtype${bandNum}`,
       132 + inc,
       bandNum === 1 || bandNum === 8 ? BandMode1And8.Cut48 : BandMode2To7.Peak
     );
-    this.initNumParam(`invert${bandNum}`, 1022 + inc, 0.0);
+    this.setNumberParameterWithIndex(`invert${bandNum}`, 1022 + inc, 0.0);
 
     // Channel 2 parameters
-    this.initNumParam(`equalizerAon${bandNum}Ch2`, 260 + inc, 1.0);
-    this.initNumParam(`equalizerAgain${bandNum}Ch2`, 268 + inc, 0.0);
-    this.initNumParam(`equalizerAfreq${bandNum}Ch2`, 276 + inc, 25.0);
-    this.initNumParam(`equalizerAq${bandNum}Ch2`, 284 + inc, 1.0);
-    this.initNumParam(
+    this.setNumberParameterWithIndex(
+      `equalizerAon${bandNum}Ch2`,
+      260 + inc,
+      1.0
+    );
+    this.setNumberParameterWithIndex(
+      `equalizerAgain${bandNum}Ch2`,
+      268 + inc,
+      0.0
+    );
+    this.setNumberParameterWithIndex(
+      `equalizerAfreq${bandNum}Ch2`,
+      276 + inc,
+      25.0
+    );
+    this.setNumberParameterWithIndex(
+      `equalizerAq${bandNum}Ch2`,
+      284 + inc,
+      1.0
+    );
+    this.setNumberParameterWithIndex(
       `equalizerAtype${bandNum}Ch2`,
       292 + inc,
       bandNum === 1 || bandNum === 8 ? BandMode1And8.Cut48 : BandMode2To7.Peak
     );
-    this.initNumParam(`invert${bandNum}Ch2`, 1030 + inc, 0.0);
+
+    this.setNumberParameterWithIndex(`invert${bandNum}Ch2`, 1030 + inc, 0.0);
 
     // Shared parameters
-    this.initNumParam(
+    this.setNumberParameterWithIndex(
       `equalizerAeditchannel${bandNum}`,
       50 + inc,
       ChannelMode.StereoMode
     );
-    this.initNumParam(`equalizerAbandon${bandNum}`, 58 + inc, 1.0);
-    this.initNumParam(`linearphase${bandNum}`, 66 + inc, 0.0);
+    this.setNumberParameterWithIndex(
+      `equalizerAbandon${bandNum}`,
+      58 + inc,
+      1.0
+    );
+    this.setNumberParameterWithIndex(`linearphase${bandNum}`, 66 + inc, 0.0);
   }
 
   private initFrequencyPostParameters(): void {
-    this.initNumParam("equalizerAbypass", 1, 0.0);
-    this.initNumParam("equalizerAoutput", 2, 0.0);
-    this.initNumParam("bypass", 1002, 0.0);
-    this.initNumParam("reset", 1003, 0.0);
-    this.initNumParam("autoListen", 1005, 0.0);
-    this.initNumParam("spectrumonoff", 1007, 1.0);
-    this.initNumParam("spectrum2ChMode", 1008, 0.0);
-    this.initNumParam("spectrumintegrate", 1010, 40.0);
-    this.initNumParam("spectrumPHonoff", 1011, 1.0);
-    this.initNumParam("spectrumslope", 1012, 0.0);
-    this.initNumParam("draweq", 1013, 1.0);
-    this.initNumParam("draweqfilled", 1014, 1.0);
-    this.initNumParam("spectrumbargraph", 1015, 0.0);
-    this.initNumParam("showPianoRoll", 1019, 1.0);
-    this.initNumParam("transparency", 1020, 0.3);
-    this.initNumParam("autoGainOutputValue", 1021, 0.0);
+    this.setNumberParameterWithIndex("equalizerAbypass", 1, 0.0);
+    this.setNumberParameterWithIndex("equalizerAoutput", 2, 0.0);
+    this.setNumberParameterWithIndex("bypass", 1002, 0.0);
+    this.setNumberParameterWithIndex("reset", 1003, 0.0);
+    this.setNumberParameterWithIndex("autoListen", 1005, 0.0);
+    this.setNumberParameterWithIndex("spectrumonoff", 1007, 1.0);
+    this.setNumberParameterWithIndex("spectrum2ChMode", 1008, 0.0);
+    this.setNumberParameterWithIndex("spectrumintegrate", 1010, 40.0);
+    this.setNumberParameterWithIndex("spectrumPHonoff", 1011, 1.0);
+    this.setNumberParameterWithIndex("spectrumslope", 1012, 0.0);
+    this.setNumberParameterWithIndex("draweq", 1013, 1.0);
+    this.setNumberParameterWithIndex("draweqfilled", 1014, 1.0);
+    this.setNumberParameterWithIndex("spectrumbargraph", 1015, 0.0);
+    this.setNumberParameterWithIndex("showPianoRoll", 1019, 1.0);
+    this.setNumberParameterWithIndex("transparency", 1020, 0.3);
+    this.setNumberParameterWithIndex("autoGainOutputValue", 1021, 0.0);
+  }
+
+  // --- Read Methods ---
+
+  // Reads parameters from the internal Parameters map populated by the base class constructor
+  public readParameters(): void {
+    // No super call needed here, base constructor handles initial parsing.
+    // This method extracts specific Steinberg Frequency params from the map.
+
+    this.bands = [];
+    for (let i = 1; i <= 8; i++) {
+      this.bands.push(this.readFrequencyBandParameters(i));
+    }
+    this.postParams = this.readFrequencyPostParameters();
+  }
+
+  private readFrequencyBandParameters(bandNum: number): {
+    ch1: FrequencyBandParameters;
+    ch2: FrequencyBandParametersCh2;
+    shared: FrequencySharedParameters;
+  } {
+    const ch1: FrequencyBandParameters = {
+      enabled: this.getNumberParameter(`equalizerAon${bandNum}`) || 0,
+      gain: this.getNumberParameter(`equalizerAgain${bandNum}`) || 0,
+      freq: this.getNumberParameter(`equalizerAfreq${bandNum}`) || 0,
+      q: this.getNumberParameter(`equalizerAq${bandNum}`) || 0,
+      type: this.getNumberParameter(`equalizerAtype${bandNum}`) || 0,
+      invert: this.getNumberParameter(`invert${bandNum}`) || 0,
+    };
+
+    const ch2: FrequencyBandParametersCh2 = {
+      enabled: this.getNumberParameter(`equalizerAon${bandNum}Ch2`) || 0,
+      gain: this.getNumberParameter(`equalizerAgain${bandNum}Ch2`) || 0,
+      freq: this.getNumberParameter(`equalizerAfreq${bandNum}Ch2`) || 0,
+      q: this.getNumberParameter(`equalizerAq${bandNum}Ch2`) || 0,
+      type: this.getNumberParameter(`equalizerAtype${bandNum}Ch2`) || 0,
+      invert: this.getNumberParameter(`invert${bandNum}Ch2`) || 0,
+    };
+
+    const shared: FrequencySharedParameters = {
+      editChannel:
+        this.getNumberParameter(`equalizerAeditchannel${bandNum}`) || 0,
+      bandOn: this.getNumberParameter(`equalizerAbandon${bandNum}`) || 0,
+      linearPhase: this.getNumberParameter(`linearphase${bandNum}`) || 0,
+    };
+
+    return { ch1, ch2, shared };
+  }
+
+  private readFrequencyPostParameters(): FrequencyPostParameters {
+    return {
+      bypass: this.getNumberParameter("equalizerAbypass") || 0,
+      output: this.getNumberParameter("equalizerAoutput") || 0,
+      masterBypass: this.getNumberParameter("bypass") || 0,
+      reset: this.getNumberParameter("reset") || 0,
+      autoListen: this.getNumberParameter("autoListen") || 0,
+      spectrumOnOff: this.getNumberParameter("spectrumonoff") || 0,
+      spectrum2ChMode: this.getNumberParameter("spectrum2ChMode") || 0,
+      spectrumIntegrate: this.getNumberParameter("spectrumintegrate") || 0,
+      spectrumPHOnOff: this.getNumberParameter("spectrumPHonoff") || 0,
+      spectrumSlope: this.getNumberParameter("spectrumslope") || 0,
+      drawEQ: this.getNumberParameter("draweq") || 0,
+      drawEQFilled: this.getNumberParameter("draweqfilled") || 0,
+      spectrumBarGraph: this.getNumberParameter("spectrumbargraph") || 0,
+      showPianoRoll: this.getNumberParameter("showPianoRoll") || 0,
+      transparency: this.getNumberParameter("transparency") || 0,
+      autoGainOutputValue: this.getNumberParameter("autoGainOutputValue") || 0,
+    };
   }
 }
