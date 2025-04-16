@@ -4,6 +4,7 @@ import { BinaryFile, ByteOrder } from "./BinaryFile";
 import { BinaryReader } from "./BinaryReader";
 import { FXP } from "./FXP";
 import { Preset } from "./Preset";
+import { toHexEditorString } from "./StringUtils";
 import { VstClassIDs } from "./VstClassIDs";
 
 export enum ParameterType {
@@ -32,10 +33,8 @@ export class Parameter {
       }
       case ParameterType.Bytes: {
         const bytes = this.Value as Uint8Array;
-        const hexString = Array.from(bytes)
-          .map(byte => byte.toString(16).padStart(2, "0"))
-          .join(" ");
-        return `${this.Index.toString().padEnd(6)} | ${this.Key.padEnd(20)} | ${hexString}`;
+        const hexEditorString = toHexEditorString(bytes);
+        return `${this.Index.toString().padEnd(6)} | ${this.Key.padEnd(20)} | ${hexEditorString}`;
       }
       default:
         return `${this.Index.toString().padEnd(6)} | ${this.Key.padEnd(20)} | No Values Set`;
@@ -480,7 +479,7 @@ export abstract class VstPreset implements Preset {
 
       // Read number of chunks in list
       const numChunks = reader.readInt32();
-      console.log(`Number of chunks in list: ${numChunks}`);
+      console.debug(`Number of chunks in list: ${numChunks}`);
 
       // Read chunk entries
       const chunks = [];
@@ -501,7 +500,7 @@ export abstract class VstPreset implements Preset {
           size: chunkSize,
         });
 
-        console.log(
+        console.debug(
           `Chunk ${i}: ID=${chunkId}, Offset=${chunkOffset}, Size=${chunkSize}`
         );
       }
@@ -619,7 +618,7 @@ export abstract class VstPreset implements Preset {
     // First 4 bytes identify the chunk type (ASCII)
     const dataChunkIDBytes = reader.readBytes(4);
     const dataChunkID = String.fromCharCode(...dataChunkIDBytes);
-    console.log(`Data chunk ID: '${dataChunkID}'`);
+    console.debug(`Data chunk ID: '${dataChunkID}'`);
 
     if (dataChunkID === "VstW") {
       // Handle VstW chunk (VST2 wrapper)
@@ -689,7 +688,8 @@ export abstract class VstPreset implements Preset {
       // Read version bytes (4 bytes)
       const versionBytes = reader.readBytes(4);
       const versionNumber = new DataView(versionBytes.buffer).getInt32(0, true);
-      console.log("Version number: ", versionNumber);
+      console.debug("Version number: ", versionNumber);
+
       this.setBytesParameter("StartBytes", versionBytes);
 
       // Read parameters until end of chunk
@@ -711,7 +711,7 @@ export abstract class VstPreset implements Preset {
           true
         );
 
-        console.log(
+        console.debug(
           `Found parameter ${paramName}, index: ${paramIndex}, value: ${paramValue}`
         );
 
@@ -830,5 +830,29 @@ export abstract class VstPreset implements Preset {
       const buffer = writer.getBuffer();
       return buffer ? new Uint8Array(buffer) : undefined;
     }
+  }
+
+  /**
+   * Generates a string representation of the VstPreset content.
+   * Includes Vst3ClassID, all parameters, and the Info XML if available.
+   * @returns A multi-line string detailing the preset's configuration.
+   */
+  public toString(): string {
+    const lines: string[] = [];
+    lines.push(`Vst3ID: ${this.Vst3ClassID}`);
+
+    if (this.Parameters.size > 0) {
+      // Output parameters - Note: Map iteration order isn't guaranteed,
+      // but matches the C# Dictionary behavior in this context.
+      for (const parameter of this.Parameters.values()) {
+        lines.push(parameter.toString());
+      }
+    }
+
+    if (this.InfoXml) {
+      lines.push(this.InfoXml);
+    }
+
+    return lines.join("\n");
   }
 }

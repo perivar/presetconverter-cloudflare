@@ -179,19 +179,19 @@ export default function Index() {
             if (proQ3.readFFP(chunkData)) {
               const eqPreset = GenericEQFactory.fromFabFilterProQ(proQ3);
               setParsedData(eqPreset);
-              setSourceFormat(t("formats.fabfilterProQ3"));
+              setSourceFormat(proQ3.PlugInName);
             } else {
               const proQ2 = new FabfilterProQ2();
               if (proQ2.readFFP(chunkData)) {
                 const eqPreset = GenericEQFactory.fromFabFilterProQ(proQ2);
                 setParsedData(eqPreset);
-                setSourceFormat(t("formats.fabfilterProQ2"));
+                setSourceFormat(proQ2.PlugInName);
               } else {
                 const proQ1 = new FabfilterProQ();
                 if (proQ1.readFFP(chunkData)) {
                   const eqPreset = GenericEQFactory.fromFabFilterProQ(proQ1);
                   setParsedData(eqPreset);
-                  setSourceFormat(t("formats.fabfilterProQ1"));
+                  setSourceFormat(proQ1.PlugInName);
                 } else {
                   setError(
                     t("error.unsupportedFormat", { fileName: file.name })
@@ -208,10 +208,15 @@ export default function Index() {
                   vstPreset instanceof FabfilterProQ2 ||
                   vstPreset instanceof FabfilterProQ3)
               ) {
+                console.log(
+                  "FabfilterProQ[1|2|3] preset:",
+                  vstPreset.toString()
+                );
                 const eqPreset = GenericEQFactory.fromFabFilterProQ(vstPreset);
                 setParsedData(eqPreset);
                 setSourceFormat(t(`${vstPreset.constructor.name}`));
               } else if (vstPreset && vstPreset instanceof SteinbergFrequency) {
+                console.log("SteinbergFrequency preset:", vstPreset.toString());
                 const eqPreset =
                   GenericEQFactory.fromSteinbergFrequency(vstPreset);
                 setParsedData(eqPreset);

@@ -1,18 +1,4 @@
 {
-  "convert": {
-    "title": "Forside"
-  },
-  "description": "Konverter preset filer",
-  "help": {
-    "title": "Hjelp"
-  },
-  "settings": {
-    "language": "Språk",
-    "theme": "Tema",
-    "theme_dark": "Mørk",
-    "theme_light": "Lys",
-    "title": "Innstillinger"
-  },
   "conversion": {
     "convertButton": "Konverter",
     "converting": "Konverterer...",
@@ -20,6 +6,10 @@
     "selectTargetPlaceholder": "Velg et format",
     "title": "Konverter til annet format"
   },
+  "convert": {
+    "title": "Forside"
+  },
+  "description": "Konverter preset filer",
   "dropzone": {
     "dropHere": "Slipp filen her",
     "loading": "Laster...",
@@ -47,11 +37,21 @@
     "frequency": "Frekvens",
     "gain": "Forsterkning",
     "q": "Q",
-    "slope": "Stigning",
     "size": "Størrelse",
+    "slope": "Stigning",
+    "stereoPlacement": "Stereoplassering",
     "title": "Filinformasjon",
-    "type": "Type",
-    "stereoPlacement": "Stereoplassering"
+    "type": "Type"
+  },
+  "help": {
+    "title": "Hjelp"
+  },
+  "settings": {
+    "language": "Språk",
+    "theme": "Tema",
+    "theme_dark": "Mørk",
+    "theme_light": "Lys",
+    "title": "Innstillinger"
   },
   "title": "Preset konverterer"
 }

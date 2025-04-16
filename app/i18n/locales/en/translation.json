@@ -1,13 +1,13 @@
 {
-  "convert": {
-    "title": "Frontpage"
-  },
   "conversion": {
     "convertButton": "Convert",
     "converting": "Converting...",
     "selectTarget": "Select target format",
     "selectTargetPlaceholder": "Select a format",
     "title": "Convert to another format"
+  },
+  "convert": {
+    "title": "Frontpage"
   },
   "description": "Convert preset files",
   "dropzone": {
@@ -37,11 +37,11 @@
     "frequency": "Frequency",
     "gain": "Gain",
     "q": "Q",
-    "slope": "Slope",
-    "type": "Type",
     "size": "Size",
+    "slope": "Slope",
+    "stereoPlacement": "Stereo Placement",
     "title": "File Information",
-    "stereoPlacement": "Stereo Placement"
+    "type": "Type"
   },
   "help": {
     "title": "Help"

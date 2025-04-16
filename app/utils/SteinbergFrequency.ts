@@ -247,4 +247,180 @@ export class SteinbergFrequency extends SteinbergVstPreset {
       autoGainOutputValue: this.getNumberParameter("autoGainOutputValue") || 0,
     };
   }
+
+  // --- String Representation ---
+
+  /**
+   * Get Band information string.
+   * @param bandNum - band number from 1 to 8
+   * @param channel - empty for main channel (channel 1). 'Ch2' for secondary channel
+   * @returns A string describing the band's parameters, or an empty string if the channel is inactive.
+   */
+  private getBandInfo(bandNum: number, channel: "" | "Ch2"): string {
+    const lines: string[] = [];
+
+    const isChannelOn =
+      this.getNumberParameter(`equalizerAon${bandNum}${channel}`) === 1.0;
+    const gain =
+      this.getNumberParameter(`equalizerAgain${bandNum}${channel}`) || 0;
+    const frequency =
+      this.getNumberParameter(`equalizerAfreq${bandNum}${channel}`) || 0;
+    const q = this.getNumberParameter(`equalizerAq${bandNum}${channel}`) || 0;
+    const isInverted =
+      this.getNumberParameter(`invert${bandNum}${channel}`) === 1.0;
+
+    let shape = "";
+    const typeParam = this.getNumberParameter(
+      `equalizerAtype${bandNum}${channel}`
+    );
+
+    if (bandNum === 1 || bandNum === 8) {
+      switch (typeParam) {
+        case BandMode1And8.Cut6:
+          shape = "Cut6";
+          break;
+        case BandMode1And8.Cut12:
+          shape = "Cut12";
+          break;
+        case BandMode1And8.Cut24:
+          shape = "Cut24";
+          break;
+        case BandMode1And8.Cut48:
+          shape = "Cut48";
+          break;
+        case BandMode1And8.Cut96:
+          shape = "Cut96";
+          break;
+        case BandMode1And8.LowShelf:
+          shape = "LowShelf";
+          break;
+        case BandMode1And8.Peak:
+          shape = "Peak";
+          break;
+        case BandMode1And8.HighShelf:
+          shape = "HighShelf";
+          break;
+        case BandMode1And8.Notch:
+          shape = "Notch";
+          break;
+      }
+    } else {
+      switch (typeParam) {
+        case BandMode2To7.LowShelf:
+          shape = "LowShelf";
+          break;
+        case BandMode2To7.Peak:
+          shape = "Peak";
+          break;
+        case BandMode2To7.HighShelf:
+          shape = "HighShelf";
+          break;
+        case BandMode2To7.Notch:
+          shape = "Notch";
+          break;
+      }
+    }
+
+    let stereoPlacement = "";
+    const editChannelParam = this.getNumberParameter(
+      `equalizerAeditchannel${bandNum}`
+    );
+    switch (editChannelParam) {
+      case ChannelMode.LeftRightModeLeft:
+        stereoPlacement = "LR: Left";
+        break;
+      case ChannelMode.LeftRightModeRight:
+        stereoPlacement = "LR: Right";
+        break;
+      case ChannelMode.StereoMode:
+        stereoPlacement = "Stereo";
+        break;
+      case ChannelMode.MidSideModeMid:
+        stereoPlacement = "MS: Mid";
+        break;
+      case ChannelMode.MidSideModeSide:
+        stereoPlacement = "MS: Side";
+        break;
+    }
+
+    let effectiveChannelOn = isChannelOn;
+    if (stereoPlacement === "Stereo" && channel !== "") {
+      effectiveChannelOn = false; // Ignore secondary channel if mode is Stereo
+    }
+
+    if (effectiveChannelOn) {
+      lines.push(
+        `${bandNum} ${shape}: ${frequency.toFixed(2)} Hz, ${gain.toFixed(
+          2
+        )} dB, Q: ${q.toFixed(2)}, Ch: ${
+          isChannelOn ? "On" : "Off"
+        }, ${isInverted ? "Inverted " : ""}${stereoPlacement} ${channel}`
+      );
+    }
+
+    return lines.join("\n");
+  }
+
+  /**
+   * Generates a string representation of the Steinberg Frequency preset parameters.
+   * @returns A multi-line string detailing the preset's configuration.
+   */
+  public toString(): string {
+    // Ensure parameters are read if they haven't been already
+    if (this.bands.length === 0 || !this.postParams) {
+      this.readParameters();
+    }
+
+    const lines: string[] = [];
+    lines.push(`Vst3ID: ${this.Vst3ClassID}`);
+    lines.push("Bands:");
+
+    for (let bandNum = 1; bandNum <= 8; bandNum++) {
+      const isBandEnabled =
+        this.getNumberParameter(`equalizerAbandon${bandNum}`) === 1.0;
+      const isLinearPhase =
+        this.getNumberParameter(`linearphase${bandNum}`) === 1.0;
+      const bandStatus = `[${isBandEnabled ? "On " : "Off"}]`; // Padded for alignment
+
+      const bandInfoCh1 = this.getBandInfo(bandNum, "");
+      if (bandInfoCh1) {
+        lines.push(
+          `${bandStatus} ${bandInfoCh1}${isLinearPhase ? ", Linear phase" : ""}`
+        );
+      }
+
+      const bandInfoCh2 = this.getBandInfo(bandNum, "Ch2");
+      if (bandInfoCh2) {
+        // Only show band status once per band number if Ch1 wasn't shown
+        const statusPrefix = bandInfoCh1
+          ? " ".repeat(bandStatus.length)
+          : bandStatus;
+        lines.push(
+          `${statusPrefix} ${bandInfoCh2}${isLinearPhase ? ", Linear phase" : ""}`
+        );
+      }
+    }
+
+    lines.push(""); // Add empty line separator
+
+    if (this.postParams) {
+      lines.push(`equalizerAbypass: ${this.postParams.bypass}`);
+      lines.push(`autoListen: ${this.postParams.autoListen}`);
+      lines.push(`bypass: ${this.postParams.masterBypass}`);
+      lines.push(`reset: ${this.postParams.reset}`);
+      lines.push(`spectrumonoff: ${this.postParams.spectrumOnOff}`);
+      lines.push(`spectrum2ChMode: ${this.postParams.spectrum2ChMode}`);
+      lines.push(`spectrumintegrate: ${this.postParams.spectrumIntegrate}`);
+      lines.push(`spectrumPHonoff: ${this.postParams.spectrumPHOnOff}`);
+      lines.push(`spectrumslope: ${this.postParams.spectrumSlope}`);
+      lines.push(`draweq: ${this.postParams.drawEQ}`);
+      lines.push(`draweqfilled: ${this.postParams.drawEQFilled}`);
+      lines.push(`spectrumbargraph: ${this.postParams.spectrumBarGraph}`);
+      lines.push(`showPianoRoll: ${this.postParams.showPianoRoll}`);
+      lines.push(`transparency: ${this.postParams.transparency}`);
+      lines.push(`autoGainOutputValue: ${this.postParams.autoGainOutputValue}`);
+    }
+
+    return lines.join("\n");
+  }
 }
