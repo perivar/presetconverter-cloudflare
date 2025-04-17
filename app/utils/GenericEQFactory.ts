@@ -200,131 +200,7 @@ export class GenericEQFactory {
 
   // --- Steinberg Frequency Conversion ---
 
-  static fromSteinbergFrequency(preset: SteinbergFrequency): GenericEQPreset {
-    const result: GenericEQPreset = {
-      Name: preset.PlugInName || "Steinberg Frequency Preset",
-      Bands: [],
-      Version: "1", // Steinberg Frequency doesn't expose a version easily
-      Vendor: preset.PlugInVendor,
-    };
-
-    if (!preset.bands || preset.bands.length === 0) {
-      // Ensure parameters have been read if the preset was just loaded
-      // This assumes the preset object might be created without immediately reading
-      // Also check if readParameters method exists before calling
-      if (
-        preset.Parameters.size > 0 &&
-        typeof preset.readParameters === "function"
-      ) {
-        preset.readParameters();
-      } else if (preset.Parameters.size === 0) {
-        console.warn("SteinbergFrequency preset has no parameters loaded.");
-        return result; // Return early if no params loaded
-      } else {
-        // Parameters might be loaded, but readParameters might not have been called yet externally
-        // Or the object structure is different than expected.
-        console.warn(
-          "SteinbergFrequency preset bands array is empty or parameters not processed into bands."
-        );
-
-        // Attempt to proceed might fail if bands aren't populated.
-        // Consider if returning here is safer. For now, let's log and continue,
-        // it might be populated by external logic before calling this factory.
-      }
-      // Re-check if bands got populated after calling readParameters
-      if (!preset.bands || preset.bands.length === 0) {
-        console.warn(
-          "SteinbergFrequency bands still empty after attempting readParameters."
-        );
-        return result; // Return if still empty
-      }
-    }
-
-    for (let i = 0; i < preset.bands.length; i++) {
-      const steinbergBand = preset.bands[i];
-      const bandNum = i + 1; // 1-based index
-
-      // Skip band entirely if shared.bandOn is not 1.0
-      if (steinbergBand.shared.bandOn !== 1.0) {
-        continue;
-      }
-
-      const channelMode = steinbergBand.shared.editChannel as ChannelMode;
-
-      // --- Process Channel 1 (Left / Mid / Stereo) ---
-      if (steinbergBand.ch1.enabled === 1.0) {
-        const { shape, slope } = this.convertSteinbergShapeAndSlope(
-          bandNum,
-          steinbergBand.ch1.type
-        );
-        let placement = GenericEQStereoPlacement.Stereo; // Default for StereoMode
-
-        if (
-          channelMode === ChannelMode.LeftRightModeLeft ||
-          channelMode === ChannelMode.LeftRightModeRight
-        ) {
-          placement = GenericEQStereoPlacement.Left;
-        } else if (
-          channelMode === ChannelMode.MidSideModeMid ||
-          channelMode === ChannelMode.MidSideModeSide
-        ) {
-          placement = GenericEQStereoPlacement.Mid;
-        }
-        // If channelMode is StereoMode, placement remains Stereo
-
-        const convertedBandCh1: GenericEQBand = {
-          Enabled: true, // Already checked shared.bandOn and ch1.enabled
-          Frequency: steinbergBand.ch1.freq,
-          Gain: steinbergBand.ch1.gain,
-          Q: steinbergBand.ch1.q,
-          Shape: shape,
-          Slope: slope,
-          StereoPlacement: placement,
-          DynamicRange: undefined,
-          DynamicThreshold: undefined,
-        };
-        result.Bands.push(convertedBandCh1);
-      }
-
-      // --- Process Channel 2 (Right / Side) ---
-      // Only process Ch2 if not in Stereo mode and Ch2 is enabled
-      if (
-        channelMode !== ChannelMode.StereoMode &&
-        steinbergBand.ch2.enabled === 1.0
-      ) {
-        const { shape, slope } = this.convertSteinbergShapeAndSlope(
-          bandNum,
-          steinbergBand.ch2.type // Use Ch2 type
-        );
-        let placement = GenericEQStereoPlacement.Right; // Default for L/R mode
-
-        if (
-          channelMode === ChannelMode.MidSideModeMid ||
-          channelMode === ChannelMode.MidSideModeSide
-        ) {
-          placement = GenericEQStereoPlacement.Side;
-        }
-        // If channelMode is LeftRightModeLeft/Right, placement remains Right
-
-        const convertedBandCh2: GenericEQBand = {
-          Enabled: true, // Already checked shared.bandOn and ch2.enabled
-          Frequency: steinbergBand.ch2.freq, // Use Ch2 params
-          Gain: steinbergBand.ch2.gain,
-          Q: steinbergBand.ch2.q,
-          Shape: shape,
-          Slope: slope,
-          StereoPlacement: placement,
-          DynamicRange: undefined,
-          DynamicThreshold: undefined,
-        };
-        result.Bands.push(convertedBandCh2);
-      }
-    }
-
-    return result;
-  }
-
-  private static convertSteinbergShapeAndSlope(
+  public static convertSteinbergShapeAndSlope(
     bandNum: number,
     type: number
   ): { shape: GenericEQShape; slope: GenericEQSlope } {
@@ -414,25 +290,118 @@ export class GenericEQFactory {
     return { shape, slope };
   }
 
-  private static convertSteinbergStereoPlacement(
-    channelMode: number // Comes as number from preset
-  ): GenericEQStereoPlacement {
-    switch (channelMode as ChannelMode) {
-      case ChannelMode.LeftRightModeLeft:
-        return GenericEQStereoPlacement.Left;
-      case ChannelMode.LeftRightModeRight:
-        return GenericEQStereoPlacement.Right;
-      case ChannelMode.StereoMode:
-        return GenericEQStereoPlacement.Stereo;
-      case ChannelMode.MidSideModeMid:
-        return GenericEQStereoPlacement.Mid;
-      case ChannelMode.MidSideModeSide:
-        return GenericEQStereoPlacement.Side;
-      default:
+  static fromSteinbergFrequency(preset: SteinbergFrequency): GenericEQPreset {
+    const result: GenericEQPreset = {
+      Name: preset.PlugInName || "Steinberg Frequency Preset",
+      Bands: [],
+      Version: "1", // Steinberg Frequency doesn't expose a version easily
+      Vendor: preset.PlugInVendor,
+    };
+
+    if (!preset.bands || preset.bands.length === 0) {
+      if (
+        preset.Parameters.size > 0 &&
+        typeof preset.readParameters === "function"
+      ) {
+        preset.readParameters();
+      } else if (preset.Parameters.size === 0) {
+        console.warn("SteinbergFrequency preset has no parameters loaded.");
+        return result;
+      } else {
         console.warn(
-          `Unknown Steinberg ChannelMode: ${channelMode}. Defaulting to Stereo.`
+          "SteinbergFrequency preset bands array is empty or parameters not processed into bands."
         );
-        return GenericEQStereoPlacement.Stereo; // Default fallback
+      }
+      if (!preset.bands || preset.bands.length === 0) {
+        console.warn(
+          "SteinbergFrequency bands still empty after attempting readParameters."
+        );
+        return result;
+      }
     }
+
+    for (let bandNum = 1; bandNum <= 8; bandNum++) {
+      const steinbergBand = preset.bands[bandNum - 1];
+
+      const channelMode = steinbergBand.shared.editChannel as ChannelMode;
+
+      const isBandEnabled = steinbergBand.shared.bandOn === 1.0;
+
+      // ignore linear phase for now
+      // const isLinearPhase =
+      //   preset.getNumberParameter(`linearphase${bandNum}`) === 1.0;
+
+      // --- Process Channel 1 (Left / Mid / Stereo) ---
+      const { shape: shapeCh1, slope: slopeCh1 } =
+        GenericEQFactory.convertSteinbergShapeAndSlope(
+          bandNum,
+          steinbergBand.ch1.type
+        );
+
+      let placementCh1 = GenericEQStereoPlacement.Stereo; // Default for StereoMode
+
+      if (
+        channelMode === ChannelMode.LeftRightModeLeft ||
+        channelMode === ChannelMode.LeftRightModeRight
+      ) {
+        placementCh1 = GenericEQStereoPlacement.Left;
+      } else if (
+        channelMode === ChannelMode.MidSideModeMid ||
+        channelMode === ChannelMode.MidSideModeSide
+      ) {
+        placementCh1 = GenericEQStereoPlacement.Mid;
+      }
+
+      if (steinbergBand.ch1.enabled === 1.0) {
+        const convertedBandCh1: GenericEQBand = {
+          Enabled: isBandEnabled,
+          Frequency: steinbergBand.ch1.freq,
+          Gain: steinbergBand.ch1.gain,
+          Q: steinbergBand.ch1.q,
+          Shape: shapeCh1,
+          Slope: slopeCh1,
+          StereoPlacement: placementCh1,
+          DynamicRange: undefined,
+          DynamicThreshold: undefined,
+        };
+        result.Bands.push(convertedBandCh1);
+      }
+
+      // --- Process Channel 2 (Right / Side) ---
+      if (
+        channelMode !== ChannelMode.StereoMode &&
+        steinbergBand.ch2.enabled === 1.0
+      ) {
+        const { shape: shapeCh2, slope: slopeCh2 } =
+          GenericEQFactory.convertSteinbergShapeAndSlope(
+            bandNum,
+            steinbergBand.ch2.type
+          );
+
+        let placementCh2 = GenericEQStereoPlacement.Right; // Default for L/R mode
+
+        if (
+          channelMode === ChannelMode.MidSideModeMid ||
+          channelMode === ChannelMode.MidSideModeSide
+        ) {
+          placementCh2 = GenericEQStereoPlacement.Side;
+        }
+
+        const convertedBandCh2: GenericEQBand = {
+          Enabled: isBandEnabled,
+          Frequency: steinbergBand.ch2.freq,
+          Gain: steinbergBand.ch2.gain,
+          Q: steinbergBand.ch2.q,
+          Shape: shapeCh2,
+          Slope: slopeCh2,
+          StereoPlacement: placementCh2,
+          DynamicRange: undefined,
+          DynamicThreshold: undefined,
+        };
+        result.Bands.push(convertedBandCh2);
+      }
+    }
+
+    return result;
   }
 }

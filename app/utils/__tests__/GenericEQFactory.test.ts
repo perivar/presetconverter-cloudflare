@@ -294,10 +294,10 @@ describe("GenericEQFactory", () => {
       expect(band7).toEqual(
         expect.objectContaining({
           Enabled: true, // bandOn: 1.0
-          Frequency: 10000.0, // freq: 10000.0
-          Gain: 0.0, // gain: 0.0
+          Frequency: 5000.00048828125, // freq: 5000.0
+          Gain: 6.0, // gain: 6.0
           Q: 1.0, // q: 1.0
-          Shape: GenericEQShape.Bell, // type: 0
+          Shape: GenericEQShape.HighShelf, // type: 3
           Slope: GenericEQSlope.Slope12dB_oct,
           StereoPlacement: GenericEQStereoPlacement.Side, // editChannel: 4
           DynamicRange: undefined,
@@ -332,11 +332,11 @@ describe("GenericEQFactory", () => {
       expect(band1).toEqual(
         expect.objectContaining({
           Enabled: true, // bandOn: 1.0
-          Frequency: 25.0, // freq: 25.0
+          Frequency: 100.00001525878906, // freq: 100.0
           Gain: 0.0, // gain: 0.0
           Q: 1.0, // q: 1.0
-          Shape: GenericEQShape.Bell, // type: 0
-          Slope: GenericEQSlope.Slope12dB_oct, // type: 1
+          Shape: GenericEQShape.LowCut, // type: 2
+          Slope: GenericEQSlope.Slope24dB_oct, // type: 3
           StereoPlacement: GenericEQStereoPlacement.Side, // editChannel: 4
           DynamicRange: undefined,
           DynamicThreshold: undefined,
