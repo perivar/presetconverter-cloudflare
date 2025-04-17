@@ -422,7 +422,7 @@ export class FabfilterProQ3 extends FabfilterProQBase {
       try {
         const header = bf.binaryReader.readString(4);
         if (header !== "FQ3p") {
-          console.error(`Invalid FFP header. Expected 'FQ3p', got '${header}'`);
+          console.debug(`Invalid FFP header. Expected 'FQ3p', got '${header}'`);
           return false;
         }
       } catch (e) {

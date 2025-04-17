@@ -563,16 +563,14 @@ export class FabfilterProQ2 extends FabfilterProQBase {
   }
 
   public readFFP(data: Uint8Array, doReadHeader = true): boolean {
-    // Removed duplicate bf declaration here
     const bf = new BinaryFile(data, ByteOrder.LittleEndian);
     if (!bf.binaryReader) return false;
 
     if (doReadHeader) {
       try {
         const header = bf.binaryReader.readString(4);
-        // ProQ2 uses 'FQ2p' in its FFP header
         if (header !== "FQ2p") {
-          console.error(`Invalid FFP header. Expected 'FQ2p', got '${header}'`);
+          console.debug(`Invalid FFP header. Expected 'FQ2p', got '${header}'`);
           return false;
         }
       } catch (e) {
@@ -581,11 +579,9 @@ export class FabfilterProQ2 extends FabfilterProQBase {
       }
     }
 
-    // Call the internal reading function
     return this.readFFPInternal(bf);
   }
 
-  // Added back writeFFP method
   public writeFFP(): Uint8Array | undefined {
     const bf = new BinaryFile(undefined, ByteOrder.LittleEndian);
     if (!bf.binaryWriter) return undefined;

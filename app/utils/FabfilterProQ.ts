@@ -461,7 +461,7 @@ export class FabfilterProQ extends FabfilterProQBase {
       try {
         const header = bf.binaryReader.readString(4);
         if (header !== "FPQr") {
-          console.error(`Invalid FFP header. Expected 'FPQr', got '${header}'`);
+          console.debug(`Invalid FFP header. Expected 'FPQr', got '${header}'`);
           return false;
         }
       } catch (e) {
