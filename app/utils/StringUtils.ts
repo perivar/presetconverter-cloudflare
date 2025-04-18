@@ -75,3 +75,75 @@ export function toHexEditorString(
     return "Byte Data: null";
   }
 }
+
+/**
+ * Replaces characters invalid in filenames with a replacement character.
+ * Invalid characters: / \ : * ? " < > |
+ * @param name The original filename.
+ * @param replacement The character to replace invalid characters with (default: '_').
+ * @returns A sanitized filename string.
+ */
+export function makeValidFileName(name: string, replacement = "_"): string {
+  if (!name) return "";
+
+  const illegalRe = /[\/\?<>\\:\*\|"]/g;
+
+  const controlRe = /[\x00-\x1f\x80-\x9f]/g;
+  const reservedRe = /^\.+$/;
+  const windowsReservedRe = /^(con|prn|aux|nul|com[0-9]|lpt[0-9])(\..*)?$/i;
+  // const windowsTrailingRe = /[\. ]+$/; // Often handled by OS/filesystem
+
+  let sanitized = name
+    .replace(illegalRe, replacement)
+    .replace(controlRe, replacement)
+    .replace(reservedRe, replacement);
+  // .replace(windowsTrailingRe, replacement); // Optional: remove trailing dots/spaces
+
+  // Check for reserved Windows filenames
+  if (windowsReservedRe.test(sanitized)) {
+    sanitized = replacement + sanitized; // Prepend replacement char
+  }
+
+  // Limit length? (Optional)
+  // const MAX_FILENAME_LENGTH = 255;
+  // if (sanitized.length > MAX_FILENAME_LENGTH) {
+  //   sanitized = sanitized.substring(0, MAX_FILENAME_LENGTH);
+  // }
+
+  return sanitized;
+}
+
+/**
+ * Converts a string into a valid JavaScript identifier.
+ * Replaces invalid characters with underscores. Ensures it doesn't start with a number.
+ * @param str The input string.
+ * @returns A valid JavaScript identifier string.
+ */
+export function makeValidIdentifier(str: string): string {
+  if (!str) return "_"; // Return underscore for empty/null/undefined
+
+  let identifier = str.replace(/[^a-zA-Z0-9_$]/g, "_");
+
+  // Ensure it doesn't start with a number
+  if (/^[0-9]/.test(identifier)) {
+    identifier = "_" + identifier;
+  }
+
+  // Handle potential empty string after replacement (e.g., if input was just '---')
+  if (!identifier) {
+    return "_";
+  }
+
+  return identifier;
+}
+
+/**
+ * Extracts the substring before the first space.
+ * @param str The input string.
+ * @returns The substring before the first space, or the original string if no space is found.
+ */
+export function extractBeforeSpace(str: string): string {
+  if (!str) return "";
+  const spaceIndex = str.indexOf(" ");
+  return spaceIndex === -1 ? str : str.substring(0, spaceIndex);
+}

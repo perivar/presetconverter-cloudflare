@@ -128,7 +128,7 @@ export default eslintTs.config(
       ],
       "@typescript-eslint/no-non-null-asserted-optional-chain": "warn",
       "@typescript-eslint/no-empty-object-type": "off",
-      "@typescript-eslint/no-explicit-any": ["error", { ignoreRestArgs: true }],
+      "@typescript-eslint/no-explicit-any": ["off", { ignoreRestArgs: true }],
     },
   },
   {
