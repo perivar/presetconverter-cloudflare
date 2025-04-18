@@ -23,6 +23,11 @@ const Log = {
   Warning: (...args: any[]) => console.warn("[AbletonMidi]", ...args),
 };
 
+export interface AutomationEvent {
+  position: number; // tick
+  value: number; // scaled MIDI value 0-127
+}
+
 export class MidiChannelManager {
   private unusedChannel: number;
 
@@ -61,6 +66,11 @@ export class MidiChannelManager {
 /** Scales a value from an input range to 0-127 */
 function scaleValue(value: number, minValue: number, maxValue: number): number {
   if (maxValue === minValue) {
+    // Handle division by zero or constant value case
+    // If value is at or above max, return 127, otherwise 0.
+    // Or, if min/max are equal, maybe just return a fixed value like 64?
+    // C# code doesn't explicitly handle this, but division by zero would error.
+    // Let's return 127 if value >= max, else 0, similar to bool scaling.
     return value >= maxValue ? 127 : 0;
   }
   const scaled = ((value - minValue) / (maxValue - minValue)) * 127;
@@ -319,112 +329,92 @@ export function convertToMidi(
   return midiData;
 }
 
+function clampValue(currentEvent: AutomationEvent) {
+  // make sure currentEvent value is clamped to 0-127
+  const curClampedValue = Math.max(0, Math.min(127, currentEvent.value)); // Ensure value stays 0-127
+  currentEvent.value = curClampedValue;
+  return currentEvent;
+}
+
+/**
+ * Interpolates automation events linearly, similar to the C# implementation.
+ * Ensures unique positions and keeps the last value for each position.
+ * @param events An array of AutomationEvent objects, sorted by position (tick), with values already scaled (0-127).
+ * @returns A new array of interpolated AutomationEvent objects, sorted by position.
+ */
+export function interpolateEvents(
+  events: AutomationEvent[]
+): AutomationEvent[] {
+  if (events.length < 2) {
+    return [...events]; // Return a copy if not enough points to interpolate
+  }
+
+  // Use Map directly to store the latest value for each position (tick)
+  const interpolatedEventsMap = new Map<number, AutomationEvent>();
+
+  for (let i = 0; i < events.length - 1; i++) {
+    const currentEvent = events[i];
+    const nextEvent = events[i + 1];
+
+    // Add the starting event of the pair, ensuring it's the latest for its position
+    interpolatedEventsMap.set(currentEvent.position, clampValue(currentEvent));
+
+    // Check if interpolation is needed (different values and different positions)
+    if (
+      currentEvent.value !== nextEvent.value &&
+      currentEvent.position !== nextEvent.position
+    ) {
+      const valueDiff = nextEvent.value - currentEvent.value;
+      const posDiff = nextEvent.position - currentEvent.position; // Should always be > 0 if sorted
+
+      // Determine number of steps: interpolate for each tick difference
+      // Ensure posDiff is positive before calculating steps
+      const numSteps = posDiff > 0 ? Math.max(Math.floor(posDiff), 1) : 1;
+
+      const valueStep = valueDiff / numSteps;
+      const positionStep = posDiff / numSteps;
+
+      // Interpolate points between currentEvent and nextEvent
+      for (let step = 1; step < numSteps; step++) {
+        // Iterate *between* points
+        const interpPos = Math.round(
+          currentEvent.position + step * positionStep
+        );
+
+        // Avoid adding points exactly at the next event's position during interpolation loop
+        if (interpPos >= nextEvent.position) continue;
+
+        const interpValue = Math.round(currentEvent.value + step * valueStep);
+        const clampedValue = Math.max(0, Math.min(127, interpValue)); // Ensure value stays 0-127
+
+        const newEvent: AutomationEvent = {
+          position: interpPos,
+          value: clampedValue,
+        };
+
+        // Add to map, overwriting previous value for the same position if any
+        interpolatedEventsMap.set(newEvent.position, newEvent);
+      }
+    }
+    // The nextEvent will be added as currentEvent in the next iteration,
+    // or handled by the final step below if it's the last event.
+  }
+
+  // Ensure the very last event is always included and is the latest for its position
+  const finalEvent = events[events.length - 1];
+  interpolatedEventsMap.set(finalEvent.position, clampValue(finalEvent));
+
+  // Retrieve values sorted by position (tick)
+  return Array.from(interpolatedEventsMap.values()).sort(
+    (a, b) => a.position - b.position
+  );
+}
+
 /**
  * Converts automation data from the common project format (cvpj) into MIDI data structures.
  * Uses the 'midi-file' library format.
  * @returns An array of MidiData objects or null.
  */
-export function interpolateAutomationPoints(
-  placementPos: number,
-  points: any[],
-  paramType: string,
-  globalMinValue: number,
-  globalMaxValue: number,
-  midiChannel: number,
-  controlNumber: number
-): { tick: number; event: MidiEvent }[] {
-  const timedEvents: { tick: number; event: MidiEvent }[] = [];
-
-  for (let i = 0; i < points.length - 1; i++) {
-    const startPoint = points[i];
-    const endPoint = points[i + 1];
-    const startPos = startPoint.position ?? 0;
-    const endPos = endPoint.position ?? 0;
-    const startValue = startPoint.value ?? 0;
-    const endValue = endPoint.value ?? 0;
-
-    const startTick = Math.round(
-      (placementPos + startPos) * ABLETON_TICK_MULTIPLIER
-    );
-    const endTick = Math.round(
-      (placementPos + endPos) * ABLETON_TICK_MULTIPLIER
-    );
-
-    let scaledStartValue: number;
-    if (paramType === "bool") {
-      scaledStartValue = startValue >= 0.5 ? 127 : 0;
-    } else {
-      scaledStartValue = scaleValue(startValue, globalMinValue, globalMaxValue);
-    }
-    timedEvents.push({
-      tick: startTick,
-      event: {
-        type: "controller",
-        channel: midiChannel,
-        controllerType: controlNumber,
-        value: scaledStartValue,
-        deltaTime: 0,
-      } as MidiControllerEvent,
-    });
-
-    const steps = endTick - startTick;
-    if (steps > 1) {
-      for (let step = 1; step < steps; step++) {
-        const interpTick = startTick + step;
-        const interpValue =
-          startValue + ((endValue - startValue) * step) / steps;
-        let scaledInterpValue: number;
-        if (paramType === "bool") {
-          scaledInterpValue = interpValue >= 0.5 ? 127 : 0;
-        } else {
-          scaledInterpValue = scaleValue(
-            interpValue,
-            globalMinValue,
-            globalMaxValue
-          );
-        }
-        timedEvents.push({
-          tick: interpTick,
-          event: {
-            type: "controller",
-            channel: midiChannel,
-            controllerType: controlNumber,
-            value: scaledInterpValue,
-            deltaTime: 0,
-          } as MidiControllerEvent,
-        });
-      }
-    }
-  }
-
-  if (points.length > 0) {
-    const lastPoint = points[points.length - 1];
-    const lastPos = lastPoint.position ?? 0;
-    const lastValue = lastPoint.value ?? 0;
-    const lastTick = Math.round(
-      (placementPos + lastPos) * ABLETON_TICK_MULTIPLIER
-    );
-    let scaledLastValue: number;
-    if (paramType === "bool") {
-      scaledLastValue = lastValue >= 0.5 ? 127 : 0;
-    } else {
-      scaledLastValue = scaleValue(lastValue, globalMinValue, globalMaxValue);
-    }
-    timedEvents.push({
-      tick: lastTick,
-      event: {
-        type: "controller",
-        channel: midiChannel,
-        controllerType: controlNumber,
-        value: scaledLastValue,
-        deltaTime: 0,
-      } as MidiControllerEvent,
-    });
-  }
-
-  return timedEvents;
-}
-
 export function convertAutomationToMidi(
   cvpj: any,
   fileName: string,
@@ -539,37 +529,71 @@ export function convertAutomationToMidi(
           }
 
           const controlNumber = 11; // CC 11 for Expression
-          let timedEvents: { tick: number; event: MidiEvent }[] = [];
+          let allPlacementEvents: AutomationEvent[] = [];
 
           for (const placement of placements) {
             const placementPos = placement.position ?? 0;
             const points = placement.points ?? [];
 
-            // Use helper function to interpolate points
-            const interpolatedEvents = interpolateAutomationPoints(
-              placementPos,
-              points,
-              paramType,
-              globalMinValue,
-              globalMaxValue,
-              midiChannel,
-              controlNumber
+            if (points.length === 0) continue;
+
+            // 1. Prepare AutomationEvent[] for interpolation
+            const initialEvents: AutomationEvent[] = points.map(
+              (point: any) => {
+                const pointPos = point.position ?? 0;
+                const pointValue = point.value ?? 0;
+                const tick = Math.round(
+                  (placementPos + pointPos) * ABLETON_TICK_MULTIPLIER
+                );
+                let scaledValue: number;
+                if (paramType === "bool") {
+                  scaledValue = pointValue >= 0.5 ? 127 : 0;
+                } else {
+                  scaledValue = scaleValue(
+                    pointValue,
+                    globalMinValue,
+                    globalMaxValue
+                  );
+                }
+                return { position: tick, value: scaledValue };
+              }
             );
-            timedEvents = timedEvents.concat(interpolatedEvents);
+
+            // Ensure initialEvents are sorted by position before interpolating
+            initialEvents.sort((a, b) => a.position - b.position);
+
+            // 2. Interpolate the events for this placement
+            const interpolatedPlacementEvents =
+              interpolateEvents(initialEvents);
+
+            // 3. Add the results to the list for the entire parameter track
+            allPlacementEvents = allPlacementEvents.concat(
+              interpolatedPlacementEvents
+            );
           }
 
           // Sort events by absolute tick time
-          timedEvents.sort((a, b) => a.tick - b.tick);
+          // Use a Map to ensure unique ticks and keep the last value for duplicates, then sort.
+          const uniqueTickEvents = new Map<number, AutomationEvent>();
+          allPlacementEvents.forEach(event => {
+            uniqueTickEvents.set(event.position, event);
+          });
+          const sortedUniqueEvents = Array.from(uniqueTickEvents.values()).sort(
+            (a, b) => a.position - b.position
+          );
 
           // Calculate delta times and add to track
           let lastTick = 0;
-          for (const timedEvent of timedEvents) {
-            const deltaTime = timedEvent.tick - lastTick;
+          for (const automationEvent of sortedUniqueEvents) {
+            const deltaTime = automationEvent.position - lastTick;
             currentTrackEvents.push({
-              ...timedEvent.event,
+              type: "controller",
+              channel: midiChannel,
+              controllerType: controlNumber,
+              value: automationEvent.value,
               deltaTime: deltaTime,
-            });
-            lastTick = timedEvent.tick;
+            } as MidiControllerEvent);
+            lastTick = automationEvent.position;
           }
 
           currentTrackEvents.push({
