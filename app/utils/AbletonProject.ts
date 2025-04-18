@@ -136,6 +136,9 @@ export class AbletonProject {
       const manualValue = this.getValue(xElement, "Manual", fallback);
 
       // Automation target ID extraction (present in C# but commented out / simplified)
+      // int autoNumId = int.Parse(GetId(xElement, "AutomationTarget", null) ?? "0");
+      // Changed the original automation lookup code
+      // so InDefine is no longer used
       // const autoNumIdStr = this.getId(xElement, "AutomationTarget", "0");
       // const autoNumId = parseInt(autoNumIdStr, 10);
       // if (!isNaN(autoNumId) && autoNumId !== 0) {
@@ -155,11 +158,13 @@ export class AbletonProject {
     // auto_id.py: def in_add_pl(i_id, i_autopl):
     if (!this.inData.has(id)) {
       // Initialize with an empty list if ID doesn't exist
-      // C# comment: no longer using the original code where the inData object is used for full automation lookup
-      // C# comment: using a separate lookup instead: automationTargetLookup
+      // no longer using the original code where the inData object is used for full automation lookup
+      // using a separate lookup instead: automationTargetLookup
+      // inData[id] = new List<dynamic?> { null, null, null, new List<dynamic>() }; // Original C# init before simplification
       this.inData.set(id, []);
     }
-    // C# comment: inData[id][3].Add(autoPl); (Original Python logic)
+    // inData[id][3].Add(autoPl); (Original Python logic)
+    // inData[id].Add(autoPointList); // C# simplified logic
     const currentList = this.inData.get(id);
     // Ensure it's an array before pushing
     if (Array.isArray(currentList)) {
@@ -197,19 +202,34 @@ export class AbletonProject {
 
   /** Processes the collected automation data and adds it to the cvpj structure using the lookup table */
   private static inOutput(cvpj: any): void {
+    // ------------------------ autoid to cvpjauto ------------------------
     for (const [id, outAutoData] of this.inData.entries()) {
-      // C# comment: var outAutoData = inData[id]; (Simplified from original C# which had more elements)
+      // no longer using the original code where the inData object is used for full automation lookup
+      // using a separate lookup instead: automationTargetLookup
+      // var outAutoLoc = inData[id][0];
+      // var outAutoType = inData[id][1];
+      // var outAutoAddMul = inData[id][2];
+      // var outAutoData = inData[id][3];
+      // if ((inData[id][0] != null || inData[id][1] != null || inData[id][2] != null) && outAutoData.Count > 0)
+      // {
+      //     if (outAutoAddMul != null)
+      //     {
+      //         outAutoData = AbletonFunctions.Multiply(outAutoData, outAutoAddMul[0], outAutoAddMul[1]);
+      //     }
+      //     AddPointList(cvpj, outAutoType, outAutoLoc, outAutoData);
+      // }
+      // var outAutoData = inData[id]; // Simplified C# logic
       if (outAutoData.length > 0) {
-        // C# comment: lookup the target
+        // lookup the target
         const autoTarget = this.automationTargetLookup.get(id);
         if (autoTarget) {
-          // C# comment: string trackId = autoTarget.trackid; (Not directly used here)
+          // string trackId = autoTarget.trackid; (Not directly used here)
           const trackName = autoTarget.trackname ?? "UnknownTrack";
           const fxLoc = autoTarget.loc ?? []; // e.g., ["master", "master_1"] or ["track", "midi_123"]
-          // C# comment: string[] fxLocDetails = autoTarget.details; (Not directly used here)
+          // string[] fxLocDetails = autoTarget.details; (Not directly used here)
           const path = autoTarget.path ?? "UnknownPath"; // e.g., "Volume_Manual" or "PluginDevice_Param_12345"
 
-          // C# comment: AddPointList(cvpj, "float", fxLoc.Concat(new[] { trackName, path }).ToArray(), outAutoData);
+          // AddPointList(cvpj, "float", fxLoc.Concat(new[] { trackName, path }).ToArray(), outAutoData);
           this.addPointList(
             cvpj,
             "float", // Assuming float type based on C# example
@@ -217,7 +237,7 @@ export class AbletonProject {
             outAutoData
           );
         } else {
-          // C# comment: ignore
+          // ignore
           Log.Debug(`Automation target ID ${id} not found in lookup.`);
         }
       }
@@ -232,6 +252,8 @@ export class AbletonProject {
     doList: boolean, // Not used in this simplified version
     doVerbose: boolean // Controls verbose logging
   ): any | null {
+    // all credits go to SatyrDiamond and the DawVert code
+    // https://raw.githubusercontent.com/SatyrDiamond/DawVert/main/plugin_input/r_ableton.py
     Log.Information(`Starting Ableton Live content processing for: ${file}`);
     // Clear static maps for fresh processing
     this.inData.clear();
@@ -285,7 +307,7 @@ export class AbletonProject {
       return null;
     }
 
-    // Color list setup (matches C#)
+    // initialize the color lists
     const colorlist = [
       "FF94A6",
       "FFA529",
@@ -362,7 +384,10 @@ export class AbletonProject {
       AbletonFunctions.hexToRgbDouble(hex)
     );
 
-    // Initialize the converted project structure (cvpj)
+    // *****************
+    // start reading
+    // *****************
+    // store in common daw project format (converted project)
     const cvpj: any = {
       track_master: {},
       parameters: {},
@@ -479,6 +504,7 @@ export class AbletonProject {
       });
     }
 
+    // Read Tracks
     if (doVerbose) Log.Debug(`Found ${trackElements.length} Tracks ...`);
 
     for (const xTrackData of trackElements) {
@@ -972,12 +998,17 @@ export class AbletonProject {
 
     // --- Final Steps ---
     this.inOutput(cvpj); // Process collected automation data
+    // fix output
     this.compat(cvpj); // Apply compatibility fixes (loop/cut removal)
 
     // C# Port Notes:
-    Log.Information("MIDI conversion skipped in this port."); // C# calls ConvertToMidi
-    Log.Information("Automation MIDI conversion skipped in this port."); // C# calls ConvertAutomationToMidi
-    Log.Information("Audio clip collection skipped in this port."); // C# calls CollectAndCopyAudioClips
+    // ConvertToMidi(cvpj, file, outputDirectoryPath, doVerbose);
+    Log.Information("MIDI conversion skipped in this port.");
+    // ConvertAutomationToMidi(cvpj, file, outputDirectoryPath, doVerbose);
+    Log.Information("Automation MIDI conversion skipped in this port.");
+    // collect found audio clips into a AudioClips folder
+    // CollectAndCopyAudioClips(uniqueAudioClipList.ToList(), folderName ?? "", Path.Combine(outputDirectoryPath, "AudioClips"));
+    Log.Information("Audio clip collection skipped in this port.");
     if (doVerbose)
       Log.Debug("Found unique audio clips:", Array.from(uniqueAudioClipList));
 
@@ -1079,6 +1110,7 @@ export class AbletonProject {
     fxLoc: string[], // Location identifier (e.g., ["track", "midi_123"])
     fxLocDetails: string[] // Device type and ID (e.g., ["Eq8", "5"])
   ): void {
+    // add all AutomationTargets
     // Recursive function to find AutomationTarget elements and their paths
     const findAutomationTargets = (
       element: any,
@@ -1137,6 +1169,9 @@ export class AbletonProject {
       // C# uses XPath, TS uses the collected path array
       const pathSegments = targetInfo.path;
 
+      // Get path elements
+      // "Ableton/LiveSet/Tracks/GroupTrack/DeviceChain/DeviceChain/Devices/AudioEffectGroupDevice/Branches/AudioEffectBranch/DeviceChain/AudioToAudioDeviceChain/Devices/AutoFilter/Cutoff/AutomationTarget"
+      // "Ableton/LiveSet/Tracks/GroupTrack/DeviceChain/DeviceChain/Devices/AudioEffectGroupDevice/Branches/AudioEffectBranch/DeviceChain/AudioToAudioDeviceChain/Devices/PluginDevice/ParameterList/PluginFloatParameter/ParameterValue/AutomationTarget"
       // Example path: [ 'Volume', 'Manual', 'AutomationTarget' ]
       // Example path: [ 'ParameterList', 'PluginFloatParameter', 'ParameterValue', 'AutomationTarget' ]
 
@@ -1162,6 +1197,7 @@ export class AbletonProject {
 
       // Special handling for PluginDevice based on C# logic
       if (fxLocDetails[0] === "PluginDevice") {
+        // lookup VST Plugin Name using the path
         const pluginDesc = xDevice?.PluginDesc;
         const vstPluginInfo = pluginDesc?.VstPluginInfo;
         const vstPlugName = vstPluginInfo
@@ -1170,6 +1206,11 @@ export class AbletonProject {
 
         if (vstPlugName) {
           // Use VST name and parameter name/ID for uniqueness
+          // remove PluginDevice/
+          // pathFixed = pathFixed.Replace("PluginDevice", "");
+          // and add back the path suffix
+          // pathFixed = $"{vstPlugName}{pathFixed}";
+          // pathFixed = vstPlugName; // Simplified C# logic
           parameterPath = `${vstPlugName}_${parameterPath}`;
         } else {
           parameterPath = `PluginDevice_${parameterPath}`;
@@ -1179,6 +1220,7 @@ export class AbletonProject {
         parameterPath = `${fxLocDetails[0]}_${parameterPath}`;
       }
 
+      // add
       // Create the target object to store in the lookup map
       const autoTarget = {
         trackid: trackId,
@@ -1217,6 +1259,7 @@ export class AbletonProject {
     // as well as <PluginDevice Id="X"> elements
     // or * can be a whole new group of effects AudioEffectGroupDevice
     // ../AudioEffectGroupDevice/Branches/AudioEffectBranch/DeviceChain/AudioToAudioDeviceChain/Devices/*
+    // where * is plugins as well as another AudioEffectGroupDevice with same recursive behaviour
 
     // Ensure devices is an array for iteration
     let devices: any[] = [];
@@ -1242,6 +1285,7 @@ export class AbletonProject {
       ? file.substring(0, file.lastIndexOf("."))
       : file;
 
+    // Read Tracks (Devices in this context)
     if (doVerbose)
       Log.Debug(
         `Found ${devices.length} device elements for track: ${trackName ?? "Master"} ${trackId ?? ""} ${level > 1 ? `[Group Level ${level}]` : ""}`
@@ -1276,13 +1320,14 @@ export class AbletonProject {
 
       internalDeviceCount++;
       const deviceId = this.getAttr(deviceElement, "Id", "0");
+      // this is set in .adv preset files
       const userName = this.getValue(
         deviceElement.UserName,
         "EffectiveName",
         ""
       ); // Get UserName if present
 
-      // Check if device is On
+      // check if it's on
       const onElement = deviceElement?.On;
       // Default to true if 'On' element is missing? Ableton default is On. C# defaults to false. Let's default to true.
       const isOn = onElement
@@ -1316,10 +1361,11 @@ export class AbletonProject {
       // This TS version is simplified compared to C#, only handling a few types explicitly.
       switch (deviceType) {
         case "FilterEQ3": {
+          // read EQ
           const eq3 = new AbletonEq3(deviceElement);
           const outputFileNameBase = `${fileNameNoExtension} - ${trackName ?? "Master"} - (${level}-${internalDeviceCount}) - ${deviceType}`;
           if (eq3.hasBeenModified()) {
-            // TODO: Implement preset saving/conversion if needed
+            // TODO: convert to Fabfilter Pro Q3 as well
             Log.Information(
               `Processing modified ${deviceType} Preset: ${outputFileNameBase}`
             );
@@ -1332,10 +1378,13 @@ export class AbletonProject {
           break;
         }
         case "Eq8": {
+          // read EQ
           const eq8 = new AbletonEq8(deviceElement);
           const outputFileNameBase = `${fileNameNoExtension} - ${trackName ?? "Master"} - (${level}-${internalDeviceCount}) - ${deviceType}`;
           if (eq8.hasBeenModified()) {
-            // TODO: Implement preset saving/conversion if needed
+            // Convert EQ8 to Steinberg Frequency
+            // convert to Fabfilter Pro Q3 as well
+            // debug
             Log.Information(
               `Processing modified ${deviceType} Preset: ${outputFileNameBase}`
             );
@@ -1349,7 +1398,39 @@ export class AbletonProject {
           }
           break;
         }
+        case "Compressor2": {
+          // Convert Compressor2 to Steinberg Compressor
+          Log.Information(
+            `Placeholder for Compressor2 processing: ${userName || deviceType}`
+          );
+          // TODO: Implement Compressor2 parsing and conversion
+          break;
+        }
+        case "GlueCompressor": {
+          // Convert Glue compressor to Waves SSL Compressor
+          Log.Information(
+            `Placeholder for GlueCompressor processing: ${userName || deviceType}`
+          );
+          // TODO: Implement GlueCompressor parsing and conversion
+          break;
+        }
+        case "Limiter": {
+          Log.Information(
+            `Placeholder for Limiter processing: ${userName || deviceType}`
+          );
+          // TODO: Implement Limiter parsing and conversion
+          break;
+        }
+        case "AutoPan": {
+          Log.Information(
+            `Placeholder for AutoPan processing: ${userName || deviceType}`
+          );
+          // TODO: Implement AutoPan parsing and conversion
+          break;
+        }
         case "PluginDevice": {
+          // Handle Plugin Presets
+          // Path: PluginDevice/PluginDesc/VstPluginInfo/Preset/VstPreset
           const xPluginDesc = deviceElement?.PluginDesc;
           const xVstPluginInfo = xPluginDesc?.VstPluginInfo;
           const vstPlugName = xVstPluginInfo
@@ -1366,16 +1447,20 @@ export class AbletonProject {
               `Found VST Plugin: '${vstPlugName}' (Preset ID: ${vstPresetId})`
             );
 
-          // Get VST preset buffer data (hex string)
+          // read the byte data buffer
           const xVstPluginBuffer = xVstPreset?.Buffer;
           // fast-xml-parser puts text content in "#text"
           const vstPluginBufferHex = xVstPluginBuffer
             ? (xVstPluginBuffer["#text"] ?? "")
             : "";
 
+          // check if this is a zlib file
+          // Serum presets are zlib compressed, but don't deflate
+          // if (vstPluginBufferBytes[0] == 0x78 && vstPluginBufferBytes[1] == 0x01) ...
+
           // TODO: Implement VST preset saving/conversion (e.g., to FXP) if needed
           // This requires converting the hex string to bytes, similar to C#'s XmlHelpers.GetInnerValueAsByteArray
-          // and then using an FXP library or logic.
+          // and then using an FXP library or logic (like C#'s SaveAsFXP).
 
           if (vstPluginBufferHex.length > 0) {
             const outputFileNameBase = `${fileNameNoExtension} - ${trackName ?? "Master"} - (${level}-${internalDeviceCount}) - ${makeValidFileName(vstPlugName)}`;
@@ -1392,6 +1477,7 @@ export class AbletonProject {
           break;
         }
         case "AudioEffectGroupDevice": {
+          // recursively handle group of plugins
           if (doVerbose)
             Log.Debug(`Entering AudioEffectGroupDevice Level ${level + 1}`);
           // Find nested devices within branches
@@ -1433,11 +1519,34 @@ export class AbletonProject {
             Log.Debug(`Exiting AudioEffectGroupDevice Level ${level + 1}`);
           break;
         }
+        case "MidiPitcher": {
+          // read <Pitch><Manual Value="0" />
+          Log.Information(
+            `Placeholder for MidiPitcher processing: ${userName || deviceType}`
+          );
+          // TODO: Implement MidiPitcher parsing
+          break;
+        }
+        // Placeholders for devices handled in C# default case
+        case "MultibandDynamics":
+        case "AutoFilter":
+        case "Reverb":
+        case "Saturator":
+        case "Tuner":
+        case "StereoGain": {
+          Log.Information(
+            `Placeholder for ${deviceType} processing: ${userName || deviceType}`
+          );
+          // TODO: Implement parsing for these specific device types if needed
+          break;
+        }
+        // C# Handles these in default: MultibandDynamics, AutoFilter, Reverb, Saturator, Tuner, StereoGain
         default: {
           // Handle other device types generically
           const outputFileNameBase = `${fileNameNoExtension} - ${trackName ?? "Master"} - (${level}-${internalDeviceCount}) - ${deviceType}`;
           if (userName) {
-            // C# comment: we are likely processing an .adv preset file
+            // we are likely processing an .adv preset file
+            // TODO: This is not always a correct assumption!
             // C# tries to extract VST bytes from RawData here, skipped in TS
             Log.Information(
               `Processing Device/Preset (from UserName): ${userName} (${deviceType}) - Generic handling. Path: ${outputFileNameBase}`
@@ -1457,6 +1566,9 @@ export class AbletonProject {
 
   /** Applies compatibility fixes, like removing loop/cut data after processing */
   private static compat(cvpj: any): void {
+    // this does the song_compat from DawVert
+    // all credits go to SatyrDiamond and the DawVert code
+    // https://github.com/SatyrDiamond/DawVert
     // song_compat.py: def makecompat(cvpj_l, cvpj_type):
     Log.Debug("[compat] Applying compatibility processing...");
 
@@ -1489,7 +1601,7 @@ export class AbletonProject {
 } // End AbletonProject Class
 
 // =============================================================================
-// Helper Classes (Ported/Adapted from C#)
+// Helper Classes (Ported/Adapted from C#, which is again based on Python)
 // =============================================================================
 
 class AbletonFunctions {
@@ -1519,6 +1631,7 @@ class AbletonFunctions {
    * @returns Object { position: number, duration: number, points: any[] }
    */
   static toPointList(list: any[]): any {
+    // auto_nopl.py: def to_pl(pointsdata):
     if (!list || list.length === 0) {
       // Handle empty list case
       return { position: 0, duration: 4, points: [] }; // Default duration 4?
@@ -1546,11 +1659,12 @@ class AbletonFunctions {
 
   /**
    * Finds the minimum and maximum position within a list of points.
-   * Based on C# GetDurPos.
+   * Based on C# GetDurPos which implements Python's auto.py
    * @param list Array of points, each with { position: number }
    * @returns Object { startPos: number, endPos: number }
    */
   static getDurPos(list: any[]): { startPos: number; endPos: number } {
+    // auto.py
     if (!list || list.length === 0) {
       return { startPos: 0, endPos: 0 };
     }
@@ -1571,7 +1685,7 @@ class AbletonFunctions {
 
   /**
    * Trims points outside a specified range and moves remaining points relative to a start offset.
-   * Based on C# TrimMove.
+   * Based on C# TrimMove which implements Python's notelist_data.py and auto.py.
    * @param list Array of points { position: number, ... }
    * @param startAt Offset to subtract from positions.
    * @param endAt Position value (exclusive) to trim points after.
@@ -1582,6 +1696,7 @@ class AbletonFunctions {
     startAt: number | null | undefined,
     endAt: number | null | undefined
   ): any[] {
+    // notelist_data.py and auto.py
     let newList = [...list]; // Create a copy
 
     // 1. Trim points that are at or after endAt
@@ -1599,24 +1714,26 @@ class AbletonFunctions {
 
   /**
    * Filters a list of points, keeping only those before a specified position.
-   * Based on C# Trim.
+   * Based on C# Trim which implements Python's notelist_data.py and auto.py.
    * @param list Array of points { position: number, ... }
    * @param pos The position (exclusive) to trim after.
    * @returns New array with points before pos.
    */
   static trim(list: any[], pos: number): any[] {
+    // notelist_data.py and auto.py
     // Keep elements where element.position is strictly less than pos
     return list.filter(element => element.position < pos);
   }
 
   /**
    * Moves all points in a list by a given offset, removing points that end up before position 0.
-   * Based on C# Move.
+   * Based on C# Move which implements Python's notelist_data.py and auto.py.
    * @param list Array of points { position: number, ... }
    * @param posOffset The amount to add to each position.
    * @returns New array with moved points (position >= 0).
    */
   static move(list: any[], posOffset: number): any[] {
+    // notelist_data.py and auto.py
     return list
       .map(element => ({
         ...element, // Copy existing properties
@@ -1636,6 +1753,7 @@ class AbletonFunctions {
     notePlacements: any[],
     outPlacementLoop: Set<string> // C# parameter, seems unused in logic
   ): any[] {
+    // loops_remove.py
     const newPlacements: any[] = [];
 
     for (const notePlacement of notePlacements) {
@@ -1698,6 +1816,7 @@ class AbletonFunctions {
    * @param notePlacements Array of note placement objects.
    */
   static removeCutDoPlacements(notePlacements: any[]): void {
+    // removecut.py
     for (const notePlacement of notePlacements) {
       // Check for 'cut' data of type 'cut'
       if (notePlacement.cut && notePlacement.cut.type === "cut") {
@@ -1729,6 +1848,7 @@ class AbletonFunctions {
    * @returns Object representing the loop type and parameters.
    */
   static cutLoopData(start: number, loopStart: number, loopEnd: number): any {
+    // placement_data.py
     // Determine loop type based on parameters
     if (start === 0 && loopStart === 0) {
       // Simple loop from the beginning
