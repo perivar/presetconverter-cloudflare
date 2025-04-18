@@ -1,5 +1,6 @@
 import { XMLParser, XMLValidator } from "fast-xml-parser";
 
+import { convertAutomationToMidi, convertToMidi } from "./ableton/midi"; // Import MIDI functions
 import { AbletonEq3 } from "./AbletonEq3";
 import { AbletonEq8 } from "./AbletonEq8";
 import { makeValidFileName, makeValidIdentifier } from "./StringUtils";
@@ -11,44 +12,6 @@ const Log = {
   Error: (...args: any[]) => console.error("[AbletonProject]", ...args),
   Warning: (...args: any[]) => console.warn("[AbletonProject]", ...args),
 };
-
-export class MidiChannelManager {
-  private unusedChannel: number;
-
-  constructor(firstChannel?: number) {
-    if (firstChannel === undefined) {
-      this.unusedChannel = 0;
-    } else {
-      if (firstChannel >= 1) {
-        this.unusedChannel = firstChannel - 1; // midi channels are zero indexed
-      } else {
-        throw new Error("First channel must be 1 or more");
-      }
-    }
-  }
-
-  /**
-   * Gets the next unused MIDI channel (0-15), skipping channel 9 (index 10).
-   * Based on C# implementation.
-   */
-  public getUnusedChannel(): number {
-    this.unusedChannel++; // Increment first
-    if (this.unusedChannel === 9) {
-      // Check for drum channel (index 9 is channel 10)
-      this.unusedChannel++;
-    }
-    if (this.unusedChannel > 15) {
-      // Wrap around if > 15
-      this.unusedChannel = 0;
-    }
-    // Need to check for drum channel again after wrap-around or initial increment
-    if (this.unusedChannel === 9) {
-      this.unusedChannel++;
-      // No need to check wrap around again here as 10 <= 15
-    }
-    return this.unusedChannel; // Return the zero-indexed channel
-  }
-}
 
 export class AbletonProject {
   // Use Map for easier key-value access compared to C#'s SortedDictionary
@@ -1001,13 +964,30 @@ export class AbletonProject {
     // fix output
     this.compat(cvpj); // Apply compatibility fixes (loop/cut removal)
 
-    // C# Port Notes:
-    // ConvertToMidi(cvpj, file, outputDirectoryPath, doVerbose);
-    Log.Information("MIDI conversion skipped in this port.");
-    // ConvertAutomationToMidi(cvpj, file, outputDirectoryPath, doVerbose);
-    Log.Information("Automation MIDI conversion skipped in this port.");
-    // collect found audio clips into a AudioClips folder
-    // CollectAndCopyAudioClips(uniqueAudioClipList.ToList(), folderName ?? "", Path.Combine(outputDirectoryPath, "AudioClips"));
+    // --- MIDI Conversion ---
+    const fileNameNoExtension = file.includes(".")
+      ? file.substring(0, file.lastIndexOf("."))
+      : file;
+    const midiNotesJson = convertToMidi(cvpj, fileNameNoExtension, doVerbose);
+    // TODO: Handle the returned midiNotesJson (e.g., save or process further)
+    if (midiNotesJson) {
+      Log.Information("Note MIDI conversion successful (JSON generated).");
+    }
+
+    const midiAutomationJsonArray = convertAutomationToMidi(
+      cvpj,
+      fileNameNoExtension,
+      doVerbose
+    );
+    // TODO: Handle the returned midiAutomationJsonArray (e.g., save or process further)
+    if (midiAutomationJsonArray) {
+      Log.Information(
+        `Automation MIDI conversion successful (${midiAutomationJsonArray.length} file(s) generated in JSON format).`
+      );
+    }
+
+    // --- Audio Clip Collection (Placeholder) ---
+    // C#: CollectAndCopyAudioClips(uniqueAudioClipList.ToList(), folderName ?? "", Path.Combine(outputDirectoryPath, "AudioClips"));
     Log.Information("Audio clip collection skipped in this port.");
     if (doVerbose)
       Log.Debug("Found unique audio clips:", Array.from(uniqueAudioClipList));
