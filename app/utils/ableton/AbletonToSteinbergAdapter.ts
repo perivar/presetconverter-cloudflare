@@ -1,9 +1,9 @@
-import { AbletonEq8, BandMode } from "./AbletonEq8";
 import {
   BandMode1And8,
   BandMode2To7,
   SteinbergFrequency,
-} from "./SteinbergFrequency";
+} from "../SteinbergFrequency";
+import { AbletonEq8, BandMode } from "./AbletonEq8";
 
 export class AbletonToSteinbergAdapter {
   static toSteinbergFrequency(eq: AbletonEq8): SteinbergFrequency {

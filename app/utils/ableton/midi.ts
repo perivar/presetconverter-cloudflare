@@ -14,14 +14,7 @@ import type {
 } from "midi-file";
 
 import { makeValidFileName } from "../StringUtils";
-
-// Simplified logger
-const Log = {
-  Debug: (...args: any[]) => console.debug("[AbletonMidi]", ...args),
-  Information: (...args: any[]) => console.info("[AbletonMidi]", ...args),
-  Error: (...args: any[]) => console.error("[AbletonMidi]", ...args),
-  Warning: (...args: any[]) => console.warn("[AbletonMidi]", ...args),
-};
+import { Log } from "./Log";
 
 export interface AutomationEvent {
   position: number; // tick

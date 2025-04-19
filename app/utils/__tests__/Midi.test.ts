@@ -5,7 +5,7 @@ import {
   interpolateEvents,
   logMidiDataToString,
   MidiChannelManager,
-} from "../midi";
+} from "../ableton/Midi";
 
 describe("MidiChannelManager", () => {
   test("should start with channel 0 by default", () => {

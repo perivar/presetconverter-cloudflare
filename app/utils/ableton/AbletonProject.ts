@@ -1,17 +1,10 @@
 import { XMLParser, XMLValidator } from "fast-xml-parser";
 
-import { convertAutomationToMidi, convertToMidi } from "./ableton/midi"; // Import MIDI functions
+import { makeValidFileName, makeValidIdentifier } from "../StringUtils";
 import { AbletonEq3 } from "./AbletonEq3";
 import { AbletonEq8 } from "./AbletonEq8";
-import { makeValidFileName, makeValidIdentifier } from "./StringUtils";
-
-// Simplified logger
-const Log = {
-  Debug: (...args: any[]) => console.debug("[AbletonProject]", ...args),
-  Information: (...args: any[]) => console.info("[AbletonProject]", ...args),
-  Error: (...args: any[]) => console.error("[AbletonProject]", ...args),
-  Warning: (...args: any[]) => console.warn("[AbletonProject]", ...args),
-};
+import { Log } from "./Log";
+import { convertAutomationToMidi, convertToMidi } from "./Midi"; // Import MIDI functions
 
 export class AbletonProject {
   // Use Map for easier key-value access compared to C#'s SortedDictionary
@@ -98,15 +91,12 @@ export class AbletonProject {
       // Get the 'Manual' value from the child element
       const manualValue = this.getValue(xElement, "Manual", fallback);
 
-      // Automation target ID extraction (present in C# but commented out / simplified)
-      // int autoNumId = int.Parse(GetId(xElement, "AutomationTarget", null) ?? "0");
       // Changed the original automation lookup code
       // so InDefine is no longer used
       // const autoNumIdStr = this.getId(xElement, "AutomationTarget", "0");
       // const autoNumId = parseInt(autoNumIdStr, 10);
       // if (!isNaN(autoNumId) && autoNumId !== 0) {
-      //   // C# calls InDefine here, but we handle automation targets separately
-      //   // InDefine(autoNumId, loc, varType, addMul);
+      //   InDefine(autoNumId, loc, varType, addMul);
       // }
 
       return this.useValueType(varType, manualValue);

@@ -17,7 +17,7 @@ export enum ChannelMode {
 }
 
 export class AbletonEq8Band {
-  // Parameter property removed as it's less relevant after parsing
+  Parameter: string; // Parameter A or B
   Number: number; // Band index (0-7)
   IsOn: boolean;
   Mode: BandMode;
@@ -26,6 +26,7 @@ export class AbletonEq8Band {
   Q: number;
 
   constructor(
+    parameter: string,
     number: number,
     isOn: boolean,
     mode: BandMode,
@@ -33,6 +34,7 @@ export class AbletonEq8Band {
     gain: number,
     q: number
   ) {
+    this.Parameter = parameter;
     this.Number = number;
     this.IsOn = isOn;
     this.Mode = mode;
@@ -90,11 +92,17 @@ export class AbletonEq8 {
 
     for (let i = 0; i < bandElements.length; i++) {
       const bandElement = bandElements[i];
-      // Pass the index explicitly if not stored in the element earlier
-      const bandIndex = bandElement?._index ?? i;
-      const parsedBand = this.parseBand(bandElement, bandIndex);
-      if (parsedBand) {
-        this.Bands.push(parsedBand);
+      const bandIndex = bandElement?._index ?? i; // Pass the index explicitly if not stored in the element earlier
+
+      // Parse ParameterA and ParameterB for each band element, similar to C#
+      const parsedBandA = this.parseBand(bandElement, bandIndex, "ParameterA");
+      if (parsedBandA) {
+        this.Bands.push(parsedBandA);
+      }
+
+      const parsedBandB = this.parseBand(bandElement, bandIndex, "ParameterB");
+      if (parsedBandB) {
+        this.Bands.push(parsedBandB);
       }
     }
 
@@ -104,17 +112,18 @@ export class AbletonEq8 {
 
   private parseBand(
     bandElement: any, // Allow any type from parser
-    bandIndex: number // Explicitly pass band index
+    bandIndex: number, // Explicitly pass band index
+    parameter: string // Parameter A or B
   ): AbletonEq8Band | null {
     if (!bandElement) return null;
 
     // Simplify access using optional chaining and nullish coalescing
     // Assumes structure like: bandElement.ParameterA.IsOn.Manual.@_Value
     // ParameterA seems to hold the primary band controls in Ableton's XML
-    const param = bandElement?.ParameterA;
+    const param = bandElement?.[parameter];
     if (!param) {
       console.warn(
-        `[AbletonEq8] Missing ParameterA for band index ${bandIndex}`
+        `[AbletonEq8] Missing ${parameter} for band index ${bandIndex}`
       );
       return null;
     }
@@ -139,7 +148,7 @@ export class AbletonEq8 {
       return null;
     }
 
-    return new AbletonEq8Band(bandIndex, isOn, mode, freq, gain, q);
+    return new AbletonEq8Band(parameter, bandIndex, isOn, mode, freq, gain, q);
   }
 
   /**
