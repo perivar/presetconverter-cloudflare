@@ -1,0 +1,25 @@
+import { IReferenceable, Referenceable } from "./referenceable";
+
+export interface ILane extends IReferenceable {}
+
+export abstract class Lane extends Referenceable implements ILane {
+  // Lane is an abstract base class, no specific properties beyond Referenceable
+
+  constructor(name?: string, color?: string, comment?: string) {
+    super(name, color, comment);
+  }
+
+  protected getXmlAttributes(): any {
+    return super.getXmlAttributes(); // Get attributes from Referenceable
+  }
+
+  protected populateFromXml(xmlObject: any): void {
+    super.populateFromXml(xmlObject); // Populate inherited attributes from Referenceable
+  }
+
+  // Concrete subclasses will implement their own toXmlObject and fromXmlObject methods
+  abstract toXmlObject(): any;
+  static fromXmlObject(xmlObject: any): Lane {
+    throw new Error("fromXmlObject must be implemented by subclasses");
+  }
+}
