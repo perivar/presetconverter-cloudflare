@@ -1,21 +1,19 @@
-import { BoolParameter } from "../boolParameter"; // Import BoolParameter
+import { XMLParser } from "fast-xml-parser";
 
-// Import NoiseGate and Limiter here if they exist
-import { IBuiltInDevice, IFileReference, IParameter } from "../types";
-import { Compressor } from "./compressor";
+import { BoolParameter } from "../boolParameter";
+import type { IBuiltInDevice, IFileReference, IParameter } from "../types";
 import { Device } from "./device";
-import { DeviceRole } from "./deviceRole"; // Import DeviceRole
-import { Equalizer } from "./equalizer";
+import { DeviceRole } from "./deviceRole";
 
-export abstract class BuiltInDevice extends Device implements IBuiltInDevice {
-  deviceType?: Equalizer | Compressor; // Add other built-in device types here
+export class BuiltInDevice extends Device implements IBuiltInDevice {
+  deviceType?: Device;
 
   constructor(
-    deviceRole: DeviceRole, // Make deviceRole required
-    deviceName: string, // Make deviceName required
-    deviceType?: Equalizer | Compressor,
-    enabled?: BoolParameter, // Change type to BoolParameter
-    loaded?: boolean,
+    deviceRole: DeviceRole,
+    deviceName: string,
+    deviceType?: Device,
+    enabled?: BoolParameter,
+    loaded: boolean = true,
     deviceId?: string,
     deviceVendor?: string,
     state?: IFileReference,
@@ -25,9 +23,9 @@ export abstract class BuiltInDevice extends Device implements IBuiltInDevice {
     comment?: string
   ) {
     super(
-      deviceRole, // Pass required deviceRole
-      deviceName, // Pass required deviceName
-      enabled, // Pass BoolParameter directly
+      deviceRole,
+      deviceName,
+      enabled,
       loaded,
       deviceId,
       deviceVendor,
@@ -36,49 +34,62 @@ export abstract class BuiltInDevice extends Device implements IBuiltInDevice {
       name,
       color,
       comment
-    ); // Pass relevant args to Device constructor
+    );
     this.deviceType = deviceType;
   }
 
   protected getXmlAttributes(): any {
-    return super.getXmlAttributes(); // Get attributes from Device
+    const attributes = super.getXmlAttributes();
+    return attributes;
   }
 
   protected getXmlChildren(): any {
-    const children = super.getXmlChildren(); // Get children from Device
-
-    // Depending on the deviceType, serialize it to XML object
+    const children = super.getXmlChildren();
     if (this.deviceType) {
-      // Assuming Equalizer and Compressor have toXmlObject methods
-      if (this.deviceType instanceof Equalizer) {
-        children.Equalizer = this.deviceType.toXmlObject();
-      } else if (this.deviceType instanceof Compressor) {
-        children.Compressor = this.deviceType.toXmlObject();
-      }
-      // Add other device types similarly
+      const deviceTypeObj = this.deviceType.toXmlObject();
+      const deviceTypeName = Object.keys(deviceTypeObj)[0];
+      children[deviceTypeName] = deviceTypeObj[deviceTypeName];
     }
-
     return children;
   }
 
-  protected populateFromXml(xmlObject: any): void {
-    super.populateFromXml(xmlObject); // Populate inherited attributes from Device
-
-    // Logic to determine the actual device type from XML object
-    let deviceType: Equalizer | Compressor | undefined; // Add other built-in device types here
-    if (xmlObject.Equalizer) {
-      deviceType = Equalizer.fromXmlObject(xmlObject.Equalizer); // Assuming Equalizer has a static fromXmlObject
-    } else if (xmlObject.Compressor) {
-      deviceType = Compressor.fromXmlObject(xmlObject.Compressor); // Assuming Compressor has a static fromXmlObject
-    }
-    // Add other device types similarly
-
-    this.deviceType = deviceType;
+  toXmlObject(): any {
+    return {
+      BuiltinDevice: {
+        ...this.getXmlAttributes(),
+        ...this.getXmlChildren(),
+      },
+    };
   }
 
-  // Concrete subclasses will implement their own toXmlObject and fromXmlObject methods
-  abstract toXmlObject(): any;
+  static fromXml(xmlString: string): BuiltInDevice {
+    const parser = new XMLParser({ attributeNamePrefix: "" });
+    const jsonObj = parser.parse(xmlString);
+    return BuiltInDevice.fromXmlObject(jsonObj.BuiltinDevice);
+  }
+
   static fromXmlObject(xmlObject: any): BuiltInDevice {
-    throw new Error("fromXmlObject must be implemented by subclasses");
+    const instance = new BuiltInDevice(
+      xmlObject.deviceRole as DeviceRole,
+      xmlObject.deviceName
+    );
+    instance.populateFromXml(xmlObject);
+
+    // TODO: Fix circular dependency
+    // // Check for known device types
+    // if (xmlObject.Equalizer) {
+    //   instance.deviceType = Equalizer.fromXmlObject(xmlObject.Equalizer);
+    // } else if (xmlObject.Compressor) {
+    //   instance.deviceType = Compressor.fromXmlObject(xmlObject.Compressor);
+    // }
+    // Add other device types similarly
+    // NoiseGate, Limiter, etc.
+
+    return instance;
+  }
+
+  protected populateFromXml(xmlObject: any): void {
+    super.populateFromXml(xmlObject);
+    // Device type is handled in fromXmlObject
   }
 }

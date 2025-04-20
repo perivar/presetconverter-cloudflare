@@ -1,6 +1,7 @@
 import { INameable } from "./types";
+import { XmlObject } from "./XmlObject";
 
-export abstract class Nameable implements INameable {
+export abstract class Nameable extends XmlObject implements INameable {
   /** Name/label of this object. */
   name?: string;
   /** Color of this object in HTML-style format. (#rrggbb) */
@@ -9,6 +10,7 @@ export abstract class Nameable implements INameable {
   comment?: string;
 
   constructor(name?: string, color?: string, comment?: string) {
+    super();
     this.name = name;
     this.color = color;
     this.comment = comment;
@@ -32,11 +34,5 @@ export abstract class Nameable implements INameable {
     this.name = xmlObject.name || undefined;
     this.color = xmlObject.color || undefined;
     this.comment = xmlObject.comment || undefined;
-  }
-
-  // Concrete subclasses will implement their own toXmlObject and fromXmlObject methods
-  abstract toXmlObject(): any;
-  static fromXmlObject(xmlObject: any): Nameable {
-    throw new Error("fromXmlObject must be implemented by subclasses");
   }
 }

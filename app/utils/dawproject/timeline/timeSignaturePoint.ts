@@ -1,6 +1,6 @@
 import { XMLBuilder, XMLParser } from "fast-xml-parser";
 
-import { ITimeSignaturePoint } from "../types";
+import type { ITimeSignaturePoint } from "../types";
 import { Point } from "./point";
 
 export class TimeSignaturePoint extends Point implements ITimeSignaturePoint {

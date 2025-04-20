@@ -1,6 +1,6 @@
 import { XMLBuilder, XMLParser } from "fast-xml-parser";
 
-import { IClipSlot } from "../types";
+import type { IClipSlot } from "../types";
 import { Clip } from "./clip";
 import { Timeline } from "./timeline";
 

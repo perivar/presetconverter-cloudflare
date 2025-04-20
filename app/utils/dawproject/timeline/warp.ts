@@ -1,13 +1,15 @@
 import { XMLBuilder, XMLParser } from "fast-xml-parser";
 
 import { DoubleAdapter } from "../doubleAdapter";
-import { IWarp } from "../types";
+import type { IWarp } from "../types";
+import { XmlObject } from "../XmlObject";
 
-export class Warp implements IWarp {
+export class Warp extends XmlObject implements IWarp {
   time: number;
   contentTime: number;
 
   constructor(time: number, contentTime: number) {
+    super();
     this.time = time;
     this.contentTime = contentTime;
   }

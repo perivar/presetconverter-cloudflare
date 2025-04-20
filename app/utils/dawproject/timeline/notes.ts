@@ -1,6 +1,6 @@
 import { XMLBuilder, XMLParser } from "fast-xml-parser";
 
-import { INotes } from "../types";
+import type { INotes } from "../types";
 import { Note } from "./note";
 import { Timeline } from "./timeline";
 

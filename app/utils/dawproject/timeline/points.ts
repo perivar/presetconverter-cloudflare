@@ -1,6 +1,6 @@
 import { XMLBuilder, XMLParser } from "fast-xml-parser";
 
-import { IPoints } from "../types";
+import type { IPoints } from "../types";
 import { Unit } from "../unit";
 import { AutomationTarget } from "./automationTarget";
 import { Point } from "./point";

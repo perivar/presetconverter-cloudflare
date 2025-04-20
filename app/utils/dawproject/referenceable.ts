@@ -31,12 +31,6 @@ export abstract class Referenceable extends Nameable implements IReferenceable {
     Referenceable._instances[this.id] = this;
   }
 
-  // Concrete subclasses will implement their own toXmlObject and fromXmlObject methods
-  abstract toXmlObject(): any;
-  static fromXmlObject(xmlObject: any): Referenceable {
-    throw new Error("fromXmlObject must be implemented by subclasses");
-  }
-
   static getById(id: string): Referenceable | undefined {
     return Referenceable._instances[id];
   }

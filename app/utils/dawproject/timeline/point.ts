@@ -1,10 +1,12 @@
 import { DoubleAdapter } from "../doubleAdapter";
-import { IPoint } from "../types";
+import type { IPoint } from "../types";
+import { XmlObject } from "../XmlObject";
 
-export abstract class Point implements IPoint {
+export abstract class Point extends XmlObject implements IPoint {
   time: number;
 
   constructor(time: number) {
+    super();
     this.time = time;
   }
 
@@ -19,11 +21,5 @@ export abstract class Point implements IPoint {
       xmlObject.time !== undefined
         ? DoubleAdapter.fromXml(xmlObject.time) || 0
         : 0;
-  }
-
-  // Concrete subclasses will implement their own toXmlObject and fromXmlObject methods
-  abstract toXmlObject(): any;
-  static fromXmlObject(xmlObject: any): Point {
-    throw new Error("fromXmlObject must be implemented by subclasses");
   }
 }

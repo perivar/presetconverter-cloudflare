@@ -8,9 +8,10 @@ import { Scene } from "./scene";
 import { Track as TrackLane } from "./track"; // Renamed to avoid conflict
 import { Transport } from "./transport";
 import { IProject } from "./types";
+import { XmlObject } from "./XmlObject";
 
 /** The main root element of the DAWPROJECT format. This is stored in the file project.xml file inside the container. */
-export class Project implements IProject {
+export class Project extends XmlObject implements IProject {
   static CURRENT_VERSION = "1.0";
 
   /** Version of DAWPROJECT format this file was saved as. */
@@ -34,6 +35,7 @@ export class Project implements IProject {
     arrangement?: Arrangement,
     scenes?: Scene[]
   ) {
+    super();
     this.version = version || Project.CURRENT_VERSION;
     this.application = application || new Application("", ""); // Provide default values for required attributes
     this.transport = transport;

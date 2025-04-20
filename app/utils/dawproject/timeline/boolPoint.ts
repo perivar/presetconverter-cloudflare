@@ -1,6 +1,6 @@
 import { XMLBuilder, XMLParser } from "fast-xml-parser";
 
-import { IBoolPoint } from "../types";
+import type { IBoolPoint } from "../types";
 import { Point } from "./point";
 
 export class BoolPoint extends Point implements IBoolPoint {

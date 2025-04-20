@@ -2,7 +2,7 @@ import { XMLBuilder, XMLParser } from "fast-xml-parser";
 
 import { DoubleAdapter } from "../doubleAdapter";
 import { Interpolation } from "../interpolation";
-import { IRealPoint } from "../types";
+import type { IRealPoint } from "../types";
 import { Point } from "./point";
 
 export class RealPoint extends Point implements IRealPoint {

@@ -2,7 +2,7 @@ import { XMLBuilder, XMLParser } from "fast-xml-parser";
 
 import { BoolParameter } from "../boolParameter"; // Import BoolParameter
 import { RealParameter } from "../realParameter";
-import { IEqualizer, IFileReference, IParameter } from "../types";
+import type { IEqualizer, IFileReference, IParameter } from "../types";
 import { Unit } from "../unit";
 import { BuiltInDevice } from "./builtInDevice";
 import { DeviceRole } from "./deviceRole";
@@ -14,8 +14,8 @@ export class Equalizer extends BuiltInDevice implements IEqualizer {
   outputGain?: RealParameter;
 
   constructor(
-    deviceRole: DeviceRole, // Add required deviceRole
-    deviceName: string, // Add required deviceName
+    deviceRole: DeviceRole,
+    deviceName: string,
     bands?: EqBand[],
     inputGain?: RealParameter,
     outputGain?: RealParameter,

@@ -1,23 +1,13 @@
 import { XMLBuilder, XMLParser } from "fast-xml-parser";
 
-import { Arrangement } from "../arrangement";
-import { Channel } from "../channel";
 import { DoubleAdapter } from "../doubleAdapter";
-import { Scene } from "../scene";
-import { Track } from "../track";
-import { INote } from "../types";
-import { Audio } from "./audio";
-import { Clips } from "./clips";
-import { ClipSlot } from "./clipSlot";
-import { Markers } from "./markers";
-import { Notes as NotesTimeline } from "./notes"; // Renamed to avoid conflict
+import type { INote } from "../types";
+import { XmlObject } from "../XmlObject";
+// Renamed to avoid conflict
 
-import { Points } from "./points";
 import { Timeline } from "./timeline";
-import { Video } from "./video";
-import { Warps } from "./warps";
 
-export class Note implements INote {
+export class Note extends XmlObject implements INote {
   time: number;
   duration: number;
   key: number;
@@ -35,6 +25,7 @@ export class Note implements INote {
     releaseVelocity?: number,
     content?: Timeline
   ) {
+    super();
     this.time = time;
     this.duration = duration;
     this.key = key;
@@ -104,38 +95,39 @@ export class Note implements INote {
       const contentObj = xmlObject.Content;
       const tagName = Object.keys(contentObj)[0]; // Get the actual content tag name
 
+      // TODO: Fix circular dependency
       // Need a mechanism to determine the correct subclass of Timeline
       // based on the XML element tag (e.g., Timeline, Lanes, Notes, Clips, etc.)
-      const timelineTypeMap: { [key: string]: (obj: any) => any } = {
-        Clips: Clips.fromXmlObject,
-        Notes: NotesTimeline.fromXmlObject, // Use the renamed import
-        Audio: Audio.fromXmlObject,
-        Video: Video.fromXmlObject,
-        Markers: Markers.fromXmlObject,
-        Arrangement: Arrangement.fromXmlObject,
-        Scene: Scene.fromXmlObject,
-        Track: Track.fromXmlObject,
-        Channel: Channel.fromXmlObject,
-        ClipSlot: ClipSlot.fromXmlObject,
-        Points: Points.fromXmlObject,
-        Warps: Warps.fromXmlObject,
-        // Add other Timeline subclasses here
-      };
+      // const timelineTypeMap: { [key: string]: (obj: any) => any } = {
+      //   Clips: Clips.fromXmlObject,
+      //   Notes: NotesTimeline.fromXmlObject, // Use the renamed import
+      //   Audio: Audio.fromXmlObject,
+      //   Video: Video.fromXmlObject,
+      //   Markers: Markers.fromXmlObject,
+      //   Arrangement: Arrangement.fromXmlObject,
+      //   Scene: Scene.fromXmlObject,
+      //   Track: Track.fromXmlObject,
+      //   Channel: Channel.fromXmlObject,
+      //   ClipSlot: ClipSlot.fromXmlObject,
+      //   Points: Points.fromXmlObject,
+      //   Warps: Warps.fromXmlObject,
+      //   // Add other Timeline subclasses here
+      // };
 
-      if (timelineTypeMap[tagName]) {
-        try {
-          content = timelineTypeMap[tagName](contentObj[tagName]) as Timeline; // Cast to Timeline
-        } catch (e) {
-          console.error(
-            `Error deserializing nested timeline content ${tagName} in Note:`,
-            e
-          );
-        }
-      } else {
-        console.warn(
-          `Skipping deserialization of unknown nested timeline content in Note: ${tagName}`
-        );
-      }
+      // if (timelineTypeMap[tagName]) {
+      //   try {
+      //     content = timelineTypeMap[tagName](contentObj[tagName]) as Timeline; // Cast to Timeline
+      //   } catch (e) {
+      //     console.error(
+      //       `Error deserializing nested timeline content ${tagName} in Note:`,
+      //       e
+      //     );
+      //   }
+      // } else {
+      //   console.warn(
+      //     `Skipping deserialization of unknown nested timeline content in Note: ${tagName}`
+      //   );
+      // }
     }
 
     return new Note(

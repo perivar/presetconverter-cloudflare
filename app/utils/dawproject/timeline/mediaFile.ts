@@ -1,5 +1,5 @@
 import { FileReference } from "../fileReference";
-import { IFileReference, IMediaFile } from "../types"; // Added IFileReference
+import type { IFileReference, IMediaFile } from "../types"; // Added IFileReference
 import { Timeline } from "./timeline";
 import { TimeUnit } from "./timeUnit";
 
@@ -53,11 +53,5 @@ export abstract class MediaFile extends Timeline implements IMediaFile {
       );
       this.file = new FileReference(""); // Assign a default or throw error
     }
-  }
-
-  // Concrete subclasses will implement their own toXmlObject and fromXmlObject methods
-  abstract toXmlObject(): any;
-  static fromXmlObject(xmlObject: any): MediaFile {
-    throw new Error("fromXmlObject must be implemented by subclasses");
   }
 }

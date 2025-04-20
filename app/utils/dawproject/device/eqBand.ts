@@ -2,11 +2,12 @@ import { XMLBuilder, XMLParser } from "fast-xml-parser";
 
 import { BoolParameter } from "../boolParameter";
 import { RealParameter } from "../realParameter";
-import { IEqBand } from "../types";
+import type { IEqBand } from "../types";
 import { Unit } from "../unit";
+import { XmlObject } from "../XmlObject";
 import { EqBandType } from "./eqBandType";
 
-export class EqBand implements IEqBand {
+export class EqBand extends XmlObject implements IEqBand {
   freq: RealParameter;
   gain?: RealParameter;
   q?: RealParameter;
@@ -22,6 +23,7 @@ export class EqBand implements IEqBand {
     enabled?: BoolParameter,
     order?: number
   ) {
+    super();
     this.type = type;
     this.freq = freq;
     this.gain = gain;

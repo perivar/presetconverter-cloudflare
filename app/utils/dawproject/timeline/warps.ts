@@ -1,21 +1,11 @@
 import { XMLBuilder, XMLParser } from "fast-xml-parser";
 
-import { Arrangement } from "../arrangement";
-import { Channel } from "../channel";
-import { Scene } from "../scene";
-import { Track } from "../track";
-import { IWarps } from "../types";
-import { Audio } from "./audio";
-import { Clips } from "./clips";
-import { ClipSlot } from "./clipSlot";
-import { Markers } from "./markers";
-import { Notes } from "./notes";
-import { Points } from "./points";
+import type { IWarps } from "../types";
 import { Timeline } from "./timeline";
 import { TimeUnit } from "./timeUnit";
-import { Video } from "./video";
 import { Warp } from "./warp";
-import { Warps as WarpsTimeline } from "./warps"; // Renamed to avoid conflict
+
+// Renamed to avoid conflict
 
 export class Warps extends Timeline implements IWarps {
   points: Warp[]; // Renamed from events and made required
@@ -75,38 +65,39 @@ export class Warps extends Timeline implements IWarps {
       const contentObj = xmlObject.Content;
       const tagName = Object.keys(contentObj)[0]; // Get the actual content tag name
 
+      // TODO: Fix circular dependency
       // Need a mechanism to determine the correct subclass of Timeline
       // based on the XML element tag (e.g., Timeline, Lanes, Notes, Clips, etc.)
-      const timelineTypeMap: { [key: string]: (obj: any) => any } = {
-        Clips: Clips.fromXmlObject,
-        Notes: Notes.fromXmlObject,
-        Audio: Audio.fromXmlObject,
-        Video: Video.fromXmlObject,
-        Markers: Markers.fromXmlObject,
-        Arrangement: Arrangement.fromXmlObject,
-        Scene: Scene.fromXmlObject,
-        Track: Track.fromXmlObject,
-        Channel: Channel.fromXmlObject,
-        ClipSlot: ClipSlot.fromXmlObject,
-        Points: Points.fromXmlObject,
-        Warps: WarpsTimeline.fromXmlObject, // Use the renamed import
-        // Add other Timeline subclasses here
-      };
+      // const timelineTypeMap: { [key: string]: (obj: any) => any } = {
+      //   Clips: Clips.fromXmlObject,
+      //   Notes: Notes.fromXmlObject,
+      //   Audio: Audio.fromXmlObject,
+      //   Video: Video.fromXmlObject,
+      //   Markers: Markers.fromXmlObject,
+      //   Arrangement: Arrangement.fromXmlObject,
+      //   Scene: Scene.fromXmlObject,
+      //   Track: Track.fromXmlObject,
+      //   Channel: Channel.fromXmlObject,
+      //   ClipSlot: ClipSlot.fromXmlObject,
+      //   Points: Points.fromXmlObject,
+      //   Warps: WarpsTimeline.fromXmlObject, // Use the renamed import
+      //   // Add other Timeline subclasses here
+      // };
 
-      if (timelineTypeMap[tagName]) {
-        try {
-          content = timelineTypeMap[tagName](contentObj[tagName]) as Timeline; // Cast to Timeline
-        } catch (e) {
-          console.error(
-            `Error deserializing nested timeline content ${tagName} in Warps:`,
-            e
-          );
-        }
-      } else {
-        console.warn(
-          `Skipping deserialization of unknown nested timeline content in Warps: ${tagName}`
-        );
-      }
+      // if (timelineTypeMap[tagName]) {
+      //   try {
+      //     content = timelineTypeMap[tagName](contentObj[tagName]) as Timeline; // Cast to Timeline
+      //   } catch (e) {
+      //     console.error(
+      //       `Error deserializing nested timeline content ${tagName} in Warps:`,
+      //       e
+      //     );
+      //   }
+      // } else {
+      //   console.warn(
+      //     `Skipping deserialization of unknown nested timeline content in Warps: ${tagName}`
+      //   );
+      // }
     }
 
     // Recursively parse nested Warp elements

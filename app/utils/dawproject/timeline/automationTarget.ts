@@ -1,9 +1,10 @@
 import { XMLBuilder, XMLParser } from "fast-xml-parser";
 
 import { ExpressionType } from "../expressionType";
-import { IAutomationTarget } from "../types";
+import type { IAutomationTarget } from "../types";
+import { XmlObject } from "../XmlObject";
 
-export class AutomationTarget implements IAutomationTarget {
+export class AutomationTarget extends XmlObject implements IAutomationTarget {
   parameter?: string; // Assuming parameter is an IDREF string
   expression?: ExpressionType;
   channel?: number;
@@ -17,6 +18,7 @@ export class AutomationTarget implements IAutomationTarget {
     key?: number,
     controller?: number
   ) {
+    super();
     this.parameter = parameter;
     this.expression = expression;
     this.channel = channel;

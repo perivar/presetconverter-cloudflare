@@ -1,6 +1,6 @@
 import { XMLBuilder, XMLParser } from "fast-xml-parser";
 
-import { IClips } from "../types";
+import type { IClips } from "../types";
 import { Clip } from "./clip";
 import { Timeline } from "./timeline";
 

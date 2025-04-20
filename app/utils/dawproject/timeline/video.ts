@@ -1,7 +1,7 @@
 import { XMLBuilder, XMLParser } from "fast-xml-parser";
 
 import { FileReference } from "../fileReference";
-import { IFileReference, IVideo } from "../types"; // Import IFileReference
+import type { IFileReference, IVideo } from "../types"; // Import IFileReference
 import { MediaFile } from "./mediaFile";
 import { TimeUnit } from "./timeUnit";
 

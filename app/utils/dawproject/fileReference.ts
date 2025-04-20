@@ -2,9 +2,10 @@ import { XMLBuilder, XMLParser } from "fast-xml-parser";
 
 /** References a file either within a DAWPROJECT container or on disk. */
 import { IFileReference } from "./types";
+import { XmlObject } from "./XmlObject";
 
 /** References a file either within a DAWPROJECT container or on disk. */
-export class FileReference implements IFileReference {
+export class FileReference extends XmlObject implements IFileReference {
   /** File path. either
    * <li>path within the container</li>
    * <li>relative to .dawproject file (when external = "true")</li>
@@ -15,6 +16,7 @@ export class FileReference implements IFileReference {
   external?: boolean;
 
   constructor(path: string, external: boolean = false) {
+    super();
     if (path === undefined) {
       throw new Error("The 'path' attribute is required for FileReference");
     }

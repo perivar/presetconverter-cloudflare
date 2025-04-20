@@ -1,22 +1,10 @@
 import { XMLBuilder, XMLParser } from "fast-xml-parser";
 
-import { Arrangement } from "../arrangement";
-import { Channel } from "../channel";
 import { DoubleAdapter } from "../doubleAdapter";
 import { Nameable } from "../nameable";
-import { Scene } from "../scene";
-import { Track } from "../track";
-import { IClip } from "../types";
-import { Audio } from "./audio";
-import { Clips } from "./clips";
-import { ClipSlot } from "./clipSlot";
-import { Markers } from "./markers";
-import { Notes } from "./notes";
-import { Points } from "./points";
+import type { IClip } from "../types";
 import { Timeline } from "./timeline";
 import { TimeUnit } from "./timeUnit";
-import { Video } from "./video";
-import { Warps } from "./warps";
 
 export class Clip extends Nameable implements IClip {
   time: number;
@@ -164,40 +152,41 @@ export class Clip extends Nameable implements IClip {
         ? DoubleAdapter.fromXml(xmlObject.fadeOutTime)
         : undefined;
 
+    // TODO: Fix circular dependency
     // Handling content and reference
     // Need a mechanism to determine the correct subclass of Timeline
     // based on the XML element tag (e.g., Timeline, Lanes, Notes, Clips, etc.)
-    const timelineTypeMap: { [key: string]: (obj: any) => any } = {
-      Clips: Clips.fromXmlObject,
-      Notes: Notes.fromXmlObject,
-      Audio: Audio.fromXmlObject,
-      Video: Video.fromXmlObject,
-      Markers: Markers.fromXmlObject,
-      Arrangement: Arrangement.fromXmlObject,
-      Scene: Scene.fromXmlObject,
-      Track: Track.fromXmlObject,
-      Channel: Channel.fromXmlObject,
-      ClipSlot: ClipSlot.fromXmlObject,
-      Points: Points.fromXmlObject,
-      Warps: Warps.fromXmlObject,
-      // Add other Timeline subclasses here
-    };
+    // const timelineTypeMap: { [key: string]: (obj: any) => any } = {
+    //   Clips: Clips.fromXmlObject,
+    //   Notes: Notes.fromXmlObject,
+    //   Audio: Audio.fromXmlObject,
+    //   Video: Video.fromXmlObject,
+    //   Markers: Markers.fromXmlObject,
+    //   Arrangement: Arrangement.fromXmlObject,
+    //   Scene: Scene.fromXmlObject,
+    //   Track: Track.fromXmlObject,
+    //   Channel: Channel.fromXmlObject,
+    //   ClipSlot: ClipSlot.fromXmlObject,
+    //   Points: Points.fromXmlObject,
+    //   Warps: Warps.fromXmlObject,
+    //   // Add other Timeline subclasses here
+    // };
 
-    for (const tagName in xmlObject) {
-      if (timelineTypeMap[tagName]) {
-        try {
-          instance.content = timelineTypeMap[tagName](
-            xmlObject[tagName]
-          ) as Timeline; // Cast to Timeline
-          break; // Assuming only one content element
-        } catch (e) {
-          console.error(
-            `Error deserializing nested timeline content ${tagName} in Clip:`,
-            e
-          );
-        }
-      }
-    }
+    // for (const tagName in xmlObject) {
+    //   if (timelineTypeMap[tagName]) {
+    //     try {
+    //       instance.content = timelineTypeMap[tagName](
+    //         xmlObject[tagName]
+    //       ) as Timeline; // Cast to Timeline
+    //       break; // Assuming only one content element
+    //     } catch (e) {
+    //       console.error(
+    //         `Error deserializing nested timeline content ${tagName} in Clip:`,
+    //         e
+    //       );
+    //     }
+    //   }
+    // }
 
     instance.reference = xmlObject.reference; // Assign string directly
 

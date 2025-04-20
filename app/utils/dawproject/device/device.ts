@@ -1,8 +1,11 @@
+import { XMLBuilder, XMLParser } from "fast-xml-parser";
+
 import { BoolParameter } from "../boolParameter";
 import { FileReference } from "../fileReference";
 import { Parameter } from "../parameter";
+import { RealParameter } from "../realParameter";
 import { Referenceable } from "../referenceable";
-import { IDevice, IFileReference, IParameter } from "../types";
+import type { IDevice, IFileReference, IParameter } from "../types";
 import { DeviceRole } from "./deviceRole";
 
 export abstract class Device extends Referenceable implements IDevice {
@@ -62,38 +65,35 @@ export abstract class Device extends Referenceable implements IDevice {
     const children: any = {};
 
     if (this.parameters && this.parameters.length > 0) {
-      children.Parameters = {
-        // Need to handle different types of Parameter subclasses
-        ...this.parameters.reduce((acc: any, param) => {
-          const paramObj = (param as Parameter).toXmlObject();
-          const tagName = Object.keys(paramObj)[0]; // Get the root tag name from the object
-          if (!acc[tagName]) {
-            acc[tagName] = [];
-          }
-          acc[tagName].push(paramObj[tagName]);
-          return acc;
-        }, {}),
-      };
+      children.Parameters = this.parameters.reduce((acc: any, param) => {
+        const paramObj = (param as Parameter).toXmlObject();
+        const tagName = Object.keys(paramObj)[0];
+        if (!acc) acc = {};
+        if (!acc[tagName]) acc[tagName] = [];
+        acc[tagName].push(paramObj[tagName]);
+        return acc;
+      }, {});
     }
 
     if (this.enabled !== undefined) {
-      children.Enabled = this.enabled?.toXmlObject().BoolParameter; // Assuming BoolParameter has toXmlObject and returns { BoolParameter: ... }
+      children.Enabled = this.enabled.toXmlObject().BoolParameter;
     }
 
     if (this.state) {
       children.State = (
         this.state as FileReference
-      ).toXmlObject().FileReference; // Assuming FileReference has toXmlObject and returns { FileReference: ... }
+      ).toXmlObject().FileReference;
     }
 
     return children;
   }
 
   protected populateFromXml(xmlObject: any): void {
-    super.populateFromXml(xmlObject); // Populate inherited attributes from Referenceable
+    super.populateFromXml(xmlObject);
 
-    this.deviceRole = xmlObject.deviceRole as DeviceRole; // Cast string to DeviceRole
+    this.deviceRole = xmlObject.deviceRole as DeviceRole;
     this.deviceName = xmlObject.deviceName;
+    this.id = xmlObject.id;
     this.loaded =
       xmlObject.loaded !== undefined
         ? String(xmlObject.loaded).toLowerCase() === "true"
@@ -104,24 +104,20 @@ export abstract class Device extends Referenceable implements IDevice {
     if (xmlObject.Enabled) {
       this.enabled = BoolParameter.fromXmlObject({
         BoolParameter: xmlObject.Enabled,
-      }); // Wrap in expected structure
+      });
     }
 
     if (xmlObject.State) {
       this.state = FileReference.fromXmlObject({
         FileReference: xmlObject.State,
-      }); // Wrap in expected structure
+      });
     }
 
     const parameters: Parameter[] = [];
     if (xmlObject.Parameters) {
-      // Need a mechanism to determine the correct subclass of Parameter
-      // based on the XML element tag (e.g., RealParameter, BoolParameter, etc.)
       const parameterTypeMap: { [key: string]: (obj: any) => Parameter } = {
-        // Return type is concrete Parameter
         BoolParameter: BoolParameter.fromXmlObject,
-        RealParameter: Parameter.fromXmlObject, // Assuming a generic fromXmlObject for now
-        // Add other concrete Parameter subclasses here
+        RealParameter: RealParameter.fromXmlObject,
       };
 
       for (const tagName in xmlObject.Parameters) {
@@ -150,9 +146,29 @@ export abstract class Device extends Referenceable implements IDevice {
     this.parameters = parameters;
   }
 
-  // Concrete subclasses will implement their own toXmlObject and fromXmlObject methods
-  abstract toXmlObject(): any;
+  toXmlObject(): any {
+    const obj: any = {};
+    obj.Device = {
+      ...this.getXmlAttributes(),
+      ...this.getXmlChildren(),
+    };
+    return obj;
+  }
+
+  toXml(): string {
+    const builder = new XMLBuilder({ attributeNamePrefix: "" });
+    return builder.build(this.toXmlObject());
+  }
+
+  static fromXml(xmlString: string): Device {
+    const parser = new XMLParser({ attributeNamePrefix: "" });
+    const jsonObj = parser.parse(xmlString);
+    return Device.fromXmlObject(jsonObj.Device);
+  }
+
   static fromXmlObject(xmlObject: any): Device {
-    throw new Error("fromXmlObject must be implemented by subclasses");
+    const instance = new (this as any)();
+    instance.populateFromXml(xmlObject);
+    return instance;
   }
 }

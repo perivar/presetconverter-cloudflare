@@ -31,10 +31,4 @@ export abstract class Parameter extends Referenceable implements IParameter {
         ? parseInt(xmlObject.parameterID, 10)
         : undefined;
   }
-
-  // Concrete subclasses will implement their own toXmlObject and fromXmlObject methods
-  abstract toXmlObject(): any;
-  static fromXmlObject(xmlObject: any): Parameter {
-    throw new Error("fromXmlObject must be implemented by subclasses");
-  }
 }

@@ -1,6 +1,6 @@
 import { XMLBuilder, XMLParser } from "fast-xml-parser";
 
-import { IEnumPoint } from "../types";
+import type { IEnumPoint } from "../types";
 import { Point } from "./point";
 
 export class EnumPoint extends Point implements IEnumPoint {

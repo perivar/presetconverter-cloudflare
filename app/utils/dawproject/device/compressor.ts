@@ -2,7 +2,7 @@ import { XMLBuilder, XMLParser } from "fast-xml-parser";
 
 import { BoolParameter } from "../boolParameter";
 import { RealParameter } from "../realParameter";
-import { ICompressor, IFileReference, IParameter } from "../types";
+import type { ICompressor, IFileReference, IParameter } from "../types";
 import { Unit } from "../unit";
 import { BuiltInDevice } from "./builtInDevice";
 import { DeviceRole } from "./deviceRole";
@@ -17,8 +17,8 @@ export class Compressor extends BuiltInDevice implements ICompressor {
   autoMakeup?: BoolParameter;
 
   constructor(
-    deviceRole: DeviceRole, // Add required deviceRole
-    deviceName: string, // Add required deviceName
+    deviceRole: DeviceRole,
+    deviceName: string,
     threshold?: RealParameter,
     ratio?: RealParameter,
     attack?: RealParameter,

@@ -1,6 +1,6 @@
 import { XMLBuilder, XMLParser } from "fast-xml-parser";
 
-import { IMarkers } from "../types";
+import type { IMarkers } from "../types";
 import { Marker } from "./marker";
 import { Timeline } from "./timeline";
 

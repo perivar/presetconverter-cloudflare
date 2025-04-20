@@ -2,10 +2,9 @@ import { XMLBuilder, XMLParser } from "fast-xml-parser";
 
 import { DoubleAdapter } from "../doubleAdapter";
 import { Nameable } from "../nameable";
-import { IMarker } from "../types";
+import type { IMarker } from "../types";
 
 export class Marker extends Nameable implements IMarker {
-  // Corrected inheritance
   time: number;
 
   constructor(time: number, name?: string, color?: string, comment?: string) {
