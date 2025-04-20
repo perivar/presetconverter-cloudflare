@@ -8,6 +8,11 @@ import { Referenceable } from "../referenceable";
 import type { IDevice, IFileReference, IParameter } from "../types";
 import { DeviceRole } from "./deviceRole";
 
+export interface DeviceConstructor {
+  new (...args: any[]): Device;
+  fromXmlObject(xmlObject: any): Device;
+}
+
 export abstract class Device extends Referenceable implements IDevice {
   enabled?: BoolParameter;
   deviceRole: DeviceRole;

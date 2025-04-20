@@ -1,10 +1,9 @@
 import { XMLBuilder, XMLParser } from "fast-xml-parser";
 
 import { DoubleAdapter } from "../doubleAdapter";
+import { TimelineRegistry } from "../registry/timelineRegistry";
 import type { INote } from "../types";
 import { XmlObject } from "../XmlObject";
-// Renamed to avoid conflict
-
 import { Timeline } from "./timeline";
 
 export class Note extends XmlObject implements INote {
@@ -89,45 +88,27 @@ export class Note extends XmlObject implements INote {
         ? DoubleAdapter.fromXml(xmlObject.rel)
         : undefined;
 
+    // Handle content if present
     let content: Timeline | undefined;
     if (xmlObject.Content) {
-      // Handling content which is wrapped in a "Content" tag
       const contentObj = xmlObject.Content;
       const tagName = Object.keys(contentObj)[0]; // Get the actual content tag name
+      const TimelineClass = TimelineRegistry.getTimelineClass(tagName);
 
-      // TODO: Fix circular dependency
-      // Need a mechanism to determine the correct subclass of Timeline
-      // based on the XML element tag (e.g., Timeline, Lanes, Notes, Clips, etc.)
-      // const timelineTypeMap: { [key: string]: (obj: any) => any } = {
-      //   Clips: Clips.fromXmlObject,
-      //   Notes: NotesTimeline.fromXmlObject, // Use the renamed import
-      //   Audio: Audio.fromXmlObject,
-      //   Video: Video.fromXmlObject,
-      //   Markers: Markers.fromXmlObject,
-      //   Arrangement: Arrangement.fromXmlObject,
-      //   Scene: Scene.fromXmlObject,
-      //   Track: Track.fromXmlObject,
-      //   Channel: Channel.fromXmlObject,
-      //   ClipSlot: ClipSlot.fromXmlObject,
-      //   Points: Points.fromXmlObject,
-      //   Warps: Warps.fromXmlObject,
-      //   // Add other Timeline subclasses here
-      // };
-
-      // if (timelineTypeMap[tagName]) {
-      //   try {
-      //     content = timelineTypeMap[tagName](contentObj[tagName]) as Timeline; // Cast to Timeline
-      //   } catch (e) {
-      //     console.error(
-      //       `Error deserializing nested timeline content ${tagName} in Note:`,
-      //       e
-      //     );
-      //   }
-      // } else {
-      //   console.warn(
-      //     `Skipping deserialization of unknown nested timeline content in Note: ${tagName}`
-      //   );
-      // }
+      if (TimelineClass) {
+        try {
+          content = TimelineClass.fromXmlObject(contentObj[tagName]);
+        } catch (e) {
+          console.error(
+            `Error deserializing nested timeline content ${tagName} in Note:`,
+            e
+          );
+        }
+      } else {
+        console.warn(
+          `Skipping deserialization of unknown nested timeline content in Note: ${tagName}`
+        );
+      }
     }
 
     return new Note(

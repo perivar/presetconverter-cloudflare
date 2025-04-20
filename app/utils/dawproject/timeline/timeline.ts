@@ -2,6 +2,11 @@ import { Referenceable } from "../referenceable";
 import type { ITimeline } from "../types";
 import { TimeUnit } from "./timeUnit";
 
+export interface TimelineConstructor {
+  new (...args: any[]): Timeline;
+  fromXmlObject(xmlObject: any): Timeline;
+}
+
 export abstract class Timeline extends Referenceable implements ITimeline {
   track?: string; // Assuming track is an IDREF string
   timeUnit?: TimeUnit;
@@ -35,5 +40,9 @@ export abstract class Timeline extends Referenceable implements ITimeline {
     this.timeUnit = xmlObject.timeUnit
       ? (xmlObject.timeUnit as TimeUnit)
       : undefined; // Cast string to TimeUnit
+  }
+
+  static fromXmlObject(xmlObject: any): Timeline {
+    throw new Error("fromXmlObject must be implemented by derived class");
   }
 }

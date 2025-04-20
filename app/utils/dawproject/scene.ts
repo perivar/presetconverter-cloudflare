@@ -1,7 +1,7 @@
 import { XMLBuilder, XMLParser } from "fast-xml-parser";
 
 import { Referenceable } from "./referenceable";
-// Renamed to avoid conflict
+import { TimelineRegistry } from "./registry/timelineRegistry";
 import { Timeline } from "./timeline/timeline";
 import { IScene } from "./types";
 
@@ -59,45 +59,27 @@ export class Scene extends Referenceable implements IScene {
     const instance = new Scene(); // Create instance
     instance.populateFromXml(xmlObject); // Populate inherited attributes
 
+    // Handle content if present
     let content: Timeline | undefined;
     if (xmlObject.Content) {
-      // Handling content which is wrapped in a "Content" tag
       const contentObj = xmlObject.Content;
       const tagName = Object.keys(contentObj)[0]; // Get the actual content tag name
+      const TimelineClass = TimelineRegistry.getTimelineClass(tagName);
 
-      // TODO: Fix circular dependency
-      // Need a mechanism to determine the correct subclass of Timeline
-      // based on the XML element tag (e.g., Timeline, Lanes, Notes, Clips, etc.)
-      //   const timelineTypeMap: { [key: string]: (obj: any) => any } = {
-      //     Clips: Clips.fromXmlObject,
-      //     Notes: Notes.fromXmlObject,
-      //     Audio: Audio.fromXmlObject,
-      //     Video: Video.fromXmlObject,
-      //     Markers: Markers.fromXmlObject,
-      //     Arrangement: Arrangement.fromXmlObject,
-      //     Scene: SceneTimeline.fromXmlObject, // Use the renamed import
-      //     Track: Track.fromXmlObject,
-      //     Channel: Channel.fromXmlObject,
-      //     ClipSlot: ClipSlot.fromXmlObject,
-      //     Points: Points.fromXmlObject,
-      //     Warps: Warps.fromXmlObject,
-      //     // Add other Timeline subclasses here
-      //   };
-
-      //   if (timelineTypeMap[tagName]) {
-      //     try {
-      //       content = timelineTypeMap[tagName](contentObj[tagName]) as Timeline; // Cast to Timeline
-      //     } catch (e) {
-      //       console.error(
-      //         `Error deserializing nested timeline content ${tagName} in Scene:`,
-      //         e
-      //       );
-      //     }
-      //   } else {
-      //     console.warn(
-      //       `Skipping deserialization of unknown nested timeline content in Scene: ${tagName}`
-      //     );
-      //   }
+      if (TimelineClass) {
+        try {
+          content = TimelineClass.fromXmlObject(contentObj[tagName]);
+        } catch (e) {
+          console.error(
+            `Error deserializing nested timeline content ${tagName} in Scene:`,
+            e
+          );
+        }
+      } else {
+        console.warn(
+          `Skipping deserialization of unknown nested timeline content in Scene: ${tagName}`
+        );
+      }
     }
     instance.content = content;
 

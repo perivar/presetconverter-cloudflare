@@ -5,7 +5,7 @@ import { Arrangement } from "./arrangement";
 import { Channel } from "./channel";
 import { Lane } from "./lane";
 import { Scene } from "./scene";
-import { Track as TrackLane } from "./track"; // Renamed to avoid conflict
+import { Track as TrackLane } from "./track";
 import { Transport } from "./transport";
 import { IProject } from "./types";
 import { XmlObject } from "./XmlObject";

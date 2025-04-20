@@ -2,6 +2,7 @@ import { XMLBuilder, XMLParser } from "fast-xml-parser";
 
 import { DoubleAdapter } from "../doubleAdapter";
 import { Nameable } from "../nameable";
+import { TimelineRegistry } from "../registry/timelineRegistry";
 import type { IClip } from "../types";
 import { Timeline } from "./timeline";
 import { TimeUnit } from "./timeUnit";
@@ -152,41 +153,37 @@ export class Clip extends Nameable implements IClip {
         ? DoubleAdapter.fromXml(xmlObject.fadeOutTime)
         : undefined;
 
-    // TODO: Fix circular dependency
-    // Handling content and reference
-    // Need a mechanism to determine the correct subclass of Timeline
-    // based on the XML element tag (e.g., Timeline, Lanes, Notes, Clips, etc.)
-    // const timelineTypeMap: { [key: string]: (obj: any) => any } = {
-    //   Clips: Clips.fromXmlObject,
-    //   Notes: Notes.fromXmlObject,
-    //   Audio: Audio.fromXmlObject,
-    //   Video: Video.fromXmlObject,
-    //   Markers: Markers.fromXmlObject,
-    //   Arrangement: Arrangement.fromXmlObject,
-    //   Scene: Scene.fromXmlObject,
-    //   Track: Track.fromXmlObject,
-    //   Channel: Channel.fromXmlObject,
-    //   ClipSlot: ClipSlot.fromXmlObject,
-    //   Points: Points.fromXmlObject,
-    //   Warps: Warps.fromXmlObject,
-    //   // Add other Timeline subclasses here
-    // };
+    // Handle content if present
+    for (const tagName in xmlObject) {
+      if (
+        tagName === "time" ||
+        tagName === "duration" ||
+        tagName === "contentTimeUnit" ||
+        tagName === "playStart" ||
+        tagName === "playStop" ||
+        tagName === "loopStart" ||
+        tagName === "loopEnd" ||
+        tagName === "fadeTimeUnit" ||
+        tagName === "fadeInTime" ||
+        tagName === "fadeOutTime" ||
+        tagName === "reference"
+      ) {
+        continue; // Skip known properties
+      }
 
-    // for (const tagName in xmlObject) {
-    //   if (timelineTypeMap[tagName]) {
-    //     try {
-    //       instance.content = timelineTypeMap[tagName](
-    //         xmlObject[tagName]
-    //       ) as Timeline; // Cast to Timeline
-    //       break; // Assuming only one content element
-    //     } catch (e) {
-    //       console.error(
-    //         `Error deserializing nested timeline content ${tagName} in Clip:`,
-    //         e
-    //       );
-    //     }
-    //   }
-    // }
+      const TimelineClass = TimelineRegistry.getTimelineClass(tagName);
+      if (TimelineClass) {
+        try {
+          instance.content = TimelineClass.fromXmlObject(xmlObject[tagName]);
+          break; // We found and processed the content
+        } catch (e) {
+          console.error(
+            `Error deserializing nested timeline content ${tagName} in Clip:`,
+            e
+          );
+        }
+      }
+    }
 
     instance.reference = xmlObject.reference; // Assign string directly
 

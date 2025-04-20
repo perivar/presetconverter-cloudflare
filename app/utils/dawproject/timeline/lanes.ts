@@ -2,7 +2,9 @@ import { XMLBuilder, XMLParser } from "fast-xml-parser";
 
 import type { ILanes } from "../types";
 import { Timeline } from "./timeline";
+import { registerTimeline, TimelineRegistry } from "./timelineRegistry";
 
+@registerTimeline("Lanes")
 export class Lanes extends Timeline implements ILanes {
   lanes: Timeline[];
 
@@ -50,52 +52,36 @@ export class Lanes extends Timeline implements ILanes {
     return builder.build(this.toXmlObject());
   }
 
-  static fromXmlObject(xmlObject: any): Lanes {
-    const instance = new Lanes(); // Create instance of Lanes
-    instance.populateFromXml(xmlObject); // Populate inherited attributes from Timeline
+  static override fromXmlObject(xmlObject: any): Lanes {
+    const instance = new Lanes();
+    instance.populateFromXml(xmlObject);
 
-    // Process child elements of type Timeline
     const lanes: Timeline[] = [];
 
-    // TODO: Fix circular dependency
-    // Need a mechanism to determine the correct subclass of Timeline
-    // based on the XML element tag (e.g., Timeline, Lanes, Notes, Clips, etc.)
-    // This requires mapping tag names to their corresponding fromXmlObject methods.
-    // const timelineTypeMap: { [key: string]: (obj: any) => any } = {
-    //   // Changed return type to any
-    //   Clips: Clips.fromXmlObject,
-    //   Notes: Notes.fromXmlObject,
-    //   Audio: Audio.fromXmlObject,
-    //   Video: Video.fromXmlObject,
-    //   Markers: Markers.fromXmlObject,
-    //   Arrangement: Arrangement.fromXmlObject,
-    //   Scene: Scene.fromXmlObject,
-    //   Track: Track.fromXmlObject,
-    //   Channel: Channel.fromXmlObject,
-    //   ClipSlot: ClipSlot.fromXmlObject,
-    //   Points: Points.fromXmlObject,
-    //   Warps: Warps.fromXmlObject,
-    //   // Add other Timeline subclasses here
-    // };
+    // Iterate through all properties in xmlObject to find Timeline elements
+    for (const tagName in xmlObject) {
+      if (tagName === "Lanes") continue; // Skip the root Lanes element itself
 
-    // for (const tagName in xmlObject) {
-    //   if (timelineTypeMap[tagName]) {
-    //     const laneData = xmlObject[tagName];
-    //     const laneArray = Array.isArray(laneData) ? laneData : [laneData];
-    //     laneArray.forEach((laneObj: any) => {
-    //       try {
-    //         lanes.push(timelineTypeMap[tagName](laneObj) as Timeline); // Cast to Timeline
-    //       } catch (e) {
-    //         console.error(
-    //           `Error deserializing nested timeline element ${tagName}:`,
-    //           e
-    //         );
-    //       }
-    //     });
-    //   }
-    // }
+      const TimelineClass = TimelineRegistry.getTimelineClass(tagName);
+      if (TimelineClass) {
+        const laneData = xmlObject[tagName];
+        const laneArray = Array.isArray(laneData) ? laneData : [laneData];
+
+        for (const laneObj of laneArray) {
+          try {
+            const timelineInstance = TimelineClass.fromXmlObject(laneObj);
+            lanes.push(timelineInstance);
+          } catch (e) {
+            console.error(
+              `Error deserializing nested timeline element ${tagName}:`,
+              e
+            );
+          }
+        }
+      }
+    }
+
     instance.lanes = lanes;
-
     return instance;
   }
 

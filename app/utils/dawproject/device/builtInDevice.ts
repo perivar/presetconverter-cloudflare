@@ -1,10 +1,12 @@
 import { XMLParser } from "fast-xml-parser";
 
 import { BoolParameter } from "../boolParameter";
+import { DeviceRegistry, registerDevice } from "../registry/deviceRegistry";
 import type { IBuiltInDevice, IFileReference, IParameter } from "../types";
 import { Device } from "./device";
 import { DeviceRole } from "./deviceRole";
 
+@registerDevice("BuiltinDevice")
 export class BuiltInDevice extends Device implements IBuiltInDevice {
   deviceType?: Device;
 
@@ -75,15 +77,18 @@ export class BuiltInDevice extends Device implements IBuiltInDevice {
     );
     instance.populateFromXml(xmlObject);
 
-    // TODO: Fix circular dependency
-    // // Check for known device types
-    // if (xmlObject.Equalizer) {
-    //   instance.deviceType = Equalizer.fromXmlObject(xmlObject.Equalizer);
-    // } else if (xmlObject.Compressor) {
-    //   instance.deviceType = Compressor.fromXmlObject(xmlObject.Compressor);
-    // }
-    // Add other device types similarly
-    // NoiseGate, Limiter, etc.
+    // Handle device type using the registry
+    for (const tagName in xmlObject) {
+      const DeviceClass = DeviceRegistry.getDeviceClass(tagName);
+      if (DeviceClass) {
+        try {
+          instance.deviceType = DeviceClass.fromXmlObject(xmlObject[tagName]);
+          break; // We found and processed the device type
+        } catch (e) {
+          console.error(`Error deserializing device type ${tagName}:`, e);
+        }
+      }
+    }
 
     return instance;
   }

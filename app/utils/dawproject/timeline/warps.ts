@@ -1,12 +1,15 @@
 import { XMLBuilder, XMLParser } from "fast-xml-parser";
 
+import {
+  registerTimeline,
+  TimelineRegistry,
+} from "../registry/timelineRegistry";
 import type { IWarps } from "../types";
 import { Timeline } from "./timeline";
 import { TimeUnit } from "./timeUnit";
 import { Warp } from "./warp";
 
-// Renamed to avoid conflict
-
+@registerTimeline("Warps")
 export class Warps extends Timeline implements IWarps {
   points: Warp[]; // Renamed from events and made required
   content?: Timeline;
@@ -58,46 +61,27 @@ export class Warps extends Timeline implements IWarps {
   }
 
   static fromXmlObject(xmlObject: any): Warps {
-    // Parse content (which should be a Timeline or subclass)
+    // Handle content if present
     let content: Timeline | undefined;
     if (xmlObject.Content) {
-      // Handling content which is wrapped in a "Content" tag
       const contentObj = xmlObject.Content;
       const tagName = Object.keys(contentObj)[0]; // Get the actual content tag name
+      const TimelineClass = TimelineRegistry.getTimelineClass(tagName);
 
-      // TODO: Fix circular dependency
-      // Need a mechanism to determine the correct subclass of Timeline
-      // based on the XML element tag (e.g., Timeline, Lanes, Notes, Clips, etc.)
-      // const timelineTypeMap: { [key: string]: (obj: any) => any } = {
-      //   Clips: Clips.fromXmlObject,
-      //   Notes: Notes.fromXmlObject,
-      //   Audio: Audio.fromXmlObject,
-      //   Video: Video.fromXmlObject,
-      //   Markers: Markers.fromXmlObject,
-      //   Arrangement: Arrangement.fromXmlObject,
-      //   Scene: Scene.fromXmlObject,
-      //   Track: Track.fromXmlObject,
-      //   Channel: Channel.fromXmlObject,
-      //   ClipSlot: ClipSlot.fromXmlObject,
-      //   Points: Points.fromXmlObject,
-      //   Warps: WarpsTimeline.fromXmlObject, // Use the renamed import
-      //   // Add other Timeline subclasses here
-      // };
-
-      // if (timelineTypeMap[tagName]) {
-      //   try {
-      //     content = timelineTypeMap[tagName](contentObj[tagName]) as Timeline; // Cast to Timeline
-      //   } catch (e) {
-      //     console.error(
-      //       `Error deserializing nested timeline content ${tagName} in Warps:`,
-      //       e
-      //     );
-      //   }
-      // } else {
-      //   console.warn(
-      //     `Skipping deserialization of unknown nested timeline content in Warps: ${tagName}`
-      //   );
-      // }
+      if (TimelineClass) {
+        try {
+          content = TimelineClass.fromXmlObject(contentObj[tagName]);
+        } catch (e) {
+          console.error(
+            `Error deserializing nested timeline content ${tagName} in Warps:`,
+            e
+          );
+        }
+      } else {
+        console.warn(
+          `Skipping deserialization of unknown nested timeline content in Warps: ${tagName}`
+        );
+      }
     }
 
     // Recursively parse nested Warp elements
