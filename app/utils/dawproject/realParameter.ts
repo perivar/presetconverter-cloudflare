@@ -1,22 +1,9 @@
 import { XMLBuilder, XMLParser } from "fast-xml-parser";
 
 import { DoubleAdapter } from "./doubleAdapter";
-import { IParameter, Parameter } from "./parameter";
+import { Parameter } from "./parameter";
+import { IRealParameter } from "./types";
 import { Unit } from "./unit";
-
-/** Represents a real valued (double) parameter which can provide a value and be used as an automation target. */
-export interface IRealParameter extends IParameter {
-  /** Real (double) value for this parameter.
-   * <p>When serializing value to text for XML, infinite values are allowed and should be represented as inf and -inf. </p>*/
-  value?: number;
-  /** Unit in which value, min and max are defined.
-   * <p>Using this rather than normalized value ranges allows transfer of parameter values and automation data.</p> */
-  unit?: Unit;
-  /** Minimum value this parameter can have (inclusive). */
-  min?: number;
-  /** Maximum value this parameter can have (inclusive). */
-  max?: number;
-}
 
 /** Represents a real valued (double) parameter which can provide a value and be used as an automation target. */
 export class RealParameter extends Parameter implements IRealParameter {

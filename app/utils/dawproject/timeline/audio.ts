@@ -1,40 +1,39 @@
 import { XMLBuilder, XMLParser } from "fast-xml-parser";
 
 import { FileReference } from "../fileReference";
-import { IMediaFile, MediaFile } from "./mediaFile";
+import { IAudio } from "../types"; // Import IFileReference
+import { MediaFile } from "./mediaFile";
 import { TimeUnit } from "./timeUnit";
-
-export interface IAudio extends IMediaFile {
-  sampleRate: number;
-  channels: number;
-  algorithm?: string;
-}
 
 export class Audio extends MediaFile implements IAudio {
   sampleRate: number;
   channels: number;
   algorithm?: string;
+  duration: number; // Explicitly declare duration
+  file: FileReference; // Explicitly declare file with concrete type
 
   constructor(
     sampleRate: number,
     channels: number,
     duration: number,
+    file: FileReference,
     algorithm?: string,
-    file?: FileReference,
     name?: string,
     timeUnit?: TimeUnit
   ) {
-    super(file, duration, name, timeUnit); // Pass timeUnit to MediaFile constructor
+    super(file, duration, name, timeUnit);
     this.sampleRate = sampleRate;
     this.channels = channels;
     this.algorithm = algorithm;
+    this.duration = duration; // Assign duration
+    this.file = file; // Assign file
   }
 
   toXmlObject(): any {
     const obj: any = {
       Audio: {
-        ...super.getXmlAttributes(), // Get attributes from MediaFile
-        ...super.getXmlChildren(), // Get children from MediaFile
+        ...super.getXmlAttributes(),
+        ...super.getXmlChildren(),
         sampleRate: this.sampleRate,
         channels: this.channels,
       },
@@ -53,15 +52,21 @@ export class Audio extends MediaFile implements IAudio {
   }
 
   static fromXmlObject(xmlObject: any): Audio {
-    const instance = new Audio(0, 0, 0); // Create instance with default values
-    instance.populateFromXml(xmlObject); // Populate inherited attributes from MediaFile
-
-    instance.sampleRate =
+    const sampleRate =
       xmlObject.sampleRate !== undefined
         ? parseInt(xmlObject.sampleRate, 10)
         : 0;
-    instance.channels =
+    const channels =
       xmlObject.channels !== undefined ? parseInt(xmlObject.channels, 10) : 0;
+    const duration =
+      xmlObject.duration !== undefined ? parseFloat(xmlObject.duration) : 0;
+    const file = xmlObject.File
+      ? FileReference.fromXmlObject(xmlObject.File)
+      : new FileReference("");
+
+    const instance = new Audio(sampleRate, channels, duration, file);
+    instance.populateFromXml(xmlObject);
+
     instance.algorithm = xmlObject.algorithm || undefined;
 
     return instance;

@@ -1,31 +1,38 @@
-import { Compressor } from "./compressor";
-import { Device, IDevice } from "./device";
-import { Equalizer } from "./equalizer";
+import { BoolParameter } from "../boolParameter"; // Import BoolParameter
 
 // Import NoiseGate and Limiter here if they exist
-
-export interface IBuiltInDevice extends IDevice {
-  deviceType?: Equalizer | Compressor; // Add other built-in device types here
-}
+import { IBuiltInDevice, IFileReference, IParameter } from "../types";
+import { Compressor } from "./compressor";
+import { Device } from "./device";
+import { DeviceRole } from "./deviceRole"; // Import DeviceRole
+import { Equalizer } from "./equalizer";
 
 export abstract class BuiltInDevice extends Device implements IBuiltInDevice {
   deviceType?: Equalizer | Compressor; // Add other built-in device types here
 
   constructor(
+    deviceRole: DeviceRole, // Make deviceRole required
+    deviceName: string, // Make deviceName required
     deviceType?: Equalizer | Compressor,
+    enabled?: BoolParameter, // Change type to BoolParameter
+    loaded?: boolean,
+    deviceId?: string,
+    deviceVendor?: string,
+    state?: IFileReference,
+    parameters?: IParameter[],
     name?: string,
     color?: string,
     comment?: string
   ) {
     super(
-      undefined,
-      undefined,
-      undefined,
-      undefined,
-      undefined,
-      undefined,
-      undefined,
-      undefined,
+      deviceRole, // Pass required deviceRole
+      deviceName, // Pass required deviceName
+      enabled, // Pass BoolParameter directly
+      loaded,
+      deviceId,
+      deviceVendor,
+      state,
+      parameters,
       name,
       color,
       comment

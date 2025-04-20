@@ -2,7 +2,7 @@ import { XMLBuilder, XMLParser } from "fast-xml-parser";
 
 import { Arrangement } from "./arrangement";
 import { Channel } from "./channel";
-import { IReferenceable, Referenceable } from "./referenceable";
+import { Referenceable } from "./referenceable";
 import { Scene as SceneTimeline } from "./scene"; // Renamed to avoid conflict
 import { Audio } from "./timeline/audio";
 import { Clips } from "./timeline/clips";
@@ -10,29 +10,11 @@ import { ClipSlot } from "./timeline/clipSlot";
 import { Markers } from "./timeline/markers";
 import { Notes } from "./timeline/notes";
 import { Points } from "./timeline/points";
-import { ITimeline, Timeline } from "./timeline/timeline";
+import { Timeline } from "./timeline/timeline";
 import { Video } from "./timeline/video";
 import { Warps } from "./timeline/warps";
 import { Track } from "./track";
-
-/** Represents a clip launcher Scene of a DAW. */
-export interface IScene extends IReferenceable {
-  /** Content timeline of this scene, will typically be structured like this:
-   * <pre>{@code
-   * <Scene>
-   *   <Lanes>
-   *     <ClipSlot track="...">
-   *        <Clip>
-   *           ...
-   *        </Clip>
-   *     </ClipSlot>
-   *      ...
-   *   </Lanes>
-   * </Scene>
-   * }</pre>
-   * */
-  content?: ITimeline;
-}
+import { IScene } from "./types";
 
 /** Represents a clip launcher Scene of a DAW. */
 export class Scene extends Referenceable implements IScene {

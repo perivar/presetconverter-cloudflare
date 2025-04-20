@@ -1,11 +1,4 @@
-export interface INameable {
-  /** Name/label of this object. */
-  name?: string;
-  /** Color of this object in HTML-style format. (#rrggbb) */
-  color?: string;
-  /** Comment/description of this object. */
-  comment?: string;
-}
+import { INameable } from "./types";
 
 export abstract class Nameable implements INameable {
   /** Name/label of this object. */

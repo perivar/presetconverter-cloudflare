@@ -1,19 +1,9 @@
 import { XMLBuilder, XMLParser } from "fast-xml-parser";
 
-import { IRealParameter, RealParameter } from "./realParameter";
-import {
-  ITimeSignatureParameter,
-  TimeSignatureParameter,
-} from "./timeSignatureParameter";
+import { RealParameter } from "./realParameter";
+import { TimeSignatureParameter } from "./timeSignatureParameter";
+import { ITransport } from "./types";
 import { Unit } from "./unit";
-
-/** Transport element containing playback parameters such as Tempo and Time-signature. */
-export interface ITransport {
-  /** Tempo parameter for setting and/or automating the tempo. */
-  tempo?: IRealParameter;
-  /** Time-signature parameter. */
-  timeSignature?: ITimeSignatureParameter;
-}
 
 /** Transport element containing playback parameters such as Tempo and Time-signature. */
 export class Transport implements ITransport {

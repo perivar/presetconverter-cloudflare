@@ -1,11 +1,7 @@
 import { XMLBuilder, XMLParser } from "fast-xml-parser";
 
 import { DoubleAdapter } from "../doubleAdapter";
-
-export interface IWarp {
-  time: number;
-  contentTime: number;
-}
+import { IWarp } from "../types";
 
 export class Warp implements IWarp {
   time: number;

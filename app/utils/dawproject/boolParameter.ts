@@ -1,12 +1,7 @@
 import { XMLBuilder, XMLParser } from "fast-xml-parser";
 
-import { IParameter, Parameter } from "./parameter";
-
-/** Represents a parameter which can provide a boolean (true/false) value and be used as an automation target. */
-export interface IBoolParameter extends IParameter {
-  /** Boolean value for this parameter. */
-  value?: boolean;
-}
+import { Parameter } from "./parameter";
+import { IBoolParameter } from "./types";
 
 /** Represents a parameter which can provide a boolean (true/false) value and be used as an automation target. */
 export class BoolParameter extends Parameter implements IBoolParameter {

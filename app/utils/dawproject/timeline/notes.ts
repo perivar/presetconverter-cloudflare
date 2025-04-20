@@ -1,11 +1,8 @@
 import { XMLBuilder, XMLParser } from "fast-xml-parser";
 
-import { INote, Note } from "./note";
-import { ITimeline, Timeline } from "./timeline";
-
-export interface INotes extends ITimeline {
-  notes: INote[];
-}
+import { INotes } from "../types";
+import { Note } from "./note";
+import { Timeline } from "./timeline";
 
 export class Notes extends Timeline implements INotes {
   notes: Note[];

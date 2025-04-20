@@ -1,16 +1,12 @@
 import { XMLBuilder, XMLParser } from "fast-xml-parser";
 
-import { IRealParameter, RealParameter } from "../realParameter";
+import { BoolParameter } from "../boolParameter"; // Import BoolParameter
+import { RealParameter } from "../realParameter";
+import { IEqualizer, IFileReference, IParameter } from "../types";
 import { Unit } from "../unit";
-import { BuiltInDevice, IBuiltInDevice } from "./builtInDevice";
+import { BuiltInDevice } from "./builtInDevice";
 import { DeviceRole } from "./deviceRole";
-import { EqBand, IEqBand } from "./eqBand";
-
-export interface IEqualizer extends IBuiltInDevice {
-  bands: IEqBand[];
-  inputGain?: IRealParameter;
-  outputGain?: IRealParameter;
-}
+import { EqBand } from "./eqBand";
 
 export class Equalizer extends BuiltInDevice implements IEqualizer {
   bands: EqBand[];
@@ -18,17 +14,35 @@ export class Equalizer extends BuiltInDevice implements IEqualizer {
   outputGain?: RealParameter;
 
   constructor(
-    deviceName?: string,
-    deviceRole?: DeviceRole,
+    deviceRole: DeviceRole, // Add required deviceRole
+    deviceName: string, // Add required deviceName
     bands?: EqBand[],
     inputGain?: RealParameter,
     outputGain?: RealParameter,
+    enabled?: BoolParameter, // Change type to BoolParameter
+    loaded?: boolean,
+    deviceId?: string,
+    deviceVendor?: string,
+    state?: IFileReference,
+    parameters?: IParameter[],
     name?: string,
     color?: string,
     comment?: string
   ) {
-    super(undefined, name, color, comment); // Pass relevant args to BuiltInDevice constructor
-    // deviceName and deviceRole are handled in the Device constructor
+    super(
+      deviceRole, // Pass required deviceRole
+      deviceName, // Pass required deviceName
+      undefined, // deviceType is handled by the class name
+      enabled, // Pass BoolParameter directly
+      loaded,
+      deviceId,
+      deviceVendor,
+      state,
+      parameters,
+      name,
+      color,
+      comment
+    ); // Pass relevant args to BuiltInDevice constructor
     this.bands = bands || [];
     this.inputGain = inputGain;
     this.outputGain = outputGain;
@@ -44,13 +58,13 @@ export class Equalizer extends BuiltInDevice implements IEqualizer {
 
     // Add bands as child elements
     if (this.bands && this.bands.length > 0) {
-      obj.Equalizer.Band = this.bands.map(band => band.toXmlObject()); // Assuming EqBand has toXmlObject
+      obj.Equalizer.Band = this.bands.map(band => band.toXmlObject().Band); // Assuming EqBand has toXmlObject and returns { Band: ... }
     }
 
     // Add InputGain as a child element with the unit attribute
     if (this.inputGain) {
       obj.Equalizer.InputGain = {
-        ...this.inputGain.toXmlObject(), // Assuming RealParameter has toXmlObject
+        ...this.inputGain.toXmlObject().RealParameter, // Assuming RealParameter has toXmlObject and returns { RealParameter: ... }
         unit: Unit.DECIBEL, // Assuming the unit for InputGain is in decibels
       };
     }
@@ -58,7 +72,7 @@ export class Equalizer extends BuiltInDevice implements IEqualizer {
     // Add OutputGain as a child element with the unit attribute
     if (this.outputGain) {
       obj.Equalizer.OutputGain = {
-        ...this.outputGain.toXmlObject(), // Assuming RealParameter has toXmlObject
+        ...this.outputGain.toXmlObject().RealParameter, // Assuming RealParameter has toXmlObject and returns { RealParameter: ... }
         unit: Unit.DECIBEL, // Assuming the unit for OutputGain is in decibels
       };
     }
@@ -72,7 +86,11 @@ export class Equalizer extends BuiltInDevice implements IEqualizer {
   }
 
   static fromXmlObject(xmlObject: any): Equalizer {
-    const instance = new Equalizer(); // Create instance
+    // Extract required deviceRole and deviceName from xmlObject
+    const deviceRole = xmlObject.deviceRole as DeviceRole;
+    const deviceName = xmlObject.deviceName as string;
+
+    const instance = new Equalizer(deviceRole, deviceName); // Create instance with required properties
     instance.populateFromXml(xmlObject); // Populate inherited attributes from BuiltInDevice
 
     const bands: EqBand[] = [];
@@ -82,18 +100,22 @@ export class Equalizer extends BuiltInDevice implements IEqualizer {
         ? xmlObject.Band
         : [xmlObject.Band];
       bandArray.forEach((bandObj: any) => {
-        bands.push(EqBand.fromXmlObject(bandObj)); // Assuming EqBand has fromXmlObject
+        bands.push(EqBand.fromXmlObject({ Band: bandObj })); // Assuming EqBand has fromXmlObject and returns { Band: ... }
       });
     }
     instance.bands = bands;
 
     // Extract the RealParameter from the InputGain and OutputGain elements
     if (xmlObject.InputGain) {
-      instance.inputGain = RealParameter.fromXmlObject(xmlObject.InputGain); // Assuming RealParameter has fromXmlObject
+      instance.inputGain = RealParameter.fromXmlObject({
+        RealParameter: xmlObject.InputGain,
+      }); // Assuming RealParameter has fromXmlObject and returns { RealParameter: ... }
     }
 
     if (xmlObject.OutputGain) {
-      instance.outputGain = RealParameter.fromXmlObject(xmlObject.OutputGain); // Assuming RealParameter has fromXmlObject
+      instance.outputGain = RealParameter.fromXmlObject({
+        RealParameter: xmlObject.OutputGain,
+      }); // Assuming RealParameter has fromXmlObject and returns { RealParameter: ... }
     }
 
     return instance;

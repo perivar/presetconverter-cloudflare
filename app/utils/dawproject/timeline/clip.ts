@@ -3,35 +3,20 @@ import { XMLBuilder, XMLParser } from "fast-xml-parser";
 import { Arrangement } from "../arrangement";
 import { Channel } from "../channel";
 import { DoubleAdapter } from "../doubleAdapter";
-import { INameable, Nameable } from "../nameable";
-import { IReferenceable, Referenceable } from "../referenceable";
+import { Nameable } from "../nameable";
 import { Scene } from "../scene";
 import { Track } from "../track";
+import { IClip } from "../types";
 import { Audio } from "./audio";
 import { Clips } from "./clips";
 import { ClipSlot } from "./clipSlot";
 import { Markers } from "./markers";
 import { Notes } from "./notes";
 import { Points } from "./points";
-import { ITimeline, Timeline } from "./timeline";
+import { Timeline } from "./timeline";
 import { TimeUnit } from "./timeUnit";
 import { Video } from "./video";
 import { Warps } from "./warps";
-
-export interface IClip extends INameable {
-  time: number;
-  duration?: number;
-  contentTimeUnit?: TimeUnit;
-  playStart?: number;
-  playStop?: number;
-  loopStart?: number;
-  loopEnd?: number;
-  fadeTimeUnit?: TimeUnit;
-  fadeInTime?: number;
-  fadeOutTime?: number;
-  content?: ITimeline;
-  reference?: IReferenceable; // Assuming reference is an IDREF string or Referenceable instance
-}
 
 export class Clip extends Nameable implements IClip {
   time: number;
@@ -45,7 +30,7 @@ export class Clip extends Nameable implements IClip {
   fadeInTime?: number;
   fadeOutTime?: number;
   content?: Timeline;
-  reference?: Referenceable; // Assuming reference is an IDREF string or Referenceable instance
+  reference?: string; // Change type to string | undefined
 
   constructor(
     time: number,
@@ -59,7 +44,7 @@ export class Clip extends Nameable implements IClip {
     fadeInTime?: number,
     fadeOutTime?: number,
     content?: Timeline,
-    reference?: Referenceable,
+    reference?: string, // Change type to string | undefined
     name?: string,
     color?: string,
     comment?: string
@@ -76,7 +61,7 @@ export class Clip extends Nameable implements IClip {
     this.fadeInTime = fadeInTime;
     this.fadeOutTime = fadeOutTime;
     this.content = content;
-    this.reference = reference;
+    this.reference = reference; // Assign string directly
   }
 
   toXmlObject(): any {
@@ -125,8 +110,7 @@ export class Clip extends Nameable implements IClip {
 
     // Reference handling
     if (this.reference !== undefined) {
-      // Assuming reference is a Referenceable instance and has an id
-      obj.Clip.reference = this.reference.id;
+      obj.Clip.reference = this.reference; // Assign string directly
     }
 
     return obj;
@@ -215,10 +199,7 @@ export class Clip extends Nameable implements IClip {
       }
     }
 
-    const referenceId = xmlObject.reference;
-    if (referenceId) {
-      instance.reference = Referenceable.getById(referenceId); // Assuming Referenceable has a static getById
-    }
+    instance.reference = xmlObject.reference; // Assign string directly
 
     return instance;
   }

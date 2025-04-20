@@ -1,11 +1,7 @@
 import { XMLBuilder, XMLParser } from "fast-xml-parser";
 
-import { IPoint, Point } from "./point";
-
-export interface ITimeSignaturePoint extends IPoint {
-  numerator: number;
-  denominator: number;
-}
+import { ITimeSignaturePoint } from "../types";
+import { Point } from "./point";
 
 export class TimeSignaturePoint extends Point implements ITimeSignaturePoint {
   numerator: number;

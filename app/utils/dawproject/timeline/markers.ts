@@ -1,11 +1,8 @@
 import { XMLBuilder, XMLParser } from "fast-xml-parser";
 
-import { IMarker, Marker } from "./marker";
-import { ITimeline, Timeline } from "./timeline";
-
-export interface IMarkers extends ITimeline {
-  markers: IMarker[];
-}
+import { IMarkers } from "../types";
+import { Marker } from "./marker";
+import { Timeline } from "./timeline";
 
 export class Markers extends Timeline implements IMarkers {
   markers: Marker[];

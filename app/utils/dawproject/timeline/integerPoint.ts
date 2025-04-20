@@ -1,10 +1,7 @@
 import { XMLBuilder, XMLParser } from "fast-xml-parser";
 
-import { IPoint, Point } from "./point";
-
-export interface IIntegerPoint extends IPoint {
-  value: number;
-}
+import { IIntegerPoint } from "../types";
+import { Point } from "./point";
 
 export class IntegerPoint extends Point implements IIntegerPoint {
   value: number;

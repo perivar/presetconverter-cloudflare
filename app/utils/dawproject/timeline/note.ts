@@ -5,6 +5,7 @@ import { Channel } from "../channel";
 import { DoubleAdapter } from "../doubleAdapter";
 import { Scene } from "../scene";
 import { Track } from "../track";
+import { INote } from "../types";
 import { Audio } from "./audio";
 import { Clips } from "./clips";
 import { ClipSlot } from "./clipSlot";
@@ -12,19 +13,9 @@ import { Markers } from "./markers";
 import { Notes as NotesTimeline } from "./notes"; // Renamed to avoid conflict
 
 import { Points } from "./points";
-import { ITimeline, Timeline } from "./timeline";
+import { Timeline } from "./timeline";
 import { Video } from "./video";
 import { Warps } from "./warps";
-
-export interface INote {
-  time: number;
-  duration: number;
-  key: number;
-  channel?: number;
-  velocity?: number;
-  releaseVelocity?: number;
-  content?: ITimeline;
-}
 
 export class Note implements INote {
   time: number;

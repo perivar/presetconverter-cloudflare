@@ -51,8 +51,8 @@ export class Utility {
       sampleRate,
       channels,
       duration,
+      new FileReference(relativePath, false), // file (required)
       undefined, // algorithm optional
-      new FileReference(relativePath, false), // external default
       undefined, // name optional
       TimeUnit.SECONDS // timeUnit default
     );

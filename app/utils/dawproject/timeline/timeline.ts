@@ -1,10 +1,6 @@
-import { IReferenceable, Referenceable } from "../referenceable";
+import { Referenceable } from "../referenceable";
+import { ITimeline } from "../types";
 import { TimeUnit } from "./timeUnit";
-
-export interface ITimeline extends IReferenceable {
-  track?: string; // Assuming track is an IDREF string
-  timeUnit?: TimeUnit;
-}
 
 export abstract class Timeline extends Referenceable implements ITimeline {
   track?: string; // Assuming track is an IDREF string

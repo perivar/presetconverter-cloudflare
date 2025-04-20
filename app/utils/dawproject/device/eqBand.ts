@@ -1,18 +1,10 @@
 import { XMLBuilder, XMLParser } from "fast-xml-parser";
 
-import { BoolParameter, IBoolParameter } from "../boolParameter";
-import { IRealParameter, RealParameter } from "../realParameter";
+import { BoolParameter } from "../boolParameter";
+import { RealParameter } from "../realParameter";
+import { IEqBand } from "../types";
 import { Unit } from "../unit";
 import { EqBandType } from "./eqBandType";
-
-export interface IEqBand {
-  freq: IRealParameter;
-  gain?: IRealParameter;
-  q?: IRealParameter;
-  enabled?: IBoolParameter;
-  type: EqBandType;
-  order?: number;
-}
 
 export class EqBand implements IEqBand {
   freq: RealParameter;
@@ -51,29 +43,31 @@ export class EqBand implements IEqBand {
 
     // Create specific elements for Freq, Gain, and Q with the required unit attribute from the Unit enum
     if (this.freq) {
+      // Use frequency
       obj.Band.Freq = {
-        ...this.freq.toXmlObject(), // Assuming RealParameter has toXmlObject
+        // XML tag remains Freq
+        ...this.freq.toXmlObject().RealParameter, // Use frequency and assume RealParameter returns { RealParameter: ... }
         unit: Unit.HERTZ, // Using the Unit enum for frequency
       };
     }
 
     if (this.gain) {
       obj.Band.Gain = {
-        ...this.gain.toXmlObject(), // Assuming RealParameter has toXmlObject
+        ...this.gain.toXmlObject().RealParameter, // Assume RealParameter returns { RealParameter: ... }
         unit: Unit.DECIBEL, // Using the Unit enum for gain
       };
     }
 
     if (this.q) {
       obj.Band.Q = {
-        ...this.q.toXmlObject(), // Assuming RealParameter has toXmlObject
+        ...this.q.toXmlObject().RealParameter, // Assume RealParameter returns { RealParameter: ... }
         unit: Unit.LINEAR, // Assuming Q is unitless but using a suitable enum value
       };
     }
 
     // Add BoolParameter element with appropriate tag
     if (this.enabled) {
-      obj.Band.Enabled = this.enabled.toXmlObject(); // Assuming BoolParameter has toXmlObject
+      obj.Band.Enabled = this.enabled.toXmlObject().BoolParameter; // Assuming BoolParameter has toXmlObject and returns { BoolParameter: ... }
     }
 
     return obj;
@@ -86,21 +80,21 @@ export class EqBand implements IEqBand {
 
   static fromXmlObject(xmlObject: any): EqBand {
     // Parse specific elements Freq, Gain, and Q
-    const freq = xmlObject.Freq
-      ? RealParameter.fromXmlObject(xmlObject.Freq)
-      : new RealParameter(); // Assuming RealParameter has fromXmlObject
+    const frequency = xmlObject.Freq // Read from Freq XML tag
+      ? RealParameter.fromXmlObject({ RealParameter: xmlObject.Freq }) // Assume RealParameter has fromXmlObject and returns { RealParameter: ... }
+      : new RealParameter(0, Unit.HERTZ); // Provide default required value and unit
 
     const gain = xmlObject.Gain
-      ? RealParameter.fromXmlObject(xmlObject.Gain)
+      ? RealParameter.fromXmlObject({ RealParameter: xmlObject.Gain })
       : undefined;
 
     const q = xmlObject.Q
-      ? RealParameter.fromXmlObject(xmlObject.Q)
+      ? RealParameter.fromXmlObject({ RealParameter: xmlObject.Q })
       : undefined;
 
     // Parse BoolParameter element
     const enabled = xmlObject.Enabled
-      ? BoolParameter.fromXmlObject(xmlObject.Enabled)
+      ? BoolParameter.fromXmlObject({ BoolParameter: xmlObject.Enabled })
       : undefined;
 
     // Parse attributes
@@ -110,7 +104,7 @@ export class EqBand implements IEqBand {
     const order =
       xmlObject.order !== undefined ? parseInt(xmlObject.order, 10) : undefined;
 
-    return new EqBand(type, freq, gain, q, enabled, order);
+    return new EqBand(type, frequency, gain, q, enabled, order); // Pass frequency
   }
 
   static fromXml(xmlString: string): EqBand {

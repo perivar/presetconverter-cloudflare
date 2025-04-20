@@ -1,11 +1,8 @@
 import { XMLBuilder, XMLParser } from "fast-xml-parser";
 
-import { Clip, IClip } from "./clip";
-import { ITimeline, Timeline } from "./timeline";
-
-export interface IClips extends ITimeline {
-  clips: IClip[];
-}
+import { IClips } from "../types";
+import { Clip } from "./clip";
+import { Timeline } from "./timeline";
 
 export class Clips extends Timeline implements IClips {
   clips: Clip[];

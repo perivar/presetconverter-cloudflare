@@ -199,8 +199,8 @@ export function createProjectWithAudioTracks(
         eqBands.push(eqBand);
       });
       const equalizer = new Equalizer(
-        `Eq_${i + 1}`,
-        DeviceRole.AUDIO_FX,
+        DeviceRole.AUDIO_FX, // Swapped order
+        `Eq_${i + 1}`, // Swapped order
         eqBands
         // input_gain, output_gain are optional
       );
@@ -211,8 +211,8 @@ export function createProjectWithAudioTracks(
     if (trackInfo.compressor_settings && audioTrack.channel) {
       const compInfo = trackInfo.compressor_settings;
       const compressor = new Compressor(
-        `Compressor_${i + 1}`,
-        DeviceRole.AUDIO_FX,
+        DeviceRole.AUDIO_FX, // Swapped order
+        `Compressor_${i + 1}`, // Swapped order
         new RealParameter(compInfo.threshold, Unit.DECIBEL),
         new RealParameter(compInfo.ratio, Unit.LINEAR), // Assuming ratio is linear
         new RealParameter(compInfo.attack, Unit.SECONDS),

@@ -1,20 +1,11 @@
 import { XMLBuilder, XMLParser } from "fast-xml-parser";
 
-import { BoolParameter, IBoolParameter } from "../boolParameter";
-import { IRealParameter, RealParameter } from "../realParameter";
+import { BoolParameter } from "../boolParameter";
+import { RealParameter } from "../realParameter";
+import { ICompressor, IFileReference, IParameter } from "../types";
 import { Unit } from "../unit";
-import { BuiltInDevice, IBuiltInDevice } from "./builtInDevice";
+import { BuiltInDevice } from "./builtInDevice";
 import { DeviceRole } from "./deviceRole";
-
-export interface ICompressor extends IBuiltInDevice {
-  threshold?: IRealParameter;
-  ratio?: IRealParameter;
-  attack?: IRealParameter;
-  release?: IRealParameter;
-  inputGain?: IRealParameter;
-  outputGain?: IRealParameter;
-  autoMakeup?: IBoolParameter;
-}
 
 export class Compressor extends BuiltInDevice implements ICompressor {
   threshold?: RealParameter;
@@ -26,8 +17,8 @@ export class Compressor extends BuiltInDevice implements ICompressor {
   autoMakeup?: BoolParameter;
 
   constructor(
-    deviceName?: string,
-    deviceRole?: DeviceRole,
+    deviceRole: DeviceRole, // Add required deviceRole
+    deviceName: string, // Add required deviceName
     threshold?: RealParameter,
     ratio?: RealParameter,
     attack?: RealParameter,
@@ -35,12 +26,30 @@ export class Compressor extends BuiltInDevice implements ICompressor {
     inputGain?: RealParameter,
     outputGain?: RealParameter,
     autoMakeup?: BoolParameter,
+    enabled?: BoolParameter,
+    loaded?: boolean,
+    deviceId?: string,
+    deviceVendor?: string,
+    state?: IFileReference,
+    parameters?: IParameter[],
     name?: string,
     color?: string,
     comment?: string
   ) {
-    super(undefined, name, color, comment); // Pass relevant args to BuiltInDevice constructor
-    // deviceName and deviceRole are handled in the Device constructor
+    super(
+      deviceRole, // Pass required deviceRole
+      deviceName, // Pass required deviceName
+      undefined, // deviceType is handled by the class name
+      enabled,
+      loaded,
+      deviceId,
+      deviceVendor,
+      state,
+      parameters,
+      name,
+      color,
+      comment
+    ); // Pass relevant args to BuiltInDevice constructor
     this.threshold = threshold;
     this.ratio = ratio;
     this.attack = attack;
@@ -67,7 +76,7 @@ export class Compressor extends BuiltInDevice implements ICompressor {
     ) => {
       if (realParam) {
         parentObj[tag] = {
-          ...realParam.toXmlObject(), // Assuming RealParameter has toXmlObject
+          ...realParam.toXmlObject().RealParameter, // Assuming RealParameter has toXmlObject and returns { RealParameter: ... }
         };
         if (unit !== undefined) {
           parentObj[tag].unit = unit;
@@ -78,7 +87,7 @@ export class Compressor extends BuiltInDevice implements ICompressor {
     addRealParameterObject(obj.Compressor, "Attack", this.attack, Unit.SECONDS);
     // Add BoolParameter element with appropriate tag
     if (this.autoMakeup) {
-      obj.Compressor.AutoMakeup = this.autoMakeup.toXmlObject(); // Assuming BoolParameter has toXmlObject
+      obj.Compressor.AutoMakeup = this.autoMakeup.toXmlObject().BoolParameter; // Assuming BoolParameter has toXmlObject and returns { BoolParameter: ... }
     }
 
     addRealParameterObject(
@@ -116,35 +125,53 @@ export class Compressor extends BuiltInDevice implements ICompressor {
   }
 
   static fromXmlObject(xmlObject: any): Compressor {
-    const instance = new Compressor(); // Create instance
+    // Extract required deviceRole and deviceName from xmlObject
+    const deviceRole = xmlObject.deviceRole as DeviceRole;
+    const deviceName = xmlObject.deviceName as string;
+
+    const instance = new Compressor(deviceRole, deviceName); // Create instance with required properties
     instance.populateFromXml(xmlObject); // Populate inherited attributes from BuiltInDevice
 
     if (xmlObject.Threshold) {
-      instance.threshold = RealParameter.fromXmlObject(xmlObject.Threshold); // Assuming RealParameter has fromXmlObject
+      instance.threshold = RealParameter.fromXmlObject({
+        RealParameter: xmlObject.Threshold,
+      }); // Assuming RealParameter has fromXmlObject and returns { RealParameter: ... }
     }
 
     if (xmlObject.Ratio) {
-      instance.ratio = RealParameter.fromXmlObject(xmlObject.Ratio);
+      instance.ratio = RealParameter.fromXmlObject({
+        RealParameter: xmlObject.Ratio,
+      });
     }
 
     if (xmlObject.Attack) {
-      instance.attack = RealParameter.fromXmlObject(xmlObject.Attack);
+      instance.attack = RealParameter.fromXmlObject({
+        RealParameter: xmlObject.Attack,
+      });
     }
 
     if (xmlObject.Release) {
-      instance.release = RealParameter.fromXmlObject(xmlObject.Release);
+      instance.release = RealParameter.fromXmlObject({
+        RealParameter: xmlObject.Release,
+      });
     }
 
     if (xmlObject.InputGain) {
-      instance.inputGain = RealParameter.fromXmlObject(xmlObject.InputGain);
+      instance.inputGain = RealParameter.fromXmlObject({
+        RealParameter: xmlObject.InputGain,
+      });
     }
 
     if (xmlObject.OutputGain) {
-      instance.outputGain = RealParameter.fromXmlObject(xmlObject.OutputGain);
+      instance.outputGain = RealParameter.fromXmlObject({
+        RealParameter: xmlObject.OutputGain,
+      });
     }
 
     if (xmlObject.AutoMakeup) {
-      instance.autoMakeup = BoolParameter.fromXmlObject(xmlObject.AutoMakeup); // Assuming BoolParameter has fromXmlObject
+      instance.autoMakeup = BoolParameter.fromXmlObject({
+        BoolParameter: xmlObject.AutoMakeup,
+      }); // Assuming BoolParameter has fromXmlObject and returns { BoolParameter: ... }
     }
 
     return instance;

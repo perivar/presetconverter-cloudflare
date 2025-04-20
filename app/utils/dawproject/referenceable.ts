@@ -1,9 +1,5 @@
-import { INameable, Nameable } from "./nameable";
-
-export interface IReferenceable extends INameable {
-  /** Unique string identifier of this element. This is used for referencing this instance from other elements. */
-  id: string;
-}
+import { Nameable } from "./nameable";
+import { IReferenceable } from "./types";
 
 export abstract class Referenceable extends Nameable implements IReferenceable {
   /** Unique string identifier of this element. This is used for referencing this instance from other elements. */

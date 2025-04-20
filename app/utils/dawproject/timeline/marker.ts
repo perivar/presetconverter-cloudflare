@@ -1,13 +1,8 @@
 import { XMLBuilder, XMLParser } from "fast-xml-parser";
 
 import { DoubleAdapter } from "../doubleAdapter";
-import { INameable, Nameable } from "../nameable";
-
-// import { Referenceable } from "./referenceable"; // Marker does not extend Referenceable in Python
-
-export interface IMarker extends INameable {
-  time: number;
-}
+import { Nameable } from "../nameable";
+import { IMarker } from "../types";
 
 export class Marker extends Nameable implements IMarker {
   // Corrected inheritance

@@ -1,27 +1,3 @@
-// Import necessary classes (will need to create these files)
-// Will create project.ts next
-// Will create metaData.ts next
-// import { Application } from "./application"; // Already created
-// import { Transport } from "./transport"; // Will create transport.ts next
-// import { Lane } from "./lane"; // Will create lane.ts next
-// import { Arrangement } from "./arrangement"; // Already created
-// import { Scene } from "./scene"; // Will create scene.ts next
-
-// Import types for embedded files (assuming these are handled as Blobs or similar in TS)
-// import { Blob } from 'buffer'; // Node.js specific, might need different approach for browser
-
-// Placeholder for XML parsing library (e.g., DOMParser in browser, or a library like 'xml2js' in Node.js)
-// const DOMParser = require('xmldom').DOMParser; // Example for Node.js
-
-// Placeholder for ZIP library (e.g., 'jszip')
-// import JSZip from 'jszip';
-
-const FORMAT_NAME = "DAWproject exchange format";
-const FILE_EXTENSION = "dawproject";
-
-const PROJECT_FILE = "project.xml";
-const METADATA_FILE = "metadata.xml";
-
 /**
  * The main class for handling DAWproject files.
  */

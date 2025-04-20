@@ -4,19 +4,16 @@ import { Arrangement } from "../arrangement";
 import { Channel } from "../channel";
 import { Scene } from "../scene";
 import { Track } from "../track";
+import { ILanes } from "../types";
 import { Audio } from "./audio";
 import { Clips } from "./clips";
 import { ClipSlot } from "./clipSlot";
 import { Markers } from "./markers";
 import { Notes } from "./notes";
 import { Points } from "./points";
-import { ITimeline, Timeline } from "./timeline";
+import { Timeline } from "./timeline";
 import { Video } from "./video";
 import { Warps } from "./warps";
-
-export interface ILanes extends ITimeline {
-  lanes: Timeline[]; // Assuming lanes can contain any Timeline subclass
-}
 
 export class Lanes extends Timeline implements ILanes {
   lanes: Timeline[];

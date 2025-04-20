@@ -1,14 +1,7 @@
 import { XMLBuilder, XMLParser } from "fast-xml-parser";
 
 import { ExpressionType } from "../expressionType";
-
-export interface IAutomationTarget {
-  parameter?: string; // Assuming parameter is an IDREF string
-  expression?: ExpressionType;
-  channel?: number;
-  key?: number;
-  controller?: number;
-}
+import { IAutomationTarget } from "../types";
 
 export class AutomationTarget implements IAutomationTarget {
   parameter?: string; // Assuming parameter is an IDREF string

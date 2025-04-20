@@ -1,32 +1,5 @@
 /** Metadata root element of the DAWPROJECT format. This is stored in the file metadata.xml file inside the container. */
-export interface IMetaData {
-  /** Title of the song/project. */
-  title?: string;
-  /** Recording Artist. */
-  artist?: string;
-  /** Album. */
-  album?: string;
-  /** Original Artist. */
-  originalArtist?: string;
-  /** Composer. */
-  composer?: string;
-  /** Songwriter. */
-  songwriter?: string;
-  /** Producer. */
-  producer?: string;
-  /** Arranger. */
-  arranger?: string;
-  /** Year this project/song was recorded. */
-  year?: string;
-  /** Genre/style */
-  genre?: string;
-  /** Copyright notice. */
-  copyright?: string;
-  /** URL to website related to this project. */
-  website?: string;
-  /** General comment or description. */
-  comment?: string;
-}
+import { IMetaData } from "./types";
 
 /** Metadata root element of the DAWPROJECT format. This is stored in the file metadata.xml file inside the container. */
 export class MetaData implements IMetaData {

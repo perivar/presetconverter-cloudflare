@@ -1,9 +1,6 @@
 import { XMLBuilder, XMLParser } from "fast-xml-parser";
 
-export interface IApplication {
-  name: string;
-  version: string;
-}
+import { IApplication } from "./types";
 
 /** Metadata about the application which saved the DAWPROJECT file. */
 export class Application implements IApplication {

@@ -2,12 +2,8 @@ import { XMLBuilder, XMLParser } from "fast-xml-parser";
 
 import { DoubleAdapter } from "../doubleAdapter";
 import { Interpolation } from "../interpolation";
-import { IPoint, Point } from "./point";
-
-export interface IRealPoint extends IPoint {
-  value: number;
-  interpolation?: Interpolation;
-}
+import { IRealPoint } from "../types";
+import { Point } from "./point";
 
 export class RealPoint extends Point implements IRealPoint {
   value: number;

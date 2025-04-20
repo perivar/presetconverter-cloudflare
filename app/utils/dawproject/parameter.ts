@@ -1,10 +1,5 @@
-import { IReferenceable, Referenceable } from "./referenceable";
-
-/** Represents a parameter which can provide a value and be used as an automation target. */
-export interface IParameter extends IReferenceable {
-  /** Parameter ID as used by VST2 (index), VST3(ParamID) */
-  parameterId?: number;
-}
+import { Referenceable } from "./referenceable";
+import { IParameter } from "./types";
 
 /** Represents a parameter which can provide a value and be used as an automation target. */
 export abstract class Parameter extends Referenceable implements IParameter {

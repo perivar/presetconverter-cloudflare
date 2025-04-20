@@ -1,14 +1,9 @@
 import { XMLBuilder, XMLParser } from "fast-xml-parser";
 
 import { FileReference } from "../fileReference";
-import { IMediaFile, MediaFile } from "./mediaFile";
+import { IFileReference, IVideo } from "../types"; // Import IFileReference
+import { MediaFile } from "./mediaFile";
 import { TimeUnit } from "./timeUnit";
-
-export interface IVideo extends IMediaFile {
-  algorithm?: string;
-  channels: number; // Assuming video also has channels based on XSD
-  sampleRate: number; // Assuming video also has sampleRate based on XSD
-}
 
 export class Video extends MediaFile implements IVideo {
   algorithm?: string;
@@ -19,8 +14,8 @@ export class Video extends MediaFile implements IVideo {
     sampleRate: number,
     channels: number,
     duration: number,
+    file: IFileReference, // Made required and changed type to interface
     algorithm?: string,
-    file?: FileReference,
     name?: string,
     timeUnit?: TimeUnit
   ) {
@@ -53,15 +48,22 @@ export class Video extends MediaFile implements IVideo {
   }
 
   static fromXmlObject(xmlObject: any): Video {
-    const instance = new Video(0, 0, 0); // Create instance with default values
-    instance.populateFromXml(xmlObject); // Populate inherited attributes from MediaFile
-
-    instance.sampleRate =
+    // Extract required sampleRate, channels, duration, and file from xmlObject
+    const sampleRate =
       xmlObject.sampleRate !== undefined
         ? parseInt(xmlObject.sampleRate, 10)
         : 0;
-    instance.channels =
+    const channels =
       xmlObject.channels !== undefined ? parseInt(xmlObject.channels, 10) : 0;
+    const duration =
+      xmlObject.duration !== undefined ? parseFloat(xmlObject.duration) : 0; // Assuming duration is a float
+    const file = xmlObject.File
+      ? FileReference.fromXmlObject(xmlObject.File)
+      : new FileReference(""); // Assuming FileReference has fromXmlObject and requires a path
+
+    const instance = new Video(sampleRate, channels, duration, file); // Create instance with required properties
+    instance.populateFromXml(xmlObject); // Populate inherited attributes from MediaFile
+
     instance.algorithm = xmlObject.algorithm || undefined;
 
     return instance;

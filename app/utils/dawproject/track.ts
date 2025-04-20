@@ -1,20 +1,9 @@
 import { XMLBuilder, XMLParser } from "fast-xml-parser";
 
-import { Channel, IChannel } from "./channel";
+import { Channel } from "./channel";
 import { ContentType } from "./contentType";
-import { ILane, Lane } from "./lane";
-
-/** Represents a sequencer track.  */
-export interface ITrack extends ILane {
-  /** Role of this track in timelines & arranger. Can be multiple (comma-separated). */
-  contentType: ContentType[];
-  /** If this track is loaded/active of not. */
-  loaded?: boolean;
-  /** Mixer channel used for the output of this track. */
-  channel?: IChannel;
-  /** Child tracks, typically used to represent group/folder tracks with contentType="tracks". */
-  tracks: ITrack[]; // Nested tracks
-}
+import { Lane } from "./lane";
+import { ITrack } from "./types";
 
 /** Represents a sequencer track.  */
 export class Track extends Lane implements ITrack {

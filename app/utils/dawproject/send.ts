@@ -1,20 +1,9 @@
 import { XMLBuilder, XMLParser } from "fast-xml-parser";
 
-import { IRealParameter, RealParameter } from "./realParameter";
-import { IReferenceable, Referenceable } from "./referenceable";
+import { RealParameter } from "./realParameter";
+import { Referenceable } from "./referenceable";
 import { SendType } from "./sendType";
-
-/** A single send of a mixer channel. */
-export interface ISend extends IReferenceable {
-  /** Send level. */
-  volume?: IRealParameter;
-  /** Send pan/balance. */
-  pan?: IRealParameter;
-  /** Send type. */
-  type?: SendType;
-  /** Send destination. */
-  destination?: IReferenceable; // Assuming destination is a reference to a Referenceable
-}
+import { ISend } from "./types";
 
 /** A single send of a mixer channel. */
 export class Send extends Referenceable implements ISend {

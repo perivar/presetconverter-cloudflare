@@ -1,41 +1,17 @@
 import { XMLBuilder, XMLParser } from "fast-xml-parser";
 
-import { BoolParameter, IBoolParameter } from "./boolParameter";
+import { BoolParameter } from "./boolParameter";
 import { BuiltInDevice } from "./device/builtInDevice";
 import { Compressor } from "./device/compressor";
-import { Device, IDevice } from "./device/device";
+import { Device } from "./device/device";
 import { Equalizer } from "./device/equalizer";
-import { ILane, Lane } from "./lane";
+import { Lane } from "./lane";
 import { MixerRole } from "./mixerRole";
-import { IRealParameter, RealParameter } from "./realParameter";
-import { ISend, Send } from "./send";
+import { RealParameter } from "./realParameter";
+import { Send } from "./send";
+import { IChannel, IDevice } from "./types";
 
 // Import other concrete Device subclasses here
-
-/**
- * Represents a mixer channel. It provides the ability to route signals to other channels and can contain
- * Device/Plug-in for processing.
- */
-export interface IChannel extends ILane {
-  /** Role of this channel in the mixer. */
-  role?: MixerRole;
-  /** Number of audio-channels of this mixer channel. (1=mono, 2=stereo…) */
-  audioChannels?: number;
-  /** Channel volume */
-  volume?: IRealParameter;
-  /** Channel pan/balance */
-  pan?: IRealParameter;
-  /** Channel mute */
-  mute?: IBoolParameter;
-  /** Channel solo */
-  solo?: boolean;
-  /** Output channel routing */
-  destination?: IChannel; // Assuming destination is a reference to another Channel
-  /** Send levels & destination */
-  sends: ISend[];
-  /** Devices & plug-ins of this channel */
-  devices: IDevice[];
-}
 
 /**
  * Represents a mixer channel. It provides the ability to route signals to other channels and can contain
@@ -55,11 +31,11 @@ export class Channel extends Lane implements IChannel {
   /** Channel solo */
   solo?: boolean;
   /** Output channel routing */
-  destination?: Channel; // Assuming destination is a reference to another Channel
+  destination?: IChannel; // Reference to another Channel
   /** Send levels & destination */
   sends: Send[];
   /** Devices & plug-ins of this channel */
-  devices: Device[];
+  devices: IDevice[];
 
   constructor(
     role?: MixerRole,
@@ -114,7 +90,7 @@ export class Channel extends Lane implements IChannel {
       obj.Channel.Devices = {
         // Need to handle different types of Device subclasses
         ...this.devices.reduce((acc: any, device) => {
-          const deviceObj = device.toXmlObject();
+          const deviceObj = (device as Device).toXmlObject();
           const tagName = Object.keys(deviceObj)[0]; // Get the root tag name from the object
           if (!acc[tagName]) {
             acc[tagName] = [];
@@ -200,11 +176,12 @@ export class Channel extends Lane implements IChannel {
     }
     instance.sends = sends;
 
-    const devices: Device[] = [];
+    const devices: IDevice[] = [];
     if (xmlObject.Devices) {
       // Need a mechanism to determine the correct subclass of Device
       // based on the XML element tag (e.g., BuiltinDevice, Equalizer, Compressor, etc.)
-      const deviceTypeMap: { [key: string]: (obj: any) => any } = {
+      const deviceTypeMap: { [key: string]: (obj: any) => IDevice } = {
+        // Return type is IDevice
         BuiltinDevice: BuiltInDevice.fromXmlObject,
         Equalizer: Equalizer.fromXmlObject,
         Compressor: Compressor.fromXmlObject,
@@ -219,7 +196,7 @@ export class Channel extends Lane implements IChannel {
             : [deviceData];
           deviceArray.forEach((deviceObj: any) => {
             try {
-              devices.push(deviceTypeMap[tagName](deviceObj) as Device); // Cast to Device
+              devices.push(deviceTypeMap[tagName](deviceObj));
             } catch (e) {
               console.error(
                 `Error deserializing nested device element ${tagName} in Channel:`,

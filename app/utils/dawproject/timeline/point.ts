@@ -1,8 +1,5 @@
 import { DoubleAdapter } from "../doubleAdapter";
-
-export interface IPoint {
-  time: number;
-}
+import { IPoint } from "../types";
 
 export abstract class Point implements IPoint {
   time: number;

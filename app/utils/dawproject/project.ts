@@ -1,28 +1,13 @@
 import { XMLBuilder, XMLParser } from "fast-xml-parser";
 
-import { Application, IApplication } from "./application";
-import { Arrangement, IArrangement } from "./arrangement";
+import { Application } from "./application";
+import { Arrangement } from "./arrangement";
 import { Channel } from "./channel";
-import { ILane, Lane } from "./lane";
-import { IScene, Scene } from "./scene";
+import { Lane } from "./lane";
+import { Scene } from "./scene";
 import { Track as TrackLane } from "./track"; // Renamed to avoid conflict
-import { ITransport, Transport } from "./transport";
-
-/** The main root element of the DAWPROJECT format. This is stored in the file project.xml file inside the container. */
-export interface IProject {
-  /** Version of DAWPROJECT format this file was saved as. */
-  version: string;
-  /** Metadata (name/version) about the application that saved this file. */
-  application: IApplication;
-  /** Transport element containing playback parameters such as Tempo and Time-signature. */
-  transport?: ITransport;
-  /** Track/Channel structure of this file. */
-  structure: ILane[];
-  /** The main Arrangement timeline of this file. */
-  arrangement?: IArrangement;
-  /** Clip Launcher scenes of this file. */
-  scenes: IScene[];
-}
+import { Transport } from "./transport";
+import { IProject } from "./types";
 
 /** The main root element of the DAWPROJECT format. This is stored in the file project.xml file inside the container. */
 export class Project implements IProject {

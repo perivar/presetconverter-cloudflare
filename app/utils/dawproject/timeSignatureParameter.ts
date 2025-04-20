@@ -1,14 +1,7 @@
 import { XMLBuilder, XMLParser } from "fast-xml-parser";
 
-import { IParameter, Parameter } from "./parameter";
-
-/** Represents a (the) time-signature parameter which can provide a value and be used as an automation target. */
-export interface ITimeSignatureParameter extends IParameter {
-  /** Numerator of the time-signature. (3/4 → 3, 4/4 → 4)*/
-  numerator?: number;
-  /** Denominator of the time-signature. (3/4 → 4, 7/8 → 8) */
-  denominator?: number;
-}
+import { Parameter } from "./parameter";
+import { ITimeSignatureParameter } from "./types";
 
 /** Represents a (the) time-signature parameter which can provide a value and be used as an automation target. */
 export class TimeSignatureParameter
@@ -16,31 +9,32 @@ export class TimeSignatureParameter
   implements ITimeSignatureParameter
 {
   /** Numerator of the time-signature. (3/4 → 3, 4/4 → 4)*/
-  numerator?: number;
+  numerator: number;
   /** Denominator of the time-signature. (3/4 → 4, 7/8 → 8) */
-  denominator?: number;
+  denominator: number;
 
   constructor(
-    numerator?: number,
-    denominator?: number,
+    numerator: number,
+    denominator: number,
     parameterId?: number,
     name?: string,
     color?: string,
     comment?: string
   ) {
     super(parameterId, name, color, comment);
+    if (numerator === undefined || denominator === undefined) {
+      throw new Error(
+        "Numerator and denominator are required for TimeSignatureParameter"
+      );
+    }
     this.numerator = numerator;
     this.denominator = denominator;
   }
 
   toXmlObject(): any {
     const obj = super.getXmlAttributes(); // Get attributes from Parameter
-    if (this.numerator !== undefined) {
-      obj.numerator = this.numerator;
-    }
-    if (this.denominator !== undefined) {
-      obj.denominator = this.denominator;
-    }
+    obj.numerator = this.numerator;
+    obj.denominator = this.denominator;
     return { TimeSignatureParameter: obj };
   }
 
@@ -50,16 +44,12 @@ export class TimeSignatureParameter
   }
 
   static fromXmlObject(xmlObject: any): TimeSignatureParameter {
-    const instance = new TimeSignatureParameter(); // Create instance
+    const instance = new TimeSignatureParameter(
+      parseInt(xmlObject.numerator, 10),
+      parseInt(xmlObject.denominator, 10)
+    ); // Create instance with required properties
     instance.populateFromXml(xmlObject); // Populate inherited attributes from Parameter
-    instance.numerator =
-      xmlObject.numerator !== undefined
-        ? parseInt(xmlObject.numerator, 10)
-        : undefined;
-    instance.denominator =
-      xmlObject.denominator !== undefined
-        ? parseInt(xmlObject.denominator, 10)
-        : undefined;
+    // Numerator and denominator are set in the constructor based on XML, no need to set again here
     return instance;
   }
 

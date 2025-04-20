@@ -1,18 +1,14 @@
-import { FileReference, IFileReference } from "../fileReference";
-import { ITimeline, Timeline } from "./timeline";
+import { FileReference } from "../fileReference";
+import { IFileReference, IMediaFile } from "../types"; // Added IFileReference
+import { Timeline } from "./timeline";
 import { TimeUnit } from "./timeUnit";
 
-export interface IMediaFile extends ITimeline {
-  file?: IFileReference;
-  duration: number;
-}
-
 export abstract class MediaFile extends Timeline implements IMediaFile {
-  file?: FileReference;
+  file: IFileReference; // Made required and changed type to interface
   duration: number;
 
   constructor(
-    file?: FileReference,
+    file: IFileReference, // Made required and changed type to interface
     duration: number = 0.0,
     name?: string,
     timeUnit?: TimeUnit
@@ -30,8 +26,16 @@ export abstract class MediaFile extends Timeline implements IMediaFile {
 
   protected getXmlChildren(): any {
     const children: any = {};
-    if (this.file) {
-      children.File = this.file.toXmlObject(); // Assuming FileReference has toXmlObject
+    // Need to ensure file has toXmlObject if it's an IFileReference
+    // Assuming concrete implementations will pass FileReference instances
+    if (this.file && "toXmlObject" in this.file) {
+      children.File = (this.file as FileReference).toXmlObject();
+    } else if (this.file) {
+      // Handle case where file is IFileReference but not FileReference
+      // This might require a different approach or assumption about implementation
+      console.warn(
+        "File property is IFileReference but not FileReference instance. Cannot call toXmlObject."
+      );
     }
     return children;
   }
@@ -42,6 +46,12 @@ export abstract class MediaFile extends Timeline implements IMediaFile {
       xmlObject.duration !== undefined ? parseFloat(xmlObject.duration) : 0.0;
     if (xmlObject.File) {
       this.file = FileReference.fromXmlObject(xmlObject.File); // Assuming FileReference has fromXmlObject
+    } else {
+      // Handle missing required file
+      console.warn(
+        "Missing required 'File' element in XML for MediaFile. Assigning default."
+      );
+      this.file = new FileReference(""); // Assign a default or throw error
     }
   }
 

@@ -4,33 +4,28 @@ import { Arrangement } from "../arrangement";
 import { Channel } from "../channel";
 import { Scene } from "../scene";
 import { Track } from "../track";
+import { IWarps } from "../types";
 import { Audio } from "./audio";
 import { Clips } from "./clips";
 import { ClipSlot } from "./clipSlot";
 import { Markers } from "./markers";
 import { Notes } from "./notes";
 import { Points } from "./points";
-import { ITimeline, Timeline } from "./timeline";
+import { Timeline } from "./timeline";
 import { TimeUnit } from "./timeUnit";
 import { Video } from "./video";
-import { IWarp, Warp } from "./warp";
+import { Warp } from "./warp";
 import { Warps as WarpsTimeline } from "./warps"; // Renamed to avoid conflict
 
-export interface IWarps extends ITimeline {
-  events: IWarp[];
-  content?: ITimeline;
-  contentTimeUnit?: TimeUnit;
-}
-
 export class Warps extends Timeline implements IWarps {
-  events: Warp[];
+  points: Warp[]; // Renamed from events and made required
   content?: Timeline;
-  contentTimeUnit?: TimeUnit;
+  contentTimeUnit: TimeUnit; // Made required
 
   constructor(
-    events?: Warp[],
+    points: Warp[], // Made required
+    contentTimeUnit: TimeUnit, // Made required
     content?: Timeline,
-    contentTimeUnit?: TimeUnit,
     track?: string,
     timeUnit?: TimeUnit,
     name?: string,
@@ -38,15 +33,16 @@ export class Warps extends Timeline implements IWarps {
     comment?: string
   ) {
     super(track, timeUnit, name, color, comment); // Pass relevant args to Timeline constructor
-    this.events = events || [];
+    this.points = points; // Assign required points
     this.content = content;
-    this.contentTimeUnit = contentTimeUnit;
+    this.contentTimeUnit = contentTimeUnit; // Assign required contentTimeUnit
   }
 
   toXmlObject(): any {
     const obj: any = {
       Warps: {
         ...super.getXmlAttributes(), // Populate inherited attributes from Timeline
+        contentTimeUnit: this.contentTimeUnit, // contentTimeUnit is required
       },
     };
 
@@ -59,13 +55,8 @@ export class Warps extends Timeline implements IWarps {
     }
 
     // Recursively add nested Warp elements
-    if (this.events && this.events.length > 0) {
-      obj.Warps.Warp = this.events.map(warp => warp.toXmlObject().Warp); // Assuming Warp has toXmlObject and returns { Warp: ... }
-    }
-
-    // Set contentTimeUnit as an attribute
-    if (this.contentTimeUnit !== undefined) {
-      obj.Warps.contentTimeUnit = this.contentTimeUnit;
+    if (this.points && this.points.length > 0) {
+      obj.Warps.Warp = this.points.map(warp => warp.toXmlObject().Warp); // Assuming Warp has toXmlObject and returns { Warp: ... }
     }
 
     return obj;
@@ -77,9 +68,6 @@ export class Warps extends Timeline implements IWarps {
   }
 
   static fromXmlObject(xmlObject: any): Warps {
-    const instance = new Warps(); // Create instance
-    instance.populateFromXml(xmlObject); // Populate inherited attributes from Timeline
-
     // Parse content (which should be a Timeline or subclass)
     let content: Timeline | undefined;
     if (xmlObject.Content) {
@@ -120,24 +108,27 @@ export class Warps extends Timeline implements IWarps {
         );
       }
     }
-    instance.content = content;
 
     // Recursively parse nested Warp elements
-    const events: Warp[] = [];
+    const points: Warp[] = []; // Renamed from events
     if (xmlObject.Warp) {
       const warpArray = Array.isArray(xmlObject.Warp)
         ? xmlObject.Warp
         : [xmlObject.Warp];
       warpArray.forEach((warpObj: any) => {
-        events.push(Warp.fromXmlObject(warpObj)); // Assuming Warp has fromXmlObject
+        points.push(Warp.fromXmlObject(warpObj)); // Assuming Warp has fromXmlObject
       });
     }
-    instance.events = events;
 
     // Parse the contentTimeUnit attribute
-    instance.contentTimeUnit = xmlObject.contentTimeUnit
+    const contentTimeUnit = xmlObject.contentTimeUnit
       ? (xmlObject.contentTimeUnit as TimeUnit)
       : undefined; // Cast string to TimeUnit
+
+    // Create instance with required properties
+    const instance = new Warps(points, contentTimeUnit as TimeUnit, content); // Pass required properties
+
+    instance.populateFromXml(xmlObject); // Populate inherited attributes from Timeline
 
     return instance;
   }

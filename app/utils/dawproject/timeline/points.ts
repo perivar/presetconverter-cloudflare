@@ -1,15 +1,10 @@
 import { XMLBuilder, XMLParser } from "fast-xml-parser";
 
+import { IPoints } from "../types";
 import { Unit } from "../unit";
-import { AutomationTarget, IAutomationTarget } from "./automationTarget";
+import { AutomationTarget } from "./automationTarget";
 import { Point } from "./point";
-import { ITimeline, Timeline } from "./timeline";
-
-export interface IPoints extends ITimeline {
-  target: IAutomationTarget;
-  points: Point[]; // Assuming points can be any Point subclass
-  unit?: Unit;
-}
+import { Timeline } from "./timeline";
 
 export class Points extends Timeline implements IPoints {
   target: AutomationTarget;

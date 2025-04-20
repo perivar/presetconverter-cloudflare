@@ -1,33 +1,10 @@
 import { XMLBuilder, XMLParser } from "fast-xml-parser";
 
-import { IReferenceable, Referenceable } from "./referenceable";
-import { ILanes, Lanes } from "./timeline/lanes";
-import { IMarkers, Markers } from "./timeline/markers";
-import { IPoints, Points } from "./timeline/points";
-
-/** Represents the main Arrangement timeline of a DAW. */
-export interface IArrangement extends IReferenceable {
-  /** Automation data for time-signature inside this Arrangement.
-   * <pre>{@code
-   * <Arrangement>
-   *   <TimeSignatureAutomation target="id-of-TimeSignatureParameter" ... >
-   *     <TimeSignaturePoint time="0" numerator="7", denominator="8"/>
-   *     <TimeSignaturePoint time="21" numerator="4", denominator="4"/>
-   *        ...
-   *   </TimeSignatureAutomation>
-   * </Arrangement>
-   * }</pre>
-   *  */
-  timeSignatureAutomation?: IPoints;
-  /** Automation data for tempo inside this Arrangement, which will define the conversion between seconds and beats
-   * at the root level. */
-  tempoAutomation?: IPoints;
-  /** Cue markers inside this arrangement */
-  markers?: IMarkers;
-  /** The lanes of this arrangement. Generally this would contain another Lanes timeline for (and scoped to) each
-   * track which would then contain all Note, Audio, and Automation timelines. */
-  lanes?: ILanes;
-}
+import { Referenceable } from "./referenceable";
+import { Lanes } from "./timeline/lanes";
+import { Markers } from "./timeline/markers";
+import { Points } from "./timeline/points";
+import { IArrangement } from "./types";
 
 /** Represents the main Arrangement timeline of a DAW. */
 export class Arrangement extends Referenceable implements IArrangement {

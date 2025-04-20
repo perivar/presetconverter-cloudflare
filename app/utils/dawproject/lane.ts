@@ -1,6 +1,5 @@
-import { IReferenceable, Referenceable } from "./referenceable";
-
-export interface ILane extends IReferenceable {}
+import { Referenceable } from "./referenceable";
+import { ILane } from "./types";
 
 export abstract class Lane extends Referenceable implements ILane {
   // Lane is an abstract base class, no specific properties beyond Referenceable
