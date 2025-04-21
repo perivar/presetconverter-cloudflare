@@ -1,6 +1,6 @@
 import { XMLBuilder, XMLParser } from "fast-xml-parser";
 
-import type { IPoints } from "../types";
+import type { IPoints, ITrack } from "../types";
 import { Unit } from "../unit";
 import { AutomationTarget } from "./automationTarget";
 import { Point } from "./point";
@@ -16,7 +16,7 @@ export class Points extends Timeline implements IPoints {
     target?: AutomationTarget,
     points?: Point[],
     unit?: Unit,
-    track?: string,
+    track?: ITrack,
     timeUnit?: TimeUnit,
     name?: string,
     color?: string,

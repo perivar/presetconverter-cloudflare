@@ -3,10 +3,21 @@ import os from "os";
 import path from "path";
 
 import { ContentType } from "../../dawproject/contentType";
+import { DawProject } from "../../dawproject/dawProject";
+import { ExpressionType } from "../../dawproject/expressionType";
+import { Interpolation } from "../../dawproject/interpolation";
+import { MetaData } from "../../dawproject/metaData";
 import { Referenceable } from "../../dawproject/referenceable";
+import { Points } from "../../dawproject/timeline/points";
+import { RealPoint } from "../../dawproject/timeline/realPoint";
 import { TimeUnit } from "../../dawproject/timeline/timeUnit";
 import { Track } from "../../dawproject/track";
-import { createDummyProject, Features } from "../createExampleProject";
+import { Unit } from "../../dawproject/unit";
+import {
+  createDummyProject,
+  createMIDIAutomationExample,
+  Features,
+} from "../createExampleProject";
 
 const simpleFeatures = new Set<Features>(["CLIPS", "NOTES", "AUDIO"]);
 const targetDir = path.join(os.tmpdir(), "dawproject-tests");
@@ -130,6 +141,186 @@ describe("DAW Project", () => {
         expect(pointsLane.contentType).toContain(ContentType.AUTOMATION);
       }
     }
+  });
+});
+
+describe("MIDI Automation", () => {
+  test("should create CC1 automation on track", () => {
+    const project = createMIDIAutomationExample("CC1-Track", false, false);
+
+    expect(project.structure.length).toBe(2); // master + instrument track
+    expect(project.arrangement?.lanes?.timeUnit).toBe(TimeUnit.BEATS);
+
+    const instrumentTrack = project.structure[1] as Track;
+    expect(instrumentTrack.name).toBe("Notes");
+    expect(instrumentTrack.contentType).toContain(ContentType.NOTES);
+
+    const trackLanes = project.arrangement?.lanes?.lanes;
+    expect(trackLanes).toBeDefined();
+    if (trackLanes) {
+      const automationLane = trackLanes.find(
+        lane => lane instanceof Points
+      ) as Points;
+      expect(automationLane).toBeDefined();
+      expect(automationLane.unit).toBe(Unit.NORMALIZED);
+
+      // Check automation target
+      const target = automationLane.target;
+      expect(target).toBeDefined();
+      expect(target.expression).toBe(ExpressionType.CHANNEL_CONTROLLER);
+      expect(target.channel).toBe(0);
+      expect((target as any).controller).toBe(1); // CC1
+
+      // Check automation points
+      expect(automationLane.points.length).toBe(9);
+      expect(automationLane.track).toBe(instrumentTrack);
+    }
+  });
+
+  test("should create pitch bend automation in clip", () => {
+    const project = createMIDIAutomationExample("PitchBend-Clip", true, true);
+
+    const instrumentTrack = project.structure[1] as Track;
+    const trackLanes = project.arrangement?.lanes?.lanes;
+    expect(trackLanes).toBeDefined();
+    if (trackLanes) {
+      // Find clips lane
+      const clipsLane = trackLanes.find(lane => lane.track === instrumentTrack);
+      expect(clipsLane).toBeDefined();
+
+      // Check automation content in clip
+      if (clipsLane) {
+        const clip = (clipsLane as any).clips[0];
+        expect(clip).toBeDefined();
+        expect(clip.content).toBeDefined();
+        expect(clip.content instanceof Points).toBe(true);
+
+        const automation = clip.content as Points;
+        expect(automation.target.expression).toBe(ExpressionType.PITCH_BEND);
+        expect(automation.target.channel).toBe(0);
+        expect(automation.points.length).toBe(9);
+      }
+    }
+  });
+
+  test("should create automation with correct points pattern", () => {
+    const project = createMIDIAutomationExample("Points-Test", false, false);
+
+    const trackLanes = project.arrangement?.lanes?.lanes;
+    if (trackLanes) {
+      const automationLane = trackLanes.find(
+        lane => lane instanceof Points
+      ) as Points;
+      expect(automationLane).toBeDefined();
+
+      const points = automationLane.points as RealPoint[];
+      expect(points.length).toBe(9);
+
+      // Check specific points
+      expect(points[0].time).toBe(0);
+      expect(points[0].value).toBe(0);
+
+      expect(points[2].time).toBe(2);
+      expect(points[2].value).toBe(0.5);
+
+      expect(points[4].time).toBe(4);
+      expect(points[4].value).toBe(1.0);
+
+      // Check last two points use HOLD interpolation
+      expect(points[7].interpolation).toBe(Interpolation.HOLD);
+      expect(points[8].interpolation).toBe(Interpolation.HOLD);
+    }
+  });
+});
+
+describe("Save and Load", () => {
+  test("should save and load DAW project with simple features", async () => {
+    const project = createDummyProject(5, simpleFeatures);
+    const metadata = new MetaData();
+    const embeddedFiles: Record<string, Uint8Array> = {};
+
+    // Save project
+    const zipData = await DawProject.save(project, metadata, embeddedFiles);
+    fs.writeFileSync(path.join(targetDir, "testfile.dawproject"), zipData);
+
+    // Load project
+    const loadData = fs.readFileSync(
+      path.join(targetDir, "testfile.dawproject")
+    );
+    const loadedProject = await DawProject.loadProject(loadData);
+
+    expect(loadedProject.structure.length).toBe(project.structure.length);
+    expect(loadedProject.scenes?.length).toBe(project.scenes?.length);
+  });
+
+  test("should save and load complex DAW project", async () => {
+    const project = createDummyProject(
+      5,
+      new Set<Features>([
+        "CUE_MARKERS",
+        "CLIPS",
+        "AUDIO",
+        "NOTES",
+        "AUTOMATION",
+        "ALIAS_CLIPS",
+        "PLUGINS",
+      ])
+    );
+    const metadata = new MetaData();
+    const embeddedFiles: Record<string, Uint8Array> = {};
+
+    // Save project
+    const zipData = await DawProject.save(project, metadata, embeddedFiles);
+    fs.writeFileSync(path.join(targetDir, "testfile2.dawproject"), zipData);
+
+    // Load project
+    const loadData = fs.readFileSync(
+      path.join(targetDir, "testfile2.dawproject")
+    );
+    const loadedProject = await DawProject.loadProject(loadData);
+
+    // Check project structure
+    expect(loadedProject.structure.length).toBe(project.structure.length);
+    expect(loadedProject.scenes?.length).toBe(project.scenes?.length);
+
+    // Check arrangement
+    expect(loadedProject.arrangement?.lanes?.constructor).toBe(
+      project.arrangement?.lanes?.constructor
+    );
+    expect(loadedProject.arrangement?.markers?.constructor).toBe(
+      project.arrangement?.markers?.constructor
+    );
+  });
+
+  test("should save complex project with validation", async () => {
+    const project = createDummyProject(
+      3,
+      new Set<Features>([
+        "CUE_MARKERS",
+        "CLIPS",
+        "AUDIO",
+        "NOTES",
+        "AUTOMATION",
+        "ALIAS_CLIPS",
+        "PLUGINS",
+      ])
+    );
+    const metadata = new MetaData();
+    const embeddedFiles: Record<string, Uint8Array> = {};
+
+    // Save project
+    const zipData = await DawProject.save(project, metadata, embeddedFiles);
+    fs.writeFileSync(path.join(targetDir, "test-complex.dawproject"), zipData);
+
+    // Convert project to XML for validation
+    const projectXml = DawProject.toXml(project);
+    fs.writeFileSync(
+      path.join(targetDir, "test-complex.dawproject.xml"),
+      projectXml
+    );
+
+    // Validate the XML (optional for Node.js environment)
+    await DawProject.validate(project);
   });
 });
 

@@ -1,6 +1,6 @@
 import { XMLBuilder, XMLParser } from "fast-xml-parser";
 
-import type { IMarkers } from "../types";
+import type { IMarkers, ITrack } from "../types";
 import { Marker } from "./marker";
 import { Timeline } from "./timeline";
 import { TimeUnit } from "./timeUnit";
@@ -10,7 +10,7 @@ export class Markers extends Timeline implements IMarkers {
 
   constructor(
     markers?: Marker[],
-    track?: string,
+    track?: ITrack,
     timeUnit?: TimeUnit,
     name?: string,
     color?: string,

@@ -176,7 +176,7 @@ export function createProjectWithAudioTracks(
     audioClip.playStart = 0;
 
     const clips = Utility.createClips(audioClip);
-    clips.track = audioTrack.name;
+    clips.track = audioTrack;
 
     // Add clips to arrangement lanes
     // The commented out lines below are from the Python example but not needed in the TS structure

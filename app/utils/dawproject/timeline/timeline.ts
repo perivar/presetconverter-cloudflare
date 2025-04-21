@@ -1,5 +1,5 @@
 import { Referenceable } from "../referenceable";
-import type { ITimeline } from "../types";
+import type { ITimeline, ITrack } from "../types";
 import { TimeUnit } from "./timeUnit";
 
 export interface TimelineConstructor {
@@ -8,11 +8,11 @@ export interface TimelineConstructor {
 }
 
 export abstract class Timeline extends Referenceable implements ITimeline {
-  track?: string; // Assuming track is an IDREF string
+  track?: ITrack;
   timeUnit?: TimeUnit;
 
   constructor(
-    track?: string,
+    track?: ITrack,
     timeUnit?: TimeUnit,
     name?: string,
     color?: string,

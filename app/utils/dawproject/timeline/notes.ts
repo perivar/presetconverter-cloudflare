@@ -1,6 +1,6 @@
 import { XMLBuilder, XMLParser } from "fast-xml-parser";
 
-import type { INotes } from "../types";
+import type { INotes, ITrack } from "../types";
 import { Note } from "./note";
 import { Timeline } from "./timeline";
 import { TimeUnit } from "./timeUnit";
@@ -10,7 +10,7 @@ export class Notes extends Timeline implements INotes {
 
   constructor(
     notes?: Note[],
-    track?: string,
+    track?: ITrack,
     timeUnit?: TimeUnit,
     name?: string,
     color?: string,

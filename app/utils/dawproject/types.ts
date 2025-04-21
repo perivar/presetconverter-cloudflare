@@ -174,7 +174,7 @@ export interface ITimeline extends IReferenceable {
    * Corresponds to the `track` attribute in DAWProject.xsd.
    * Reference to the track this timeline belongs to.
    */
-  track?: string; // Reference ID to a Track
+  track?: ITrack;
 }
 
 /**
@@ -591,7 +591,7 @@ export interface IClipSlot extends ITimeline {
    * Corresponds to the `track` attribute in DAWProject.xsd.
    * Reference to the track this clip slot belongs to.
    */
-  track?: string; // Reference ID to a Track
+  track?: ITrack;
   /**
    * Corresponds to the `hasStop` attribute in DAWProject.xsd.
    * Indicates if the clip slot has a stop button/behavior.

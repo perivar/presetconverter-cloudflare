@@ -3,10 +3,12 @@ import { Arrangement } from "../dawproject/arrangement";
 import { ContentType } from "../dawproject/contentType";
 import { DeviceRole } from "../dawproject/device/deviceRole";
 import { Vst3Plugin } from "../dawproject/device/vst3Plugin";
+import { ExpressionType } from "../dawproject/expressionType";
 import { FileReference } from "../dawproject/fileReference";
 import { Interpolation } from "../dawproject/interpolation";
 import { MixerRole } from "../dawproject/mixerRole";
 import { Project } from "../dawproject/project";
+import { RealParameter } from "../dawproject/realParameter";
 import { Referenceable } from "../dawproject/referenceable";
 import { Clip } from "../dawproject/timeline/clip";
 import { Clips } from "../dawproject/timeline/clips";
@@ -18,6 +20,8 @@ import { Notes } from "../dawproject/timeline/notes";
 import { Points } from "../dawproject/timeline/points";
 import { RealPoint } from "../dawproject/timeline/realPoint";
 import { TimeUnit } from "../dawproject/timeline/timeUnit";
+import { Transport } from "../dawproject/transport";
+import { Unit } from "../dawproject/unit";
 import { Utility } from "../dawproject/utility";
 
 /** Available features for project creation */
@@ -130,7 +134,7 @@ export function createDummyProject(
     }
 
     const trackLanes = new Lanes();
-    trackLanes.track = track.name;
+    trackLanes.track = track;
     arrangementLanes.lanes.push(trackLanes);
 
     if (features.has("CLIPS")) {
@@ -182,6 +186,94 @@ export function createDummyProject(
       points.points.push(createPoint(0.0, 0.0, Interpolation.LINEAR));
       points.points.push(createPoint(8.0, 1.0, Interpolation.LINEAR));
     }
+  }
+
+  return project;
+}
+
+/**
+ * Create a project with MIDI automation (CC1 or Pitch Bend) either in clips or directly on tracks.
+ */
+export function createMIDIAutomationExample(
+  name: string,
+  inClips: boolean,
+  isPitchBend: boolean
+): Project {
+  const project = createEmptyProject();
+  const masterTrack = Utility.createTrack(
+    "Master",
+    new Set<ContentType>(),
+    MixerRole.MASTER,
+    1.0,
+    0.5
+  );
+  const instrumentTrack = Utility.createTrack(
+    "Notes",
+    new Set([ContentType.NOTES]),
+    MixerRole.REGULAR,
+    1.0,
+    0.5
+  );
+
+  if (instrumentTrack.channel && masterTrack.channel) {
+    instrumentTrack.channel.destination = masterTrack.channel;
+  }
+
+  project.structure.push(masterTrack);
+  project.structure.push(instrumentTrack);
+
+  project.arrangement = new Arrangement();
+  project.transport = new Transport();
+  project.transport.tempo = new RealParameter(123.0, Unit.BPM);
+
+  const arrangementLanes = new Lanes();
+  project.arrangement.lanes = arrangementLanes;
+  project.arrangement.lanes.timeUnit = TimeUnit.BEATS;
+
+  // Create automation points
+  const automation = new Points();
+  automation.unit = Unit.NORMALIZED;
+
+  if (isPitchBend) {
+    automation.target = {
+      expression: ExpressionType.PITCH_BEND,
+      channel: 0,
+      toXmlObject: () => ({ type: "pitchBend", channel: 0 }),
+      toXml: () => "<pitchBend channel='0'/>",
+    };
+  } else {
+    automation.target = {
+      expression: ExpressionType.CHANNEL_CONTROLLER,
+      channel: 0,
+      controller: 1,
+      toXmlObject: () => ({
+        type: "channelController",
+        channel: 0,
+        controller: 1,
+      }),
+      toXml: () => "<channelController channel='0' controller='1'/>",
+    };
+  }
+
+  // Add automation points with various interpolation types
+  automation.points.push(createPoint(0, 0.0, Interpolation.LINEAR));
+  automation.points.push(createPoint(1, 0.0, Interpolation.LINEAR));
+  automation.points.push(createPoint(2, 0.5, Interpolation.LINEAR));
+  automation.points.push(createPoint(3, 0.5, Interpolation.LINEAR));
+  automation.points.push(createPoint(4, 1.0, Interpolation.LINEAR));
+  automation.points.push(createPoint(5, 1.0, Interpolation.LINEAR));
+  automation.points.push(createPoint(6, 0.5, Interpolation.LINEAR));
+  automation.points.push(createPoint(7, 1.0, Interpolation.HOLD));
+  automation.points.push(createPoint(8, 0.5, Interpolation.HOLD));
+
+  if (inClips) {
+    const clip = Utility.createClip(automation, 0, 8);
+    const clips = Utility.createClips(clip);
+    clips.track = instrumentTrack;
+    arrangementLanes.lanes.push(clips);
+  } else {
+    automation.track = instrumentTrack;
+    arrangementLanes.lanes.push(automation);
   }
 
   return project;

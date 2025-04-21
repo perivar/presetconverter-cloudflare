@@ -1,6 +1,6 @@
 import { XMLBuilder, XMLParser } from "fast-xml-parser";
 
-import type { IClips } from "../types";
+import type { IClips, ITrack } from "../types";
 import { Clip } from "./clip";
 import { Timeline } from "./timeline";
 import { TimeUnit } from "./timeUnit";
@@ -10,7 +10,7 @@ export class Clips extends Timeline implements IClips {
 
   constructor(
     clips?: Clip[],
-    track?: string,
+    track?: ITrack,
     timeUnit?: TimeUnit,
     name?: string,
     color?: string,

@@ -4,7 +4,7 @@ import {
   registerTimeline,
   TimelineRegistry,
 } from "../registry/timelineRegistry";
-import type { IWarps } from "../types";
+import type { ITrack, IWarps } from "../types";
 import { Timeline } from "./timeline";
 import { TimeUnit } from "./timeUnit";
 import { Warp } from "./warp";
@@ -19,7 +19,7 @@ export class Warps extends Timeline implements IWarps {
     points: Warp[], // Made required
     contentTimeUnit: TimeUnit, // Made required
     content?: Timeline,
-    track?: string,
+    track?: ITrack,
     timeUnit?: TimeUnit,
     name?: string,
     color?: string,

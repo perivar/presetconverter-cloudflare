@@ -1,6 +1,6 @@
 import { XMLBuilder, XMLParser } from "fast-xml-parser";
 
-import type { ILanes } from "../types";
+import type { ILanes, ITrack } from "../types";
 import { Timeline } from "./timeline";
 import { registerTimeline, TimelineRegistry } from "./timelineRegistry";
 import { TimeUnit } from "./timeUnit";
@@ -11,7 +11,7 @@ export class Lanes extends Timeline implements ILanes {
 
   constructor(
     lanes?: Timeline[],
-    track?: string,
+    track?: ITrack,
     timeUnit?: TimeUnit,
     name?: string,
     color?: string,

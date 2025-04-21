@@ -1,3 +1,9 @@
+import { XMLBuilder, XMLParser } from "fast-xml-parser";
+import JSZip from "jszip";
+
+import { MetaData } from "./metaData";
+import { Project } from "./project";
+
 /**
  * The main class for handling DAWproject files.
  */
@@ -11,85 +17,130 @@ export class DawProject {
   /** The name of the metadata file within the container. */
   static METADATA_FILE = "metadata.xml";
 
-  // In a browser environment, you might work with File or Blob objects.
-  // In Node.js, you would work with file paths or Buffers.
-  // This port will assume a browser-like environment using DOMParser and potentially a client-side zip library.
-
-  // exportSchema(file: File, cls: any): void {
-  //   // Porting export_schema would require a way to generate XSD from TypeScript classes,
-  //   // which is not a standard feature and would likely require a dedicated library or manual process.
-  //   console.warn("exportSchema is not ported in this version.");
-  // }
-
+  /**
+   * Convert an object to XML string representation
+   */
   static toXml(obj: any): string {
-    // This is a simplified placeholder. A proper implementation would recursively
-    // traverse the object and build the XML structure based on the class definitions.
-    // This would likely involve checking for toXml methods on nested objects.
-    console.warn("toXml is a simplified placeholder.");
-    return `<${obj.constructor.name}></${obj.constructor.name}>`;
+    try {
+      // First get the XML object representation
+      const xmlObj = obj.toXmlObject();
+      // Then convert to string using XMLBuilder
+      const builder = new XMLBuilder({ attributeNamePrefix: "" });
+      return builder.build(xmlObj);
+    } catch (e) {
+      throw new Error(`Failed to convert object to XML: ${e}`);
+    }
   }
 
-  // toXmlElement(obj: any): Element {
-  //   // Porting to_xml_element would require a way to convert objects to XML elements.
-  //   console.warn("toXmlElement is not ported in this version.");
-  //   return document.createElement("placeholder");
-  // }
+  /**
+   * Remove BOM from the start of text
+   */
+  static stripBom(data: Uint8Array): string {
+    const decoder = new TextDecoder("utf-8");
+    let text = decoder.decode(data);
 
-  // createContext(cls: any): void {
-  //   // Porting create_context is unclear without more context on its Python usage.
-  //   console.warn("createContext is not ported in this version.");
-  // }
+    // Remove BOM if present
+    if (text.charCodeAt(0) === 0xfeff) {
+      text = text.slice(1);
+    }
 
-  // fromXml(reader: string, cls: any): any {
-  //   // Porting from_xml would require an XML parsing library and a mechanism
-  //   // to map XML elements back to TypeScript class instances.
-  //   console.warn("fromXml is not ported in this version.");
-  //   return {}; // Placeholder
-  // }
+    return text;
+  }
 
-  // saveXml(project: Project, file: File): void {
-  //   // Porting save_xml would require file system access or a way to trigger a download in the browser.
-  //   console.warn("saveXml is not ported in this version.");
-  // }
+  /**
+   * Save project to a Uint8Array containing the ZIP file
+   */
+  static async save(
+    project: Project,
+    metadata: MetaData,
+    embeddedFiles: { [path: string]: Uint8Array }
+  ): Promise<Uint8Array> {
+    const zip = new JSZip();
 
-  // validate(project: Project): void {
-  //   // Porting validate would require an XML schema validation library for TypeScript/JavaScript.
-  //   console.warn("validate is not ported in this version.");
-  // }
+    // Add metadata and project XML files
+    const metadataXml = DawProject.toXml(metadata);
+    const projectXml = DawProject.toXml(project);
 
-  // save(project: Project, metadata: MetaData, embeddedFiles: { [path: string]: Blob }, file: File): Promise<void> {
-  //   // Porting save would require a ZIP library and file system/Blob handling.
-  //   console.warn("save is not ported in this version.");
-  //   return Promise.resolve(); // Placeholder
-  // }
+    zip.file(DawProject.METADATA_FILE, new TextEncoder().encode(metadataXml));
+    zip.file(DawProject.PROJECT_FILE, new TextEncoder().encode(projectXml));
 
-  // addToZip(zip: JSZip, path: string, data: string | Blob | Buffer): Promise<void> {
-  //   // Helper for saving to zip, depends on JSZip.
-  //   console.warn("addToZip is a placeholder.");
-  //   return Promise.resolve(); // Placeholder
-  // }
+    // Add embedded files
+    for (const [path, data] of Object.entries(embeddedFiles)) {
+      zip.file(path, data);
+    }
 
-  // stripBom(input: string): string {
-  //   // Porting strip_bom might involve checking for and removing BOM characters from a string.
-  //   console.warn("stripBom is a placeholder.");
-  //   return input; // Placeholder
-  // }
+    // Generate ZIP file as Uint8Array
+    return await zip.generateAsync({ type: "uint8array" });
+  }
 
-  // loadProject(file: File): Promise<Project> {
-  //   // Porting load_project would require a ZIP library and XML deserialization.
-  //   console.warn("loadProject is a placeholder.");
-  //   return Promise.resolve(new Project()); // Placeholder
-  // }
+  /**
+   * Load project from a Uint8Array containing the ZIP file
+   */
+  static async loadProject(data: Uint8Array): Promise<Project> {
+    const zip = await JSZip.loadAsync(data);
+    const projectEntry = await zip
+      .file(DawProject.PROJECT_FILE)
+      ?.async("uint8array");
 
-  // loadMetadata(file: File): Promise<MetaData> {
-  //   // Porting load_metadata would require a ZIP library and XML deserialization.
-  //   console.warn("loadMetadata is a placeholder.");
-  //   return Promise.resolve(new MetaData()); // Placeholder
-  // }
+    if (!projectEntry) {
+      throw new Error("Project file not found in archive");
+    }
 
-  // streamEmbedded(file: File, embeddedPath: string): Promise<Blob> {
-  //   // Porting stream_embedded would require a ZIP library and Blob handling.
-  //   console.warn("streamEmbedded is a placeholder.");
-  //   return Promise.resolve(new Blob()); // Placeholder
-  // }
+    const xmlString = DawProject.stripBom(projectEntry);
+    return Project.fromXml(xmlString);
+  }
+
+  /**
+   * Load metadata from a Uint8Array containing the ZIP file
+   */
+  static async loadMetadata(data: Uint8Array): Promise<MetaData> {
+    const zip = await JSZip.loadAsync(data);
+    const metadataEntry = await zip
+      .file(DawProject.METADATA_FILE)
+      ?.async("uint8array");
+
+    if (!metadataEntry) {
+      throw new Error("Metadata file not found in archive");
+    }
+
+    const xmlString = DawProject.stripBom(metadataEntry);
+    return MetaData.fromXml(xmlString);
+  }
+
+  /**
+   * Get embedded file contents from a Uint8Array containing the ZIP file
+   */
+  static async getEmbedded(
+    data: Uint8Array,
+    embeddedPath: string
+  ): Promise<Uint8Array> {
+    const zip = await JSZip.loadAsync(data);
+    const entry = await zip.file(embeddedPath)?.async("uint8array");
+
+    if (!entry) {
+      throw new Error(`Embedded file ${embeddedPath} not found in archive`);
+    }
+
+    return entry;
+  }
+
+  /**
+   * Validate project XML
+   * This is a simplified validation that just checks if the XML is well-formed
+   */
+  static async validate(project: Project): Promise<void> {
+    try {
+      const projectXml = DawProject.toXml(project);
+      const parser = new XMLParser({ attributeNamePrefix: "" });
+      try {
+        parser.parse(projectXml);
+        // If we get here, the XML is well-formed
+        return Promise.resolve();
+      } catch (e) {
+        throw new Error("XML validation failed: XML is not well-formed");
+      }
+    } catch (e) {
+      throw new Error(`Validation failed: ${e}`);
+    }
+  }
 }

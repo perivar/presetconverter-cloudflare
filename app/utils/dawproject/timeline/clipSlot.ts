@@ -1,6 +1,6 @@
 import { XMLBuilder, XMLParser } from "fast-xml-parser";
 
-import type { IClipSlot } from "../types";
+import type { IClipSlot, ITrack } from "../types";
 import { Clip } from "./clip";
 import { Timeline } from "./timeline";
 import { TimeUnit } from "./timeUnit";
@@ -12,7 +12,7 @@ export class ClipSlot extends Timeline implements IClipSlot {
   constructor(
     clip?: Clip,
     hasStop?: boolean,
-    track?: string,
+    track?: ITrack,
     timeUnit?: TimeUnit,
     name?: string,
     color?: string,
