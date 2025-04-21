@@ -18,7 +18,7 @@ export abstract class Device extends Referenceable implements IDevice {
   deviceRole: DeviceRole;
   loaded?: boolean;
   deviceName: string;
-  deviceId?: string;
+  deviceID?: string;
   deviceVendor?: string;
   state?: IFileReference;
   parameters: IParameter[];
@@ -28,7 +28,7 @@ export abstract class Device extends Referenceable implements IDevice {
     deviceName: string,
     enabled?: BoolParameter,
     loaded: boolean = true,
-    deviceId?: string,
+    deviceID?: string,
     deviceVendor?: string,
     state?: IFileReference,
     parameters?: IParameter[],
@@ -41,7 +41,7 @@ export abstract class Device extends Referenceable implements IDevice {
     this.deviceName = deviceName;
     this.enabled = enabled;
     this.loaded = loaded;
-    this.deviceId = deviceId;
+    this.deviceID = deviceID;
     this.deviceVendor = deviceVendor;
     this.state = state;
     this.parameters = parameters || [];
@@ -56,8 +56,8 @@ export abstract class Device extends Referenceable implements IDevice {
     if (this.loaded !== undefined) {
       attributes.loaded = this.loaded;
     }
-    if (this.deviceId !== undefined) {
-      attributes.deviceID = this.deviceId;
+    if (this.deviceID !== undefined) {
+      attributes.deviceID = this.deviceID;
     }
     if (this.deviceVendor !== undefined) {
       attributes.deviceVendor = this.deviceVendor;
@@ -103,7 +103,7 @@ export abstract class Device extends Referenceable implements IDevice {
       xmlObject.loaded !== undefined
         ? String(xmlObject.loaded).toLowerCase() === "true"
         : true;
-    this.deviceId = xmlObject.deviceID || undefined;
+    this.deviceID = xmlObject.deviceID || undefined;
     this.deviceVendor = xmlObject.deviceVendor || undefined;
 
     if (xmlObject.Enabled) {

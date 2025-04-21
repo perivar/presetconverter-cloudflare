@@ -16,12 +16,12 @@ export class TimeSignatureParameter
   constructor(
     numerator: number,
     denominator: number,
-    parameterId?: number,
+    parameterID?: number,
     name?: string,
     color?: string,
     comment?: string
   ) {
-    super(parameterId, name, color, comment);
+    super(parameterID, name, color, comment);
     if (numerator === undefined || denominator === undefined) {
       throw new Error(
         "Numerator and denominator are required for TimeSignatureParameter"

@@ -5,6 +5,7 @@ import { Unit } from "../unit";
 import { AutomationTarget } from "./automationTarget";
 import { Point } from "./point";
 import { Timeline } from "./timeline";
+import { TimeUnit } from "./timeUnit";
 
 export class Points extends Timeline implements IPoints {
   target: AutomationTarget;
@@ -16,12 +17,12 @@ export class Points extends Timeline implements IPoints {
     points?: Point[],
     unit?: Unit,
     track?: string,
-    timeUnit?: string, // Use string for now, will refine with TimeUnit enum later
+    timeUnit?: TimeUnit,
     name?: string,
     color?: string,
     comment?: string
   ) {
-    super(track, timeUnit as any, name, color, comment); // Cast timeUnit for now
+    super(track, timeUnit, name, color, comment);
     this.target = target || new AutomationTarget();
     this.points = points || [];
     this.unit = unit;

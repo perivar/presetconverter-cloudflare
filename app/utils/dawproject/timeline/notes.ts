@@ -3,6 +3,7 @@ import { XMLBuilder, XMLParser } from "fast-xml-parser";
 import type { INotes } from "../types";
 import { Note } from "./note";
 import { Timeline } from "./timeline";
+import { TimeUnit } from "./timeUnit";
 
 export class Notes extends Timeline implements INotes {
   notes: Note[];
@@ -10,12 +11,12 @@ export class Notes extends Timeline implements INotes {
   constructor(
     notes?: Note[],
     track?: string,
-    timeUnit?: string, // Use string for now, will refine with TimeUnit enum later
+    timeUnit?: TimeUnit,
     name?: string,
     color?: string,
     comment?: string
   ) {
-    super(track, timeUnit as any, name, color, comment); // Cast timeUnit for now
+    super(track, timeUnit, name, color, comment);
     this.notes = notes || [];
   }
 

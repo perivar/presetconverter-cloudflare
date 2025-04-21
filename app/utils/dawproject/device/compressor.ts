@@ -28,7 +28,7 @@ export class Compressor extends BuiltInDevice implements ICompressor {
     autoMakeup?: BoolParameter,
     enabled?: BoolParameter,
     loaded?: boolean,
-    deviceId?: string,
+    deviceID?: string,
     deviceVendor?: string,
     state?: IFileReference,
     parameters?: IParameter[],
@@ -42,7 +42,7 @@ export class Compressor extends BuiltInDevice implements ICompressor {
       undefined, // deviceType is handled by the class name
       enabled,
       loaded,
-      deviceId,
+      deviceID,
       deviceVendor,
       state,
       parameters,

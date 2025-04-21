@@ -21,7 +21,7 @@ export class Equalizer extends BuiltInDevice implements IEqualizer {
     outputGain?: RealParameter,
     enabled?: BoolParameter, // Change type to BoolParameter
     loaded?: boolean,
-    deviceId?: string,
+    deviceID?: string,
     deviceVendor?: string,
     state?: IFileReference,
     parameters?: IParameter[],
@@ -35,7 +35,7 @@ export class Equalizer extends BuiltInDevice implements IEqualizer {
       undefined, // deviceType is handled by the class name
       enabled, // Pass BoolParameter directly
       loaded,
-      deviceId,
+      deviceID,
       deviceVendor,
       state,
       parameters,

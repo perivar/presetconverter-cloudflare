@@ -10,12 +10,12 @@ export class BoolParameter extends Parameter implements IBoolParameter {
 
   constructor(
     value?: boolean,
-    parameterId?: number,
+    parameterID?: number,
     name?: string,
     color?: string,
     comment?: string
   ) {
-    super(parameterId, name, color, comment);
+    super(parameterID, name, color, comment);
     this.value = value;
   }
 

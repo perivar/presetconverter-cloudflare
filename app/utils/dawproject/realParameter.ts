@@ -23,12 +23,12 @@ export class RealParameter extends Parameter implements IRealParameter {
     unit?: Unit,
     min?: number,
     max?: number,
-    parameterId?: number,
+    parameterID?: number,
     name?: string,
     color?: string,
     comment?: string
   ) {
-    super(parameterId, name, color, comment);
+    super(parameterID, name, color, comment);
     this.value = value;
     this.unit = unit;
     this.min = min;

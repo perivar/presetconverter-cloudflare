@@ -3,6 +3,7 @@ import { XMLBuilder, XMLParser } from "fast-xml-parser";
 import type { IClipSlot } from "../types";
 import { Clip } from "./clip";
 import { Timeline } from "./timeline";
+import { TimeUnit } from "./timeUnit";
 
 export class ClipSlot extends Timeline implements IClipSlot {
   clip?: Clip;
@@ -12,12 +13,12 @@ export class ClipSlot extends Timeline implements IClipSlot {
     clip?: Clip,
     hasStop?: boolean,
     track?: string,
-    timeUnit?: string, // Use string for now, will refine with TimeUnit enum later
+    timeUnit?: TimeUnit,
     name?: string,
     color?: string,
     comment?: string
   ) {
-    super(track, timeUnit as any, name, color, comment); // Cast timeUnit for now
+    super(track, timeUnit, name, color, comment);
     this.clip = clip;
     this.hasStop = hasStop;
   }

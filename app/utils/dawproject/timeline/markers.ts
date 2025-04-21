@@ -3,6 +3,7 @@ import { XMLBuilder, XMLParser } from "fast-xml-parser";
 import type { IMarkers } from "../types";
 import { Marker } from "./marker";
 import { Timeline } from "./timeline";
+import { TimeUnit } from "./timeUnit";
 
 export class Markers extends Timeline implements IMarkers {
   markers: Marker[];
@@ -10,12 +11,12 @@ export class Markers extends Timeline implements IMarkers {
   constructor(
     markers?: Marker[],
     track?: string,
-    timeUnit?: string, // Use string for now, will refine with TimeUnit enum later
+    timeUnit?: TimeUnit,
     name?: string,
     color?: string,
     comment?: string
   ) {
-    super(track, timeUnit as any, name, color, comment); // Cast timeUnit for now
+    super(track, timeUnit, name, color, comment);
     this.markers = markers || [];
   }
 

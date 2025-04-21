@@ -55,7 +55,7 @@ export interface IParameter extends IReferenceable {
    * Corresponds to the `parameterID` attribute in DAWProject.xsd.
    * The ID of the parameter within its parent device.
    */
-  parameterId?: number;
+  parameterID?: number;
 }
 
 /**
@@ -637,7 +637,7 @@ export interface IDevice extends IReferenceable {
    * Corresponds to the `deviceID` attribute in DAWProject.xsd.
    * A unique identifier for the device type.
    */
-  deviceId?: string;
+  deviceID?: string;
   /**
    * Corresponds to the `deviceVendor` attribute in DAWProject.xsd.
    * The vendor of the device.

@@ -3,6 +3,7 @@ import { XMLBuilder, XMLParser } from "fast-xml-parser";
 import type { ILanes } from "../types";
 import { Timeline } from "./timeline";
 import { registerTimeline, TimelineRegistry } from "./timelineRegistry";
+import { TimeUnit } from "./timeUnit";
 
 @registerTimeline("Lanes")
 export class Lanes extends Timeline implements ILanes {
@@ -11,12 +12,12 @@ export class Lanes extends Timeline implements ILanes {
   constructor(
     lanes?: Timeline[],
     track?: string,
-    timeUnit?: string, // Use string for now, will refine with TimeUnit enum later
+    timeUnit?: TimeUnit,
     name?: string,
     color?: string,
     comment?: string
   ) {
-    super(track, timeUnit as any, name, color, comment); // Cast timeUnit for now
+    super(track, timeUnit, name, color, comment);
     this.lanes = lanes || [];
   }
 
