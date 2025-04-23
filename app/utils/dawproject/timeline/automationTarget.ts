@@ -28,33 +28,46 @@ export class AutomationTarget extends XmlObject implements IAutomationTarget {
   }
 
   toXmlObject(): any {
-    const obj: any = {};
+    // Create target object with nested elements
+    const target: any = {
+      Target: {},
+    };
+
+    // Add optional elements
     if (this.parameter !== undefined) {
-      obj.parameter = this.parameter;
+      target.Target.parameter = this.parameter;
     }
     if (this.expression !== undefined) {
-      obj.expression = this.expression;
+      target.Target.expression = this.expression;
     }
     if (this.channel !== undefined) {
-      obj.channel = this.channel;
+      target.Target.channel = this.channel;
     }
     if (this.key !== undefined) {
-      obj.key = this.key;
+      target.Target.key = this.key;
     }
     if (this.controller !== undefined) {
-      obj.controller = this.controller;
+      target.Target.controller = this.controller;
     }
-    return obj;
+
+    return target;
   }
 
   toXml(): string {
     const builder = new XMLBuilder(XML_BUILDER_OPTIONS);
-    return builder.build({ Target: this.toXmlObject() });
+    return builder.build(this.toXmlObject());
   }
 
   static fromXmlObject(xmlObject: any): AutomationTarget {
-    const parameter = xmlObject.parameter || undefined;
-    const expression = (xmlObject.expression as ExpressionType) || undefined; // Cast string to ExpressionType
+    if (!xmlObject) {
+      throw new Error("Required Target element missing in XML");
+    }
+
+    // Parse elements
+    const parameter = xmlObject.parameter;
+    const expression = xmlObject.expression
+      ? (xmlObject.expression as ExpressionType)
+      : undefined;
     const channel =
       xmlObject.channel !== undefined
         ? parseInt(xmlObject.channel, 10)

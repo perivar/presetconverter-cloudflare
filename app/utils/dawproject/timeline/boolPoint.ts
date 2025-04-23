@@ -13,9 +13,17 @@ export class BoolPoint extends Point implements IBoolPoint {
   }
 
   toXmlObject(): any {
-    const obj = super.getXmlAttributes(); // Get attributes from Point
-    obj.value = this.value;
-    return { BoolPoint: obj };
+    // Get inherited attributes first
+    const attributes = super.getXmlAttributes(); // Get attributes from Point
+
+    // Add required value attribute
+    if (this.value !== undefined) {
+      attributes["@_value"] = this.value;
+    } else {
+      throw new Error("Required attribute 'value' missing for BoolPoint");
+    }
+
+    return { BoolPoint: attributes };
   }
 
   toXml(): string {
@@ -24,12 +32,19 @@ export class BoolPoint extends Point implements IBoolPoint {
   }
 
   static fromXmlObject(xmlObject: any): BoolPoint {
-    const instance = new BoolPoint(0, false); // Create instance with default values
-    instance.populateFromXml(xmlObject); // Populate inherited attributes from Point
-    instance.value =
-      xmlObject.value !== undefined
-        ? String(xmlObject.value).toLowerCase() === "true"
-        : false;
+    // Create instance with temporary values
+    const instance = new BoolPoint(0, false);
+
+    // Populate inherited attributes
+    instance.populateFromXml(xmlObject);
+
+    // Validate and populate required value attribute
+    if (xmlObject["@_value"] === undefined) {
+      throw new Error("Required attribute 'value' missing in XML");
+    }
+
+    instance.value = String(xmlObject["@_value"]).toLowerCase() === "true";
+
     return instance;
   }
 

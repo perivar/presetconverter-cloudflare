@@ -1,9 +1,12 @@
 import { XMLBuilder, XMLParser } from "fast-xml-parser";
 
+import {
+  registerTimeline,
+  TimelineRegistry,
+} from "../registry/timelineRegistry";
 import type { ILanes, ITrack } from "../types";
 import { XML_BUILDER_OPTIONS, XML_PARSER_OPTIONS } from "../xml/options";
 import { Timeline } from "./timeline";
-import { registerTimeline, TimelineRegistry } from "./timelineRegistry";
 import { TimeUnit } from "./timeUnit";
 
 @registerTimeline("Lanes")

@@ -17,18 +17,24 @@ export abstract class Parameter extends Referenceable implements IParameter {
   }
 
   protected getXmlAttributes(): any {
+    // Get inherited attributes first
     const attributes = super.getXmlAttributes(); // Get attributes from Referenceable
+
+    // Add Parameter-specific attribute
     if (this.parameterID !== undefined) {
       attributes["@_parameterID"] = this.parameterID;
     }
+
     return attributes;
   }
 
   protected populateFromXml(xmlObject: any): void {
-    super.populateFromXml(xmlObject); // Populate inherited attributes from Referenceable
-    this.parameterID =
-      xmlObject["@_parameterID"] !== undefined
-        ? parseInt(xmlObject["@_parameterID"], 10)
-        : undefined;
+    // Populate inherited attributes first
+    super.populateFromXml(xmlObject);
+
+    // Populate Parameter-specific attribute
+    if (xmlObject["@_parameterID"] !== undefined) {
+      this.parameterID = parseInt(xmlObject["@_parameterID"], 10);
+    }
   }
 }

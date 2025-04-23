@@ -175,11 +175,12 @@ export function createDummyProject(
     // Add automation if needed for first track
     if (i === 0 && features.has("AUTOMATION") && track.channel?.volume) {
       const points = new Points();
-      points.target = {
-        parameter: track.channel.volume.id || "",
-        toXmlObject: () => ({ type: "volume" }),
-        toXml: () => "<volume/>",
-      };
+      // TODO: fix points target
+      // points.target = {
+      //   parameter: track.channel.volume.id || "",
+      //   toXmlObject: () => ({ type: "volume" }),
+      //   toXml: () => "<volume/>",
+      // };
       trackLanes.lanes.push(points);
 
       // Add fade-in automation points

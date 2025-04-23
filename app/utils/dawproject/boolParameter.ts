@@ -21,11 +21,20 @@ export class BoolParameter extends Parameter implements IBoolParameter {
   }
 
   toXmlObject(): any {
-    const obj = super.getXmlAttributes(); // Get attributes from Parameter
+    // Get inherited attributes
+    const attributes = super.getXmlAttributes(); // Get attributes from Parameter
+
+    // Add BoolParameter-specific attribute
     if (this.value !== undefined) {
-      obj["@_value"] = this.value;
+      attributes["@_value"] = this.value;
     }
-    return { BoolParameter: obj };
+
+    // Return with proper structure
+    return {
+      BoolParameter: {
+        ...attributes,
+      },
+    };
   }
 
   toXml(): string {

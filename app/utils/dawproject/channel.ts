@@ -65,34 +65,37 @@ export class Channel extends Lane implements IChannel {
   }
 
   toXmlObject(): any {
+    // Get base attributes from Lane
+    const attributes = super.getXmlAttributes();
+
+    // Add Channel-specific attributes
+    if (this.role !== undefined) {
+      attributes["@_role"] = this.role;
+    }
+    if (this.audioChannels !== undefined) {
+      attributes["@_audioChannels"] = this.audioChannels;
+    }
+    if (this.solo !== undefined) {
+      attributes["@_solo"] = this.solo;
+    }
+    if (this.destination !== undefined) {
+      attributes["@_destination"] = this.destination.id;
+    }
+
+    // Build object with elements
     const obj: any = {
       Channel: {
-        ...super.getXmlAttributes(), // Get attributes from Lane
+        ...attributes,
       },
     };
 
-    // Set attributes for the Channel element
-    if (this.role !== undefined) {
-      obj.Channel["@_role"] = this.role;
-    }
-    if (this.audioChannels !== undefined) {
-      obj.Channel["@_audioChannels"] = this.audioChannels;
-    }
-    if (this.solo !== undefined) {
-      obj.Channel["@_solo"] = this.solo;
-    }
-    if (this.destination !== undefined) {
-      // Assuming destination has an id attribute
-      obj.Channel["@_destination"] = this.destination.id;
-    }
-
-    // Append complex elements if they exist
+    // Add elements
     if (this.devices && this.devices.length > 0) {
+      // Devices element with nested device elements
       obj.Channel.Devices = {
-        // Need to handle different types of Device subclasses
         ...this.devices.reduce((acc: any, device) => {
           const deviceObj = (device as Device).toXmlObject();
-          const tagName = Object.keys(deviceObj)[0]; // Get the root tag name from the object
+          const tagName = Object.keys(deviceObj)[0];
           if (!acc[tagName]) {
             acc[tagName] = [];
           }
@@ -101,19 +104,21 @@ export class Channel extends Lane implements IChannel {
         }, {}),
       };
     }
+
+    // Add optional elements, each in their proper XML element form
     if (this.mute) {
-      obj.Channel.Mute = this.mute.toXmlObject().BoolParameter; // Assuming BoolParameter has toXmlObject and returns { BoolParameter: ... }
+      obj.Channel.Mute = this.mute.toXmlObject().BoolParameter;
     }
     if (this.pan) {
-      obj.Channel.Pan = this.pan.toXmlObject().RealParameter; // Assuming RealParameter has toXmlObject and returns { RealParameter: ... }
+      obj.Channel.Pan = this.pan.toXmlObject().RealParameter;
+    }
+    if (this.volume) {
+      obj.Channel.Volume = this.volume.toXmlObject().RealParameter;
     }
     if (this.sends && this.sends.length > 0) {
       obj.Channel.Sends = {
-        Send: this.sends.map(send => send.toXmlObject().Send), // Assuming Send has toXmlObject and returns { Send: ... }
+        Send: this.sends.map(send => send.toXmlObject().Send),
       };
-    }
-    if (this.volume) {
-      obj.Channel.Volume = this.volume.toXmlObject().RealParameter; // Assuming RealParameter has toXmlObject and returns { RealParameter: ... }
     }
 
     return obj;
@@ -125,39 +130,53 @@ export class Channel extends Lane implements IChannel {
   }
 
   static fromXmlObject(xmlObject: any): Channel {
-    const instance = new Channel(); // Create instance of Channel
-    instance.populateFromXml(xmlObject); // Populate inherited attributes
+    // Create instance of Channel
+    const instance = new Channel();
 
-    instance.role = xmlObject["@_role"]
-      ? (xmlObject["@_role"] as MixerRole)
-      : undefined;
-    instance.audioChannels =
-      xmlObject["@_audioChannels"] !== undefined
-        ? parseInt(xmlObject["@_audioChannels"], 10)
-        : 2;
+    // Populate inherited attributes
+    instance.populateFromXml(xmlObject);
 
+    // Handle required attribute role
+    if (!xmlObject["@_role"]) {
+      throw new Error("Required attribute 'role' missing in Channel XML");
+    }
+    instance.role = xmlObject["@_role"] as MixerRole;
+
+    // Handle required attribute audioChannels
+    if (!xmlObject["@_audioChannels"]) {
+      throw new Error(
+        "Required attribute 'audioChannels' missing in Channel XML"
+      );
+    }
+    const audioChannels = parseInt(xmlObject["@_audioChannels"], 10);
+    if (isNaN(audioChannels) || audioChannels < 1) {
+      throw new Error("Invalid audioChannels value in Channel XML");
+    }
+    instance.audioChannels = audioChannels;
+
+    // Handle optional elements
     if (xmlObject.Volume) {
       instance.volume = RealParameter.fromXmlObject({
         RealParameter: xmlObject.Volume,
-      }); // Wrap in expected structure
+      });
     }
 
     if (xmlObject.Pan) {
       instance.pan = RealParameter.fromXmlObject({
         RealParameter: xmlObject.Pan,
-      }); // Wrap in expected structure
+      });
     }
 
     if (xmlObject.Mute) {
       instance.mute = BoolParameter.fromXmlObject({
         BoolParameter: xmlObject.Mute,
-      }); // Wrap in expected structure
+      });
     }
 
-    instance.solo =
-      xmlObject["@_solo"] !== undefined
-        ? String(xmlObject["@_solo"]).toLowerCase() === "true"
-        : undefined;
+    // Handle optional solo attribute
+    if (xmlObject["@_solo"] !== undefined) {
+      instance.solo = String(xmlObject["@_solo"]).toLowerCase() === "true";
+    }
 
     const destinationId = xmlObject["@_destination"];
     if (destinationId) {
@@ -168,16 +187,23 @@ export class Channel extends Lane implements IChannel {
       );
     }
 
-    const sends: Send[] = [];
-    if (xmlObject.Sends && xmlObject.Sends.Send) {
+    // Handle sends array with proper error handling
+    instance.sends = [];
+    if (xmlObject.Sends?.Send) {
       const sendArray = Array.isArray(xmlObject.Sends.Send)
         ? xmlObject.Sends.Send
         : [xmlObject.Sends.Send];
-      sendArray.forEach((sendObj: any) => {
-        sends.push(Send.fromXmlObject(sendObj)); // Assuming Send has fromXmlObject
+
+      instance.sends = sendArray.map((sendObj: any) => {
+        try {
+          return Send.fromXmlObject(sendObj);
+        } catch (error: unknown) {
+          const message =
+            error instanceof Error ? error.message : String(error);
+          throw new Error(`Failed to parse Send: ${message}`);
+        }
       });
     }
-    instance.sends = sends;
 
     const devices: IDevice[] = [];
     if (xmlObject.Devices) {

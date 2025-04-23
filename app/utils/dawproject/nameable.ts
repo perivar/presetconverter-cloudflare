@@ -17,7 +17,10 @@ export abstract class Nameable extends XmlObject implements INameable {
   }
 
   protected getXmlAttributes(): any {
+    // Create object for attributes
     const attributes: any = {};
+
+    // Add optional attributes
     if (this.name !== undefined) {
       attributes["@_name"] = this.name;
     }
@@ -27,12 +30,20 @@ export abstract class Nameable extends XmlObject implements INameable {
     if (this.comment !== undefined) {
       attributes["@_comment"] = this.comment;
     }
+
     return attributes;
   }
 
   protected populateFromXml(xmlObject: any): void {
-    this.name = xmlObject["@_name"] || undefined;
-    this.color = xmlObject["@_color"] || undefined;
-    this.comment = xmlObject["@_comment"] || undefined;
+    // Populate optional attributes
+    if (xmlObject["@_name"] !== undefined) {
+      this.name = xmlObject["@_name"];
+    }
+    if (xmlObject["@_color"] !== undefined) {
+      this.color = xmlObject["@_color"];
+    }
+    if (xmlObject["@_comment"] !== undefined) {
+      this.comment = xmlObject["@_comment"];
+    }
   }
 }

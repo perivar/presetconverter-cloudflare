@@ -13,9 +13,17 @@ export class EnumPoint extends Point implements IEnumPoint {
   }
 
   toXmlObject(): any {
-    const obj = super.getXmlAttributes(); // Get attributes from Point
-    obj.value = this.value;
-    return { EnumPoint: obj };
+    // Get inherited attributes first
+    const attributes = super.getXmlAttributes(); // Get attributes from Point
+
+    // Add required value attribute
+    if (this.value !== undefined) {
+      attributes["@_value"] = this.value;
+    } else {
+      throw new Error("Required attribute 'value' missing for EnumPoint");
+    }
+
+    return { EnumPoint: attributes };
   }
 
   toXml(): string {
@@ -24,10 +32,22 @@ export class EnumPoint extends Point implements IEnumPoint {
   }
 
   static fromXmlObject(xmlObject: any): EnumPoint {
-    const instance = new EnumPoint(0, 0); // Create instance with default values
-    instance.populateFromXml(xmlObject); // Populate inherited attributes from Point
-    instance.value =
-      xmlObject.value !== undefined ? parseInt(xmlObject.value, 10) : 0;
+    // Create instance with temporary values
+    const instance = new EnumPoint(0, 0);
+
+    // Populate inherited attributes
+    instance.populateFromXml(xmlObject);
+
+    // Validate and populate required value attribute
+    if (xmlObject["@_value"] === undefined) {
+      throw new Error("Required attribute 'value' missing in XML");
+    }
+
+    instance.value = parseInt(xmlObject["@_value"], 10);
+    if (isNaN(instance.value)) {
+      throw new Error("Invalid enum value in XML");
+    }
+
     return instance;
   }
 
