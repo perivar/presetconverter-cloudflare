@@ -20,7 +20,7 @@ export abstract class MediaFile extends Timeline implements IMediaFile {
 
   protected getXmlAttributes(): any {
     const attributes = super.getXmlAttributes(); // Get attributes from Timeline
-    attributes.duration = this.duration;
+    attributes["@_duration"] = this.duration;
     return attributes;
   }
 

@@ -50,21 +50,21 @@ export class EqBand extends XmlObject implements IEqBand {
       obj.Band.Freq = {
         // XML tag remains Freq
         ...this.freq.toXmlObject().RealParameter, // Use frequency and assume RealParameter returns { RealParameter: ... }
-        unit: Unit.HERTZ, // Using the Unit enum for frequency
+        "@_unit": Unit.HERTZ, // Using the Unit enum for frequency as an attribute
       };
     }
 
     if (this.gain) {
       obj.Band.Gain = {
         ...this.gain.toXmlObject().RealParameter, // Assume RealParameter returns { RealParameter: ... }
-        unit: Unit.DECIBEL, // Using the Unit enum for gain
+        "@_unit": Unit.DECIBEL, // Using the Unit enum for gain as an attribute
       };
     }
 
     if (this.q) {
       obj.Band.Q = {
         ...this.q.toXmlObject().RealParameter, // Assume RealParameter returns { RealParameter: ... }
-        unit: Unit.LINEAR, // Assuming Q is unitless but using a suitable enum value
+        "@_unit": Unit.LINEAR, // Assuming Q is unitless but using a suitable enum value as an attribute
       };
     }
 

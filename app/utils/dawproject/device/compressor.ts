@@ -80,7 +80,7 @@ export class Compressor extends BuiltInDevice implements ICompressor {
           ...realParam.toXmlObject().RealParameter, // Assuming RealParameter has toXmlObject and returns { RealParameter: ... }
         };
         if (unit !== undefined) {
-          parentObj[tag].unit = unit;
+          parentObj[tag]["@_unit"] = unit;
         }
       }
     };

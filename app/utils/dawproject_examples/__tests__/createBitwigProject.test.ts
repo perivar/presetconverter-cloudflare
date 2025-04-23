@@ -1,9 +1,16 @@
+import fs from "fs";
+import path from "path";
+
+import { DawProject } from "../../dawproject/dawProject";
 import { EqBandType } from "../../dawproject/device/eqBandType";
 import { Project } from "../../dawproject/project";
 import {
   AudioTrackConfig,
   createProjectWithAudioTracks,
 } from "../createBitwigProject";
+
+// const targetDir = path.join(os.tmpdir(), "dawproject-tests");
+const targetDir = path.join(__dirname, "dawproject-tests");
 
 describe("createBitwigProject", () => {
   test("should generate a Project object", () => {
@@ -167,6 +174,9 @@ describe("createBitwigProject", () => {
     ];
 
     const project = createProjectWithAudioTracks(audioTracks);
+
+    const projectXml = DawProject.toXml(project);
+    fs.writeFileSync(path.join(targetDir, "dawproject_bitwig.xml"), projectXml);
 
     // Check if the returned object is an instance of Project
     expect(project).toBeInstanceOf(Project);

@@ -28,7 +28,7 @@ export class Transport extends XmlObject implements ITransport {
     if (this.tempo) {
       obj.Transport.Tempo = {
         ...this.tempo.toXmlObject().RealParameter, // Assuming RealParameter has toXmlObject and returns { RealParameter: ... }
-        unit: Unit.BPM,
+        ["@_unit"]: Unit.BPM,
       };
     }
 

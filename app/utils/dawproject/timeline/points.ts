@@ -47,7 +47,7 @@ export class Points extends Timeline implements IPoints {
     }
 
     if (this.unit !== undefined) {
-      obj.Points.unit = this.unit;
+      obj.Points["@_unit"] = this.unit;
     }
 
     return obj;

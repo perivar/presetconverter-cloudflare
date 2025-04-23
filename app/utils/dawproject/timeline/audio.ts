@@ -36,13 +36,13 @@ export class Audio extends MediaFile implements IAudio {
       Audio: {
         ...super.getXmlAttributes(),
         ...super.getXmlChildren(),
-        sampleRate: this.sampleRate,
-        channels: this.channels,
+        "@_sampleRate": this.sampleRate,
+        "@_channels": this.channels,
       },
     };
 
     if (this.algorithm !== undefined) {
-      obj.Audio.algorithm = this.algorithm;
+      obj.Audio["@_algorithm"] = this.algorithm;
     }
 
     return obj;
