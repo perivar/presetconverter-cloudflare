@@ -1,5 +1,4 @@
 import fs from "fs";
-import os from "os";
 import path from "path";
 
 import { ContentType } from "../../dawproject/contentType";
@@ -20,7 +19,8 @@ import {
 } from "../createExampleProject";
 
 const simpleFeatures = new Set<Features>(["CLIPS", "NOTES", "AUDIO"]);
-const targetDir = path.join(os.tmpdir(), "dawproject-tests");
+// const targetDir = path.join(os.tmpdir(), "dawproject-tests");
+const targetDir = path.join(__dirname, "dawproject-tests");
 
 beforeAll(() => {
   if (!fs.existsSync(targetDir)) {
@@ -33,9 +33,9 @@ beforeEach(() => {
 });
 
 afterAll(() => {
-  if (fs.existsSync(targetDir)) {
-    fs.rmSync(targetDir, { recursive: true, force: true });
-  }
+  // if (fs.existsSync(targetDir)) {
+  //   fs.rmSync(targetDir, { recursive: true, force: true });
+  // }
 });
 
 describe("DAW Project", () => {

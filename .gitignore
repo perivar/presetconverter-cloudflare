@@ -9,3 +9,4 @@ node_modules
 DotNet
 build-tmp
 *_tmp.vstpreset
+dawproject-tests
