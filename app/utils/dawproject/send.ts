@@ -4,6 +4,7 @@ import { RealParameter } from "./realParameter";
 import { Referenceable } from "./referenceable";
 import { SendType } from "./sendType";
 import { ISend } from "./types";
+import { XML_BUILDER_OPTIONS, XML_PARSER_OPTIONS } from "./xml/options";
 
 /** A single send of a mixer channel. */
 export class Send extends Referenceable implements ISend {
@@ -46,18 +47,18 @@ export class Send extends Referenceable implements ISend {
       obj.Send.Pan = this.pan.toXmlObject().RealParameter; // Assuming RealParameter has toXmlObject and returns { RealParameter: ... }
     }
     if (this.type !== undefined) {
-      obj.Send.type = this.type;
+      obj.Send["@_type"] = this.type;
     }
     if (this.destination !== undefined) {
       // Assuming destination is a Referenceable instance and has an id
-      obj.Send.destination = this.destination.id;
+      obj.Send["@_destination"] = this.destination.id;
     }
 
     return obj;
   }
 
   toXml(): string {
-    const builder = new XMLBuilder({ attributeNamePrefix: "" });
+    const builder = new XMLBuilder(XML_BUILDER_OPTIONS);
     return builder.build(this.toXmlObject());
   }
 
@@ -77,9 +78,11 @@ export class Send extends Referenceable implements ISend {
       }); // Wrap in expected structure
     }
 
-    instance.type = xmlObject.type ? (xmlObject.type as SendType) : undefined; // Cast string to SendType
+    instance.type = xmlObject["@_type"]
+      ? (xmlObject["@_type"] as SendType)
+      : undefined; // Cast string to SendType
 
-    const destinationId = xmlObject.destination;
+    const destinationId = xmlObject["@_destination"];
     if (destinationId) {
       // This requires a way to look up Referenceable instances by ID
       // For now, we'll leave it as undefined
@@ -92,7 +95,7 @@ export class Send extends Referenceable implements ISend {
   }
 
   static fromXml(xmlString: string): Send {
-    const parser = new XMLParser({ attributeNamePrefix: "" });
+    const parser = new XMLParser(XML_PARSER_OPTIONS);
     const jsonObj = parser.parse(xmlString);
     return Send.fromXmlObject(jsonObj.Send);
   }

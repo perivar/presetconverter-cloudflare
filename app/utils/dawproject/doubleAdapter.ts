@@ -8,7 +8,7 @@ export class DoubleAdapter {
     } else if (value === -Infinity) {
       return "-inf";
     } else {
-      return value.toFixed(6); // Using toFixed for consistent formatting
+      return parseFloat(value.toFixed(6)).toString();
     }
   }
 

@@ -2,6 +2,7 @@ import { XMLBuilder, XMLParser } from "fast-xml-parser";
 
 /** References a file either within a DAWPROJECT container or on disk. */
 import { IFileReference } from "./types";
+import { XML_BUILDER_OPTIONS, XML_PARSER_OPTIONS } from "./xml/options";
 import { XmlObject } from "./XmlObject";
 
 /** References a file either within a DAWPROJECT container or on disk. */
@@ -26,30 +27,30 @@ export class FileReference extends XmlObject implements IFileReference {
 
   toXmlObject(): any {
     const obj: any = {
-      path: this.path,
+      "@_path": this.path,
     };
     if (this.external !== undefined) {
-      obj.external = this.external;
+      obj["@_external"] = this.external;
     }
     return obj;
   }
 
   toXml(): string {
-    const builder = new XMLBuilder({ attributeNamePrefix: "" });
+    const builder = new XMLBuilder(XML_BUILDER_OPTIONS);
     return builder.build({ State: this.toXmlObject() });
   }
 
   static fromXmlObject(xmlObject: any): FileReference {
-    const path = xmlObject.path || "";
+    const path = xmlObject["@_path"] || "";
     const external =
-      xmlObject.external !== undefined
-        ? String(xmlObject.external).toLowerCase() === "true"
+      xmlObject["@_external"] !== undefined
+        ? String(xmlObject["@_external"]).toLowerCase() === "true"
         : false;
     return new FileReference(path, external);
   }
 
   static fromXml(xmlString: string): FileReference {
-    const parser = new XMLParser({ attributeNamePrefix: "" });
+    const parser = new XMLParser(XML_PARSER_OPTIONS);
     const jsonObj = parser.parse(xmlString);
     return FileReference.fromXmlObject(jsonObj.State);
   }

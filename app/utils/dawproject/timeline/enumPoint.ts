@@ -1,6 +1,7 @@
 import { XMLBuilder, XMLParser } from "fast-xml-parser";
 
 import type { IEnumPoint } from "../types";
+import { XML_BUILDER_OPTIONS, XML_PARSER_OPTIONS } from "../xml/options";
 import { Point } from "./point";
 
 export class EnumPoint extends Point implements IEnumPoint {
@@ -18,7 +19,7 @@ export class EnumPoint extends Point implements IEnumPoint {
   }
 
   toXml(): string {
-    const builder = new XMLBuilder({ attributeNamePrefix: "" });
+    const builder = new XMLBuilder(XML_BUILDER_OPTIONS);
     return builder.build(this.toXmlObject());
   }
 
@@ -31,7 +32,7 @@ export class EnumPoint extends Point implements IEnumPoint {
   }
 
   static fromXml(xmlString: string): EnumPoint {
-    const parser = new XMLParser({ attributeNamePrefix: "" });
+    const parser = new XMLParser(XML_PARSER_OPTIONS);
     const jsonObj = parser.parse(xmlString);
     return EnumPoint.fromXmlObject(jsonObj.EnumPoint);
   }

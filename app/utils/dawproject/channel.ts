@@ -10,6 +10,7 @@ import { MixerRole } from "./mixerRole";
 import { RealParameter } from "./realParameter";
 import { Send } from "./send";
 import { IChannel, IDevice } from "./types";
+import { XML_BUILDER_OPTIONS, XML_PARSER_OPTIONS } from "./xml/options";
 
 // Import other concrete Device subclasses here
 
@@ -72,17 +73,17 @@ export class Channel extends Lane implements IChannel {
 
     // Set attributes for the Channel element
     if (this.role !== undefined) {
-      obj.Channel.role = this.role;
+      obj.Channel["@_role"] = this.role;
     }
     if (this.audioChannels !== undefined) {
-      obj.Channel.audioChannels = this.audioChannels;
+      obj.Channel["@_audioChannels"] = this.audioChannels;
     }
     if (this.solo !== undefined) {
-      obj.Channel.solo = this.solo;
+      obj.Channel["@_solo"] = this.solo;
     }
     if (this.destination !== undefined) {
       // Assuming destination has an id attribute
-      obj.Channel.destination = this.destination.id;
+      obj.Channel["@_destination"] = this.destination.id;
     }
 
     // Append complex elements if they exist
@@ -119,7 +120,7 @@ export class Channel extends Lane implements IChannel {
   }
 
   toXml(): string {
-    const builder = new XMLBuilder({ attributeNamePrefix: "" });
+    const builder = new XMLBuilder(XML_BUILDER_OPTIONS);
     return builder.build(this.toXmlObject());
   }
 
@@ -127,10 +128,12 @@ export class Channel extends Lane implements IChannel {
     const instance = new Channel(); // Create instance of Channel
     instance.populateFromXml(xmlObject); // Populate inherited attributes
 
-    instance.role = xmlObject.role ? (xmlObject.role as MixerRole) : undefined;
+    instance.role = xmlObject["@_role"]
+      ? (xmlObject["@_role"] as MixerRole)
+      : undefined;
     instance.audioChannels =
-      xmlObject.audioChannels !== undefined
-        ? parseInt(xmlObject.audioChannels, 10)
+      xmlObject["@_audioChannels"] !== undefined
+        ? parseInt(xmlObject["@_audioChannels"], 10)
         : 2;
 
     if (xmlObject.Volume) {
@@ -152,11 +155,11 @@ export class Channel extends Lane implements IChannel {
     }
 
     instance.solo =
-      xmlObject.solo !== undefined
-        ? String(xmlObject.solo).toLowerCase() === "true"
+      xmlObject["@_solo"] !== undefined
+        ? String(xmlObject["@_solo"]).toLowerCase() === "true"
         : undefined;
 
-    const destinationId = xmlObject.destination;
+    const destinationId = xmlObject["@_destination"];
     if (destinationId) {
       // This requires a way to look up Channel instances by ID
       // For now, we'll leave it as undefined
@@ -217,7 +220,7 @@ export class Channel extends Lane implements IChannel {
   }
 
   static fromXml(xmlString: string): Channel {
-    const parser = new XMLParser({ attributeNamePrefix: "" });
+    const parser = new XMLParser(XML_PARSER_OPTIONS);
     const jsonObj = parser.parse(xmlString);
     return Channel.fromXmlObject(jsonObj.Channel);
   }

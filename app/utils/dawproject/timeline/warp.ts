@@ -2,6 +2,7 @@ import { XMLBuilder, XMLParser } from "fast-xml-parser";
 
 import { DoubleAdapter } from "../doubleAdapter";
 import type { IWarp } from "../types";
+import { XML_BUILDER_OPTIONS, XML_PARSER_OPTIONS } from "../xml/options";
 import { XmlObject } from "../XmlObject";
 
 export class Warp extends XmlObject implements IWarp {
@@ -25,7 +26,7 @@ export class Warp extends XmlObject implements IWarp {
   }
 
   toXml(): string {
-    const builder = new XMLBuilder({ attributeNamePrefix: "" });
+    const builder = new XMLBuilder(XML_BUILDER_OPTIONS);
     return builder.build(this.toXmlObject());
   }
 
@@ -42,7 +43,7 @@ export class Warp extends XmlObject implements IWarp {
   }
 
   static fromXml(xmlString: string): Warp {
-    const parser = new XMLParser({ attributeNamePrefix: "" });
+    const parser = new XMLParser(XML_PARSER_OPTIONS);
     const jsonObj = parser.parse(xmlString);
     return Warp.fromXmlObject(jsonObj.Warp);
   }

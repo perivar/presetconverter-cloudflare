@@ -5,6 +5,7 @@ import { Lanes } from "./timeline/lanes";
 import { Markers } from "./timeline/markers";
 import { Points } from "./timeline/points";
 import { IArrangement } from "./types";
+import { XML_BUILDER_OPTIONS, XML_PARSER_OPTIONS } from "./xml/options";
 
 /** Represents the main Arrangement timeline of a DAW. */
 export class Arrangement extends Referenceable implements IArrangement {
@@ -78,7 +79,7 @@ export class Arrangement extends Referenceable implements IArrangement {
   }
 
   toXml(): string {
-    const builder = new XMLBuilder({ attributeNamePrefix: "" });
+    const builder = new XMLBuilder(XML_BUILDER_OPTIONS);
     return builder.build(this.toXmlObject());
   }
 
@@ -107,7 +108,7 @@ export class Arrangement extends Referenceable implements IArrangement {
   }
 
   static fromXml(xmlString: string): Arrangement {
-    const parser = new XMLParser({ attributeNamePrefix: "" });
+    const parser = new XMLParser(XML_PARSER_OPTIONS);
     const jsonObj = parser.parse(xmlString);
     return Arrangement.fromXmlObject(jsonObj.Arrangement);
   }

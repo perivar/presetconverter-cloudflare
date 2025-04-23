@@ -3,6 +3,7 @@ import { XMLBuilder, XMLParser } from "fast-xml-parser";
 import { DoubleAdapter } from "../doubleAdapter";
 import { Interpolation } from "../interpolation";
 import type { IRealPoint } from "../types";
+import { XML_BUILDER_OPTIONS, XML_PARSER_OPTIONS } from "../xml/options";
 import { Point } from "./point";
 
 export class RealPoint extends Point implements IRealPoint {
@@ -25,7 +26,7 @@ export class RealPoint extends Point implements IRealPoint {
   }
 
   toXml(): string {
-    const builder = new XMLBuilder({ attributeNamePrefix: "" });
+    const builder = new XMLBuilder(XML_BUILDER_OPTIONS);
     return builder.build(this.toXmlObject());
   }
 
@@ -43,7 +44,7 @@ export class RealPoint extends Point implements IRealPoint {
   }
 
   static fromXml(xmlString: string): RealPoint {
-    const parser = new XMLParser({ attributeNamePrefix: "" });
+    const parser = new XMLParser(XML_PARSER_OPTIONS);
     const jsonObj = parser.parse(xmlString);
     return RealPoint.fromXmlObject(jsonObj.RealPoint);
   }

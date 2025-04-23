@@ -2,6 +2,7 @@ import { XMLBuilder, XMLParser } from "fast-xml-parser";
 
 import type { IPoints, ITrack } from "../types";
 import { Unit } from "../unit";
+import { XML_BUILDER_OPTIONS, XML_PARSER_OPTIONS } from "../xml/options";
 import { AutomationTarget } from "./automationTarget";
 import { Point } from "./point";
 import { Timeline } from "./timeline";
@@ -53,7 +54,7 @@ export class Points extends Timeline implements IPoints {
   }
 
   toXml(): string {
-    const builder = new XMLBuilder({ attributeNamePrefix: "" });
+    const builder = new XMLBuilder(XML_BUILDER_OPTIONS);
     return builder.build(this.toXmlObject());
   }
 
@@ -89,7 +90,7 @@ export class Points extends Timeline implements IPoints {
   }
 
   static fromXml(xmlString: string): Points {
-    const parser = new XMLParser({ attributeNamePrefix: "" });
+    const parser = new XMLParser(XML_PARSER_OPTIONS);
     const jsonObj = parser.parse(xmlString);
     return Points.fromXmlObject(jsonObj.Points);
   }

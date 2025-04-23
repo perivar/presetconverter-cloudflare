@@ -1,6 +1,7 @@
 import { XMLBuilder, XMLParser } from "fast-xml-parser";
 
 import type { IClipSlot, ITrack } from "../types";
+import { XML_BUILDER_OPTIONS, XML_PARSER_OPTIONS } from "../xml/options";
 import { Clip } from "./clip";
 import { Timeline } from "./timeline";
 import { TimeUnit } from "./timeUnit";
@@ -42,7 +43,7 @@ export class ClipSlot extends Timeline implements IClipSlot {
   }
 
   toXml(): string {
-    const builder = new XMLBuilder({ attributeNamePrefix: "" });
+    const builder = new XMLBuilder(XML_BUILDER_OPTIONS);
     return builder.build(this.toXmlObject());
   }
 
@@ -63,7 +64,7 @@ export class ClipSlot extends Timeline implements IClipSlot {
   }
 
   static fromXml(xmlString: string): ClipSlot {
-    const parser = new XMLParser({ attributeNamePrefix: "" });
+    const parser = new XMLParser(XML_PARSER_OPTIONS);
     const jsonObj = parser.parse(xmlString);
     return ClipSlot.fromXmlObject(jsonObj.ClipSlot);
   }

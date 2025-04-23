@@ -5,6 +5,7 @@ import {
   TimelineRegistry,
 } from "../registry/timelineRegistry";
 import type { ITrack, IWarps } from "../types";
+import { XML_BUILDER_OPTIONS, XML_PARSER_OPTIONS } from "../xml/options";
 import { Timeline } from "./timeline";
 import { TimeUnit } from "./timeUnit";
 import { Warp } from "./warp";
@@ -56,7 +57,7 @@ export class Warps extends Timeline implements IWarps {
   }
 
   toXml(): string {
-    const builder = new XMLBuilder({ attributeNamePrefix: "" });
+    const builder = new XMLBuilder(XML_BUILDER_OPTIONS);
     return builder.build(this.toXmlObject());
   }
 
@@ -109,7 +110,7 @@ export class Warps extends Timeline implements IWarps {
   }
 
   static fromXml(xmlString: string): Warps {
-    const parser = new XMLParser({ attributeNamePrefix: "" });
+    const parser = new XMLParser(XML_PARSER_OPTIONS);
     const jsonObj = parser.parse(xmlString);
     return Warps.fromXmlObject(jsonObj.Warps);
   }

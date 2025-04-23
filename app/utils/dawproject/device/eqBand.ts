@@ -4,6 +4,7 @@ import { BoolParameter } from "../boolParameter";
 import { RealParameter } from "../realParameter";
 import type { IEqBand } from "../types";
 import { Unit } from "../unit";
+import { XML_BUILDER_OPTIONS, XML_PARSER_OPTIONS } from "../xml/options";
 import { XmlObject } from "../XmlObject";
 import { EqBandType } from "./eqBandType";
 
@@ -35,12 +36,12 @@ export class EqBand extends XmlObject implements IEqBand {
   toXmlObject(): any {
     const obj: any = {
       Band: {
-        type: this.type,
+        "@_type": this.type,
       },
     };
 
     if (this.order !== undefined) {
-      obj.Band.order = this.order;
+      obj.Band["@_order"] = this.order;
     }
 
     // Create specific elements for Freq, Gain, and Q with the required unit attribute from the Unit enum
@@ -76,7 +77,7 @@ export class EqBand extends XmlObject implements IEqBand {
   }
 
   toXml(): string {
-    const builder = new XMLBuilder({ attributeNamePrefix: "" });
+    const builder = new XMLBuilder(XML_BUILDER_OPTIONS);
     return builder.build(this.toXmlObject());
   }
 
@@ -100,17 +101,19 @@ export class EqBand extends XmlObject implements IEqBand {
       : undefined;
 
     // Parse attributes
-    const type = xmlObject.type
-      ? (xmlObject.type as EqBandType)
+    const type = xmlObject["@_type"]
+      ? (xmlObject["@_type"] as EqBandType)
       : EqBandType.BELL; // Default to BELL if not specified
     const order =
-      xmlObject.order !== undefined ? parseInt(xmlObject.order, 10) : undefined;
+      xmlObject["@_order"] !== undefined
+        ? parseInt(xmlObject["@_order"], 10)
+        : undefined;
 
     return new EqBand(type, frequency, gain, q, enabled, order); // Pass frequency
   }
 
   static fromXml(xmlString: string): EqBand {
-    const parser = new XMLParser({ attributeNamePrefix: "" });
+    const parser = new XMLParser(XML_PARSER_OPTIONS);
     const jsonObj = parser.parse(xmlString);
     return EqBand.fromXmlObject(jsonObj.Band);
   }

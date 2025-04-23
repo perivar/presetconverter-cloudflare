@@ -1,6 +1,7 @@
 import { XMLBuilder, XMLParser } from "fast-xml-parser";
 
 import type { IClips, ITrack } from "../types";
+import { XML_BUILDER_OPTIONS, XML_PARSER_OPTIONS } from "../xml/options";
 import { Clip } from "./clip";
 import { Timeline } from "./timeline";
 import { TimeUnit } from "./timeUnit";
@@ -36,7 +37,7 @@ export class Clips extends Timeline implements IClips {
   }
 
   toXml(): string {
-    const builder = new XMLBuilder({ attributeNamePrefix: "" });
+    const builder = new XMLBuilder(XML_BUILDER_OPTIONS);
     return builder.build(this.toXmlObject());
   }
 
@@ -60,7 +61,7 @@ export class Clips extends Timeline implements IClips {
   }
 
   static fromXml(xmlString: string): Clips {
-    const parser = new XMLParser({ attributeNamePrefix: "" });
+    const parser = new XMLParser(XML_PARSER_OPTIONS);
     const jsonObj = parser.parse(xmlString);
     return Clips.fromXmlObject(jsonObj.Clips);
   }

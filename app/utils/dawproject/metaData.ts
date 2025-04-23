@@ -1,6 +1,7 @@
 import { XMLBuilder, XMLParser } from "fast-xml-parser";
 
 import { IMetaData } from "./types";
+import { XML_BUILDER_OPTIONS, XML_PARSER_OPTIONS } from "./xml/options";
 import { XmlObject } from "./XmlObject";
 
 /** Metadata root element of the DAWPROJECT format. This is stored in the file metadata.xml file inside the container. */
@@ -64,12 +65,12 @@ export class MetaData extends XmlObject implements IMetaData {
   }
 
   toXml(): string {
-    const builder = new XMLBuilder({ attributeNamePrefix: "" });
+    const builder = new XMLBuilder(XML_BUILDER_OPTIONS);
     return builder.build(this.toXmlObject());
   }
 
   static fromXml(xmlString: string): MetaData {
-    const parser = new XMLParser({ attributeNamePrefix: "" });
+    const parser = new XMLParser(XML_PARSER_OPTIONS);
     const jsonObj = parser.parse(xmlString);
     return MetaData.fromXmlObject(jsonObj.MetaData);
   }

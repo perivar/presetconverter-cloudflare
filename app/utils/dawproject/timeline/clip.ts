@@ -4,6 +4,7 @@ import { DoubleAdapter } from "../doubleAdapter";
 import { Nameable } from "../nameable";
 import { TimelineRegistry } from "../registry/timelineRegistry";
 import type { IClip } from "../types";
+import { XML_BUILDER_OPTIONS, XML_PARSER_OPTIONS } from "../xml/options";
 import { Timeline } from "./timeline";
 import { TimeUnit } from "./timeUnit";
 
@@ -57,36 +58,36 @@ export class Clip extends Nameable implements IClip {
     const obj: any = {
       Clip: {
         ...super.getXmlAttributes(), // Get attributes from Nameable
-        time: DoubleAdapter.toXml(this.time) || "",
+        "@_time": DoubleAdapter.toXml(this.time) || "",
       },
     };
 
     if (this.duration !== undefined) {
-      obj.Clip.duration = DoubleAdapter.toXml(this.duration) || "";
+      obj.Clip["@_duration"] = DoubleAdapter.toXml(this.duration) || "";
     }
     if (this.contentTimeUnit !== undefined) {
-      obj.Clip.contentTimeUnit = this.contentTimeUnit;
+      obj.Clip["@_contentTimeUnit"] = this.contentTimeUnit;
     }
     if (this.playStart !== undefined) {
-      obj.Clip.playStart = DoubleAdapter.toXml(this.playStart) || "";
+      obj.Clip["@_playStart"] = DoubleAdapter.toXml(this.playStart) || "";
     }
     if (this.playStop !== undefined) {
-      obj.Clip.playStop = DoubleAdapter.toXml(this.playStop) || "";
+      obj.Clip["@_playStop"] = DoubleAdapter.toXml(this.playStop) || "";
     }
     if (this.loopStart !== undefined) {
-      obj.Clip.loopStart = DoubleAdapter.toXml(this.loopStart) || "";
+      obj.Clip["@_loopStart"] = DoubleAdapter.toXml(this.loopStart) || "";
     }
     if (this.loopEnd !== undefined) {
-      obj.Clip.loopEnd = DoubleAdapter.toXml(this.loopEnd) || "";
+      obj.Clip["@_loopEnd"] = DoubleAdapter.toXml(this.loopEnd) || "";
     }
     if (this.fadeTimeUnit !== undefined) {
-      obj.Clip.fadeTimeUnit = this.fadeTimeUnit;
+      obj.Clip["@_fadeTimeUnit"] = this.fadeTimeUnit;
     }
     if (this.fadeInTime !== undefined) {
-      obj.Clip.fadeInTime = DoubleAdapter.toXml(this.fadeInTime) || "";
+      obj.Clip["@_fadeInTime"] = DoubleAdapter.toXml(this.fadeInTime) || "";
     }
     if (this.fadeOutTime !== undefined) {
-      obj.Clip.fadeOutTime = DoubleAdapter.toXml(this.fadeOutTime) || "";
+      obj.Clip["@_fadeOutTime"] = DoubleAdapter.toXml(this.fadeOutTime) || "";
     }
 
     // Append content if present
@@ -99,14 +100,14 @@ export class Clip extends Nameable implements IClip {
 
     // Reference handling
     if (this.reference !== undefined) {
-      obj.Clip.reference = this.reference; // Assign string directly
+      obj.Clip["@_reference"] = this.reference; // Assign string directly
     }
 
     return obj;
   }
 
   toXml(): string {
-    const builder = new XMLBuilder({ attributeNamePrefix: "" });
+    const builder = new XMLBuilder(XML_BUILDER_OPTIONS);
     return builder.build(this.toXmlObject());
   }
 
@@ -115,58 +116,58 @@ export class Clip extends Nameable implements IClip {
     instance.populateFromXml(xmlObject); // Populate inherited attributes
 
     instance.time =
-      xmlObject.time !== undefined
-        ? DoubleAdapter.fromXml(xmlObject.time) || 0
+      xmlObject["@_time"] !== undefined
+        ? DoubleAdapter.fromXml(xmlObject["@_time"]) || 0
         : 0;
     instance.duration =
-      xmlObject.duration !== undefined
-        ? DoubleAdapter.fromXml(xmlObject.duration)
+      xmlObject["@_duration"] !== undefined
+        ? DoubleAdapter.fromXml(xmlObject["@_duration"])
         : undefined;
-    instance.contentTimeUnit = xmlObject.contentTimeUnit
-      ? (xmlObject.contentTimeUnit as TimeUnit)
+    instance.contentTimeUnit = xmlObject["@_contentTimeUnit"]
+      ? (xmlObject["@_contentTimeUnit"] as TimeUnit)
       : undefined;
     instance.playStart =
-      xmlObject.playStart !== undefined
-        ? DoubleAdapter.fromXml(xmlObject.playStart)
+      xmlObject["@_playStart"] !== undefined
+        ? DoubleAdapter.fromXml(xmlObject["@_playStart"])
         : undefined;
     instance.playStop =
-      xmlObject.playStop !== undefined
-        ? DoubleAdapter.fromXml(xmlObject.playStop)
+      xmlObject["@_playStop"] !== undefined
+        ? DoubleAdapter.fromXml(xmlObject["@_playStop"])
         : undefined;
     instance.loopStart =
-      xmlObject.loopStart !== undefined
-        ? DoubleAdapter.fromXml(xmlObject.loopStart)
+      xmlObject["@_loopStart"] !== undefined
+        ? DoubleAdapter.fromXml(xmlObject["@_loopStart"])
         : undefined;
     instance.loopEnd =
-      xmlObject.loopEnd !== undefined
-        ? DoubleAdapter.fromXml(xmlObject.loopEnd)
+      xmlObject["@_loopEnd"] !== undefined
+        ? DoubleAdapter.fromXml(xmlObject["@_loopEnd"])
         : undefined;
-    instance.fadeTimeUnit = xmlObject.fadeTimeUnit
-      ? (xmlObject.fadeTimeUnit as TimeUnit)
+    instance.fadeTimeUnit = xmlObject["@_fadeTimeUnit"]
+      ? (xmlObject["@_fadeTimeUnit"] as TimeUnit)
       : undefined;
     instance.fadeInTime =
-      xmlObject.fadeInTime !== undefined
-        ? DoubleAdapter.fromXml(xmlObject.fadeInTime)
+      xmlObject["@_fadeInTime"] !== undefined
+        ? DoubleAdapter.fromXml(xmlObject["@_fadeInTime"])
         : undefined;
     instance.fadeOutTime =
-      xmlObject.fadeOutTime !== undefined
-        ? DoubleAdapter.fromXml(xmlObject.fadeOutTime)
+      xmlObject["@_fadeOutTime"] !== undefined
+        ? DoubleAdapter.fromXml(xmlObject["@_fadeOutTime"])
         : undefined;
 
     // Handle content if present
     for (const tagName in xmlObject) {
       if (
-        tagName === "time" ||
-        tagName === "duration" ||
-        tagName === "contentTimeUnit" ||
-        tagName === "playStart" ||
-        tagName === "playStop" ||
-        tagName === "loopStart" ||
-        tagName === "loopEnd" ||
-        tagName === "fadeTimeUnit" ||
-        tagName === "fadeInTime" ||
-        tagName === "fadeOutTime" ||
-        tagName === "reference"
+        tagName === "@_time" ||
+        tagName === "@_duration" ||
+        tagName === "@_contentTimeUnit" ||
+        tagName === "@_playStart" ||
+        tagName === "@_playStop" ||
+        tagName === "@_loopStart" ||
+        tagName === "@_loopEnd" ||
+        tagName === "@_fadeTimeUnit" ||
+        tagName === "@_fadeInTime" ||
+        tagName === "@_fadeOutTime" ||
+        tagName === "@_reference"
       ) {
         continue; // Skip known properties
       }
@@ -185,13 +186,13 @@ export class Clip extends Nameable implements IClip {
       }
     }
 
-    instance.reference = xmlObject.reference; // Assign string directly
+    instance.reference = xmlObject["@_reference"]; // Assign string directly
 
     return instance;
   }
 
   static fromXml(xmlString: string): Clip {
-    const parser = new XMLParser({ attributeNamePrefix: "" });
+    const parser = new XMLParser(XML_PARSER_OPTIONS);
     const jsonObj = parser.parse(xmlString);
     return Clip.fromXmlObject(jsonObj.Clip);
   }

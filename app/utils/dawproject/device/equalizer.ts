@@ -4,6 +4,7 @@ import { BoolParameter } from "../boolParameter"; // Import BoolParameter
 import { RealParameter } from "../realParameter";
 import type { IEqualizer, IFileReference, IParameter } from "../types";
 import { Unit } from "../unit";
+import { XML_BUILDER_OPTIONS, XML_PARSER_OPTIONS } from "../xml/options";
 import { BuiltInDevice } from "./builtInDevice";
 import { DeviceRole } from "./deviceRole";
 import { EqBand } from "./eqBand";
@@ -81,14 +82,14 @@ export class Equalizer extends BuiltInDevice implements IEqualizer {
   }
 
   toXml(): string {
-    const builder = new XMLBuilder({ attributeNamePrefix: "" });
+    const builder = new XMLBuilder(XML_BUILDER_OPTIONS);
     return builder.build(this.toXmlObject());
   }
 
   static fromXmlObject(xmlObject: any): Equalizer {
     // Extract required deviceRole and deviceName from xmlObject
-    const deviceRole = xmlObject.deviceRole as DeviceRole;
-    const deviceName = xmlObject.deviceName as string;
+    const deviceRole = xmlObject["@_deviceRole"] as DeviceRole;
+    const deviceName = xmlObject["@_deviceName"] as string;
 
     const instance = new Equalizer(deviceRole, deviceName); // Create instance with required properties
     instance.populateFromXml(xmlObject); // Populate inherited attributes from BuiltInDevice
@@ -122,7 +123,7 @@ export class Equalizer extends BuiltInDevice implements IEqualizer {
   }
 
   static fromXml(xmlString: string): Equalizer {
-    const parser = new XMLParser({ attributeNamePrefix: "" });
+    const parser = new XMLParser(XML_PARSER_OPTIONS);
     const jsonObj = parser.parse(xmlString);
     return Equalizer.fromXmlObject(jsonObj.Equalizer);
   }

@@ -21,13 +21,13 @@ export abstract class Referenceable extends Nameable implements IReferenceable {
 
   protected getXmlAttributes(): any {
     const attributes = super.getXmlAttributes(); // Get attributes from Nameable
-    attributes.id = this.id;
+    attributes["@_id"] = this.id;
     return attributes;
   }
 
   protected populateFromXml(xmlObject: any): void {
     super.populateFromXml(xmlObject); // Populate inherited attributes from Nameable
-    this.id = xmlObject.id || "";
+    this.id = xmlObject["@_id"] || "";
     Referenceable._instances[this.id] = this;
   }
 

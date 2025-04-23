@@ -4,6 +4,7 @@ import { Referenceable } from "./referenceable";
 import { TimelineRegistry } from "./registry/timelineRegistry";
 import { Timeline } from "./timeline/timeline";
 import { IScene } from "./types";
+import { XML_BUILDER_OPTIONS, XML_PARSER_OPTIONS } from "./xml/options";
 
 /** Represents a clip launcher Scene of a DAW. */
 export class Scene extends Referenceable implements IScene {
@@ -51,7 +52,7 @@ export class Scene extends Referenceable implements IScene {
   }
 
   toXml(): string {
-    const builder = new XMLBuilder({ attributeNamePrefix: "" });
+    const builder = new XMLBuilder(XML_BUILDER_OPTIONS);
     return builder.build(this.toXmlObject());
   }
 
@@ -87,7 +88,7 @@ export class Scene extends Referenceable implements IScene {
   }
 
   static fromXml(xmlString: string): Scene {
-    const parser = new XMLParser({ attributeNamePrefix: "" });
+    const parser = new XMLParser(XML_PARSER_OPTIONS);
     const jsonObj = parser.parse(xmlString);
     return Scene.fromXmlObject(jsonObj.Scene);
   }

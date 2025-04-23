@@ -4,6 +4,7 @@ import { BoolParameter } from "../boolParameter";
 import { RealParameter } from "../realParameter";
 import type { ICompressor, IFileReference, IParameter } from "../types";
 import { Unit } from "../unit";
+import { XML_BUILDER_OPTIONS, XML_PARSER_OPTIONS } from "../xml/options";
 import { BuiltInDevice } from "./builtInDevice";
 import { DeviceRole } from "./deviceRole";
 
@@ -120,7 +121,7 @@ export class Compressor extends BuiltInDevice implements ICompressor {
   }
 
   toXml(): string {
-    const builder = new XMLBuilder({ attributeNamePrefix: "" });
+    const builder = new XMLBuilder(XML_BUILDER_OPTIONS);
     return builder.build(this.toXmlObject());
   }
 
@@ -178,7 +179,7 @@ export class Compressor extends BuiltInDevice implements ICompressor {
   }
 
   static fromXml(xmlString: string): Compressor {
-    const parser = new XMLParser({ attributeNamePrefix: "" });
+    const parser = new XMLParser(XML_PARSER_OPTIONS);
     const jsonObj = parser.parse(xmlString);
     return Compressor.fromXmlObject(jsonObj.Compressor);
   }

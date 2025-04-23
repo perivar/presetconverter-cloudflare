@@ -2,6 +2,7 @@ import { XMLBuilder, XMLParser } from "fast-xml-parser";
 
 import { ExpressionType } from "../expressionType";
 import type { IAutomationTarget } from "../types";
+import { XML_BUILDER_OPTIONS, XML_PARSER_OPTIONS } from "../xml/options";
 import { XmlObject } from "../XmlObject";
 
 export class AutomationTarget extends XmlObject implements IAutomationTarget {
@@ -47,7 +48,7 @@ export class AutomationTarget extends XmlObject implements IAutomationTarget {
   }
 
   toXml(): string {
-    const builder = new XMLBuilder({ attributeNamePrefix: "" });
+    const builder = new XMLBuilder(XML_BUILDER_OPTIONS);
     return builder.build({ Target: this.toXmlObject() });
   }
 
@@ -75,7 +76,7 @@ export class AutomationTarget extends XmlObject implements IAutomationTarget {
   }
 
   static fromXml(xmlString: string): AutomationTarget {
-    const parser = new XMLParser({ attributeNamePrefix: "" });
+    const parser = new XMLParser(XML_PARSER_OPTIONS);
     const jsonObj = parser.parse(xmlString);
     return AutomationTarget.fromXmlObject(jsonObj.Target);
   }

@@ -1,6 +1,7 @@
 import { XMLBuilder, XMLParser } from "fast-xml-parser";
 
 import type { ITimeSignaturePoint } from "../types";
+import { XML_BUILDER_OPTIONS, XML_PARSER_OPTIONS } from "../xml/options";
 import { Point } from "./point";
 
 export class TimeSignaturePoint extends Point implements ITimeSignaturePoint {
@@ -21,7 +22,7 @@ export class TimeSignaturePoint extends Point implements ITimeSignaturePoint {
   }
 
   toXml(): string {
-    const builder = new XMLBuilder({ attributeNamePrefix: "" });
+    const builder = new XMLBuilder(XML_BUILDER_OPTIONS);
     return builder.build(this.toXmlObject());
   }
 
@@ -38,7 +39,7 @@ export class TimeSignaturePoint extends Point implements ITimeSignaturePoint {
   }
 
   static fromXml(xmlString: string): TimeSignaturePoint {
-    const parser = new XMLParser({ attributeNamePrefix: "" });
+    const parser = new XMLParser(XML_PARSER_OPTIONS);
     const jsonObj = parser.parse(xmlString);
     return TimeSignaturePoint.fromXmlObject(jsonObj.TimeSignaturePoint);
   }

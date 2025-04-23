@@ -4,6 +4,7 @@ import { RealParameter } from "./realParameter";
 import { TimeSignatureParameter } from "./timeSignatureParameter";
 import { ITransport } from "./types";
 import { Unit } from "./unit";
+import { XML_BUILDER_OPTIONS, XML_PARSER_OPTIONS } from "./xml/options";
 import { XmlObject } from "./XmlObject";
 
 /** Transport element containing playback parameters such as Tempo and Time-signature. */
@@ -40,7 +41,7 @@ export class Transport extends XmlObject implements ITransport {
   }
 
   toXml(): string {
-    const builder = new XMLBuilder({ attributeNamePrefix: "" });
+    const builder = new XMLBuilder(XML_BUILDER_OPTIONS);
     return builder.build(this.toXmlObject());
   }
 
@@ -59,7 +60,7 @@ export class Transport extends XmlObject implements ITransport {
   }
 
   static fromXml(xmlString: string): Transport {
-    const parser = new XMLParser({ attributeNamePrefix: "" });
+    const parser = new XMLParser(XML_PARSER_OPTIONS);
     const jsonObj = parser.parse(xmlString);
     return Transport.fromXmlObject(jsonObj.Transport);
   }

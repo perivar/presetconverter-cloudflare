@@ -2,6 +2,8 @@ import { XMLBuilder, XMLParser } from "fast-xml-parser";
 
 import { FileReference } from "../fileReference";
 import type { IAudio } from "../types"; // Import IFileReference
+
+import { XML_BUILDER_OPTIONS, XML_PARSER_OPTIONS } from "../xml/options";
 import { MediaFile } from "./mediaFile";
 import { TimeUnit } from "./timeUnit";
 
@@ -47,7 +49,7 @@ export class Audio extends MediaFile implements IAudio {
   }
 
   toXml(): string {
-    const builder = new XMLBuilder({ attributeNamePrefix: "" });
+    const builder = new XMLBuilder(XML_BUILDER_OPTIONS);
     return builder.build(this.toXmlObject());
   }
 
@@ -73,7 +75,7 @@ export class Audio extends MediaFile implements IAudio {
   }
 
   static fromXml(xmlString: string): Audio {
-    const parser = new XMLParser({ attributeNamePrefix: "" });
+    const parser = new XMLParser(XML_PARSER_OPTIONS);
     const jsonObj = parser.parse(xmlString);
     return Audio.fromXmlObject(jsonObj.Audio);
   }

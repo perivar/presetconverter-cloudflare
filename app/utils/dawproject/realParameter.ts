@@ -4,6 +4,7 @@ import { DoubleAdapter } from "./doubleAdapter";
 import { Parameter } from "./parameter";
 import { IRealParameter } from "./types";
 import { Unit } from "./unit";
+import { XML_BUILDER_OPTIONS, XML_PARSER_OPTIONS } from "./xml/options";
 
 /** Represents a real valued (double) parameter which can provide a value and be used as an automation target. */
 export class RealParameter extends Parameter implements IRealParameter {
@@ -38,22 +39,22 @@ export class RealParameter extends Parameter implements IRealParameter {
   toXmlObject(): any {
     const obj = super.getXmlAttributes(); // Get attributes from Parameter
     if (this.value !== undefined) {
-      obj.value = DoubleAdapter.toXml(this.value) || "";
+      obj["@_value"] = DoubleAdapter.toXml(this.value) || "";
     }
     if (this.unit !== undefined) {
-      obj.unit = this.unit;
+      obj["@_unit"] = this.unit;
     }
     if (this.min !== undefined) {
-      obj.min = DoubleAdapter.toXml(this.min) || "";
+      obj["@_min"] = DoubleAdapter.toXml(this.min) || "";
     }
     if (this.max !== undefined) {
-      obj.max = DoubleAdapter.toXml(this.max) || "";
+      obj["@_max"] = DoubleAdapter.toXml(this.max) || "";
     }
     return { RealParameter: obj };
   }
 
   toXml(): string {
-    const builder = new XMLBuilder({ attributeNamePrefix: "" });
+    const builder = new XMLBuilder(XML_BUILDER_OPTIONS);
     return builder.build(this.toXmlObject());
   }
 
@@ -62,24 +63,26 @@ export class RealParameter extends Parameter implements IRealParameter {
     instance.populateFromXml(xmlObject); // Populate inherited attributes from Parameter
 
     instance.value =
-      xmlObject.value !== undefined
-        ? DoubleAdapter.fromXml(xmlObject.value)
+      xmlObject["@_value"] !== undefined
+        ? DoubleAdapter.fromXml(xmlObject["@_value"])
         : undefined;
-    instance.unit = xmlObject.unit ? (xmlObject.unit as Unit) : undefined; // Cast string to Unit
+    instance.unit = xmlObject["@_unit"]
+      ? (xmlObject["@_unit"] as Unit)
+      : undefined; // Cast string to Unit
     instance.min =
-      xmlObject.min !== undefined
-        ? DoubleAdapter.fromXml(xmlObject.min)
+      xmlObject["@_min"] !== undefined
+        ? DoubleAdapter.fromXml(xmlObject["@_min"])
         : undefined;
     instance.max =
-      xmlObject.max !== undefined
-        ? DoubleAdapter.fromXml(xmlObject.max)
+      xmlObject["@_max"] !== undefined
+        ? DoubleAdapter.fromXml(xmlObject["@_max"])
         : undefined;
 
     return instance;
   }
 
   static fromXml(xmlString: string): RealParameter {
-    const parser = new XMLParser({ attributeNamePrefix: "" });
+    const parser = new XMLParser(XML_PARSER_OPTIONS);
     const jsonObj = parser.parse(xmlString);
     return RealParameter.fromXmlObject(jsonObj.RealParameter);
   }

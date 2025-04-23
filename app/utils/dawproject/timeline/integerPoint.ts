@@ -1,6 +1,7 @@
 import { XMLBuilder, XMLParser } from "fast-xml-parser";
 
 import type { IIntegerPoint } from "../types";
+import { XML_BUILDER_OPTIONS, XML_PARSER_OPTIONS } from "../xml/options";
 import { Point } from "./point";
 
 export class IntegerPoint extends Point implements IIntegerPoint {
@@ -18,7 +19,7 @@ export class IntegerPoint extends Point implements IIntegerPoint {
   }
 
   toXml(): string {
-    const builder = new XMLBuilder({ attributeNamePrefix: "" });
+    const builder = new XMLBuilder(XML_BUILDER_OPTIONS);
     return builder.build(this.toXmlObject());
   }
 
@@ -31,7 +32,7 @@ export class IntegerPoint extends Point implements IIntegerPoint {
   }
 
   static fromXml(xmlString: string): IntegerPoint {
-    const parser = new XMLParser({ attributeNamePrefix: "" });
+    const parser = new XMLParser(XML_PARSER_OPTIONS);
     const jsonObj = parser.parse(xmlString);
     return IntegerPoint.fromXmlObject(jsonObj.IntegerPoint);
   }

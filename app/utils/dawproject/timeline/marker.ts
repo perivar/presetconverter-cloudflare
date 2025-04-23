@@ -3,6 +3,7 @@ import { XMLBuilder, XMLParser } from "fast-xml-parser";
 import { DoubleAdapter } from "../doubleAdapter";
 import { Nameable } from "../nameable";
 import type { IMarker } from "../types";
+import { XML_BUILDER_OPTIONS, XML_PARSER_OPTIONS } from "../xml/options";
 
 export class Marker extends Nameable implements IMarker {
   time: number;
@@ -19,7 +20,7 @@ export class Marker extends Nameable implements IMarker {
   }
 
   toXml(): string {
-    const builder = new XMLBuilder({ attributeNamePrefix: "" });
+    const builder = new XMLBuilder(XML_BUILDER_OPTIONS);
     return builder.build({ Marker: this.toXmlObject() });
   }
 
@@ -34,7 +35,7 @@ export class Marker extends Nameable implements IMarker {
   }
 
   static fromXml(xmlString: string): Marker {
-    const parser = new XMLParser({ attributeNamePrefix: "" });
+    const parser = new XMLParser(XML_PARSER_OPTIONS);
     const jsonObj = parser.parse(xmlString);
     return Marker.fromXmlObject(jsonObj.Marker);
   }

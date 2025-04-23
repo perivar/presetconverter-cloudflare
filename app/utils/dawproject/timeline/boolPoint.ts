@@ -1,6 +1,7 @@
 import { XMLBuilder, XMLParser } from "fast-xml-parser";
 
 import type { IBoolPoint } from "../types";
+import { XML_BUILDER_OPTIONS, XML_PARSER_OPTIONS } from "../xml/options";
 import { Point } from "./point";
 
 export class BoolPoint extends Point implements IBoolPoint {
@@ -18,7 +19,7 @@ export class BoolPoint extends Point implements IBoolPoint {
   }
 
   toXml(): string {
-    const builder = new XMLBuilder({ attributeNamePrefix: "" });
+    const builder = new XMLBuilder(XML_BUILDER_OPTIONS);
     return builder.build(this.toXmlObject());
   }
 
@@ -33,7 +34,7 @@ export class BoolPoint extends Point implements IBoolPoint {
   }
 
   static fromXml(xmlString: string): BoolPoint {
-    const parser = new XMLParser({ attributeNamePrefix: "" });
+    const parser = new XMLParser(XML_PARSER_OPTIONS);
     const jsonObj = parser.parse(xmlString);
     return BoolPoint.fromXmlObject(jsonObj.BoolPoint);
   }

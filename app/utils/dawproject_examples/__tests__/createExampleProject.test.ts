@@ -41,6 +41,13 @@ afterAll(() => {
 describe("DAW Project", () => {
   test("should create basic project", () => {
     const project = createDummyProject(3, simpleFeatures);
+
+    const projectXml = DawProject.toXml(project);
+    fs.writeFileSync(
+      path.join(targetDir, "dawproject_dummy_basic.xml"),
+      projectXml
+    );
+
     expect(project).toBeDefined();
     expect(project.structure.length).toBe(4); // 3 tracks + master
     expect(project.arrangement).toBeDefined();
@@ -48,6 +55,13 @@ describe("DAW Project", () => {
 
   test("should have master track", () => {
     const project = createDummyProject(1, simpleFeatures);
+
+    const projectXml = DawProject.toXml(project);
+    fs.writeFileSync(
+      path.join(targetDir, "dawproject_dummy_master.xml"),
+      projectXml
+    );
+
     const masterTrack = project.structure[0] as Track;
     expect(masterTrack.name).toBe("Master");
     expect(masterTrack.channel).toBeDefined();
@@ -65,6 +79,12 @@ describe("DAW Project", () => {
         "ALIAS_CLIPS",
         "PLUGINS",
       ])
+    );
+
+    const projectXml = DawProject.toXml(project);
+    fs.writeFileSync(
+      path.join(targetDir, "dawproject_dummy_all.xml"),
+      projectXml
     );
 
     // Verify arrangement exists
@@ -105,6 +125,12 @@ describe("DAW Project", () => {
   test("should create correct lane content", () => {
     const project = createDummyProject(1, new Set(["CLIPS", "NOTES"]));
 
+    const projectXml = DawProject.toXml(project);
+    fs.writeFileSync(
+      path.join(targetDir, "dawproject_dummy_clips_notes.xml"),
+      projectXml
+    );
+
     if (project.arrangement?.lanes) {
       const trackLanes = project.arrangement.lanes.lanes;
       expect(trackLanes.length).toBeGreaterThan(0);
@@ -124,6 +150,12 @@ describe("DAW Project", () => {
 
   test("should create automation points", () => {
     const project = createDummyProject(1, new Set(["AUTOMATION"]));
+
+    const projectXml = DawProject.toXml(project);
+    fs.writeFileSync(
+      path.join(targetDir, "dawproject_dummy_automation.xml"),
+      projectXml
+    );
 
     if (project.arrangement?.lanes) {
       const trackLanes = project.arrangement.lanes.lanes;
@@ -284,11 +316,11 @@ describe("Save and Load", () => {
     expect(loadedProject.scenes?.length).toBe(project.scenes?.length);
 
     // Check arrangement
-    expect(loadedProject.arrangement?.lanes?.constructor).toBe(
-      project.arrangement?.lanes?.constructor
+    expect(loadedProject.arrangement?.lanes?.lanes?.length).toBe(
+      project.arrangement?.lanes?.lanes?.length
     );
-    expect(loadedProject.arrangement?.markers?.constructor).toBe(
-      project.arrangement?.markers?.constructor
+    expect(loadedProject.arrangement?.markers?.markers?.length).toBe(
+      project.arrangement?.markers?.markers?.length
     );
   });
 

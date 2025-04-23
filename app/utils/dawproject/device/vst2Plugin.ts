@@ -2,6 +2,7 @@ import { XMLBuilder, XMLParser } from "fast-xml-parser";
 
 import { BoolParameter } from "../boolParameter";
 import { IFileReference, IParameter, IVst2Plugin } from "../types";
+import { XML_BUILDER_OPTIONS, XML_PARSER_OPTIONS } from "../xml/options";
 import { DeviceRole } from "./deviceRole";
 import { Plugin } from "./plugin";
 
@@ -49,7 +50,7 @@ export class Vst2Plugin extends Plugin implements IVst2Plugin {
   }
 
   toXml(): string {
-    const builder = new XMLBuilder({ attributeNamePrefix: "" });
+    const builder = new XMLBuilder(XML_BUILDER_OPTIONS);
     return builder.build(this.toXmlObject());
   }
 
@@ -60,7 +61,7 @@ export class Vst2Plugin extends Plugin implements IVst2Plugin {
   }
 
   static fromXml(xmlString: string): Vst2Plugin {
-    const parser = new XMLParser({ attributeNamePrefix: "" });
+    const parser = new XMLParser(XML_PARSER_OPTIONS);
     const jsonObj = parser.parse(xmlString);
     return Vst2Plugin.fromXmlObject(jsonObj.Vst2Plugin);
   }

@@ -3,6 +3,7 @@ import JSZip from "jszip";
 
 import { MetaData } from "./metaData";
 import { Project } from "./project";
+import { XML_BUILDER_OPTIONS, XML_PARSER_OPTIONS } from "./xml/options";
 
 /**
  * The main class for handling DAWproject files.
@@ -22,10 +23,8 @@ export class DawProject {
    */
   static toXml(obj: any): string {
     try {
-      // First get the XML object representation
       const xmlObj = obj.toXmlObject();
-      // Then convert to string using XMLBuilder
-      const builder = new XMLBuilder({ attributeNamePrefix: "" });
+      const builder = new XMLBuilder(XML_BUILDER_OPTIONS);
       return builder.build(xmlObj);
     } catch (e) {
       throw new Error(`Failed to convert object to XML: ${e}`);
@@ -131,7 +130,7 @@ export class DawProject {
   static async validate(project: Project): Promise<void> {
     try {
       const projectXml = DawProject.toXml(project);
-      const parser = new XMLParser({ attributeNamePrefix: "" });
+      const parser = new XMLParser(XML_PARSER_OPTIONS);
       try {
         parser.parse(projectXml);
         // If we get here, the XML is well-formed

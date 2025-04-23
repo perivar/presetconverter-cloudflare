@@ -26,19 +26,21 @@ export abstract class Timeline extends Referenceable implements ITimeline {
   protected getXmlAttributes(): any {
     const attributes = super.getXmlAttributes(); // Get attributes from Referenceable
     if (this.track !== undefined) {
-      attributes.track = this.track;
+      attributes["@_track"] = this.track.id; // Use the track's ID as reference
     }
     if (this.timeUnit !== undefined) {
-      attributes.timeUnit = this.timeUnit;
+      attributes["@_timeUnit"] = this.timeUnit;
     }
     return attributes;
   }
 
   protected populateFromXml(xmlObject: any): void {
     super.populateFromXml(xmlObject); // Populate inherited attributes from Referenceable
-    this.track = xmlObject.track || undefined;
-    this.timeUnit = xmlObject.timeUnit
-      ? (xmlObject.timeUnit as TimeUnit)
+    // For track references, we only store the ID - actual resolution should happen at a higher level
+    const trackId = xmlObject["@_track"];
+    this.track = trackId ? ({ id: trackId } as ITrack) : undefined;
+    this.timeUnit = xmlObject["@_timeUnit"]
+      ? (xmlObject["@_timeUnit"] as TimeUnit)
       : undefined; // Cast string to TimeUnit
   }
 

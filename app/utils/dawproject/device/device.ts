@@ -6,6 +6,7 @@ import { Parameter } from "../parameter";
 import { RealParameter } from "../realParameter";
 import { Referenceable } from "../referenceable";
 import type { IDevice, IFileReference, IParameter } from "../types";
+import { XML_BUILDER_OPTIONS, XML_PARSER_OPTIONS } from "../xml/options";
 import { DeviceRole } from "./deviceRole";
 
 export interface DeviceConstructor {
@@ -50,17 +51,17 @@ export abstract class Device extends Referenceable implements IDevice {
   protected getXmlAttributes(): any {
     const attributes = super.getXmlAttributes(); // Get attributes from Referenceable
 
-    attributes.deviceRole = this.deviceRole;
-    attributes.deviceName = this.deviceName;
+    attributes["@_deviceRole"] = this.deviceRole;
+    attributes["@_deviceName"] = this.deviceName;
 
     if (this.loaded !== undefined) {
-      attributes.loaded = this.loaded;
+      attributes["@_loaded"] = this.loaded;
     }
     if (this.deviceID !== undefined) {
-      attributes.deviceID = this.deviceID;
+      attributes["@_deviceID"] = this.deviceID;
     }
     if (this.deviceVendor !== undefined) {
-      attributes.deviceVendor = this.deviceVendor;
+      attributes["@_deviceVendor"] = this.deviceVendor;
     }
 
     return attributes;
@@ -96,15 +97,15 @@ export abstract class Device extends Referenceable implements IDevice {
   protected populateFromXml(xmlObject: any): void {
     super.populateFromXml(xmlObject);
 
-    this.deviceRole = xmlObject.deviceRole as DeviceRole;
-    this.deviceName = xmlObject.deviceName;
-    this.id = xmlObject.id;
+    this.deviceRole = xmlObject["@_deviceRole"] as DeviceRole;
+    this.deviceName = xmlObject["@_deviceName"];
+    this.id = xmlObject["@_id"];
     this.loaded =
-      xmlObject.loaded !== undefined
-        ? String(xmlObject.loaded).toLowerCase() === "true"
+      xmlObject["@_loaded"] !== undefined
+        ? String(xmlObject["@_loaded"]).toLowerCase() === "true"
         : true;
-    this.deviceID = xmlObject.deviceID || undefined;
-    this.deviceVendor = xmlObject.deviceVendor || undefined;
+    this.deviceID = xmlObject["@_deviceID"] || undefined;
+    this.deviceVendor = xmlObject["@_deviceVendor"] || undefined;
 
     if (xmlObject.Enabled) {
       this.enabled = BoolParameter.fromXmlObject({
@@ -161,12 +162,12 @@ export abstract class Device extends Referenceable implements IDevice {
   }
 
   toXml(): string {
-    const builder = new XMLBuilder({ attributeNamePrefix: "" });
+    const builder = new XMLBuilder(XML_BUILDER_OPTIONS);
     return builder.build(this.toXmlObject());
   }
 
   static fromXml(xmlString: string): Device {
-    const parser = new XMLParser({ attributeNamePrefix: "" });
+    const parser = new XMLParser(XML_PARSER_OPTIONS);
     const jsonObj = parser.parse(xmlString);
     return Device.fromXmlObject(jsonObj.Device);
   }

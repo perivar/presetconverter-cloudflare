@@ -1,6 +1,7 @@
 import { XMLBuilder, XMLParser } from "fast-xml-parser";
 
 import type { INotes, ITrack } from "../types";
+import { XML_BUILDER_OPTIONS, XML_PARSER_OPTIONS } from "../xml/options";
 import { Note } from "./note";
 import { Timeline } from "./timeline";
 import { TimeUnit } from "./timeUnit";
@@ -36,7 +37,7 @@ export class Notes extends Timeline implements INotes {
   }
 
   toXml(): string {
-    const builder = new XMLBuilder({ attributeNamePrefix: "" });
+    const builder = new XMLBuilder(XML_BUILDER_OPTIONS);
     return builder.build(this.toXmlObject());
   }
 
@@ -60,7 +61,7 @@ export class Notes extends Timeline implements INotes {
   }
 
   static fromXml(xmlString: string): Notes {
-    const parser = new XMLParser({ attributeNamePrefix: "" });
+    const parser = new XMLParser(XML_PARSER_OPTIONS);
     const jsonObj = parser.parse(xmlString);
     return Notes.fromXmlObject(jsonObj.Notes);
   }

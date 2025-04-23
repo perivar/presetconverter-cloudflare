@@ -8,6 +8,7 @@ import { Scene } from "./scene";
 import { Track as TrackLane } from "./track";
 import { Transport } from "./transport";
 import { IProject } from "./types";
+import { XML_BUILDER_OPTIONS, XML_PARSER_OPTIONS } from "./xml/options";
 import { XmlObject } from "./XmlObject";
 
 /** The main root element of the DAWPROJECT format. This is stored in the file project.xml file inside the container. */
@@ -47,7 +48,7 @@ export class Project extends XmlObject implements IProject {
   toXmlObject(): any {
     const obj: any = {
       Project: {
-        version: this.version,
+        "@_version": this.version,
       },
     };
 
@@ -89,12 +90,12 @@ export class Project extends XmlObject implements IProject {
   }
 
   toXml(): string {
-    const builder = new XMLBuilder({ attributeNamePrefix: "" });
+    const builder = new XMLBuilder(XML_BUILDER_OPTIONS);
     return builder.build(this.toXmlObject());
   }
 
   static fromXmlObject(xmlObject: any): Project {
-    const version = xmlObject.version || Project.CURRENT_VERSION;
+    const version = xmlObject["@_version"] || Project.CURRENT_VERSION;
     const application = xmlObject.Application
       ? Application.fromXmlObject({ Application: xmlObject.Application }) // Wrap in expected structure
       : new Application("", ""); // Provide default values
@@ -181,7 +182,7 @@ export class Project extends XmlObject implements IProject {
   }
 
   static fromXml(xmlString: string): Project {
-    const parser = new XMLParser({ attributeNamePrefix: "" });
+    const parser = new XMLParser(XML_PARSER_OPTIONS);
     const jsonObj = parser.parse(xmlString);
     return Project.fromXmlObject(jsonObj.Project);
   }

@@ -3,6 +3,7 @@ import { XMLBuilder, XMLParser } from "fast-xml-parser";
 import { DoubleAdapter } from "../doubleAdapter";
 import { TimelineRegistry } from "../registry/timelineRegistry";
 import type { INote } from "../types";
+import { XML_BUILDER_OPTIONS, XML_PARSER_OPTIONS } from "../xml/options";
 import { XmlObject } from "../XmlObject";
 import { Timeline } from "./timeline";
 
@@ -37,20 +38,20 @@ export class Note extends XmlObject implements INote {
   toXmlObject(): any {
     const obj: any = {
       Note: {
-        time: DoubleAdapter.toXml(this.time) || "",
-        duration: DoubleAdapter.toXml(this.duration) || "",
-        key: this.key,
+        "@_time": DoubleAdapter.toXml(this.time) || "",
+        "@_duration": DoubleAdapter.toXml(this.duration) || "",
+        "@_key": this.key,
       },
     };
 
     if (this.channel !== undefined) {
-      obj.Note.channel = this.channel;
+      obj.Note["@_channel"] = this.channel;
     }
     if (this.velocity !== undefined) {
-      obj.Note.vel = DoubleAdapter.toXml(this.velocity) || "";
+      obj.Note["@_vel"] = DoubleAdapter.toXml(this.velocity) || "";
     }
     if (this.releaseVelocity !== undefined) {
-      obj.Note.rel = DoubleAdapter.toXml(this.releaseVelocity) || "";
+      obj.Note["@_rel"] = DoubleAdapter.toXml(this.releaseVelocity) || "";
     }
     if (this.content !== undefined) {
       // Assuming content is a Timeline subclass and has a toXmlObject method
@@ -63,29 +64,32 @@ export class Note extends XmlObject implements INote {
   }
 
   toXml(): string {
-    const builder = new XMLBuilder({ attributeNamePrefix: "" });
+    const builder = new XMLBuilder(XML_BUILDER_OPTIONS);
     return builder.build(this.toXmlObject());
   }
 
   static fromXmlObject(xmlObject: any): Note {
     const time =
-      xmlObject.time !== undefined
-        ? DoubleAdapter.fromXml(xmlObject.time) || 0
+      xmlObject["@_time"] !== undefined
+        ? DoubleAdapter.fromXml(xmlObject["@_time"]) || 0
         : 0;
     const duration =
-      xmlObject.duration !== undefined
-        ? DoubleAdapter.fromXml(xmlObject.duration) || 0
+      xmlObject["@_duration"] !== undefined
+        ? DoubleAdapter.fromXml(xmlObject["@_duration"]) || 0
         : 0;
-    const key = xmlObject.key !== undefined ? parseInt(xmlObject.key, 10) : 0;
+    const key =
+      xmlObject["@_key"] !== undefined ? parseInt(xmlObject["@_key"], 10) : 0;
     const channel =
-      xmlObject.channel !== undefined ? parseInt(xmlObject.channel, 10) : 0;
+      xmlObject["@_channel"] !== undefined
+        ? parseInt(xmlObject["@_channel"], 10)
+        : 0;
     const velocity =
-      xmlObject.vel !== undefined
-        ? DoubleAdapter.fromXml(xmlObject.vel)
+      xmlObject["@_vel"] !== undefined
+        ? DoubleAdapter.fromXml(xmlObject["@_vel"])
         : undefined;
     const releaseVelocity =
-      xmlObject.rel !== undefined
-        ? DoubleAdapter.fromXml(xmlObject.rel)
+      xmlObject["@_rel"] !== undefined
+        ? DoubleAdapter.fromXml(xmlObject["@_rel"])
         : undefined;
 
     // Handle content if present
@@ -123,7 +127,7 @@ export class Note extends XmlObject implements INote {
   }
 
   static fromXml(xmlString: string): Note {
-    const parser = new XMLParser({ attributeNamePrefix: "" });
+    const parser = new XMLParser(XML_PARSER_OPTIONS);
     const jsonObj = parser.parse(xmlString);
     return Note.fromXmlObject(jsonObj.Note);
   }

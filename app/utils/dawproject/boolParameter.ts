@@ -2,6 +2,7 @@ import { XMLBuilder, XMLParser } from "fast-xml-parser";
 
 import { Parameter } from "./parameter";
 import { IBoolParameter } from "./types";
+import { XML_BUILDER_OPTIONS, XML_PARSER_OPTIONS } from "./xml/options";
 
 /** Represents a parameter which can provide a boolean (true/false) value and be used as an automation target. */
 export class BoolParameter extends Parameter implements IBoolParameter {
@@ -28,7 +29,7 @@ export class BoolParameter extends Parameter implements IBoolParameter {
   }
 
   toXml(): string {
-    const builder = new XMLBuilder({ attributeNamePrefix: "" });
+    const builder = new XMLBuilder(XML_BUILDER_OPTIONS);
     return builder.build(this.toXmlObject());
   }
 
@@ -43,7 +44,7 @@ export class BoolParameter extends Parameter implements IBoolParameter {
   }
 
   static fromXml(xmlString: string): BoolParameter {
-    const parser = new XMLParser({ attributeNamePrefix: "" });
+    const parser = new XMLParser(XML_PARSER_OPTIONS);
     const jsonObj = parser.parse(xmlString);
     return BoolParameter.fromXmlObject(jsonObj.BoolParameter);
   }

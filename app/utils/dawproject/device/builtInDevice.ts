@@ -3,6 +3,7 @@ import { XMLParser } from "fast-xml-parser";
 import { BoolParameter } from "../boolParameter";
 import { DeviceRegistry, registerDevice } from "../registry/deviceRegistry";
 import type { IBuiltInDevice, IFileReference, IParameter } from "../types";
+import { XML_PARSER_OPTIONS } from "../xml/options";
 import { Device } from "./device";
 import { DeviceRole } from "./deviceRole";
 
@@ -65,7 +66,7 @@ export class BuiltInDevice extends Device implements IBuiltInDevice {
   }
 
   static fromXml(xmlString: string): BuiltInDevice {
-    const parser = new XMLParser({ attributeNamePrefix: "" });
+    const parser = new XMLParser(XML_PARSER_OPTIONS);
     const jsonObj = parser.parse(xmlString);
     return BuiltInDevice.fromXmlObject(jsonObj.BuiltinDevice);
   }

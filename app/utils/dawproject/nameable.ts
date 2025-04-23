@@ -19,20 +19,20 @@ export abstract class Nameable extends XmlObject implements INameable {
   protected getXmlAttributes(): any {
     const attributes: any = {};
     if (this.name !== undefined) {
-      attributes.name = this.name;
+      attributes["@_name"] = this.name;
     }
     if (this.color !== undefined) {
-      attributes.color = this.color;
+      attributes["@_color"] = this.color;
     }
     if (this.comment !== undefined) {
-      attributes.comment = this.comment;
+      attributes["@_comment"] = this.comment;
     }
     return attributes;
   }
 
   protected populateFromXml(xmlObject: any): void {
-    this.name = xmlObject.name || undefined;
-    this.color = xmlObject.color || undefined;
-    this.comment = xmlObject.comment || undefined;
+    this.name = xmlObject["@_name"] || undefined;
+    this.color = xmlObject["@_color"] || undefined;
+    this.comment = xmlObject["@_comment"] || undefined;
   }
 }

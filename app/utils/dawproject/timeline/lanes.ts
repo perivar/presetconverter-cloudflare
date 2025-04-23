@@ -1,6 +1,7 @@
 import { XMLBuilder, XMLParser } from "fast-xml-parser";
 
 import type { ILanes, ITrack } from "../types";
+import { XML_BUILDER_OPTIONS, XML_PARSER_OPTIONS } from "../xml/options";
 import { Timeline } from "./timeline";
 import { registerTimeline, TimelineRegistry } from "./timelineRegistry";
 import { TimeUnit } from "./timeUnit";
@@ -49,7 +50,7 @@ export class Lanes extends Timeline implements ILanes {
   }
 
   toXml(): string {
-    const builder = new XMLBuilder({ attributeNamePrefix: "" });
+    const builder = new XMLBuilder(XML_BUILDER_OPTIONS);
     return builder.build(this.toXmlObject());
   }
 
@@ -61,7 +62,8 @@ export class Lanes extends Timeline implements ILanes {
 
     // Iterate through all properties in xmlObject to find Timeline elements
     for (const tagName in xmlObject) {
-      if (tagName === "Lanes") continue; // Skip the root Lanes element itself
+      // Skip attributes (those starting with @_) and root Lanes element
+      if (tagName === "Lanes" || tagName.startsWith("@_")) continue;
 
       const TimelineClass = TimelineRegistry.getTimelineClass(tagName);
       if (TimelineClass) {
@@ -87,7 +89,7 @@ export class Lanes extends Timeline implements ILanes {
   }
 
   static fromXml(xmlString: string): Lanes {
-    const parser = new XMLParser({ attributeNamePrefix: "" });
+    const parser = new XMLParser(XML_PARSER_OPTIONS);
     const jsonObj = parser.parse(xmlString);
     return Lanes.fromXmlObject(jsonObj.Lanes);
   }

@@ -1,6 +1,7 @@
 import { XMLBuilder, XMLParser } from "fast-xml-parser";
 
 import { IApplication } from "./types";
+import { XML_BUILDER_OPTIONS, XML_PARSER_OPTIONS } from "./xml/options";
 import { XmlObject } from "./XmlObject";
 
 /** Metadata about the application which saved the DAWPROJECT file. */
@@ -17,29 +18,30 @@ export class Application extends XmlObject implements IApplication {
   }
 
   toXmlObject(): any {
+    // Return object with attributes instead of child elements
     const obj = {
       Application: {
-        name: this.name,
-        version: this.version,
+        "@_name": this.name,
+        "@_version": this.version,
       },
     };
     return obj;
   }
 
   toXml(): string {
-    const builder = new XMLBuilder({ attributeNamePrefix: "" });
+    const builder = new XMLBuilder(XML_BUILDER_OPTIONS);
     return builder.build(this.toXmlObject());
   }
 
   static fromXmlObject(xmlObject: any): Application {
     const applicationData = xmlObject.Application;
-    const name = applicationData.name || "";
-    const version = applicationData.version || "";
+    const name = applicationData["@_name"] || "";
+    const version = applicationData["@_version"] || "";
     return new Application(name, version);
   }
 
   static fromXml(xmlString: string): Application {
-    const parser = new XMLParser({ attributeNamePrefix: "" });
+    const parser = new XMLParser(XML_PARSER_OPTIONS);
     const jsonObj = parser.parse(xmlString);
     return Application.fromXmlObject(jsonObj);
   }

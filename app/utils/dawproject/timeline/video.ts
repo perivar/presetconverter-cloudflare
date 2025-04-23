@@ -2,6 +2,8 @@ import { XMLBuilder, XMLParser } from "fast-xml-parser";
 
 import { FileReference } from "../fileReference";
 import type { IFileReference, IVideo } from "../types"; // Import IFileReference
+
+import { XML_BUILDER_OPTIONS, XML_PARSER_OPTIONS } from "../xml/options";
 import { MediaFile } from "./mediaFile";
 import { TimeUnit } from "./timeUnit";
 
@@ -43,7 +45,7 @@ export class Video extends MediaFile implements IVideo {
   }
 
   toXml(): string {
-    const builder = new XMLBuilder({ attributeNamePrefix: "" });
+    const builder = new XMLBuilder(XML_BUILDER_OPTIONS);
     return builder.build(this.toXmlObject());
   }
 
@@ -70,7 +72,7 @@ export class Video extends MediaFile implements IVideo {
   }
 
   static fromXml(xmlString: string): Video {
-    const parser = new XMLParser({ attributeNamePrefix: "" });
+    const parser = new XMLParser(XML_PARSER_OPTIONS);
     const jsonObj = parser.parse(xmlString);
     return Video.fromXmlObject(jsonObj.Video);
   }
