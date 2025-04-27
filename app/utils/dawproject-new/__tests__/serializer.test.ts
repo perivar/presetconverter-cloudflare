@@ -1,3 +1,6 @@
+import fs from "fs";
+import path from "path";
+
 // Tests for serialization/deserialization functionality
 import { Application } from "../application";
 import { Arrangement } from "../arrangement";
@@ -22,19 +25,28 @@ import { Vst3Plugin } from "../vst3-plugin";
 import { Warp } from "../warp";
 import { Warps } from "../warps";
 
+const targetDir = path.join(__dirname, "dawproject-tests");
+
+beforeAll(() => {
+  if (!fs.existsSync(targetDir)) {
+    fs.mkdirSync(targetDir, { recursive: true });
+  }
+});
+
+afterAll(() => {
+  // if (fs.existsSync(targetDir)) {
+  //   fs.rmSync(targetDir, { recursive: true, force: true });
+  // }
+});
+
 describe("Serializer", () => {
   test("should serialize and deserialize an empty project", () => {
     const application = new Application("Test App", "1.0.0");
     const originalProject = new Project(application);
     const xmlString = serializeProject(originalProject);
-    const deserializedProject = deserializeProject(xmlString);
-    expect(deserializedProject).toEqual(originalProject);
-  });
 
-  test("should serialize and deserialize a project with an application", () => {
-    const application = new Application("Test App", "1.0.0");
-    const originalProject = new Project(application);
-    const xmlString = serializeProject(originalProject);
+    fs.writeFileSync(path.join(targetDir, "dawproject_empty.xml"), xmlString);
+
     const deserializedProject = deserializeProject(xmlString);
     expect(deserializedProject).toEqual(originalProject);
   });
@@ -45,6 +57,10 @@ describe("Serializer", () => {
     const application = new Application("Test App", "1.0.0");
     const project = new Project(application);
 
+    project.Transport = new Transport();
+    project.Transport.Tempo = new RealParameter("bpm");
+    project.Transport.Tempo["@_value"] = "120.0";
+
     const masterTrack = Utility.createTrack(
       "Master",
       new Set(),
@@ -52,6 +68,7 @@ describe("Serializer", () => {
       1,
       0.5
     );
+
     project.Structure.push(masterTrack);
 
     const limiter = new Vst3Plugin("Limiter", "audioFX");
@@ -120,7 +137,15 @@ describe("Serializer", () => {
       }
     }
 
+    fs.writeFileSync(
+      path.join(targetDir, "dawproject_complex.json"),
+      JSON.stringify(project, null, 2)
+    );
+
     const xmlString = serializeProject(project);
+
+    fs.writeFileSync(path.join(targetDir, "dawproject_complex.xml"), xmlString);
+
     const deserializedProject = deserializeProject(xmlString);
     expect(deserializedProject).toEqual(project);
   });
