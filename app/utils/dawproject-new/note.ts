@@ -29,12 +29,6 @@ export type NoteChildElement =
  * Corresponds to the 'note' complex type in Project.xsd.
  */
 export class Note implements NoteType {
-  // Add XmlElement properties (inherited from the type definition)
-  public "@_xmlns"?: string;
-  [ns: `@_xmlns:${string}`]: string | undefined;
-
-  // XML attributes are prefixed with '@_'
-
   /**
    * Time position within the parent clip (in beats or seconds).
    * (Required attribute - xs:string)

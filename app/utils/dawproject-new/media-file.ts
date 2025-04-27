@@ -14,8 +14,6 @@ import { Timeline } from "./timeline";
  * Inherits attributes and child elements from Timeline.
  */
 export class MediaFile extends Timeline implements MediaFileType {
-  // XML attribute is prefixed with '@_'
-
   /**
    * The duration of the media file.
    * (Required attribute - xs:double)

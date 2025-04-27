@@ -12,8 +12,6 @@ import { Referenceable } from "./referenceable";
  * Inherits attributes and child elements from Referenceable.
  */
 export abstract class Timeline extends Referenceable implements TimelineType {
-  // XML attributes are prefixed with '@_'
-
   /**
    * The time unit used for the timeline (e.g., beats, seconds).
    * (Optional attribute - timeUnit enum)

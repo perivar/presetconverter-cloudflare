@@ -12,8 +12,6 @@ import type {
  * Inherits attributes and child elements from Point.
  */
 export class BoolPoint extends Point implements BoolPointType {
-  // XML attribute is prefixed with '@_'
-
   /**
    * The boolean value of the point.
    * (Required attribute)

@@ -12,8 +12,6 @@ import { Referenceable } from "./referenceable";
  * Inherits attributes and child elements from Referenceable.
  */
 export abstract class Parameter extends Referenceable implements ParameterType {
-  // XML attributes are prefixed with '@_'
-
   /**
    * A unique identifier for the parameter within its device.
    * (Optional attribute - xs:int)

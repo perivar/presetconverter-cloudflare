@@ -6,10 +6,6 @@ import type { MetaData as MetaDataType, XsString } from "./metadata-schema";
  * Corresponds to the 'metaData' complex type in MetaData.xsd.
  */
 export class MetaData implements MetaDataType {
-  // XmlElement properties for XML serialization
-  public "@_xmlns"?: string;
-  [ns: `@_xmlns:${string}`]: string | undefined;
-
   // Properties corresponding to child elements
   public Title?: XsString;
   public Artist?: XsString;

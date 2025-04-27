@@ -12,12 +12,6 @@ import type { RealParameter } from "./real-parameter";
  * Corresponds to the 'eqBand' complex type in Project.xsd.
  */
 export class EqBand implements EqBandTypescript {
-  // XmlElement properties for XML serialization
-  public "@_xmlns"?: string;
-  [ns: `@_xmlns:${string}`]: string | undefined;
-
-  // XML attributes are prefixed with '@_'
-
   /**
    * Type of the EQ band.
    * (Required attribute - eqBandType enum)

@@ -22,8 +22,6 @@ export class ClipSlot extends Timeline implements ClipSlotType {
    */
   public Clip?: Clip;
 
-  // XML attribute is prefixed with '@_'
-
   /**
    * Indicates if the clip slot has a stop button/trigger.
    * (Optional attribute)

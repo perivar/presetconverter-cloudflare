@@ -13,8 +13,6 @@ import type {
  * Inherits attributes and child elements from Parameter.
  */
 export class BoolParameter extends Parameter implements BoolParameterType {
-  // XML attribute is prefixed with '@_'
-
   /**
    * The boolean value of the parameter.
    * (Optional attribute)

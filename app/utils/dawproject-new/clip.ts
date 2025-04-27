@@ -36,8 +36,6 @@ export type ClipContent =
  * Inherits attributes and child elements from Nameable.
  */
 export class Clip extends Nameable implements ClipType {
-  // XML attributes are prefixed with '@_'
-
   /**
    * The start time of the clip relative to its parent timeline.
    * (Required attribute - xs:double)

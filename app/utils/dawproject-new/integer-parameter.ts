@@ -15,8 +15,6 @@ export class IntegerParameter
   extends Parameter
   implements IntegerParameterType
 {
-  // XML attributes are prefixed with '@_'
-
   /**
    * The current integer value of the parameter.
    * (Optional attribute - xs:int)

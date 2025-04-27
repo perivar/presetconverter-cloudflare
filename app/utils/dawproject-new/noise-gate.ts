@@ -63,17 +63,17 @@ export class NoiseGate extends BuiltinDevice implements NoiseGateType {
    * @param state - A reference to a file containing the device's state. (Optional child element inherited from Device)
    */
   constructor(
-    deviceName: XsString, // Required for BuiltinDevice constructor
-    deviceRole: DeviceRole, // Required for BuiltinDevice constructor
+    deviceName: XsString,
+    deviceRole: DeviceRole,
     name?: XsString,
     color?: XsString,
     comment?: XsString,
-    deviceID?: XsString, // Optional for BuiltinDevice constructor
-    deviceVendor?: XsString, // Optional for BuiltinDevice constructor
-    loaded?: XsBoolean, // Optional for BuiltinDevice constructor
-    parameters?: ParameterChoice[], // Optional for BuiltinDevice constructor
-    enabled?: BoolParameter, // Optional for BuiltinDevice constructor
-    state?: FileReference // Optional for BuiltinDevice constructor
+    deviceID?: XsString,
+    deviceVendor?: XsString,
+    loaded?: XsBoolean,
+    parameters?: ParameterChoice[],
+    enabled?: BoolParameter,
+    state?: FileReference
   ) {
     // Pass all parameters required by BuiltinDevice constructor
     super(

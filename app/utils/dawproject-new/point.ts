@@ -6,12 +6,6 @@ import type { Point as PointType, XsString } from "./project-schema";
  * Corresponds to the 'point' abstract complex type in Project.xsd.
  */
 export abstract class Point implements PointType {
-  // Add XmlElement properties (inherited from the type definition)
-  public "@_xmlns"?: string;
-  [ns: `@_xmlns:${string}`]: string | undefined;
-
-  // XML attribute is prefixed with '@_'
-
   /**
    * Time position within the parent timeline (in the parent timeline's unit).
    * (Required attribute - xs:string)

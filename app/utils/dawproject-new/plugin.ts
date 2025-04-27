@@ -15,8 +15,6 @@ import type {
  * Inherits attributes and child elements from Device.
  */
 export abstract class Plugin extends Device implements PluginType {
-  // XML attributes are prefixed with '@_'
-
   /**
    * The version of the plugin.
    * (Optional attribute)

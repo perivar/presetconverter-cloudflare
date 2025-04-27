@@ -8,8 +8,6 @@ import { Referenceable } from "./referenceable";
  * Inherits attributes and child elements from Nameable.
  */
 export class Marker extends Referenceable {
-  // XML attributes are prefixed with '@_'
-
   /**
    * Time position of the marker (in the parent timeline's unit).
    * (Required attribute - xs:double)

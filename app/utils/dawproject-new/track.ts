@@ -28,8 +28,6 @@ export class Track extends Lane implements TrackType {
    */
   public Track: Track[] = []; // Initialized as empty array for unbounded element
 
-  // XML attributes are prefixed with '@_'
-
   /**
    * A space-separated list of content types (e.g., "audio notes").
    * (Optional attribute - list of contentType)

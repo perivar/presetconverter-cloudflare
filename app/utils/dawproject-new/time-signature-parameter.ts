@@ -15,8 +15,6 @@ export class TimeSignatureParameter
   extends Parameter
   implements TimeSignatureParameterType
 {
-  // XML attributes are prefixed with '@_'
-
   /**
    * The denominator of the time signature.
    * (Required attribute - xs:int)

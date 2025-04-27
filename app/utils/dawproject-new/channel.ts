@@ -40,8 +40,6 @@ export type DeviceChoice =
  * Inherits attributes and child elements from Lane.
  */
 export class Channel extends Lane implements ChannelType {
-  // XML attributes are prefixed with '@_'
-
   /**
    * The number of audio channels for this mixer channel.
    * (Optional attribute)

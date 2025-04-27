@@ -9,8 +9,6 @@ import { Referenceable } from "./referenceable";
  * Inherits attributes and child elements from Referenceable.
  */
 export class Send extends Referenceable implements SendTyping {
-  // XML attributes are prefixed with '@_'
-
   /**
    * A reference to the destination channel.
    * (Optional attribute - xs:IDREF)

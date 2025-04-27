@@ -12,8 +12,6 @@ import type {
  * Inherits attributes and child elements from Parameter.
  */
 export class EnumParameter extends Parameter implements EnumParameterType {
-  // XML attributes are prefixed with '@_'
-
   /**
    * The total number of possible values for the enumeration.
    * (Required attribute - xs:int)

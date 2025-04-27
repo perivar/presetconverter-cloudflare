@@ -12,8 +12,6 @@ import type {
  * Inherits attributes and child elements from Point.
  */
 export class RealPoint extends Point implements RealPointType {
-  // XML attributes are prefixed with '@_'
-
   /**
    * The floating-point value of the point.
    * (Required attribute - xs:string)

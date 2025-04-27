@@ -11,12 +11,6 @@ import type {
  * Corresponds to the 'fileReference' complex type in Project.xsd.
  */
 export class FileReference implements FileReferenceType {
-  // Add XmlElement properties (inherited from the type definition)
-  public "@_xmlns"?: string;
-  [ns: `@_xmlns:${string}`]: string | undefined;
-
-  // XML attributes are prefixed with '@_'
-
   /**
    * The path to the referenced file.
    * (Required attribute)

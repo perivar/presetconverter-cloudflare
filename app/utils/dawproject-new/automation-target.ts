@@ -11,12 +11,6 @@ import type {
  * Corresponds to the 'automationTarget' complex type in Project.xsd.
  */
 export class AutomationTarget implements AutomationTargetType {
-  // XmlElement properties for XML serialization
-  public "@_xmlns"?: string;
-  [ns: `@_xmlns:${string}`]: string | undefined;
-
-  // XML attributes are prefixed with '@_'
-
   /**
    * ID or name of the parameter being automated.
    * (Optional attribute)

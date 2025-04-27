@@ -12,8 +12,6 @@ import type {
  * Inherits attributes and child elements from Point.
  */
 export class IntegerPoint extends Point implements IntegerPointType {
-  // XML attribute is prefixed with '@_'
-
   /**
    * The integer value of the point.
    * (Required attribute - xs:int)

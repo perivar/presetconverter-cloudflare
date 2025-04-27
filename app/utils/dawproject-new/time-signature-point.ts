@@ -15,8 +15,6 @@ export class TimeSignaturePoint
   extends Point
   implements TimeSignaturePointType
 {
-  // XML attributes are prefixed with '@_'
-
   /**
    * The numerator of the time signature.
    * (Required attribute - xs:int)

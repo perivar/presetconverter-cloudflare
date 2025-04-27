@@ -14,8 +14,6 @@ import type {
  * Corresponds to the 'audio' complex type in Project.xsd.
  */
 export class Audio extends MediaFile implements AudioType {
-  // XML attributes are prefixed with '@_'
-
   /**
    * The algorithm used for time stretching or pitch shifting.
    * (Optional attribute)

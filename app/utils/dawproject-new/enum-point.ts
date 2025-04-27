@@ -12,8 +12,6 @@ import type {
  * Inherits attributes and child elements from Point.
  */
 export class EnumPoint extends Point implements EnumPointType {
-  // XML attribute is prefixed with '@_'
-
   /**
    * The integer value of the enumeration point.
    * (Required attribute - xs:int)

@@ -6,12 +6,6 @@ import type { Nameable as NameableType, XsString } from "./project-schema"; // I
  * Corresponds to the 'nameable' abstract complex type in Project.xsd.
  */
 export abstract class Nameable implements NameableType {
-  // XmlElement properties for XML serialization
-  public "@_xmlns"?: string;
-  [ns: `@_xmlns:${string}`]: string | undefined;
-
-  // XML attributes are prefixed with '@_'
-
   /**
    * The name of the element.
    * (Optional attribute)

@@ -13,8 +13,6 @@ import type {
  * Inherits attributes and child elements from Parameter.
  */
 export class RealParameter extends Parameter implements RealParameterType {
-  // XML attributes are prefixed with '@_'
-
   /**
    * The current real value of the parameter.
    * (Optional attribute - xs:string)

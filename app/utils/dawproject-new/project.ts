@@ -16,12 +16,6 @@ export type StructureElement = Track | Channel;
  * Corresponds to the 'project' complex type in Project.xsd.
  */
 export class Project implements ProjectType {
-  // Add XmlElement properties (inherited from the type definition)
-  public "@_xmlns"?: string;
-  [ns: `@_xmlns:${string}`]: string | undefined;
-
-  // XML attribute is prefixed with '@_'
-
   /**
    * The version of the project file format.
    * (Required attribute)

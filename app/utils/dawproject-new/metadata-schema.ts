@@ -2,10 +2,11 @@
 
 type Many<T> = T | readonly T[];
 
-type XmlElement = {
-  "@_xmlns"?: string;
-  [ns: `@_xmlns:${string}`]: string | undefined;
-};
+// type XmlElement = {
+//   "@_xmlns"?: string;
+//   [ns: `@_xmlns:${string}`]: string | undefined;
+// };
+type XmlElement = {};
 
 type Prolog = { "?xml"?: { "@_version": string; "@_encoding": string } };
 
@@ -49,8 +50,4 @@ export type MetaData = XmlElement & {
   Copyright?: Many<XsString>;
   Website?: Many<XsString>;
   Comment?: Many<XsString>;
-};
-
-export type MetaDataElement = Prolog & {
-  MetaData?: Many<unknown>;
 };

@@ -9,12 +9,6 @@ import type {
  * Corresponds to the 'application' complex type in Project.xsd.
  */
 export class Application implements ApplicationType {
-  // XmlElement properties for XML serialization
-  public "@_xmlns"?: string;
-  [ns: `@_xmlns:${string}`]: string | undefined;
-
-  // XML attributes are prefixed with '@_'
-
   /**
    * The name of the application.
    * (Required attribute)

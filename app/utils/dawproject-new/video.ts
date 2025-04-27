@@ -15,8 +15,6 @@ import type {
  * Inherits attributes and child elements from MediaFile.
  */
 export class Video extends MediaFile implements VideoType {
-  // XML attributes are prefixed with '@_'
-
   /**
    * The algorithm used for video processing (Note: This attribute seems unusual for video based on typical video file properties, but is defined in the XSD).
    * (Optional attribute - xs:string)

@@ -8,10 +8,6 @@ import type { TimeSignatureParameter } from "./time-signature-parameter";
  * Corresponds to the 'transport' complex type in Project.xsd.
  */
 export class Transport implements TransportType {
-  // Add XmlElement properties (inherited from the type definition)
-  public "@_xmlns"?: string;
-  [ns: `@_xmlns:${string}`]: string | undefined;
-
   // Properties corresponding to child elements
 
   /**

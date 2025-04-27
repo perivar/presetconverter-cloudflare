@@ -79,7 +79,7 @@ export class Utility {
     duration: XsDouble
   ): Clip {
     const clip = new Clip(time, duration);
-    clip.content = content;
+    clip.setContent(content);
     return clip;
   }
 

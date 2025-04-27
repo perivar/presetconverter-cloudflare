@@ -29,8 +29,6 @@ export type ParameterChoice =
  * Inherits attributes and child elements from Referenceable.
  */
 export class Device extends Referenceable implements DeviceType {
-  // XML attributes are prefixed with '@_'
-
   /**
    * The name of the device.
    * (Required attribute)
