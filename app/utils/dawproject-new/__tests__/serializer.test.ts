@@ -1,29 +1,16 @@
 import fs from "fs";
 import path from "path";
 
-// Tests for serialization/deserialization functionality
-import { Application } from "../application";
-import { Arrangement } from "../arrangement";
-import { AutomationTarget } from "../automation-target";
-import { Clip } from "../clip";
-import { Clips } from "../clips";
-import { FileReference } from "../file-reference";
-import { Lanes } from "../lanes";
-import { Marker } from "../marker";
-import { Markers } from "../markers";
-import { Note } from "../note";
-import { Notes } from "../notes";
-import { Points } from "../points";
-import { Project } from "../project";
-import { RealParameter } from "../real-parameter";
-import { RealPoint } from "../real-point";
 import { Referenceable } from "../referenceable";
 import { deserializeProject, serializeProject } from "../serializer";
-import { Transport } from "../transport";
-import { Utility } from "../utility";
-import { Vst3Plugin } from "../vst3-plugin";
-import { Warp } from "../warp";
-import { Warps } from "../warps";
+import {
+  AudioScenario,
+  createAudioProject,
+  createDummyProject,
+  createEmptyProject,
+  createMidiAutomationProject,
+  Features,
+} from "./test-utils";
 
 const targetDir = path.join(__dirname, "dawproject-tests");
 
@@ -41,8 +28,7 @@ afterAll(() => {
 
 describe("Serializer", () => {
   test("should serialize and deserialize an empty project", () => {
-    const application = new Application("Test App", "1.0.0");
-    const originalProject = new Project(application);
+    const originalProject = createEmptyProject();
     const xmlString = serializeProject(originalProject);
 
     fs.writeFileSync(path.join(targetDir, "dawproject_empty.xml"), xmlString);
@@ -53,207 +39,33 @@ describe("Serializer", () => {
 
   test("should serialize and deserialize a complex project", () => {
     Referenceable.resetID();
-
-    const application = new Application("Test App", "1.0.0");
-    const project = new Project(application);
-
-    project.Transport = new Transport();
-    project.Transport.Tempo = new RealParameter("bpm");
-    project.Transport.Tempo["@_value"] = "120.0";
-
-    const masterTrack = Utility.createTrack(
-      "Master",
-      new Set(),
-      "master",
-      1,
-      0.5
+    const originalProject = createDummyProject(
+      3,
+      new Set([
+        Features.CLIPS,
+        Features.NOTES,
+        Features.AUDIO,
+        Features.CUE_MARKERS,
+        Features.AUTOMATION,
+        Features.ALIAS_CLIPS,
+        Features.PLUGINS,
+      ])
     );
-
-    project.Structure.push(masterTrack);
-
-    const limiter = new Vst3Plugin("Limiter", "audioFX");
-    limiter.State = new FileReference("plugin-states/12323545.vstpreset");
-    masterTrack.Channel!.Device!.push(limiter);
-
-    project.Arrangement = new Arrangement();
-    const arrangementLanes = new Lanes();
-    arrangementLanes["@_timeUnit"] = "beats";
-    project.Arrangement.Lanes = arrangementLanes;
-
-    const cueMarkers = new Markers();
-    project.Arrangement.Markers = cueMarkers;
-    cueMarkers.Marker.push(new Marker(0, "Verse"));
-    cueMarkers.Marker.push(new Marker(24, "Chorus"));
-
-    for (let i = 0; i < 3; i++) {
-      const track = Utility.createTrack(
-        `Track ${i + 1}`,
-        new Set(["notes"]),
-        "regular",
-        1,
-        0.5
-      );
-      project.Structure.push(track);
-      track["@_color"] = `#${i}${i}${i}${i}${i}${i}`;
-      track.Channel!["@_destination"] = masterTrack["@_id"];
-
-      const trackLanes = new Lanes();
-      trackLanes["@_track"] = track["@_id"];
-      arrangementLanes.Lanes.push(trackLanes);
-
-      const clips = new Clips();
-      trackLanes.Clips.push(clips);
-
-      const notes = new Notes();
-      for (let j = 0; j < 8; j++) {
-        const note = new Note(
-          (0.5 * j).toString(),
-          "0.5",
-          36 + 12 * (j % (1 + i)),
-          0,
-          "0.8",
-          "0.5"
-        );
-        notes.Note.push(note);
-      }
-
-      const clip = new Clip(8 * i, 4.0, `Clip ${i}`);
-      clip.setContent(notes);
-      clips.Clip.push(clip);
-
-      const aliasClip = new Clip(32 + 8 * i, 4.0, `Alias Clip ${i}`);
-      aliasClip["@_reference"] = notes["@_id"];
-      clips.Clip.push(aliasClip);
-
-      if (i === 0) {
-        const volumeAutomation = new Points(new AutomationTarget());
-        volumeAutomation.Target["@_parameter"] = track.Channel!.Volume!["@_id"];
-        volumeAutomation["@_track"] = track["@_id"];
-        trackLanes.Points.push(volumeAutomation);
-
-        // fade-in over 8 quarter notes using Point array
-        volumeAutomation.Point.push(new RealPoint("0.0", "0.0", "linear"));
-        volumeAutomation.Point.push(new RealPoint("8.0", "1.0", "linear"));
-      }
-    }
 
     fs.writeFileSync(
       path.join(targetDir, "dawproject_complex.json"),
-      JSON.stringify(project, null, 2)
+      JSON.stringify(originalProject, null, 2)
     );
 
-    const xmlString = serializeProject(project);
+    const xmlString = serializeProject(originalProject);
 
     fs.writeFileSync(path.join(targetDir, "dawproject_complex.xml"), xmlString);
 
     const deserializedProject = deserializeProject(xmlString);
-    expect(deserializedProject).toEqual(project);
+    expect(deserializedProject).toEqual(originalProject);
   });
 
   test("should serialize and deserialize audio examples", () => {
-    enum AudioScenario {
-      Warped,
-      RawBeats,
-      RawSeconds,
-      FileWithAbsolutePath,
-      FileWithRelativePath,
-    }
-
-    const createAudioProject = (
-      playStartOffset: number,
-      clipTime: number,
-      scenario: AudioScenario,
-      withFades: boolean
-    ): Project => {
-      Referenceable.resetID();
-      const application = new Application("Test App", "1.0.0");
-      const project = new Project(application);
-
-      const masterTrack = Utility.createTrack(
-        "Master",
-        new Set(),
-        "master",
-        1,
-        0.5
-      );
-      const audioTrack = Utility.createTrack(
-        "Audio",
-        new Set(["audio"]),
-        "regular",
-        1,
-        0.5
-      );
-      audioTrack.Channel!["@_destination"] = masterTrack["@_id"];
-
-      project.Structure.push(masterTrack);
-      project.Structure.push(audioTrack);
-
-      project.Arrangement = new Arrangement();
-      project.Transport = new Transport();
-      project.Transport.Tempo = new RealParameter("bpm");
-      project.Transport.Tempo["@_value"] = "155.0";
-
-      const arrangementLanes = new Lanes();
-      project.Arrangement.Lanes = arrangementLanes;
-      const arrangementIsInSeconds = scenario === AudioScenario.RawSeconds;
-      arrangementLanes["@_timeUnit"] = arrangementIsInSeconds
-        ? "seconds"
-        : "beats";
-
-      const sample = "white-glasses.wav";
-      const sampleDuration = 3.097;
-      const audio = Utility.createAudio(sample, 44100, 2, sampleDuration);
-
-      if (scenario === AudioScenario.FileWithAbsolutePath) {
-        audio.File["@_external"] = true;
-        audio.File["@_path"] = `/path/to/test-data/${sample}`;
-      } else if (scenario === AudioScenario.FileWithRelativePath) {
-        audio.File["@_external"] = true;
-        audio.File["@_path"] = `../test-data/${sample}`;
-      }
-
-      let audioClip: Clip;
-
-      if (scenario === AudioScenario.Warped) {
-        const warps = new Warps("seconds");
-        warps.Warp.push(new Warp(0, 0));
-        warps.Warp.push(new Warp(8, sampleDuration));
-
-        audioClip = new Clip(clipTime, 8);
-        audioClip.setContent(warps);
-        audioClip["@_contentTimeUnit"] = "beats";
-        audioClip["@_playStart"] = playStartOffset;
-
-        if (withFades) {
-          audioClip["@_fadeTimeUnit"] = "beats";
-          audioClip["@_fadeInTime"] = 0.25;
-          audioClip["@_fadeOutTime"] = 0.25;
-        }
-      } else {
-        audioClip = new Clip(
-          clipTime,
-          arrangementIsInSeconds ? sampleDuration : 8
-        );
-        audioClip.setContent(audio);
-        audioClip["@_contentTimeUnit"] = "seconds";
-        audioClip["@_playStart"] = playStartOffset;
-        audioClip["@_playStop"] = sampleDuration;
-
-        if (withFades) {
-          audioClip["@_fadeTimeUnit"] = "seconds";
-          audioClip["@_fadeInTime"] = 0.1;
-          audioClip["@_fadeOutTime"] = 0.1;
-        }
-      }
-
-      const clips = new Clips();
-      clips.Clip.push(audioClip);
-      clips["@_track"] = audioTrack["@_id"];
-      arrangementLanes.Clips.push(clips);
-
-      return project;
-    };
-
     const scenariosToTest = [
       { scenario: AudioScenario.Warped, offset: 0, clipTime: 0, fades: false },
       { scenario: AudioScenario.Warped, offset: 0, clipTime: 0, fades: true },
@@ -316,94 +128,35 @@ describe("Serializer", () => {
       },
     ];
 
+    let scenarioCount = 0;
     scenariosToTest.forEach(({ scenario, offset, clipTime, fades }) => {
+      scenarioCount++;
+
       const originalProject = createAudioProject(
         offset,
         clipTime,
         scenario,
         fades
       );
+
+      fs.writeFileSync(
+        path.join(targetDir, `dawproject_audio_${scenarioCount}.json`),
+        JSON.stringify(originalProject, null, 2)
+      );
+
       const xmlString = serializeProject(originalProject);
+
+      fs.writeFileSync(
+        path.join(targetDir, `dawproject_audio_${scenarioCount}.xml`),
+        xmlString
+      );
+
       const deserializedProject = deserializeProject(xmlString);
       expect(deserializedProject).toEqual(originalProject);
     });
   });
 
   test("should serialize and deserialize MIDI automation examples", () => {
-    const createMIDIAutomationProject = (
-      inClips: boolean,
-      isPitchBend: boolean
-    ): Project => {
-      Referenceable.resetID();
-      const application = new Application("Test App", "1.0.0");
-      const project = new Project(application);
-
-      const masterTrack = Utility.createTrack(
-        "Master",
-        new Set(),
-        "master",
-        1,
-        0.5
-      );
-      const instrumentTrack = Utility.createTrack(
-        "Notes",
-        new Set(["notes"]),
-        "regular",
-        1,
-        0.5
-      );
-      instrumentTrack.Channel!["@_destination"] = masterTrack["@_id"];
-
-      project.Structure.push(masterTrack);
-      project.Structure.push(instrumentTrack);
-
-      project.Arrangement = new Arrangement();
-      project.Transport = new Transport();
-      project.Transport.Tempo = new RealParameter("bpm");
-      project.Transport.Tempo["@_value"] = "123.0";
-
-      const arrangementLanes = new Lanes();
-      project.Arrangement.Lanes = arrangementLanes;
-      arrangementLanes["@_timeUnit"] = "beats";
-
-      const automation = new Points(new AutomationTarget());
-      automation["@_unit"] = "normalized";
-
-      if (isPitchBend) {
-        automation.Target["@_expression"] = "pitchBend";
-        automation.Target["@_channel"] = 0;
-      } else {
-        automation.Target["@_expression"] = "channelController";
-        automation.Target["@_channel"] = 0;
-        automation.Target["@_controller"] = 1;
-      }
-
-      // Add automation points using Point array
-      automation.Point.push(new RealPoint("0", "0.0", "linear"));
-      automation.Point.push(new RealPoint("1", "0.0", "linear"));
-      automation.Point.push(new RealPoint("2", "0.5", "linear"));
-      automation.Point.push(new RealPoint("3", "0.5", "linear"));
-      automation.Point.push(new RealPoint("4", "1.0", "linear"));
-      automation.Point.push(new RealPoint("5", "1.0", "linear"));
-      automation.Point.push(new RealPoint("6", "0.5", "linear"));
-      automation.Point.push(new RealPoint("7", "1", "hold"));
-      automation.Point.push(new RealPoint("8", "0.5", "hold"));
-
-      if (inClips) {
-        const noteClip = new Clip(0, 8);
-        noteClip.setContent(automation);
-        const clips = new Clips();
-        clips.Clip.push(noteClip);
-        clips["@_track"] = instrumentTrack["@_id"];
-        arrangementLanes.Clips.push(clips);
-      } else {
-        automation["@_track"] = instrumentTrack["@_id"];
-        arrangementLanes.Points.push(automation);
-      }
-
-      return project;
-    };
-
     const scenariosToTest = [
       { inClips: false, isPitchBend: false },
       { inClips: true, isPitchBend: false },
@@ -411,9 +164,24 @@ describe("Serializer", () => {
       { inClips: true, isPitchBend: true },
     ];
 
+    let scenarioCount = 0;
     scenariosToTest.forEach(({ inClips, isPitchBend }) => {
-      const originalProject = createMIDIAutomationProject(inClips, isPitchBend);
+      scenarioCount++;
+
+      const originalProject = createMidiAutomationProject(inClips, isPitchBend);
+
+      fs.writeFileSync(
+        path.join(targetDir, `dawproject_midi_${scenarioCount}.json`),
+        JSON.stringify(originalProject, null, 2)
+      );
+
       const xmlString = serializeProject(originalProject);
+
+      fs.writeFileSync(
+        path.join(targetDir, `dawproject_midi_${scenarioCount}.xml`),
+        xmlString
+      );
+
       const deserializedProject = deserializeProject(xmlString);
       expect(deserializedProject).toEqual(originalProject);
     });

@@ -22,6 +22,7 @@ import { Equalizer } from "./equalizer";
 import { FileReference } from "./file-reference";
 import { IntegerParameter } from "./integer-parameter";
 import { IntegerPoint } from "./integer-point";
+import { Lane } from "./lane";
 import { Lanes } from "./lanes";
 import { Limiter } from "./limiter";
 import { Marker } from "./marker";
@@ -50,6 +51,14 @@ import { Vst3Plugin } from "./vst3-plugin";
 import { Warp } from "./warp";
 import { Warps } from "./warps";
 
+// Interface for serialized project structure
+interface SerializedProject extends Omit<Project, "Structure"> {
+  Structure?: {
+    Track?: Lane[];
+    Channel?: Lane[];
+  };
+}
+
 const parserOptions = {
   attributeNamePrefix: "@_",
   ignoreAttributes: false,
@@ -74,8 +83,33 @@ const builder = new XMLBuilder(builderOptions);
  * @returns The XML string representation of the project.
  */
 export function serializeProject(project: Project): string {
+  // Create a copy of the project to modify the structure
+  const serializedProject: SerializedProject = {
+    ...project,
+    Structure: undefined, // Clear the original structure
+  };
+
+  // If there are structure elements, wrap them in a Structure object
+  if (project.Structure && project.Structure.length > 0) {
+    // Split Lane elements into Tracks and Channels
+    const tracks = project.Structure.filter(
+      element => element instanceof Track
+    );
+    const channels = project.Structure.filter(
+      element => element instanceof Channel
+    );
+
+    serializedProject.Structure = {};
+    if (tracks.length > 0) {
+      serializedProject.Structure.Track = tracks;
+    }
+    if (channels.length > 0) {
+      serializedProject.Structure.Channel = channels;
+    }
+  }
+
   // The root element name is "Project"
-  const jsonObj = { Project: project };
+  const jsonObj = { Project: serializedProject };
   return builder.build(jsonObj);
 }
 

@@ -2,6 +2,7 @@
 import type { Application } from "./application";
 import type { Arrangement } from "./arrangement";
 import type { Channel } from "./channel";
+import { Lane } from "./lane";
 import type { Project as ProjectType, XsString } from "./project-schema";
 import type { Scene } from "./scene";
 import type { Track } from "./track";
@@ -44,8 +45,9 @@ export class Project implements ProjectType {
   /**
    * The top-level structure of the project (e.g., tracks, folders).
    * (Optional child element - unbounded choice)
+   * Changed to an array of Lane not StructureElement
    */
-  public Structure: StructureElement[] = []; // Initialized as empty array for unbounded element
+  public Structure: Lane[] = []; // Initialized as empty array for unbounded element
 
   /**
    * The main arrangement or timeline view of the project.
@@ -71,7 +73,7 @@ export class Project implements ProjectType {
     application: Application,
     version: XsString = "1.0.0",
     transport?: Transport,
-    structure?: StructureElement[],
+    structure?: Lane[], // Changed to an array of Lane not StructureElement
     arrangement?: Arrangement,
     scenes?: Scene[]
   ) {

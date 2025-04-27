@@ -110,7 +110,16 @@ export class Clip extends Nameable implements ClipType {
    * The content of the clip (e.g., notes, audio, automation).
    * (Optional child element - choice)
    */
-  public content?: ClipContent;
+  public Timeline?: Timeline;
+  public Lanes?: Lanes;
+  public Notes?: Notes;
+  public Clips?: Clips;
+  public ClipSlot?: ClipSlot;
+  public Markers?: Markers;
+  public Warps?: Warps;
+  public Audio?: Audio;
+  public Video?: Video;
+  public Points?: Points;
 
   /**
    * @param time - The start time of the clip relative to its parent timeline. (Required attribute - xs:double)
@@ -163,6 +172,46 @@ export class Clip extends Nameable implements ClipType {
    * This matches the XSD choice restriction where only one child element can be present.
    */
   public setContent(content: ClipContent): void {
-    this.content = content;
+    // Clear existing content
+    this.Timeline = undefined;
+    this.Lanes = undefined;
+    this.Notes = undefined;
+    this.Clips = undefined;
+    this.ClipSlot = undefined;
+    this.Markers = undefined;
+    this.Warps = undefined;
+    this.Audio = undefined;
+    this.Video = undefined;
+    this.Points = undefined;
+
+    // Helper function to safely cast content
+    const isInstance = <T>(obj: any, className: string): obj is T => {
+      return obj && obj.constructor && obj.constructor.name === className;
+    };
+
+    // Set the new content
+    if (isInstance<Timeline>(content, "Timeline")) {
+      this.Timeline = content;
+    } else if (isInstance<Lanes>(content, "Lanes")) {
+      this.Lanes = content;
+    } else if (isInstance<Notes>(content, "Notes")) {
+      this.Notes = content;
+    } else if (isInstance<Clips>(content, "Clips")) {
+      this.Clips = content;
+    } else if (isInstance<ClipSlot>(content, "ClipSlot")) {
+      this.ClipSlot = content;
+    } else if (isInstance<Markers>(content, "Markers")) {
+      this.Markers = content;
+    } else if (isInstance<Warps>(content, "Warps")) {
+      this.Warps = content;
+    } else if (isInstance<Audio>(content, "Audio")) {
+      this.Audio = content;
+    } else if (isInstance<Video>(content, "Video")) {
+      this.Video = content;
+    } else if (isInstance<Points>(content, "Points")) {
+      this.Points = content;
+    } else {
+      throw new Error("Invalid content type for Clip");
+    }
   }
 }
