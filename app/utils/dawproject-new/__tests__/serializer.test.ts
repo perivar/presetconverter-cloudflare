@@ -10,6 +10,7 @@ import {
   createEmptyProject,
   createMidiAutomationProject,
   Features,
+  simpleFeatures,
 } from "./test-utils";
 
 const targetDir = path.join(__dirname, "dawproject-tests");
@@ -32,6 +33,23 @@ describe("Serializer", () => {
     const xmlString = serializeProject(originalProject);
 
     fs.writeFileSync(path.join(targetDir, "dawproject_empty.xml"), xmlString);
+
+    const deserializedProject = deserializeProject(xmlString);
+    expect(deserializedProject).toEqual(originalProject);
+  });
+
+  test("should serialize and deserialize a simple project", () => {
+    Referenceable.resetID();
+    const originalProject = createDummyProject(3, simpleFeatures);
+
+    fs.writeFileSync(
+      path.join(targetDir, "dawproject_simple.json"),
+      JSON.stringify(originalProject, null, 2)
+    );
+
+    const xmlString = serializeProject(originalProject);
+
+    fs.writeFileSync(path.join(targetDir, "dawproject_simple.xml"), xmlString);
 
     const deserializedProject = deserializeProject(xmlString);
     expect(deserializedProject).toEqual(originalProject);
