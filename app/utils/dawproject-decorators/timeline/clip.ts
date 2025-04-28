@@ -1,7 +1,7 @@
 import { Nameable } from "../nameable";
 import {
   XmlAttribute,
-  XmlElement,
+  XmlElementRef,
   XmlIDREF,
   XmlRootElement,
 } from "../xmlDecorators";
@@ -52,7 +52,7 @@ export class Clip extends Nameable {
   fadeOutTime?: number; // Using number for Double type in TypeScript
 
   /** Content Timeline this clip is playing. */
-  @XmlElement({ name: "Timeline", required: false, type: "Timeline" }) // Using type "Timeline" for polymorphism
+  @XmlElementRef({ name: "Timeline" })
   content?: Timeline;
 
   /** Reference to a Content Timeline this clip is playing. */

@@ -1,6 +1,12 @@
 import { DoubleAdapter } from "../doubleAdapter";
 import { Referenceable } from "../referenceable";
-import { XmlAttribute, XmlRootElement, XmlTypeAdapter } from "../xmlDecorators";
+import {
+  XmlAttribute,
+  XmlElementRef,
+  XmlRootElement,
+  XmlTypeAdapter,
+} from "../xmlDecorators";
+import { Timeline } from "./timeline";
 
 /** Represents a musical note. */
 @XmlRootElement({ name: "Note" })
@@ -49,4 +55,8 @@ export class Note extends Referenceable {
     this.velocity = velocity;
     this.releaseVelocity = releaseVelocity;
   }
+
+  /** Per-note expressions can be stored within the note object as timelines. */
+  @XmlElementRef({ name: "Content" })
+  content?: Timeline;
 }

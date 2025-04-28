@@ -101,12 +101,11 @@ function transformForSerialization(obj: any, classOrInstance: any): any {
   const idrefs = hierarchy
     .flatMap(cls => Reflect.getMetadata(METADATA_KEYS.IDREF, cls) || [])
     .filter((value, index, self) => self.indexOf(value) === index);
-  const wrappers = hierarchy.reduce(
-    (acc, cls) => ({
-      ...acc,
-      ...(Reflect.getMetadata(METADATA_KEYS.WRAPPER, cls) || {}),
-    }),
-    {}
+  const wrappers = hierarchy.flatMap(
+    cls => Reflect.getMetadata(METADATA_KEYS.WRAPPER, cls) || []
+  );
+  const elementRefs = hierarchy.flatMap(
+    cls => Reflect.getMetadata(METADATA_KEYS.ELEMENT_REF, cls) || []
   );
   const adapters = hierarchy.reduce(
     (acc, cls) => ({
@@ -134,19 +133,27 @@ function transformForSerialization(obj: any, classOrInstance: any): any {
     }
   }
 
-  // Process elements (e.g., @XmlElement volume, pan)
+  // Process elements (e.g., @XmlElement volume, pan, @XmlElementRef content)
   for (const elem of elements) {
     const key = elem.key;
     const elemName = elem.name || key;
     if (key in obj && obj[key] !== undefined && obj[key] !== null) {
       const value = obj[key];
-      if (wrappers[key] && Array.isArray(value)) {
-        // Handle wrapped collections (e.g., <Sends><Send>...</Send></Sends>)
-        result[wrappers[key]] = {
-          [elemName]: value.map(item =>
-            transformForSerialization(item, item.constructor)
-          ),
-        };
+      const wrapper = wrappers.find(w => w.key === key);
+      if (wrapper) {
+        if (wrapper.required && (value === undefined || value === null)) {
+          throw new Error(
+            `Required wrapped element '${wrapper.name}' is missing in ${classOrInstance.name}`
+          );
+        }
+        if (Array.isArray(value)) {
+          // Handle wrapped collections (e.g., <Sends><Send>...</Send></Sends>)
+          result[wrapper.name] = {
+            [elemName]: value.map(item =>
+              transformForSerialization(item, item.constructor)
+            ),
+          };
+        }
       } else {
         // Handle single elements (e.g., <Volume>...</Volume>)
         result[elemName] = transformForSerialization(value, value.constructor);
@@ -158,106 +165,56 @@ function transformForSerialization(obj: any, classOrInstance: any): any {
     }
   }
 
+  // Process element references (@XmlElementRef)
+  for (const elemRef of elementRefs) {
+    const key = elemRef.key;
+    if (key in obj && obj[key] !== undefined && obj[key] !== null) {
+      const value = obj[key];
+      const wrapper = wrappers.find(w => w.key === key);
+      if (wrapper) {
+        if (wrapper.required && (value === undefined || value === null)) {
+          throw new Error(
+            `Required wrapped element '${wrapper.name}' is missing in ${classOrInstance.name}`
+          );
+        }
+        if (Array.isArray(value)) {
+          // Handle wrapped collections with element references
+          result[wrapper.name] = value.map(item => {
+            const itemRootName = Reflect.getMetadata(
+              METADATA_KEYS.ROOT_ELEMENT,
+              item.constructor
+            );
+            const itemTransformed = transformForSerialization(
+              item,
+              item.constructor
+            );
+            return {
+              [itemRootName || elemRef.name || item.constructor.name]:
+                itemTransformed,
+            };
+          });
+        }
+      } else {
+        // Handle single element references
+        const valueRootName = Reflect.getMetadata(
+          METADATA_KEYS.ROOT_ELEMENT,
+          value.constructor
+        );
+        const valueTransformed = transformForSerialization(
+          value,
+          value.constructor
+        );
+        result[valueRootName || elemRef.name || value.constructor.name] =
+          valueTransformed;
+      }
+    }
+  }
+
   // Process ID references (e.g., @XmlIDREF destination)
   for (const idref of idrefs) {
     if (idref in obj && obj[idref] !== undefined && obj[idref] !== null) {
       // Assumes referenced object has an 'id' property
       result[`@_${idref}`] = obj[idref]?.id;
-    }
-  }
-
-  return result;
-}
-
-/**
- * Transforms a parsed XML object back into a structure suitable for TypeScript classes.
- * Uses decorator metadata to map XML attributes and elements to class properties,
- * applying type adapters and handling wrapped collections and ID references.
- * @param obj - The parsed XML object.
- * @param classOrInstance - The class constructor or instance for metadata lookup.
- * @returns The transformed object with properties restored (e.g., value instead of @_value).
- */
-function transformForDeserialization(obj: any, classOrInstance: any): any {
-  if (!obj || typeof obj !== "object") return obj;
-
-  // Handle arrays
-  if (Array.isArray(obj)) {
-    return obj.map(item => transformForDeserialization(item, classOrInstance));
-  }
-
-  // Collect metadata from class hierarchy
-  const hierarchy = getClassHierarchy(classOrInstance);
-  const attributes = hierarchy
-    .flatMap(cls => Reflect.getMetadata(METADATA_KEYS.ATTRIBUTES, cls) || [])
-    .filter((value, index, self) => self.indexOf(value.key) === index);
-  const elements = hierarchy
-    .flatMap(cls => Reflect.getMetadata(METADATA_KEYS.ELEMENTS, cls) || [])
-    .filter((value, index, self) => self.indexOf(value.key) === index);
-  const idrefs = hierarchy
-    .flatMap(cls => Reflect.getMetadata(METADATA_KEYS.IDREF, cls) || [])
-    .filter((value, index, self) => self.indexOf(value) === index);
-  const wrappers = hierarchy.reduce(
-    (acc, cls) => ({
-      ...acc,
-      ...(Reflect.getMetadata(METADATA_KEYS.WRAPPER, cls) || {}),
-    }),
-    {}
-  );
-  const adapters = hierarchy.reduce(
-    (acc, cls) => ({
-      ...acc,
-      ...(Reflect.getMetadata(METADATA_KEYS.ADAPTER, cls) || {}),
-    }),
-    {}
-  );
-
-  const result: any = {};
-
-  // Process attributes (e.g., @_value -> value)
-  for (const attr of attributes) {
-    const key = attr.key;
-    const xmlKey = `@_${key}`;
-    if (xmlKey in obj) {
-      let value = obj[xmlKey];
-      if (adapters[key]) {
-        value = adapters[key].unmarshal(value); // Apply type adapter (e.g., 'inf' -> Infinity)
-      }
-      result[key] = value;
-    } else if (attr.required) {
-      throw new Error(
-        `Required attribute '${key}' is missing in ${classOrInstance.name}`
-      );
-    }
-  }
-
-  // Process elements (e.g., Volume -> volume)
-  for (const elem of elements) {
-    const key = elem.key;
-    const elemName = elem.name || key;
-    if (wrappers[key] && obj[wrappers[key]] && obj[wrappers[key]][elemName]) {
-      // Handle wrapped collections
-      const type = elem.type ? eval(elem.type) : undefined; // Use class registry in production
-      result[key] = Array.isArray(obj[wrappers[key]][elemName])
-        ? obj[wrappers[key]][elemName].map((item: any) =>
-            transformForDeserialization(item, type)
-          )
-        : [transformForDeserialization(obj[wrappers[key]][elemName], type)];
-    } else if (elemName in obj) {
-      // Handle single elements
-      const type = elem.type ? eval(elem.type) : undefined;
-      result[key] = transformForDeserialization(obj[elemName], type);
-    } else if (elem.required) {
-      throw new Error(
-        `Required element '${elemName}' is missing in ${classOrInstance.name}`
-      );
-    }
-  }
-
-  // Process ID references (e.g., @_destination -> destination)
-  for (const idref of idrefs) {
-    const xmlKey = `@_${idref}`;
-    if (xmlKey in obj) {
-      result[idref] = { id: obj[xmlKey] }; // Placeholder for reference resolution
     }
   }
 
@@ -311,7 +268,6 @@ export function deserializeFromXml<T>(
   const parsed = parser.parse(xml);
   if (!parsed[rootName])
     throw new Error(`Root element '${rootName}' not found in XML`);
-  const transformed = transformForDeserialization(parsed[rootName], rootClass);
 
   // Class registry for element types (avoid eval in production)
   const classRegistry: Record<string, new (...args: any[]) => any> = {
@@ -344,6 +300,153 @@ export function deserializeFromXml<T>(
     EqBand,
     AutomationTarget,
   };
+
+  /**
+   * Transforms a parsed XML object back into a structure suitable for TypeScript classes.
+   * Uses decorator metadata to map XML attributes and elements to class properties,
+   * applying type adapters and handling wrapped collections and ID references.
+   * @param obj - The parsed XML object.
+   * @param classOrInstance - The class constructor or instance for metadata lookup.
+   * @returns The transformed object with properties restored (e.g., value instead of @_value).
+   */
+  function transformForDeserialization(obj: any, classOrInstance: any): any {
+    if (!obj || typeof obj !== "object") return obj;
+
+    // Handle arrays
+    if (Array.isArray(obj)) {
+      return obj.map(item =>
+        transformForDeserialization(item, classOrInstance)
+      );
+    }
+
+    // Collect metadata from class hierarchy
+    const hierarchy = getClassHierarchy(classOrInstance);
+    const attributes = hierarchy.flatMap(
+      cls => Reflect.getMetadata(METADATA_KEYS.ATTRIBUTES, cls) || []
+    );
+    const elements = hierarchy.flatMap(
+      cls => Reflect.getMetadata(METADATA_KEYS.ELEMENTS, cls) || []
+    );
+    const idrefs = hierarchy.flatMap(
+      cls => Reflect.getMetadata(METADATA_KEYS.IDREF, cls) || []
+    );
+    const wrappers = hierarchy.flatMap(
+      cls => Reflect.getMetadata(METADATA_KEYS.WRAPPER, cls) || []
+    );
+    const elementRefs = hierarchy.flatMap(
+      cls => Reflect.getMetadata(METADATA_KEYS.ELEMENT_REF, cls) || []
+    );
+    const adapters = hierarchy.reduce(
+      (acc, cls) => ({
+        ...acc,
+        ...(Reflect.getMetadata(METADATA_KEYS.ADAPTER, cls) || {}),
+      }),
+      {}
+    );
+
+    const result: any = {};
+
+    // Process attributes (e.g., @_value -> value)
+    for (const attr of attributes) {
+      const key = attr.key;
+      const xmlKey = `@_${key}`;
+      if (xmlKey in obj) {
+        let value = obj[xmlKey];
+        if (adapters[key]) {
+          value = adapters[key].unmarshal(value); // Apply type adapter (e.g., 'inf' -> Infinity)
+        }
+        result[key] = value;
+      } else if (attr.required) {
+        throw new Error(
+          `Required attribute '${key}' is missing in ${classOrInstance.name}`
+        );
+      }
+    }
+
+    // Process elements (e.g., Volume -> volume) and element references (e.g., Content -> content)
+    for (const key in obj) {
+      if (key.startsWith("@_")) continue; // Skip attributes
+
+      const elem = elements.find(e => (e.name || e.key) === key);
+      const elemRef = elementRefs.find(
+        er =>
+          (er.name || er.key) === key ||
+          (classRegistry[key] &&
+            elementRefs.some(er => er.key === er.name || er.key === key))
+      ); // Basic check for element references by name or class name
+
+      if (elem) {
+        const elemName = elem.name || elem.key;
+        const wrapper = wrappers.find(w => w.key === elem.key);
+
+        if (wrapper) {
+          if (
+            wrapper.required &&
+            (!obj[wrapper.name] || !obj[wrapper.name][elemName])
+          ) {
+            throw new Error(
+              `Required wrapped element '${wrapper.name}' is missing in ${classOrInstance.name}`
+            );
+          }
+          if (obj[wrapper.name] && obj[wrapper.name][elemName]) {
+            // Handle wrapped collections
+            const type = elem.type ? classRegistry[elem.type] : undefined;
+            result[elem.key] = Array.isArray(obj[wrapper.name][elemName])
+              ? obj[wrapper.name][elemName].map((item: any) =>
+                  transformForDeserialization(item, type)
+                )
+              : [
+                  transformForDeserialization(
+                    obj[wrapper.name][elemName],
+                    type
+                  ),
+                ];
+          }
+        } else {
+          // Handle single elements
+          const type = elem.type ? classRegistry[elem.type] : undefined;
+          result[elem.key] = transformForDeserialization(obj[key], type);
+        }
+      } else if (elemRef) {
+        const wrapper = wrappers.find(w => w.key === elemRef.key);
+        if (wrapper) {
+          if (
+            wrapper.required &&
+            (!obj[wrapper.name] || !obj[wrapper.name][key])
+          ) {
+            throw new Error(
+              `Required wrapped element '${wrapper.name}' is missing in ${classOrInstance.name}`
+            );
+          }
+          if (obj[wrapper.name] && obj[wrapper.name][key]) {
+            // Handle wrapped collections with element references
+            const type = classRegistry[key]; // Determine type from element name
+            result[elemRef.key] = Array.isArray(obj[wrapper.name][key])
+              ? obj[wrapper.name][key].map((item: any) =>
+                  transformForDeserialization(item, type)
+                )
+              : [transformForDeserialization(obj[wrapper.name][key], type)];
+          }
+        } else {
+          // Handle single element references
+          const type = classRegistry[key]; // Determine type from element name
+          result[elemRef.key] = transformForDeserialization(obj[key], type);
+        }
+      }
+    }
+
+    // Process ID references (e.g., @_destination -> destination)
+    for (const idref of idrefs) {
+      const xmlKey = `@_${idref}`;
+      if (xmlKey in obj) {
+        result[idref] = { id: obj[xmlKey] }; // Placeholder for reference resolution
+      }
+    }
+
+    return result;
+  }
+
+  const transformed = transformForDeserialization(parsed[rootName], rootClass);
 
   function mapToClass(obj: any, clazz: new (...args: any[]) => any): any {
     if (!obj) return undefined;

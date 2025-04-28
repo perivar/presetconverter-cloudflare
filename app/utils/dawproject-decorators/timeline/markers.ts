@@ -10,7 +10,7 @@ import { Timeline } from "./timeline";
 @XmlRootElement({ name: "Markers" })
 export class Markers extends Timeline {
   /** List of markers on this timeline. */
-  @XmlElementWrapper("Markers")
+  @XmlElementWrapper({ name: "Markers" })
   @XmlElement({ name: "Marker", type: "Marker" })
   markers: Marker[] = [];
 }

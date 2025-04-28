@@ -1,8 +1,7 @@
-import { Lane } from "../lane";
 import { Track } from "../track"; // Added import
 import {
-  XmlAttribute, // Added import
-  XmlElement,
+  XmlAttribute,
+  XmlElementRef,
   XmlElementWrapper,
   XmlIDREF, // Added import
   XmlRootElement,
@@ -13,9 +12,9 @@ import { Timeline } from "./timeline";
 @XmlRootElement({ name: "Lanes" })
 export class Lanes extends Timeline {
   /** Lanes contained within this container. */
-  @XmlElementWrapper("Lanes")
-  @XmlElement({ name: "Lane", type: "Lane" }) // Using type "Lane" for polymorphism
-  lanes: Lane[] = [];
+  @XmlElementWrapper({ name: "Lanes" })
+  @XmlElementRef()
+  lanes: Timeline[] = [];
 
   /** Reference to the track this lane belongs to. */
   @XmlAttribute({ required: false })

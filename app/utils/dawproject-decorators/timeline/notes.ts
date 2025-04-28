@@ -10,7 +10,7 @@ import { Timeline } from "./timeline";
 @XmlRootElement({ name: "Notes" })
 export class Notes extends Timeline {
   /** List of notes on this timeline. */
-  @XmlElementWrapper("Notes")
+  @XmlElementWrapper({ name: "Notes" })
   @XmlElement({ name: "Note", type: "Note" })
   notes: Note[] = [];
 }

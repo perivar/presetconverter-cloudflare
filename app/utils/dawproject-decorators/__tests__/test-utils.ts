@@ -49,7 +49,7 @@ export const simpleFeatures = new Set([
 
 export function createEmptyProject(): Project {
   Referenceable.resetID();
-  const project = new Project(); // Constructor might differ
+  const project = new Project();
   project.application = new Application("Test App", "1.0.0");
   return project;
 }

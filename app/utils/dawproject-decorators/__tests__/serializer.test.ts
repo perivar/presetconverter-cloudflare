@@ -2,9 +2,8 @@ import fs from "fs";
 import path from "path";
 
 import { Project } from "../project";
-import { Referenceable } from "../referenceable"; // Adjusted path
-import { deserializeFromXml, serializeToXml } from "../xmlSerializer"; // Adjusted path and function names
-
+import { Referenceable } from "../referenceable";
+import { deserializeFromXml, serializeToXml } from "../xmlSerializer";
 import {
   AudioScenario,
   createAudioProject,
@@ -33,13 +32,18 @@ afterAll(() => {
 
 describe("Serializer", () => {
   test("should serialize and deserialize an empty project", () => {
+    Referenceable.resetID();
     const originalProject = createEmptyProject();
+
+    fs.writeFileSync(
+      path.join(targetDir, "dawproject_empty.json"),
+      JSON.stringify(originalProject, null, 2)
+    );
+
     const xmlString = serializeToXml(originalProject);
 
     fs.writeFileSync(path.join(targetDir, "dawproject_empty.xml"), xmlString);
 
-    // Need to provide the root class for deserialization
-    // import { Project } from "../project"; // Already imported in test-utils, but maybe need direct import here?
     const deserializedProject = deserializeFromXml(xmlString, Project);
 
     // Deep equality check might be needed depending on object structure

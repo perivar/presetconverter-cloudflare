@@ -8,6 +8,7 @@ export const METADATA_KEYS = {
   IDREF: Symbol("xml:idref"), // Key for ID reference properties
   WRAPPER: Symbol("xml:wrapper"), // Key for collection wrapper elements
   ADAPTER: Symbol("xml:adapter"), // Key for type adapters
+  ELEMENT_REF: Symbol("xml:elementRef"), // Key for polymorphic element references
 };
 
 /**
@@ -15,8 +16,8 @@ export const METADATA_KEYS = {
  * Applied at the class level to define the tag name used when serializing the object to XML.
  * @param options - Configuration object with the root element name.
  * @example
- * @XmlRootElement({ name: 'RealParameter' })
- * class RealParameter {}
+ * @XmlRootElement({ name: 'Note' })
+ * class Note {}
  */
 export function XmlRootElement(options: { name: string }) {
   return function (target: any) {
@@ -27,14 +28,20 @@ export function XmlRootElement(options: { name: string }) {
 /**
  * Decorator to mark a property as an XML attribute.
  * The property will be serialized as an attribute (e.g., name="value") in the XML element.
- * @param options - Optional configuration, including whether the attribute is required.
+ * @param options - Optional configuration, including whether the attribute is required and custom name.
  * @example
- * @XmlAttribute({ required: true })
- * unit: Unit;
+ * @XmlAttribute({ required: true, name: 'vel' })
+ * velocity: number;
  */
-export function XmlAttribute(options: { required?: boolean } = {}) {
+export function XmlAttribute(
+  options: { required?: boolean; name?: string } = {}
+) {
   return function (target: any, propertyKey: string) {
-    const attributes: Array<{ key: string; required?: boolean }> =
+    const attributes: Array<{
+      key: string;
+      required?: boolean;
+      name?: string;
+    }> =
       Reflect.getMetadata(METADATA_KEYS.ATTRIBUTES, target.constructor) || [];
     attributes.push({ key: propertyKey, ...options });
     Reflect.defineMetadata(
@@ -73,6 +80,38 @@ export function XmlElement(
 }
 
 /**
+ * Decorator to mark a property as a polymorphic XML element reference.
+ * Used for single objects or collections where the actual type can be a subclass of the declared type.
+ * The type is determined by the XML element name or a type attribute during deserialization.
+ * @param options - Optional configuration for the element name and base type.
+ * @example
+ * @XmlElementRef({ name: 'Content', baseType: 'Timeline' })
+ * content?: Timeline;
+ * @example
+ * @XmlElementWrapper('Devices')
+ * @XmlElementRef()
+ * devices: Device[] = [];
+ */
+export function XmlElementRef(
+  options: { name?: string; baseType?: string } = {}
+) {
+  return function (target: any, propertyKey: string) {
+    const elementRefs: Array<{
+      key: string;
+      name?: string;
+      baseType?: string;
+    }> =
+      Reflect.getMetadata(METADATA_KEYS.ELEMENT_REF, target.constructor) || [];
+    elementRefs.push({ key: propertyKey, ...options });
+    Reflect.defineMetadata(
+      METADATA_KEYS.ELEMENT_REF,
+      elementRefs,
+      target.constructor
+    );
+  };
+}
+
+/**
  * Decorator to mark a property as an XML ID reference.
  * The property will be serialized as an attribute referencing another object's ID.
  * Assumes the referenced object has an 'id' property.
@@ -93,15 +132,18 @@ export function XmlIDREF(target: any, propertyKey: string) {
  * The collection will be wrapped in an element with the specified name during serialization.
  * @param name - The name of the wrapper element.
  * @example
- * @XmlElementWrapper('Sends')
- * @XmlElement({ name: 'Send', type: 'Send' })
+ * @XmlElementWrapper({ name: "Sends" })
+ * @XmlElement({ name: "Send", type: "Send" })
  * sends: Send[] = [];
  */
-export function XmlElementWrapper(name: string) {
+export function XmlElementWrapper(options: {
+  name: string;
+  required?: boolean;
+}) {
   return function (target: any, propertyKey: string) {
-    const wrappers: Record<string, string> =
-      Reflect.getMetadata(METADATA_KEYS.WRAPPER, target.constructor) || {};
-    wrappers[propertyKey] = name;
+    const wrappers: Array<{ key: string; name: string; required?: boolean }> =
+      Reflect.getMetadata(METADATA_KEYS.WRAPPER, target.constructor) || [];
+    wrappers.push({ key: propertyKey, ...options });
     Reflect.defineMetadata(METADATA_KEYS.WRAPPER, wrappers, target.constructor);
   };
 }

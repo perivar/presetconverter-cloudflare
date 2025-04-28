@@ -7,6 +7,7 @@ import { Send } from "./send";
 import {
   XmlAttribute,
   XmlElement,
+  XmlElementRef,
   XmlElementWrapper,
   XmlIDREF,
   XmlRootElement,
@@ -48,12 +49,12 @@ export class Channel extends Lane {
   destination?: Channel; // Self-reference
 
   /** Send levels & destination */
-  @XmlElementWrapper("Sends")
+  @XmlElementWrapper({ name: "Sends" })
   @XmlElement({ name: "Send", type: "Send" })
   sends: Send[] = [];
 
   /** Devices & plug-ins of this channel */
-  @XmlElementWrapper("Devices")
-  @XmlElement({ name: "Device", type: "Device" }) // Using type "Device" for polymorphism
+  @XmlElementWrapper({ name: "Devices" })
+  @XmlElementRef()
   devices: Device[] = [];
 }

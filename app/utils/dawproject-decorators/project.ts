@@ -6,6 +6,7 @@ import { Transport } from "./transport";
 import {
   XmlAttribute,
   XmlElement,
+  XmlElementRef,
   XmlElementWrapper,
   XmlRootElement,
 } from "./xmlDecorators";
@@ -28,8 +29,8 @@ export class Project {
   transport?: Transport;
 
   /** Track/Channel structure of this file. */
-  @XmlElementWrapper("Structure")
-  @XmlElement({ name: "Lane", type: "Lane" }) // Using type "Lane" for polymorphism
+  @XmlElementWrapper({ name: "Structure" })
+  @XmlElementRef()
   structure: Lane[] = [];
 
   /** The main Arrangement timeline of this file. */
@@ -37,7 +38,7 @@ export class Project {
   arrangement?: Arrangement;
 
   /** Clip Launcher scenes of this file. */
-  @XmlElementWrapper("Scenes")
+  @XmlElementWrapper({ name: "Scenes" })
   @XmlElement({ name: "Scene", type: "Scene" })
   scenes: Scene[] = [];
 }
