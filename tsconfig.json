@@ -25,6 +25,8 @@
     "moduleDetection": "force",
     "forceConsistentCasingInFileNames": true,
     "isolatedModules": true,
+    "experimentalDecorators": true,
+    "emitDecoratorMetadata": true,
 
     /* React */
     "jsx": "react-jsx",
