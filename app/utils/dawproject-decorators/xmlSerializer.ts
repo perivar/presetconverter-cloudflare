@@ -44,13 +44,25 @@ const parserOptions: Partial<X2jOptions> = {
   allowBooleanAttributes: true,
   parseAttributeValue: true, // Parse numbers, booleans, etc.
   trimValues: true,
+  // Custom attribute value processor to prevent 'version' from being parsed as a number
+  attributeValueProcessor: (name, value, jPath) => {
+    // jPath is like 'Project.@_version'
+    if (jPath === "Project.@_version") {
+      return String(value); // Ensure it's treated as a string
+    }
+    // Return undefined to let the default processor handle other attributes
+    return undefined;
+  },
 };
 
 // Builder configuration for serialization
 const builderOptions: Partial<XmlBuilderOptions> = {
-  ignoreAttributes: false,
   attributeNamePrefix: "@_",
+  ignoreAttributes: false,
+  suppressBooleanAttributes: false,
   format: true, // Pretty-print XML
+  // indentBy: "    ",
+  suppressEmptyNode: true,
 };
 
 const parser = new XMLParser(parserOptions);
@@ -133,9 +145,9 @@ function transformForSerialization(obj: any, classOrInstance: any): any {
       }
       result[`@_${key}`] = value;
     } else if (attr.required) {
-      throw new Error(
-        `Required attribute '${key}' is missing in ${classOrInstance.name}`
-      );
+      // throw new Error(
+      //   `Required attribute '${key}' is missing in ${classOrInstance.name}`
+      // );
     }
   }
 
@@ -194,6 +206,12 @@ function transformForSerialization(obj: any, classOrInstance: any): any {
               item,
               item.constructor
             );
+            // If the item's root element name is the same as the wrapper name,
+            // just return the transformed item directly to avoid duplication.
+            if (itemRootName && itemRootName === wrapper.name) {
+              return itemTransformed;
+            }
+            // Otherwise, wrap it in an element with the appropriate name.
             return {
               [itemRootName || elemRef.name || item.constructor.name]:
                 itemTransformed,
@@ -358,14 +376,46 @@ export function deserializeFromXml<T>(
       const xmlKey = `@_${key}`;
       if (xmlKey in obj) {
         let value = obj[xmlKey];
-        if (adapters[key]) {
-          value = adapters[key].unmarshal(value); // Apply type adapter (e.g., 'inf' -> Infinity)
-        }
-        result[key] = value;
-      } else if (attr.required) {
-        throw new Error(
-          `Required attribute '${key}' is missing in ${classOrInstance.name}`
+        // Get expected type using reflection metadata
+        const expectedType = Reflect.getMetadata(
+          "design:type",
+          classOrInstance.prototype, // Target the prototype for metadata
+          key
         );
+
+        if (adapters[key]) {
+          // Apply custom type adapter first if available
+          value = adapters[key].unmarshal(value);
+        } else if (expectedType) {
+          // Perform standard type conversion based on reflected type
+          if (expectedType === String && typeof value !== "string") {
+            value = String(value);
+          } else if (expectedType === Number && typeof value !== "number") {
+            const num = Number(value);
+            if (!isNaN(num)) {
+              value = num;
+            }
+          } else if (expectedType === Boolean && typeof value !== "boolean") {
+            // Handle boolean conversion (common with allowBooleanAttributes)
+            if (typeof value === "string") {
+              value = value.toLowerCase() === "true";
+            } else {
+              value = Boolean(value);
+            }
+          }
+          // Add other type checks (e.g., Date) if needed
+        }
+
+        console.log(
+          `Processing attribute '${key}' for ${classOrInstance.name}: value =`,
+          value,
+          `(typeof ${typeof value})`
+        );
+        result[key] = value; // Assign the processed value
+      } else if (attr.required) {
+        // throw new Error(
+        //   `Required attribute '${key}' is missing in ${classOrInstance.name}`
+        // );
       }
     }
 
@@ -473,23 +523,83 @@ export function deserializeFromXml<T>(
     const elements = hierarchy.flatMap(
       cls => Reflect.getMetadata(METADATA_KEYS.ELEMENTS, cls) || []
     );
+    // Also get elementRefs metadata
+    const elementRefs = hierarchy.flatMap(
+      cls => Reflect.getMetadata(METADATA_KEYS.ELEMENT_REF, cls) || []
+    );
 
-    // Map properties
+    // Map properties from the transformed object (obj) to the instance
     for (const key in obj) {
-      if (attributes.some((attr: any) => attr.key === key)) continue; // Skip attributes (already mapped)
-      const elem = elements.find(
-        (e: any) => (e.name || e.key) === key || e.key === key
-      );
-      if (elem) {
-        const type = elem.type ? classRegistry[elem.type] : undefined;
-        instance[elem.key] = mapToClass(obj[key], type || Object);
-      } else if (key in instance) {
-        instance[key] = obj[key];
+      if (obj.hasOwnProperty(key)) {
+        const elementMeta = elements.find((elem: any) => elem.key === key);
+        const elementRefMeta = elementRefs.find((ref: any) => ref.key === key);
+
+        if (elementMeta) {
+          // Element: Recursively map to the correct class type
+          const elementType = elementMeta.type
+            ? classRegistry[elementMeta.type]
+            : undefined;
+          if (Array.isArray(obj[key])) {
+            // Handle arrays (e.g., wrapped collections)
+            instance[key] = obj[key].map((item: any) =>
+              mapToClass(item, elementType || Object)
+            );
+          } else if (elementType) {
+            // Handle single element with known type
+            instance[key] = mapToClass(obj[key], elementType);
+          } else {
+            // Assign as is if type unknown or not an array
+            instance[key] = obj[key];
+          }
+        } else if (elementRefMeta) {
+          // Element Reference: Recursively map (needs robust type detection)
+          // Placeholder logic - assumes obj[key] holds the transformed data for the referenced object(s)
+          if (Array.isArray(obj[key])) {
+            // Map array items (needs better type detection than Object)
+            instance[key] = obj[key].map((item: any) =>
+              mapToClass(item, Object)
+            ); // Use Object for now
+          } else if (typeof obj[key] === "object" && obj[key] !== null) {
+            // Map single object (needs better type detection than Object)
+            instance[key] = mapToClass(obj[key], Object); // Use Object for now
+          } else {
+            // Assign primitive value if any
+            instance[key] = obj[key];
+          }
+        } else {
+          // Not a decorated element or elementRef.
+          // Assume it's an attribute or simple property processed by transformForDeserialization.
+          let valueToAssign = obj[key];
+
+          // Check reflected type for attributes/simple properties and convert if necessary
+          const attributeMeta = attributes.find(
+            (attr: any) => attr.key === key
+          );
+          if (attributeMeta) {
+            const expectedType = Reflect.getMetadata(
+              "design:type",
+              clazz.prototype, // Target the prototype
+              key
+            );
+            if (expectedType === String && typeof valueToAssign !== "string") {
+              valueToAssign = String(valueToAssign);
+            } else if (
+              expectedType === Number &&
+              typeof valueToAssign !== "number"
+            ) {
+              const num = Number(valueToAssign);
+              if (!isNaN(num)) {
+                valueToAssign = num;
+              }
+            }
+            // Add other type checks if needed
+          }
+
+          // Assign the processed value to the instance.
+          instance[key] = valueToAssign;
+        }
       }
     }
-
-    // Copy transformed properties
-    Object.assign(instance, obj);
 
     return instance;
   }

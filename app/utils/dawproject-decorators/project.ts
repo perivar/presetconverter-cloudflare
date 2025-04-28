@@ -16,9 +16,11 @@ import {
 /** The main root element of the DAWPROJECT format. */
 @XmlRootElement({ name: "Project" })
 export class Project {
+  public static CURRENT_VERSION = "1.0";
+
   /** Version of DAWPROJECT format this file was saved as. */
   @XmlAttribute({ required: true })
-  version: string = "1.0";
+  version: string = Project.CURRENT_VERSION;
 
   /** Metadata (name/version) about the application that saved this file. */
   @XmlElement({ name: "Application", required: true, type: "Application" })
