@@ -46,6 +46,11 @@ describe("Serializer", () => {
 
     const deserializedProject = deserializeFromXml(xmlString, Project);
 
+    fs.writeFileSync(
+      path.join(targetDir, "dawproject_empty_2.json"),
+      JSON.stringify(deserializedProject, null, 2)
+    );
+
     // Deep equality check might be needed depending on object structure
     // expect(JSON.parse(JSON.stringify(deserializedProject))).toEqual(JSON.parse(JSON.stringify(originalProject)));
     // For now, a direct toEqual might work if objects are plain enough after deserialization

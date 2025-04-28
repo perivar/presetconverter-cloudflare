@@ -94,10 +94,16 @@ function transformForSerialization(obj: any, classOrInstance: any): any {
   const hierarchy = getClassHierarchy(classOrInstance);
   const attributes = hierarchy
     .flatMap(cls => Reflect.getMetadata(METADATA_KEYS.ATTRIBUTES, cls) || [])
-    .filter((value, index, self) => self.indexOf(value.key) === index); // Remove duplicates
+    .filter(
+      (value, index, self) =>
+        self.findIndex(item => item.key === value.key) === index
+    ); // Keep only first occurrence by key
   const elements = hierarchy
     .flatMap(cls => Reflect.getMetadata(METADATA_KEYS.ELEMENTS, cls) || [])
-    .filter((value, index, self) => self.indexOf(value.key) === index);
+    .filter(
+      (value, index, self) =>
+        self.findIndex(item => item.key === value.key) === index
+    ); // Keep only first occurrence by key
   const idrefs = hierarchy
     .flatMap(cls => Reflect.getMetadata(METADATA_KEYS.IDREF, cls) || [])
     .filter((value, index, self) => self.indexOf(value) === index);
