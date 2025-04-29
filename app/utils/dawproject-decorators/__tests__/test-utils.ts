@@ -74,9 +74,6 @@ export function createDummyProject(
     limiter.name = "Limiter"; // Assuming nameable properties
     limiter.deviceRole = DeviceRole.audioFX; // Use enum
     limiter.state = new FileReference("plugin-states/12323545.vstpreset");
-    if (!masterTrack.channel!.devices) {
-      masterTrack.channel!.devices = [];
-    }
     masterTrack.channel!.devices.push(limiter);
   }
 
@@ -109,9 +106,7 @@ export function createDummyProject(
 
     if (features.has(Features.CLIPS)) {
       const clips = new Clips();
-      // trackLanes.lanes.push(clips); // Structure might differ, add to trackLanes.clips? Check Lanes class
-      // Need to decide where Clips timeline goes. Assuming it's a direct property for now.
-      trackLanes.lanes.push(clips); // Add clips to the lanes array
+      trackLanes.lanes.push(clips);
 
       const notes = new Notes();
       for (let j = 0; j < 8; j++) {
@@ -145,8 +140,6 @@ export function createDummyProject(
         target.parameter = track.channel!.volume; // Assign parameter directly
         const volumeAutomation = new Points(target);
         volumeAutomation.track = track; // Assign track directly
-        // trackLanes.lanes.push(volumeAutomation); // Structure might differ, add to trackLanes.points?
-        // Assuming a direct 'points' property on Lanes for simplicity
         trackLanes.lanes.push(volumeAutomation); // Add points to the lanes array
 
         // fade-in over 8 quarter notes using Point array

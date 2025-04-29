@@ -42,7 +42,8 @@ export function XmlAttribute(
       required?: boolean;
       name?: string;
     }> =
-      Reflect.getMetadata(METADATA_KEYS.ATTRIBUTES, target.constructor) || [];
+      Reflect.getOwnMetadata(METADATA_KEYS.ATTRIBUTES, target.constructor) ||
+      []; // Use getOwnMetadata
     attributes.push({ key: propertyKey, ...options });
     Reflect.defineMetadata(
       METADATA_KEYS.ATTRIBUTES,
@@ -69,7 +70,8 @@ export function XmlElement(
       name?: string;
       required?: boolean;
       type?: string;
-    }> = Reflect.getMetadata(METADATA_KEYS.ELEMENTS, target.constructor) || [];
+    }> =
+      Reflect.getOwnMetadata(METADATA_KEYS.ELEMENTS, target.constructor) || []; // Use getOwnMetadata
     elements.push({ key: propertyKey, ...options });
     Reflect.defineMetadata(
       METADATA_KEYS.ELEMENTS,
@@ -101,7 +103,8 @@ export function XmlElementRef(
       name?: string;
       baseType?: string;
     }> =
-      Reflect.getMetadata(METADATA_KEYS.ELEMENT_REF, target.constructor) || [];
+      Reflect.getOwnMetadata(METADATA_KEYS.ELEMENT_REF, target.constructor) ||
+      []; // Use getOwnMetadata
     elementRefs.push({ key: propertyKey, ...options });
     Reflect.defineMetadata(
       METADATA_KEYS.ELEMENT_REF,
@@ -122,7 +125,7 @@ export function XmlElementRef(
  */
 export function XmlIDREF(target: any, propertyKey: string) {
   const idrefs: string[] =
-    Reflect.getMetadata(METADATA_KEYS.IDREF, target.constructor) || [];
+    Reflect.getOwnMetadata(METADATA_KEYS.IDREF, target.constructor) || []; // Use getOwnMetadata
   idrefs.push(propertyKey);
   Reflect.defineMetadata(METADATA_KEYS.IDREF, idrefs, target.constructor);
 }
@@ -142,7 +145,7 @@ export function XmlElementWrapper(options: {
 }) {
   return function (target: any, propertyKey: string) {
     const wrappers: Array<{ key: string; name: string; required?: boolean }> =
-      Reflect.getMetadata(METADATA_KEYS.WRAPPER, target.constructor) || [];
+      Reflect.getOwnMetadata(METADATA_KEYS.WRAPPER, target.constructor) || []; // Use getOwnMetadata
     wrappers.push({ key: propertyKey, ...options });
     Reflect.defineMetadata(METADATA_KEYS.WRAPPER, wrappers, target.constructor);
   };
@@ -164,7 +167,7 @@ export function XmlTypeAdapter(adapter: {
 }) {
   return function (target: any, propertyKey: string) {
     const adapters: Record<string, any> =
-      Reflect.getMetadata(METADATA_KEYS.ADAPTER, target.constructor) || {};
+      Reflect.getOwnMetadata(METADATA_KEYS.ADAPTER, target.constructor) || {}; // Use getOwnMetadata
     adapters[propertyKey] = adapter;
     Reflect.defineMetadata(METADATA_KEYS.ADAPTER, adapters, target.constructor);
   };
