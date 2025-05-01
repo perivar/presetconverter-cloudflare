@@ -59,6 +59,9 @@ export function createDummyProject(
   features: Set<Features>
 ): Project {
   const project = createEmptyProject();
+  project.transport = new Transport();
+  project.transport.tempo = new RealParameter(Unit.bpm);
+  project.transport.tempo.value = 120.0;
 
   const masterTrack = Utility.createTrack(
     "Master",
@@ -205,7 +208,7 @@ export function createAudioProject(
   const arrangementLanes = new Lanes();
   project.arrangement = new Arrangement(arrangementLanes);
   project.transport = new Transport();
-  project.transport.tempo = new RealParameter(Unit.bpm); // Pass unit to constructor
+  project.transport.tempo = new RealParameter(Unit.bpm);
   project.transport.tempo.value = 155.0;
 
   const arrangementIsInSeconds = scenario === AudioScenario.RawSeconds;

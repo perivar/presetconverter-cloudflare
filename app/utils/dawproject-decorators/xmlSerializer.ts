@@ -104,6 +104,8 @@ function buildXmlObject(obj: any): any {
           `IDREF '${idrefKey}' in ${target.name} references an object without a valid string 'id' property`
         );
       }
+      // idrefKey and attrMeta.key contains e.g. "destination"
+      // attrMeta.name seems to be undefined in this case
       xmlObj[`@_${attrMeta.name || idrefKey}`] = referencedObj.id;
     } else if (attrMeta.required) {
       throw new Error(
@@ -128,9 +130,11 @@ function buildXmlObject(obj: any): any {
           .filter(Boolean);
         if (serializedArray.length > 0) {
           if (wrapperMeta) {
+            // wrapperMeta.name contains e.g. "Notes"
+            // elementName contains e.g. "Note"
             xmlObj[wrapperMeta.name] = { [elementName]: serializedArray };
-            // xmlObj[wrapperMeta.name] = serializedArray;
           } else {
+            // elementName contains e.g. "Clip"
             xmlObj[elementName] = serializedArray;
           }
         } else if (wrapperMeta?.required || elementMeta.required) {
@@ -141,7 +145,7 @@ function buildXmlObject(obj: any): any {
       } else {
         const serializedValue = buildXmlObject(marshaledValue);
         if (serializedValue !== undefined) {
-          // xmlObj[elementName] = serializedValue;
+          // elementName contains e.g. "Application", "Lanes", "Arrangement", "Volume", "Pan", "Channel"
           xmlObj[elementName] = serializedValue;
         } else if (elementMeta.required) {
           throw new Error(
@@ -175,14 +179,16 @@ function buildXmlObject(obj: any): any {
                 `Missing @XmlRootElement on ${item.constructor.name} for @XmlElementRef`
               );
             }
-            // return { [itemRootName]: buildXmlObject(item) };
-            return buildXmlObject(item);
+            // itemRootName contains e.g. Track
+            return { [itemRootName]: buildXmlObject(item) };
           })
           .filter(Boolean);
 
         if (serializedArray.length > 0) {
           const elementName = elementRefMeta.name || key;
           if (wrapperMeta) {
+            // wrapperMeta.name contains e.g. "Structure", "Lanes"
+            // elementName contains e.g. "structure", "lanes"
             // xmlObj[wrapperMeta.name] = { [elementName]: serializedArray };
             xmlObj[wrapperMeta.name] = serializedArray;
           } else {
@@ -205,6 +211,7 @@ function buildXmlObject(obj: any): any {
         }
         const serializedValue = buildXmlObject(marshaledValue);
         if (serializedValue !== undefined) {
+          // itemRootName contains e.g. Notes
           xmlObj[itemRootName] = serializedValue;
         } else if (elementRefMeta.required) {
           throw new Error(
