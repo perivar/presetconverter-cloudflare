@@ -47,17 +47,22 @@ export function serializeToXml(obj: any): string {
   return builder.build(finalXmlObject);
 }
 
+// Helper function to check if value is primitive
+const isPrimitive = (value: any): boolean =>
+  typeof value !== "object" ||
+  value instanceof Number ||
+  value instanceof String ||
+  value instanceof Boolean;
+
 /**
  * Builds an XML object structure from a TypeScript object using metadata.
  * @param obj - The object to serialize.
  * @returns The XML-compatible object structure.
  */
 function buildXmlObject(obj: any): any {
-  if (obj === null || obj === undefined) return undefined;
+  if (obj === null || obj === undefined) return null;
   if (typeof obj !== "object" || obj instanceof Date || obj instanceof RegExp)
     return obj;
-  if (Array.isArray(obj))
-    return obj.map(item => buildXmlObject(item)).filter(Boolean);
 
   const target = obj.constructor;
   const attributes =
@@ -69,162 +74,91 @@ function buildXmlObject(obj: any): any {
   const wrappers = Reflect.getMetadata(METADATA_KEYS.WRAPPER, target) || [];
   const adapters = Reflect.getMetadata(METADATA_KEYS.ADAPTER, target) || {};
 
-  const xmlObj: any = {};
-
-  // Handle attributes
-  for (const attrMeta of attributes) {
-    const value = obj[attrMeta.key];
-    if (value !== undefined) {
-      const adapter = adapters[attrMeta.key];
-      xmlObj[`@_${attrMeta.name || attrMeta.key}`] = adapter
-        ? adapter.marshal(value)
-        : value;
-    } else if (attrMeta.required) {
-      throw new Error(
-        `Required attribute '${attrMeta.key}' missing in ${target.name}`
-      );
-    }
+  // Handle primitive types
+  if (isPrimitive(obj)) {
+    return obj;
   }
 
-  // Handle IDREFs (serialized as attributes)
-  for (const idrefKey of idrefs) {
-    const referencedObj = obj[idrefKey];
-    const attrMeta = attributes.find((attr: any) => attr.key === idrefKey);
-    if (!attrMeta) {
-      throw new Error(
-        `IDREF '${idrefKey}' must be annotated with @XmlAttribute in ${target.name}`
-      );
-    }
-    if (referencedObj) {
-      if (
-        referencedObj.id === undefined ||
-        typeof referencedObj.id !== "string"
-      ) {
-        throw new Error(
-          `IDREF '${idrefKey}' in ${target.name} references an object without a valid string 'id' property`
-        );
-      }
-      // idrefKey and attrMeta.key contains e.g. "destination"
-      // attrMeta.name seems to be undefined in this case
-      xmlObj[`@_${attrMeta.name || idrefKey}`] = referencedObj.id;
-    } else if (attrMeta.required) {
-      throw new Error(
-        `Required IDREF '${idrefKey}' is missing in ${target.name}`
-      );
-    }
-  }
-
-  // Handle @XmlElement (fixed element names)
-  for (const elementMeta of elements) {
-    const key = elementMeta.key;
-    const value = obj[key];
-    const adapter = adapters[key];
-    const marshaledValue = adapter ? adapter.marshal(value) : value;
-    const wrapperMeta = wrappers.find((w: any) => w.key === key);
-
-    if (marshaledValue !== undefined && marshaledValue !== null) {
-      const elementName = elementMeta.name || key;
-      if (Array.isArray(marshaledValue)) {
-        const serializedArray = marshaledValue
-          .map(item => buildXmlObject(item))
-          .filter(Boolean);
-        if (serializedArray.length > 0) {
-          if (wrapperMeta) {
-            // wrapperMeta.name contains e.g. "Notes"
-            // elementName contains e.g. "Note"
-            xmlObj[wrapperMeta.name] = { [elementName]: serializedArray };
-          } else {
-            // elementName contains e.g. "Clip"
-            xmlObj[elementName] = serializedArray;
+  // Handle arrays
+  if (Array.isArray(obj)) {
+    return obj
+      .map(item => {
+        if (item !== null && item !== undefined) {
+          const processedItem = buildXmlObject(item);
+          if (isPrimitive(item)) {
+            return processedItem;
           }
-        } else if (wrapperMeta?.required || elementMeta.required) {
-          throw new Error(
-            `Required collection '${key}' is empty in ${target.name}`
-          );
+          const typeName = item.constructor?.name || "Unknown";
+          return { [typeName]: processedItem };
+        }
+        return null;
+      })
+      .filter(item => item !== null);
+  }
+
+  // Handle objects
+  const result: any = {};
+  for (const [key, value] of Object.entries(obj)) {
+    if (value !== undefined && value !== null) {
+      const processedValue = buildXmlObject(value);
+
+      const attrMeta = attributes.find((attr: any) => attr.key === key);
+      const elementMeta = elements.find((el: any) => el.key === key);
+
+      if (attrMeta) {
+        const adapter = adapters[attrMeta.key];
+        const finalValue = adapter
+          ? adapter.marshal(processedValue)
+          : processedValue;
+
+        if (isPrimitive(finalValue)) {
+          // result[key] = finalValue;
+          result[`@_${attrMeta.name || key}`] = finalValue;
+          continue;
+        }
+        const typeName = value.constructor?.name || "Unknown";
+        if (Array.isArray(value)) {
+          // Dont add typeName for Arrays
+          // result[key] = finalValue;
+          // TODO: this produces @_contentType, @_destination and @_track
+          result[`@_${attrMeta.name || key}`] = finalValue;
+        } else {
+          // result[key] = { [typeName]: finalValue };
+          result[`@_${attrMeta.name || key}`] = { [typeName]: finalValue };
+        }
+      } else if (elementMeta) {
+        const finalValue = processedValue;
+
+        if (isPrimitive(finalValue)) {
+          result[elementMeta.name] = finalValue;
+          continue;
+        }
+        const typeName = value.constructor?.name || "Unknown";
+        if (Array.isArray(value)) {
+          // Dont add typeName for Arrays
+          result[elementMeta.name] = finalValue;
+        } else {
+          result[elementMeta.name] = { [typeName]: finalValue };
         }
       } else {
-        const serializedValue = buildXmlObject(marshaledValue);
-        if (serializedValue !== undefined) {
-          // elementName contains e.g. "Application", "Lanes", "Arrangement", "Volume", "Pan", "Channel"
-          xmlObj[elementName] = serializedValue;
-        } else if (elementMeta.required) {
-          throw new Error(
-            `Required element '${key}' missing in ${target.name}`
-          );
+        const finalValue = processedValue;
+
+        if (isPrimitive(finalValue)) {
+          result[key] = finalValue;
+          continue;
+        }
+        const typeName = value.constructor?.name || "Unknown";
+        if (Array.isArray(value)) {
+          // Dont add typeName for Arrays
+          result[key] = finalValue;
+        } else {
+          result[key] = { [typeName]: finalValue };
         }
       }
-    } else if (elementMeta.required) {
-      throw new Error(`Required element '${key}' missing in ${target.name}`);
     }
   }
 
-  // Handle @XmlElementRef (polymorphic element names)
-  for (const elementRefMeta of elementRefs) {
-    const key = elementRefMeta.key;
-    const value = obj[key];
-    const adapter = adapters[key];
-    const marshaledValue = adapter ? adapter.marshal(value) : value;
-    const wrapperMeta = wrappers.find((w: any) => w.key === key);
-
-    if (marshaledValue !== undefined && marshaledValue !== null) {
-      if (Array.isArray(marshaledValue)) {
-        const serializedArray = marshaledValue
-          .map(item => {
-            const itemRootName = Reflect.getMetadata(
-              METADATA_KEYS.ROOT_ELEMENT,
-              item.constructor
-            );
-            if (!itemRootName) {
-              throw new Error(
-                `Missing @XmlRootElement on ${item.constructor.name} for @XmlElementRef`
-              );
-            }
-            // itemRootName contains e.g. Track
-            return { [itemRootName]: buildXmlObject(item) };
-          })
-          .filter(Boolean);
-
-        if (serializedArray.length > 0) {
-          const elementName = elementRefMeta.name || key;
-          if (wrapperMeta) {
-            // wrapperMeta.name contains e.g. "Structure", "Lanes"
-            // elementName contains e.g. "structure", "lanes"
-            // xmlObj[wrapperMeta.name] = { [elementName]: serializedArray };
-            xmlObj[wrapperMeta.name] = serializedArray;
-          } else {
-            xmlObj[elementName] = serializedArray;
-          }
-        } else if (wrapperMeta?.required || elementRefMeta.required) {
-          throw new Error(
-            `Required collection '${key}' is empty in ${target.name}`
-          );
-        }
-      } else {
-        const itemRootName = Reflect.getMetadata(
-          METADATA_KEYS.ROOT_ELEMENT,
-          marshaledValue.constructor
-        );
-        if (!itemRootName) {
-          throw new Error(
-            `Missing @XmlRootElement on ${marshaledValue.constructor.name} for @XmlElementRef`
-          );
-        }
-        const serializedValue = buildXmlObject(marshaledValue);
-        if (serializedValue !== undefined) {
-          // itemRootName contains e.g. Notes
-          xmlObj[itemRootName] = serializedValue;
-        } else if (elementRefMeta.required) {
-          throw new Error(
-            `Required element '${key}' missing in ${target.name}`
-          );
-        }
-      }
-    } else if (elementRefMeta.required) {
-      throw new Error(`Required element '${key}' missing in ${target.name}`);
-    }
-  }
-
-  return xmlObj;
+  return result;
 }
 
 /**
