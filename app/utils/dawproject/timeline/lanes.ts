@@ -1,15 +1,18 @@
-import { XMLBuilder, XMLParser } from "fast-xml-parser";
-
 import {
   registerTimeline,
   TimelineRegistry,
 } from "../registry/timelineRegistry";
 import type { ILanes, ITrack } from "../types";
-import { XML_BUILDER_OPTIONS, XML_PARSER_OPTIONS } from "../xml/options";
 import { Timeline } from "./timeline";
 import { TimeUnit } from "./timeUnit";
 
-@registerTimeline("Lanes")
+const lanesFactory = (xmlObject: any): Lanes => {
+  const instance = new Lanes();
+  instance.fromXmlObject(xmlObject.Lanes); // Assuming XML is wrapped in <Lanes>
+  return instance;
+};
+
+@registerTimeline("Lanes", lanesFactory)
 export class Lanes extends Timeline implements ILanes {
   lanes: Timeline[];
 
@@ -28,7 +31,7 @@ export class Lanes extends Timeline implements ILanes {
   toXmlObject(): any {
     const obj: any = {
       Lanes: {
-        ...super.getXmlAttributes(), // Get attributes from Timeline
+        ...super.toXmlObject(), // Get attributes from Timeline
       },
     };
 
@@ -52,14 +55,8 @@ export class Lanes extends Timeline implements ILanes {
     return obj;
   }
 
-  toXml(): string {
-    const builder = new XMLBuilder(XML_BUILDER_OPTIONS);
-    return builder.build(this.toXmlObject());
-  }
-
-  static override fromXmlObject(xmlObject: any): Lanes {
-    const instance = new Lanes();
-    instance.populateFromXml(xmlObject);
+  override fromXmlObject(xmlObject: any): this {
+    super.fromXmlObject(xmlObject); // Populate inherited attributes from Timeline
 
     const lanes: Timeline[] = [];
 
@@ -68,32 +65,21 @@ export class Lanes extends Timeline implements ILanes {
       // Skip attributes (those starting with @_) and root Lanes element
       if (tagName === "Lanes" || tagName.startsWith("@_")) continue;
 
-      const TimelineClass = TimelineRegistry.getTimelineClass(tagName);
-      if (TimelineClass) {
-        const laneData = xmlObject[tagName];
-        const laneArray = Array.isArray(laneData) ? laneData : [laneData];
-
-        for (const laneObj of laneArray) {
-          try {
-            const timelineInstance = TimelineClass.fromXmlObject(laneObj);
-            lanes.push(timelineInstance);
-          } catch (e) {
-            console.error(
-              `Error deserializing nested timeline element ${tagName}:`,
-              e
-            );
-          }
-        }
+      // Use the new createTimelineFromXml method
+      const timelineInstance = TimelineRegistry.createTimelineFromXml(
+        tagName,
+        xmlObject[tagName]
+      );
+      if (timelineInstance) {
+        lanes.push(timelineInstance);
+      } else {
+        console.warn(
+          `Skipping deserialization of unknown nested timeline element: ${tagName}`
+        );
       }
     }
 
-    instance.lanes = lanes;
-    return instance;
-  }
-
-  static fromXml(xmlString: string): Lanes {
-    const parser = new XMLParser(XML_PARSER_OPTIONS);
-    const jsonObj = parser.parse(xmlString);
-    return Lanes.fromXmlObject(jsonObj.Lanes);
+    this.lanes = lanes;
+    return this;
   }
 }

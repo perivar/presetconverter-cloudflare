@@ -1,8 +1,5 @@
-import { XMLBuilder, XMLParser } from "fast-xml-parser";
-
 /** References a file either within a DAWPROJECT container or on disk. */
 import { IFileReference } from "./types";
-import { XML_BUILDER_OPTIONS, XML_PARSER_OPTIONS } from "./xml/options";
 import { XmlObject } from "./XmlObject";
 
 /** References a file either within a DAWPROJECT container or on disk. */
@@ -16,12 +13,10 @@ export class FileReference extends XmlObject implements IFileReference {
   /** When true, the path is relative to the .dawproject file. Default value is false. */
   external?: boolean;
 
-  constructor(path: string, external: boolean = false) {
+  constructor(path?: string, external: boolean = false) {
     super();
-    if (path === undefined) {
-      throw new Error("The 'path' attribute is required for FileReference");
-    }
-    this.path = path;
+    // Make path optional for deserialization, fromXmlObject will set it
+    this.path = path || ""; // Provide a default placeholder
     this.external = external;
   }
 
@@ -35,23 +30,12 @@ export class FileReference extends XmlObject implements IFileReference {
     return obj;
   }
 
-  toXml(): string {
-    const builder = new XMLBuilder(XML_BUILDER_OPTIONS);
-    return builder.build({ State: this.toXmlObject() });
-  }
-
-  static fromXmlObject(xmlObject: any): FileReference {
-    const path = xmlObject["@_path"] || "";
-    const external =
+  fromXmlObject(xmlObject: any): this {
+    this.path = xmlObject["@_path"] || "";
+    this.external =
       xmlObject["@_external"] !== undefined
         ? String(xmlObject["@_external"]).toLowerCase() === "true"
         : false;
-    return new FileReference(path, external);
-  }
-
-  static fromXml(xmlString: string): FileReference {
-    const parser = new XMLParser(XML_PARSER_OPTIONS);
-    const jsonObj = parser.parse(xmlString);
-    return FileReference.fromXmlObject(jsonObj.State);
+    return this;
   }
 }

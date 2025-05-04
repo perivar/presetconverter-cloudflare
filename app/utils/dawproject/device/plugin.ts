@@ -9,8 +9,9 @@ export abstract class Plugin extends Device implements IPlugin {
   pluginVersion?: string;
 
   constructor(
-    deviceRole: DeviceRole,
-    deviceName: string,
+    // Make required fields optional for deserialization, provide defaults
+    deviceRole?: DeviceRole,
+    deviceName?: string,
     enabled?: BoolParameter,
     loaded: boolean = true,
     deviceID?: string,
@@ -22,9 +23,10 @@ export abstract class Plugin extends Device implements IPlugin {
     comment?: string,
     pluginVersion?: string
   ) {
+    // Provide default placeholders for required fields
     super(
-      deviceRole,
-      deviceName,
+      deviceRole || DeviceRole.AUDIO_FX, // Default placeholder
+      deviceName || "", // Default placeholder
       enabled,
       loaded,
       deviceID,
@@ -38,16 +40,24 @@ export abstract class Plugin extends Device implements IPlugin {
     this.pluginVersion = pluginVersion;
   }
 
-  protected override getXmlAttributes(): any {
-    const attributes = super.getXmlAttributes();
+  toXmlObject(): any {
+    const obj: any = {
+      Plugin: {
+        ...super.toXmlObject().Device,
+      },
+    };
+
+    // Add Plugin-specific attributes
     if (this.pluginVersion !== undefined) {
-      attributes.pluginVersion = this.pluginVersion;
+      obj.Plugin["@_pluginVersion"] = this.pluginVersion;
     }
-    return attributes;
+
+    return obj;
   }
 
-  protected override populateFromXml(xmlObject: any): void {
-    super.populateFromXml(xmlObject);
+  fromXmlObject(xmlObject: any): this {
+    super.fromXmlObject(xmlObject);
     this.pluginVersion = xmlObject.pluginVersion || undefined;
+    return this;
   }
 }

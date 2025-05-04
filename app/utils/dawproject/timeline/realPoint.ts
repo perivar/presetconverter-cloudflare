@@ -1,24 +1,21 @@
-import { XMLBuilder, XMLParser } from "fast-xml-parser";
-
 import { DoubleAdapter } from "../doubleAdapter";
 import { Interpolation } from "../interpolation";
 import type { IRealPoint } from "../types";
-import { XML_BUILDER_OPTIONS, XML_PARSER_OPTIONS } from "../xml/options";
 import { Point } from "./point";
 
 export class RealPoint extends Point implements IRealPoint {
   value: number;
   interpolation?: Interpolation;
 
-  constructor(time: number, value: number, interpolation?: Interpolation) {
-    super(time);
-    this.value = value;
+  constructor(time?: number, value?: number, interpolation?: Interpolation) {
+    super(time); // time is now optional in Point
+    // Make value optional for deserialization, fromXmlObject will set it
+    this.value = value || 0; // Provide a default placeholder
     this.interpolation = interpolation;
   }
 
   toXmlObject(): any {
-    // Get inherited attributes first
-    const attributes = super.getXmlAttributes(); // Get attributes from Point
+    const attributes = super.toXmlObject(); // Get attributes from Point
 
     // Add required value attribute
     if (this.value !== undefined) {
@@ -35,17 +32,8 @@ export class RealPoint extends Point implements IRealPoint {
     return { RealPoint: attributes };
   }
 
-  toXml(): string {
-    const builder = new XMLBuilder(XML_BUILDER_OPTIONS);
-    return builder.build(this.toXmlObject());
-  }
-
-  static fromXmlObject(xmlObject: any): RealPoint {
-    // Create instance with temporary values
-    const instance = new RealPoint(0, 0);
-
-    // Populate inherited attributes
-    instance.populateFromXml(xmlObject);
+  fromXmlObject(xmlObject: any): this {
+    super.fromXmlObject(xmlObject); // Populate inherited attributes from Point
 
     // Validate and populate required value attribute
     if (!xmlObject["@_value"]) {
@@ -56,19 +44,13 @@ export class RealPoint extends Point implements IRealPoint {
     if (pointValue === undefined) {
       throw new Error("Invalid value in XML");
     }
-    instance.value = pointValue;
+    this.value = pointValue;
 
     // Populate optional interpolation attribute
     if (xmlObject["@_interpolation"] !== undefined) {
-      instance.interpolation = xmlObject["@_interpolation"] as Interpolation;
+      this.interpolation = xmlObject["@_interpolation"] as Interpolation;
     }
 
-    return instance;
-  }
-
-  static fromXml(xmlString: string): RealPoint {
-    const parser = new XMLParser(XML_PARSER_OPTIONS);
-    const jsonObj = parser.parse(xmlString);
-    return RealPoint.fromXmlObject(jsonObj.RealPoint);
+    return this;
   }
 }

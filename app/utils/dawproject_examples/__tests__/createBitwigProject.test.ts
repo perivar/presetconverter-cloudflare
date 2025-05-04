@@ -1,7 +1,6 @@
 import fs from "fs";
 import path from "path";
 
-import { DawProject } from "../../dawproject/dawProject";
 import { EqBandType } from "../../dawproject/device/eqBandType";
 import { Project } from "../../dawproject/project";
 import {
@@ -175,7 +174,8 @@ describe("createBitwigProject", () => {
 
     const project = createProjectWithAudioTracks(audioTracks);
 
-    const projectXml = DawProject.toXml(project);
+    const projectXml = project.toXml();
+
     fs.writeFileSync(path.join(targetDir, "dawproject_bitwig.xml"), projectXml);
 
     // Check if the returned object is an instance of Project

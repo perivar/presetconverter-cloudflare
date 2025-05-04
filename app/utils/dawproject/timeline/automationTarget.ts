@@ -1,19 +1,18 @@
-import { XMLBuilder, XMLParser } from "fast-xml-parser";
-
 import { ExpressionType } from "../expressionType";
+import { Parameter } from "../parameter";
+import { Referenceable } from "../referenceable"; // Import Referenceable
 import type { IAutomationTarget } from "../types";
-import { XML_BUILDER_OPTIONS, XML_PARSER_OPTIONS } from "../xml/options";
 import { XmlObject } from "../XmlObject";
 
 export class AutomationTarget extends XmlObject implements IAutomationTarget {
-  parameter?: string; // Assuming parameter is an IDREF string
+  parameter?: Parameter;
   expression?: ExpressionType;
   channel?: number;
   key?: number;
   controller?: number;
 
   constructor(
-    parameter?: string,
+    parameter?: Parameter,
     expression?: ExpressionType,
     channel?: number,
     key?: number,
@@ -53,44 +52,41 @@ export class AutomationTarget extends XmlObject implements IAutomationTarget {
     return target;
   }
 
-  toXml(): string {
-    const builder = new XMLBuilder(XML_BUILDER_OPTIONS);
-    return builder.build(this.toXmlObject());
-  }
-
-  static fromXmlObject(xmlObject: any): AutomationTarget {
+  fromXmlObject(xmlObject: any): this {
     if (!xmlObject) {
       throw new Error("Required Target element missing in XML");
     }
 
-    // Parse elements
-    const parameter = xmlObject.parameter;
-    const expression = xmlObject.expression
+    // Parse parameter attribute and get the referenced Parameter object
+    if (xmlObject["@_parameter"]) {
+      const parameterId = xmlObject["@_parameter"];
+      const referencedParameter = Referenceable.getById(parameterId);
+      if (referencedParameter instanceof Parameter) {
+        this.parameter = referencedParameter;
+      } else {
+        console.warn(
+          `Could not find referenced Parameter with id: ${parameterId}`
+        );
+        this.parameter = undefined; // Or handle error appropriately
+      }
+    } else {
+      this.parameter = undefined;
+    }
+
+    this.expression = xmlObject.expression
       ? (xmlObject.expression as ExpressionType)
       : undefined;
-    const channel =
+    this.channel =
       xmlObject.channel !== undefined
         ? parseInt(xmlObject.channel, 10)
         : undefined;
-    const key =
+    this.key =
       xmlObject.key !== undefined ? parseInt(xmlObject.key, 10) : undefined;
-    const controller =
+    this.controller =
       xmlObject.controller !== undefined
         ? parseInt(xmlObject.controller, 10)
         : undefined;
 
-    return new AutomationTarget(
-      parameter,
-      expression,
-      channel,
-      key,
-      controller
-    );
-  }
-
-  static fromXml(xmlString: string): AutomationTarget {
-    const parser = new XMLParser(XML_PARSER_OPTIONS);
-    const jsonObj = parser.parse(xmlString);
-    return AutomationTarget.fromXmlObject(jsonObj.Target);
+    return this;
   }
 }

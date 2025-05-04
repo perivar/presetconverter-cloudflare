@@ -1,5 +1,3 @@
-import { XMLBuilder, XMLParser } from "fast-xml-parser";
-
 import { Application } from "./application";
 import { Arrangement } from "./arrangement";
 import { Channel } from "./channel";
@@ -8,7 +6,6 @@ import { Scene } from "./scene";
 import { Track as TrackLane } from "./track";
 import { Transport } from "./transport";
 import { IProject } from "./types";
-import { XML_BUILDER_OPTIONS, XML_PARSER_OPTIONS } from "./xml/options";
 import { XmlObject } from "./XmlObject";
 
 /** The main root element of the DAWPROJECT format. This is stored in the file project.xml file inside the container. */
@@ -38,7 +35,7 @@ export class Project extends XmlObject implements IProject {
   ) {
     super();
     this.version = version || Project.CURRENT_VERSION;
-    this.application = application || new Application("", ""); // Provide default values for required attributes
+    this.application = application || new Application(); // Provide default values for required attributes
     this.transport = transport;
     this.structure = structure || [];
     this.arrangement = arrangement;
@@ -54,11 +51,11 @@ export class Project extends XmlObject implements IProject {
 
     // Correctly handling Application element with attributes
     if (this.application) {
-      obj.Project.Application = this.application.toXmlObject().Application; // Assuming Application has toXmlObject and returns { Application: ... }
+      obj.Project.Application = this.application.toXmlObject().Application;
     }
 
     if (this.transport) {
-      obj.Project.Transport = this.transport.toXmlObject().Transport; // Assuming Transport has toXmlObject and returns { Transport: ... }
+      obj.Project.Transport = this.transport.toXmlObject().Transport;
     }
 
     if (this.structure && this.structure.length > 0) {
@@ -77,40 +74,35 @@ export class Project extends XmlObject implements IProject {
     }
 
     if (this.arrangement) {
-      obj.Project.Arrangement = this.arrangement.toXmlObject().Arrangement; // Assuming Arrangement has toXmlObject and returns { Arrangement: ... }
+      obj.Project.Arrangement = this.arrangement.toXmlObject().Arrangement;
     }
 
     if (this.scenes && this.scenes.length > 0) {
       obj.Project.Scenes = {
-        Scene: this.scenes.map(scene => scene.toXmlObject().Scene), // Assuming Scene has toXmlObject and returns { Scene: ... }
+        Scene: this.scenes.map(scene => scene.toXmlObject().Scene),
       };
     }
 
     return obj;
   }
 
-  toXml(): string {
-    const builder = new XMLBuilder(XML_BUILDER_OPTIONS);
-    return builder.build(this.toXmlObject());
-  }
+  fromXmlObject(xmlObject: any): this {
+    this.version = xmlObject["@_version"] || Project.CURRENT_VERSION;
+    this.application = xmlObject.Application
+      ? new Application().fromXmlObject({ Application: xmlObject.Application })
+      : new Application();
 
-  static fromXmlObject(xmlObject: any): Project {
-    const version = xmlObject["@_version"] || Project.CURRENT_VERSION;
-    const application = xmlObject.Application
-      ? Application.fromXmlObject({ Application: xmlObject.Application }) // Wrap in expected structure
-      : new Application("", ""); // Provide default values
-
-    const transport = xmlObject.Transport
-      ? Transport.fromXmlObject({ Transport: xmlObject.Transport }) // Wrap in expected structure
-      : undefined; // Assuming Transport has fromXmlObject
+    this.transport = xmlObject.Transport
+      ? new Transport().fromXmlObject({ Transport: xmlObject.Transport })
+      : undefined;
 
     const structure: Lane[] = [];
     if (xmlObject.Structure) {
       // Need a mechanism to determine the correct subclass of Lane
       // based on the XML element tag (e.g., Lane, Channel, Track, etc.)
       const laneTypeMap: { [key: string]: (obj: any) => any } = {
-        Channel: Channel.fromXmlObject,
-        Track: TrackLane.fromXmlObject, // Use the renamed import
+        Channel: new Channel().fromXmlObject,
+        Track: new TrackLane().fromXmlObject,
         // Add other concrete Lane subclasses here
       };
 
@@ -136,8 +128,8 @@ export class Project extends XmlObject implements IProject {
       }
     }
 
-    const arrangement = xmlObject.Arrangement
-      ? Arrangement.fromXmlObject({ Arrangement: xmlObject.Arrangement }) // Wrap in expected structure
+    this.arrangement = xmlObject.Arrangement
+      ? new Arrangement().fromXmlObject({ Arrangement: xmlObject.Arrangement })
       : undefined;
 
     const scenes: Scene[] = [];
@@ -149,7 +141,7 @@ export class Project extends XmlObject implements IProject {
         // This part needs a mechanism to determine the correct subclass of Scene content
         // Currently, Scene is the only concrete subclass, but use a map for consistency
         const sceneTypeMap: { [key: string]: (obj: any) => any } = {
-          Scene: Scene.fromXmlObject,
+          Scene: new Scene().fromXmlObject,
           // Add other concrete Scene subclasses here
         };
 
@@ -171,19 +163,9 @@ export class Project extends XmlObject implements IProject {
       });
     }
 
-    return new Project(
-      version,
-      application,
-      transport,
-      structure,
-      arrangement,
-      scenes
-    );
-  }
+    this.structure = structure;
+    this.scenes = scenes;
 
-  static fromXml(xmlString: string): Project {
-    const parser = new XMLParser(XML_PARSER_OPTIONS);
-    const jsonObj = parser.parse(xmlString);
-    return Project.fromXmlObject(jsonObj.Project);
+    return this;
   }
 }

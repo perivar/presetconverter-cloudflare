@@ -1,9 +1,6 @@
-import { XMLBuilder, XMLParser } from "fast-xml-parser";
-
 import { FileReference } from "../fileReference";
 import type { IAudio } from "../types"; // Import IFileReference
 
-import { XML_BUILDER_OPTIONS, XML_PARSER_OPTIONS } from "../xml/options";
 import { MediaFile } from "./mediaFile";
 import { TimeUnit } from "./timeUnit";
 
@@ -11,31 +8,29 @@ export class Audio extends MediaFile implements IAudio {
   sampleRate: number;
   channels: number;
   algorithm?: string;
-  duration: number; // Explicitly declare duration
-  file: FileReference; // Explicitly declare file with concrete type
 
   constructor(
-    sampleRate: number,
-    channels: number,
-    duration: number,
-    file: FileReference,
+    // Make required fields optional for deserialization, provide defaults
+    sampleRate?: number,
+    channels?: number,
+    duration?: number,
+    file?: FileReference,
     algorithm?: string,
     name?: string,
     timeUnit?: TimeUnit
   ) {
-    super(file, duration, name, timeUnit);
-    this.sampleRate = sampleRate;
-    this.channels = channels;
+    // Provide default placeholders for required fields
+    super(file || new FileReference(""), duration || 0, name, timeUnit);
+    this.sampleRate = sampleRate || 0; // Default placeholder
+    this.channels = channels || 0; // Default placeholder
     this.algorithm = algorithm;
-    this.duration = duration; // Assign duration
-    this.file = file; // Assign file
+    // duration and file are handled by the super constructor
   }
 
   toXmlObject(): any {
     const obj: any = {
       Audio: {
-        ...super.getXmlAttributes(),
-        ...super.getXmlChildren(),
+        ...super.toXmlObject(), // Get attributes and children from MediaFile's toXmlObject
         "@_sampleRate": this.sampleRate,
         "@_channels": this.channels,
       },
@@ -48,35 +43,23 @@ export class Audio extends MediaFile implements IAudio {
     return obj;
   }
 
-  toXml(): string {
-    const builder = new XMLBuilder(XML_BUILDER_OPTIONS);
-    return builder.build(this.toXmlObject());
-  }
+  fromXmlObject(xmlObject: any): this {
+    super.fromXmlObject(xmlObject);
 
-  static fromXmlObject(xmlObject: any): Audio {
-    const sampleRate =
+    this.sampleRate =
       xmlObject.sampleRate !== undefined
         ? parseInt(xmlObject.sampleRate, 10)
         : 0;
-    const channels =
+    this.channels =
       xmlObject.channels !== undefined ? parseInt(xmlObject.channels, 10) : 0;
-    const duration =
+    this.duration =
       xmlObject.duration !== undefined ? parseFloat(xmlObject.duration) : 0;
-    const file = xmlObject.File
-      ? FileReference.fromXmlObject(xmlObject.File)
+    this.file = xmlObject.File
+      ? new FileReference().fromXmlObject(xmlObject.File)
       : new FileReference("");
 
-    const instance = new Audio(sampleRate, channels, duration, file);
-    instance.populateFromXml(xmlObject);
+    this.algorithm = xmlObject.algorithm || undefined;
 
-    instance.algorithm = xmlObject.algorithm || undefined;
-
-    return instance;
-  }
-
-  static fromXml(xmlString: string): Audio {
-    const parser = new XMLParser(XML_PARSER_OPTIONS);
-    const jsonObj = parser.parse(xmlString);
-    return Audio.fromXmlObject(jsonObj.Audio);
+    return this;
   }
 }

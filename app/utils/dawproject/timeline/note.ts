@@ -1,9 +1,6 @@
-import { XMLBuilder, XMLParser } from "fast-xml-parser";
-
 import { DoubleAdapter } from "../doubleAdapter";
 import { TimelineRegistry } from "../registry/timelineRegistry";
 import type { INote } from "../types";
-import { XML_BUILDER_OPTIONS, XML_PARSER_OPTIONS } from "../xml/options";
 import { XmlObject } from "../XmlObject";
 import { Timeline } from "./timeline";
 
@@ -17,18 +14,20 @@ export class Note extends XmlObject implements INote {
   content?: Timeline;
 
   constructor(
-    time: number,
-    duration: number,
-    key: number,
+    // Make required fields optional for deserialization, provide defaults
+    time?: number,
+    duration?: number,
+    key?: number,
     channel: number = 0,
     velocity?: number,
     releaseVelocity?: number,
     content?: Timeline
   ) {
     super();
-    this.time = time;
-    this.duration = duration;
-    this.key = key;
+    // Provide default placeholders for required fields
+    this.time = time || 0;
+    this.duration = duration || 0;
+    this.key = key || 0;
     this.channel = channel;
     this.velocity = velocity;
     this.releaseVelocity = releaseVelocity;
@@ -54,7 +53,6 @@ export class Note extends XmlObject implements INote {
       obj.Note["@_rel"] = DoubleAdapter.toXml(this.releaseVelocity) || "";
     }
     if (this.content !== undefined) {
-      // Assuming content is a Timeline subclass and has a toXmlObject method
       const contentObj = this.content.toXmlObject();
       const tagName = Object.keys(contentObj)[0];
       obj.Note.Content = { [tagName]: contentObj[tagName] }; // Wrap in "Content" tag
@@ -63,37 +61,31 @@ export class Note extends XmlObject implements INote {
     return obj;
   }
 
-  toXml(): string {
-    const builder = new XMLBuilder(XML_BUILDER_OPTIONS);
-    return builder.build(this.toXmlObject());
-  }
-
-  static fromXmlObject(xmlObject: any): Note {
-    const time =
+  fromXmlObject(xmlObject: any): this {
+    this.time =
       xmlObject["@_time"] !== undefined
         ? DoubleAdapter.fromXml(xmlObject["@_time"]) || 0
         : 0;
-    const duration =
+    this.duration =
       xmlObject["@_duration"] !== undefined
         ? DoubleAdapter.fromXml(xmlObject["@_duration"]) || 0
         : 0;
-    const key =
+    this.key =
       xmlObject["@_key"] !== undefined ? parseInt(xmlObject["@_key"], 10) : 0;
-    const channel =
+    this.channel =
       xmlObject["@_channel"] !== undefined
         ? parseInt(xmlObject["@_channel"], 10)
         : 0;
-    const velocity =
+    this.velocity =
       xmlObject["@_vel"] !== undefined
         ? DoubleAdapter.fromXml(xmlObject["@_vel"])
         : undefined;
-    const releaseVelocity =
+    this.releaseVelocity =
       xmlObject["@_rel"] !== undefined
         ? DoubleAdapter.fromXml(xmlObject["@_rel"])
         : undefined;
 
     // Handle content if present
-    let content: Timeline | undefined;
     if (xmlObject.Content) {
       const contentObj = xmlObject.Content;
       const tagName = Object.keys(contentObj)[0]; // Get the actual content tag name
@@ -101,7 +93,7 @@ export class Note extends XmlObject implements INote {
 
       if (TimelineClass) {
         try {
-          content = TimelineClass.fromXmlObject(contentObj[tagName]);
+          this.content = new TimelineClass().fromXmlObject(contentObj[tagName]);
         } catch (e) {
           console.error(
             `Error deserializing nested timeline content ${tagName} in Note:`,
@@ -115,20 +107,6 @@ export class Note extends XmlObject implements INote {
       }
     }
 
-    return new Note(
-      time,
-      duration,
-      key,
-      channel,
-      velocity,
-      releaseVelocity,
-      content
-    );
-  }
-
-  static fromXml(xmlString: string): Note {
-    const parser = new XMLParser(XML_PARSER_OPTIONS);
-    const jsonObj = parser.parse(xmlString);
-    return Note.fromXmlObject(jsonObj.Note);
+    return this;
   }
 }

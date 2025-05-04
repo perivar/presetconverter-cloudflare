@@ -1,18 +1,11 @@
-import { XMLBuilder, XMLParser } from "fast-xml-parser";
-
 import { BoolParameter } from "./boolParameter";
-import { BuiltInDevice } from "./device/builtInDevice";
-import { Compressor } from "./device/compressor";
 import { Device } from "./device/device";
-import { Equalizer } from "./device/equalizer";
 import { Lane } from "./lane";
 import { MixerRole } from "./mixerRole";
 import { RealParameter } from "./realParameter";
+import { DeviceRegistry } from "./registry/deviceRegistry";
 import { Send } from "./send";
 import { IChannel, IDevice } from "./types";
-import { XML_BUILDER_OPTIONS, XML_PARSER_OPTIONS } from "./xml/options";
-
-// Import other concrete Device subclasses here
 
 /**
  * Represents a mixer channel. It provides the ability to route signals to other channels and can contain
@@ -66,7 +59,7 @@ export class Channel extends Lane implements IChannel {
 
   toXmlObject(): any {
     // Get base attributes from Lane
-    const attributes = super.getXmlAttributes();
+    const attributes = super.toXmlObject();
 
     // Add Channel-specific attributes
     if (this.role !== undefined) {
@@ -124,23 +117,14 @@ export class Channel extends Lane implements IChannel {
     return obj;
   }
 
-  toXml(): string {
-    const builder = new XMLBuilder(XML_BUILDER_OPTIONS);
-    return builder.build(this.toXmlObject());
-  }
-
-  static fromXmlObject(xmlObject: any): Channel {
-    // Create instance of Channel
-    const instance = new Channel();
-
-    // Populate inherited attributes
-    instance.populateFromXml(xmlObject);
+  fromXmlObject(xmlObject: any): this {
+    super.fromXmlObject(xmlObject); // Populate inherited attributes from Lane
 
     // Handle required attribute role
     if (!xmlObject["@_role"]) {
       throw new Error("Required attribute 'role' missing in Channel XML");
     }
-    instance.role = xmlObject["@_role"] as MixerRole;
+    this.role = xmlObject["@_role"] as MixerRole;
 
     // Handle required attribute audioChannels
     if (!xmlObject["@_audioChannels"]) {
@@ -152,30 +136,30 @@ export class Channel extends Lane implements IChannel {
     if (isNaN(audioChannels) || audioChannels < 1) {
       throw new Error("Invalid audioChannels value in Channel XML");
     }
-    instance.audioChannels = audioChannels;
+    this.audioChannels = audioChannels;
 
     // Handle optional elements
     if (xmlObject.Volume) {
-      instance.volume = RealParameter.fromXmlObject({
+      this.volume = new RealParameter().fromXmlObject({
         RealParameter: xmlObject.Volume,
       });
     }
 
     if (xmlObject.Pan) {
-      instance.pan = RealParameter.fromXmlObject({
+      this.pan = new RealParameter().fromXmlObject({
         RealParameter: xmlObject.Pan,
       });
     }
 
     if (xmlObject.Mute) {
-      instance.mute = BoolParameter.fromXmlObject({
+      this.mute = new BoolParameter().fromXmlObject({
         BoolParameter: xmlObject.Mute,
       });
     }
 
     // Handle optional solo attribute
     if (xmlObject["@_solo"] !== undefined) {
-      instance.solo = String(xmlObject["@_solo"]).toLowerCase() === "true";
+      this.solo = String(xmlObject["@_solo"]).toLowerCase() === "true";
     }
 
     const destinationId = xmlObject["@_destination"];
@@ -188,15 +172,15 @@ export class Channel extends Lane implements IChannel {
     }
 
     // Handle sends array with proper error handling
-    instance.sends = [];
+    this.sends = [];
     if (xmlObject.Sends?.Send) {
       const sendArray = Array.isArray(xmlObject.Sends.Send)
         ? xmlObject.Sends.Send
         : [xmlObject.Sends.Send];
 
-      instance.sends = sendArray.map((sendObj: any) => {
+      this.sends = sendArray.map((sendObj: any) => {
         try {
-          return Send.fromXmlObject(sendObj);
+          return new Send().fromXmlObject(sendObj);
         } catch (error: unknown) {
           const message =
             error instanceof Error ? error.message : String(error);
@@ -207,32 +191,30 @@ export class Channel extends Lane implements IChannel {
 
     const devices: IDevice[] = [];
     if (xmlObject.Devices) {
-      // Need a mechanism to determine the correct subclass of Device
-      // based on the XML element tag (e.g., BuiltinDevice, Equalizer, Compressor, etc.)
-      const deviceTypeMap: { [key: string]: (obj: any) => IDevice } = {
-        // Return type is IDevice
-        BuiltinDevice: BuiltInDevice.fromXmlObject,
-        Equalizer: Equalizer.fromXmlObject,
-        Compressor: Compressor.fromXmlObject,
-        // Add other concrete Device subclasses here
-      };
-
+      // Iterate through all properties in xmlObject.Devices to find Device elements
       for (const tagName in xmlObject.Devices) {
-        if (deviceTypeMap[tagName]) {
+        // Skip attributes (those starting with @_)
+        if (tagName.startsWith("@_")) continue;
+
+        const DeviceClass = DeviceRegistry.getDeviceClass(tagName);
+        if (DeviceClass) {
           const deviceData = xmlObject.Devices[tagName];
           const deviceArray = Array.isArray(deviceData)
             ? deviceData
             : [deviceData];
-          deviceArray.forEach((deviceObj: any) => {
+
+          for (const deviceObj of deviceArray) {
             try {
-              devices.push(deviceTypeMap[tagName](deviceObj));
+              // Create a new instance and call fromXmlObject on it
+              const deviceInstance = new DeviceClass().fromXmlObject(deviceObj);
+              devices.push(deviceInstance);
             } catch (e) {
               console.error(
                 `Error deserializing nested device element ${tagName} in Channel:`,
                 e
               );
             }
-          });
+          }
         } else {
           console.warn(
             `Skipping deserialization of unknown nested device element in Channel: ${tagName}`
@@ -240,14 +222,8 @@ export class Channel extends Lane implements IChannel {
         }
       }
     }
-    instance.devices = devices;
+    this.devices = devices;
 
-    return instance;
-  }
-
-  static fromXml(xmlString: string): Channel {
-    const parser = new XMLParser(XML_PARSER_OPTIONS);
-    const jsonObj = parser.parse(xmlString);
-    return Channel.fromXmlObject(jsonObj.Channel);
+    return this;
   }
 }

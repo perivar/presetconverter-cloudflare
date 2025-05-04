@@ -5,32 +5,23 @@ import { XmlObject } from "../XmlObject";
 export abstract class Point extends XmlObject implements IPoint {
   time: number;
 
-  constructor(time: number) {
+  constructor(time?: number) {
     super();
-    this.time = time;
+    // Make time optional for deserialization, fromXmlObject will set it
+    this.time = time || 0; // Provide a default placeholder
   }
 
-  // Abstract method from XmlObject that must be implemented by concrete classes
-  abstract toXmlObject(): any;
-
-  // Abstract method from XmlObject that must be implemented by concrete classes
-  abstract toXml(): string;
-
-  protected getXmlAttributes(): any {
-    // Create object for attributes
+  toXmlObject(): any {
+    // Point is abstract, so it doesn't return a root element itself.
+    // Subclasses will wrap these attributes in their specific root tag.
     const attributes: any = {};
-
-    // Add required time attribute
     if (this.time !== undefined) {
       attributes["@_time"] = DoubleAdapter.toXml(this.time) || "";
-    } else {
-      throw new Error("Required attribute 'time' missing for Point");
     }
-
     return attributes;
   }
 
-  protected populateFromXml(xmlObject: any): void {
+  fromXmlObject(xmlObject: any): this {
     // Validate and populate required time attribute
     if (!xmlObject["@_time"]) {
       throw new Error("Required attribute 'time' missing in XML");
@@ -42,5 +33,7 @@ export abstract class Point extends XmlObject implements IPoint {
     }
 
     this.time = timeValue;
+
+    return this;
   }
 }

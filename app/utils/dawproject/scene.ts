@@ -1,10 +1,7 @@
-import { XMLBuilder, XMLParser } from "fast-xml-parser";
-
 import { Referenceable } from "./referenceable";
 import { TimelineRegistry } from "./registry/timelineRegistry";
 import { Timeline } from "./timeline/timeline";
 import { IScene } from "./types";
-import { XML_BUILDER_OPTIONS, XML_PARSER_OPTIONS } from "./xml/options";
 
 /** Represents a clip launcher Scene of a DAW. */
 export class Scene extends Referenceable implements IScene {
@@ -37,12 +34,11 @@ export class Scene extends Referenceable implements IScene {
   toXmlObject(): any {
     const obj: any = {
       Scene: {
-        ...super.getXmlAttributes(), // Get attributes from Referenceable
+        ...super.toXmlObject(), // Get attributes from Referenceable
       },
     };
 
     if (this.content) {
-      // Assuming content is a Timeline subclass and has a toXmlObject method
       const contentObj = this.content.toXmlObject();
       const tagName = Object.keys(contentObj)[0];
       obj.Scene.Content = { [tagName]: contentObj[tagName] }; // Wrap in "Content" tag
@@ -51,14 +47,8 @@ export class Scene extends Referenceable implements IScene {
     return obj;
   }
 
-  toXml(): string {
-    const builder = new XMLBuilder(XML_BUILDER_OPTIONS);
-    return builder.build(this.toXmlObject());
-  }
-
-  static fromXmlObject(xmlObject: any): Scene {
-    const instance = new Scene(); // Create instance
-    instance.populateFromXml(xmlObject); // Populate inherited attributes
+  fromXmlObject(xmlObject: any): this {
+    super.fromXmlObject(xmlObject); // Populate inherited attributes from Referenceable
 
     // Handle content if present
     let content: Timeline | undefined;
@@ -69,7 +59,18 @@ export class Scene extends Referenceable implements IScene {
 
       if (TimelineClass) {
         try {
-          content = TimelineClass.fromXmlObject(contentObj[tagName]);
+          // Use the new createTimelineFromXml method
+          const timelineInstance = TimelineRegistry.createTimelineFromXml(
+            tagName,
+            contentObj[tagName]
+          );
+          if (timelineInstance) {
+            content = timelineInstance;
+          } else {
+            console.warn(
+              `Skipping deserialization of unknown nested timeline content in Scene: ${tagName}`
+            );
+          }
         } catch (e) {
           console.error(
             `Error deserializing nested timeline content ${tagName} in Scene:`,
@@ -82,14 +83,8 @@ export class Scene extends Referenceable implements IScene {
         );
       }
     }
-    instance.content = content;
+    this.content = content;
 
-    return instance;
-  }
-
-  static fromXml(xmlString: string): Scene {
-    const parser = new XMLParser(XML_PARSER_OPTIONS);
-    const jsonObj = parser.parse(xmlString);
-    return Scene.fromXmlObject(jsonObj.Scene);
+    return this;
   }
 }

@@ -1,7 +1,4 @@
-import { XMLBuilder, XMLParser } from "fast-xml-parser";
-
 import type { INotes, ITrack } from "../types";
-import { XML_BUILDER_OPTIONS, XML_PARSER_OPTIONS } from "../xml/options";
 import { Note } from "./note";
 import { Timeline } from "./timeline";
 import { TimeUnit } from "./timeUnit";
@@ -24,26 +21,20 @@ export class Notes extends Timeline implements INotes {
   toXmlObject(): any {
     const obj: any = {
       Notes: {
-        ...super.getXmlAttributes(), // Get attributes from Timeline
+        ...super.toXmlObject(), // Get attributes from Timeline
       },
     };
 
     // Append child elements for each note
     if (this.notes && this.notes.length > 0) {
-      obj.Notes.Note = this.notes.map(note => note.toXmlObject().Note); // Assuming Note has toXmlObject and returns { Note: ... }
+      obj.Notes.Note = this.notes.map(note => note.toXmlObject().Note);
     }
 
     return obj;
   }
 
-  toXml(): string {
-    const builder = new XMLBuilder(XML_BUILDER_OPTIONS);
-    return builder.build(this.toXmlObject());
-  }
-
-  static fromXmlObject(xmlObject: any): Notes {
-    const instance = new Notes(); // Create instance of Notes
-    instance.populateFromXml(xmlObject); // Populate inherited attributes from Timeline
+  fromXmlObject(xmlObject: any): this {
+    super.fromXmlObject(xmlObject); // Populate inherited attributes from Timeline
 
     // Process child elements of type Note
     const notes: Note[] = [];
@@ -52,17 +43,11 @@ export class Notes extends Timeline implements INotes {
         ? xmlObject.Note
         : [xmlObject.Note];
       noteArray.forEach((noteObj: any) => {
-        notes.push(Note.fromXmlObject(noteObj)); // Assuming Note has a static fromXmlObject
+        notes.push(new Note().fromXmlObject(noteObj));
       });
     }
-    instance.notes = notes;
+    this.notes = notes;
 
-    return instance;
-  }
-
-  static fromXml(xmlString: string): Notes {
-    const parser = new XMLParser(XML_PARSER_OPTIONS);
-    const jsonObj = parser.parse(xmlString);
-    return Notes.fromXmlObject(jsonObj.Notes);
+    return this;
   }
 }

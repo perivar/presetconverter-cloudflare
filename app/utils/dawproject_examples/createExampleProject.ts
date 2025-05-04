@@ -10,6 +10,7 @@ import { MixerRole } from "../dawproject/mixerRole";
 import { Project } from "../dawproject/project";
 import { RealParameter } from "../dawproject/realParameter";
 import { Referenceable } from "../dawproject/referenceable";
+import { AutomationTarget } from "../dawproject/timeline/automationTarget";
 import { Clip } from "../dawproject/timeline/clip";
 import { Clips } from "../dawproject/timeline/clips";
 import { Lanes } from "../dawproject/timeline/lanes";
@@ -70,6 +71,9 @@ export function createDummyProject(
 ): Project {
   const project = createEmptyProject();
 
+  project.transport = new Transport();
+  project.transport.tempo = new RealParameter(120.0, Unit.BPM);
+
   // Create master track
   const masterTrack = Utility.createTrack(
     "Master",
@@ -86,13 +90,11 @@ export function createDummyProject(
       masterTrack.channel.devices = [];
     }
 
-    // Create VST3 plugin as in Java implementation
-    const device = new Vst3Plugin("", undefined, undefined, true);
+    const device = new Vst3Plugin();
     device.deviceName = "Limiter";
     device.deviceRole = DeviceRole.AUDIO_FX;
-    const fileRef = new FileReference("", false);
-    fileRef.path = "plugin-states/12323545.vstpreset";
-    device.state = fileRef;
+    device.state = new FileReference();
+    device.state.path = "plugin-states/12323545.vstpreset";
 
     masterTrack.channel.devices.push(device);
   }
@@ -113,15 +115,9 @@ export function createDummyProject(
 
   // Create tracks
   for (let i = 0; i < numTracks; i++) {
-    const trackContentTypes = new Set<ContentType>();
-    if (features.has("NOTES")) trackContentTypes.add(ContentType.NOTES);
-    if (features.has("AUDIO")) trackContentTypes.add(ContentType.AUDIO);
-    if (features.has("AUTOMATION"))
-      trackContentTypes.add(ContentType.AUTOMATION);
-
     const track = Utility.createTrack(
       `Track ${i + 1}`,
-      trackContentTypes,
+      new Set([ContentType.NOTES]),
       MixerRole.REGULAR,
       1.0,
       0.5
@@ -175,12 +171,7 @@ export function createDummyProject(
     // Add automation if needed for first track
     if (i === 0 && features.has("AUTOMATION") && track.channel?.volume) {
       const points = new Points();
-      // TODO: fix points target
-      // points.target = {
-      //   parameter: track.channel.volume.id || "",
-      //   toXmlObject: () => ({ type: "volume" }),
-      //   toXml: () => "<volume/>",
-      // };
+      points.target.parameter = track.channel.volume;
       trackLanes.lanes.push(points);
 
       // Add fade-in automation points
@@ -236,24 +227,19 @@ export function createMIDIAutomationExample(
   automation.unit = Unit.NORMALIZED;
 
   if (isPitchBend) {
-    automation.target = {
-      expression: ExpressionType.PITCH_BEND,
-      channel: 0,
-      toXmlObject: () => ({ type: "pitchBend", channel: 0 }),
-      toXml: () => "<pitchBend channel='0'/>",
-    };
+    automation.target = new AutomationTarget(
+      undefined,
+      ExpressionType.PITCH_BEND,
+      0
+    );
   } else {
-    automation.target = {
-      expression: ExpressionType.CHANNEL_CONTROLLER,
-      channel: 0,
-      controller: 1,
-      toXmlObject: () => ({
-        type: "channelController",
-        channel: 0,
-        controller: 1,
-      }),
-      toXml: () => "<channelController channel='0' controller='1'/>",
-    };
+    automation.target = new AutomationTarget(
+      undefined,
+      ExpressionType.CHANNEL_CONTROLLER,
+      0,
+      undefined,
+      1
+    );
   }
 
   // Add automation points with various interpolation types

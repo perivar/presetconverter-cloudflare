@@ -1,7 +1,4 @@
-import { XMLBuilder, XMLParser } from "fast-xml-parser";
-
 import type { IMarkers, ITrack } from "../types";
-import { XML_BUILDER_OPTIONS, XML_PARSER_OPTIONS } from "../xml/options";
 import { Marker } from "./marker";
 import { Timeline } from "./timeline";
 import { TimeUnit } from "./timeUnit";
@@ -24,26 +21,20 @@ export class Markers extends Timeline implements IMarkers {
   toXmlObject(): any {
     const obj: any = {
       Markers: {
-        ...super.getXmlAttributes(), // Get attributes from Timeline
+        ...super.toXmlObject(), // Get attributes from Timeline
       },
     };
 
     // Append child elements for each marker
     if (this.markers && this.markers.length > 0) {
-      obj.Markers.Marker = this.markers.map(marker => marker.toXmlObject()); // Assuming Marker has toXmlObject
+      obj.Markers.Marker = this.markers.map(marker => marker.toXmlObject());
     }
 
     return obj;
   }
 
-  toXml(): string {
-    const builder = new XMLBuilder(XML_BUILDER_OPTIONS);
-    return builder.build(this.toXmlObject());
-  }
-
-  static fromXmlObject(xmlObject: any): Markers {
-    const instance = new Markers(); // Create instance of Markers
-    instance.populateFromXml(xmlObject); // Populate inherited attributes from Timeline
+  fromXmlObject(xmlObject: any): this {
+    super.fromXmlObject(xmlObject); // Populate inherited attributes from Timeline
 
     // Process child elements of type Marker
     const markers: Marker[] = [];
@@ -52,17 +43,11 @@ export class Markers extends Timeline implements IMarkers {
         ? xmlObject.Marker
         : [xmlObject.Marker];
       markerArray.forEach((markerObj: any) => {
-        markers.push(Marker.fromXmlObject(markerObj)); // Assuming Marker has a static fromXmlObject
+        markers.push(new Marker().fromXmlObject(markerObj));
       });
     }
-    instance.markers = markers;
+    this.markers = markers;
 
-    return instance;
-  }
-
-  static fromXml(xmlString: string): Markers {
-    const parser = new XMLParser(XML_PARSER_OPTIONS);
-    const jsonObj = parser.parse(xmlString);
-    return Markers.fromXmlObject(jsonObj.Markers);
+    return this;
   }
 }

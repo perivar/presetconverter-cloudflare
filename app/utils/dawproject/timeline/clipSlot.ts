@@ -1,7 +1,4 @@
-import { XMLBuilder, XMLParser } from "fast-xml-parser";
-
 import type { IClipSlot, ITrack } from "../types";
-import { XML_BUILDER_OPTIONS, XML_PARSER_OPTIONS } from "../xml/options";
 import { Clip } from "./clip";
 import { Timeline } from "./timeline";
 import { TimeUnit } from "./timeUnit";
@@ -27,12 +24,12 @@ export class ClipSlot extends Timeline implements IClipSlot {
   toXmlObject(): any {
     const obj: any = {
       ClipSlot: {
-        ...super.getXmlAttributes(), // Populate inherited attributes
+        ...super.toXmlObject(), // populate inherited attributes from Timeline
       },
     };
 
     if (this.clip) {
-      obj.ClipSlot.Clip = this.clip.toXmlObject().Clip; // Assuming Clip has toXmlObject and returns { Clip: ... }
+      obj.ClipSlot.Clip = this.clip.toXmlObject().Clip;
     }
 
     if (this.hasStop !== undefined) {
@@ -42,30 +39,18 @@ export class ClipSlot extends Timeline implements IClipSlot {
     return obj;
   }
 
-  toXml(): string {
-    const builder = new XMLBuilder(XML_BUILDER_OPTIONS);
-    return builder.build(this.toXmlObject());
-  }
-
-  static fromXmlObject(xmlObject: any): ClipSlot {
-    const instance = new ClipSlot(); // Create instance of ClipSlot
-    instance.populateFromXml(xmlObject); // Populate inherited attributes
+  fromXmlObject(xmlObject: any): this {
+    super.fromXmlObject(xmlObject); // Populate inherited attributes
 
     if (xmlObject.Clip) {
-      instance.clip = Clip.fromXmlObject(xmlObject.Clip); // Assuming Clip has a static fromXmlObject
+      this.clip = new Clip().fromXmlObject(xmlObject.Clip);
     }
 
-    instance.hasStop =
+    this.hasStop =
       xmlObject.hasStop !== undefined
         ? String(xmlObject.hasStop).toLowerCase() === "true"
         : undefined;
 
-    return instance;
-  }
-
-  static fromXml(xmlString: string): ClipSlot {
-    const parser = new XMLParser(XML_PARSER_OPTIONS);
-    const jsonObj = parser.parse(xmlString);
-    return ClipSlot.fromXmlObject(jsonObj.ClipSlot);
+    return this;
   }
 }

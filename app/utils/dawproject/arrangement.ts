@@ -1,11 +1,8 @@
-import { XMLBuilder, XMLParser } from "fast-xml-parser";
-
 import { Referenceable } from "./referenceable";
 import { Lanes } from "./timeline/lanes";
 import { Markers } from "./timeline/markers";
 import { Points } from "./timeline/points";
 import { IArrangement } from "./types";
-import { XML_BUILDER_OPTIONS, XML_PARSER_OPTIONS } from "./xml/options";
 
 /** Represents the main Arrangement timeline of a DAW. */
 export class Arrangement extends Referenceable implements IArrangement {
@@ -49,7 +46,7 @@ export class Arrangement extends Referenceable implements IArrangement {
   toXmlObject(): any {
     const obj: any = {
       Arrangement: {
-        ...super.getXmlAttributes(), // Get attributes from Referenceable
+        ...super.toXmlObject(), // Get attributes from Referenceable
       },
     };
 
@@ -65,7 +62,6 @@ export class Arrangement extends Referenceable implements IArrangement {
       obj.Arrangement.Lanes = this.lanes.toXmlObject().Lanes; // Get the inner object
     }
     if (this.markers) {
-      // Assuming Markers class has a 'markers' property which is an array of Marker instances
       if (this.markers.markers) {
         obj.Arrangement.Markers = {
           Marker: this.markers.markers.map(
@@ -78,71 +74,28 @@ export class Arrangement extends Referenceable implements IArrangement {
     return obj;
   }
 
-  toXml(): string {
-    const builder = new XMLBuilder(XML_BUILDER_OPTIONS);
-    return builder.build(this.toXmlObject());
-  }
-
-  static fromXmlObject(xmlObject: any): Arrangement {
-    const instance = new Arrangement();
-    instance.populateFromXml(xmlObject); // Populate inherited attributes
+  fromXmlObject(xmlObject: any): this {
+    super.fromXmlObject(xmlObject); // Populate inherited attributes from Referenceable
 
     if (xmlObject.TimeSignatureAutomation) {
-      instance.timeSignatureAutomation = Points.fromXmlObject({
+      this.timeSignatureAutomation = new Points().fromXmlObject({
         Points: xmlObject.TimeSignatureAutomation,
-      }); // Wrap in expected structure
+      });
     }
     if (xmlObject.TempoAutomation) {
-      instance.tempoAutomation = Points.fromXmlObject({
+      this.tempoAutomation = new Points().fromXmlObject({
         Points: xmlObject.TempoAutomation,
-      }); // Wrap in expected structure
+      });
     }
     if (xmlObject.Markers) {
-      instance.markers = Markers.fromXmlObject({ Markers: xmlObject.Markers }); // Wrap in expected structure
+      this.markers = new Markers().fromXmlObject({
+        Markers: xmlObject.Markers,
+      });
     }
     if (xmlObject.Lanes) {
-      instance.lanes = Lanes.fromXmlObject({ Lanes: xmlObject.Lanes }); // Wrap in expected structure
+      this.lanes = new Lanes().fromXmlObject({ Lanes: xmlObject.Lanes });
     }
 
-    return instance;
-  }
-
-  static fromXml(xmlString: string): Arrangement {
-    const parser = new XMLParser(XML_PARSER_OPTIONS);
-    const jsonObj = parser.parse(xmlString);
-    return Arrangement.fromXmlObject(jsonObj.Arrangement);
-  }
-
-  // Need to add methods to Referenceable to handle XML object conversion
-  protected getXmlAttributes(): any {
-    const attributes: any = {};
-    if (this.id !== undefined) {
-      attributes.id = this.id;
-    }
-    if (this.name !== undefined) {
-      attributes.name = this.name;
-    }
-    if (this.color !== undefined) {
-      attributes.color = this.color;
-    }
-    if (this.comment !== undefined) {
-      attributes.comment = this.comment;
-    }
-    return attributes;
-  }
-
-  protected populateFromXml(xmlObject: any): void {
-    if (xmlObject.id !== undefined) {
-      this.id = xmlObject.id;
-    }
-    if (xmlObject.name !== undefined) {
-      this.name = xmlObject.name;
-    }
-    if (xmlObject.color !== undefined) {
-      this.color = xmlObject.color;
-    }
-    if (xmlObject.comment !== undefined) {
-      this.comment = xmlObject.comment;
-    }
+    return this;
   }
 }

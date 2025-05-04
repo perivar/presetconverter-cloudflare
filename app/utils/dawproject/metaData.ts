@@ -1,7 +1,4 @@
-import { XMLBuilder, XMLParser } from "fast-xml-parser";
-
 import { IMetaData } from "./types";
-import { XML_BUILDER_OPTIONS, XML_PARSER_OPTIONS } from "./xml/options";
 import { XmlObject } from "./XmlObject";
 
 /** Metadata root element of the DAWPROJECT format. This is stored in the file metadata.xml file inside the container. */
@@ -64,17 +61,6 @@ export class MetaData extends XmlObject implements IMetaData {
     this.comment = comment;
   }
 
-  toXml(): string {
-    const builder = new XMLBuilder(XML_BUILDER_OPTIONS);
-    return builder.build(this.toXmlObject());
-  }
-
-  static fromXml(xmlString: string): MetaData {
-    const parser = new XMLParser(XML_PARSER_OPTIONS);
-    const jsonObj = parser.parse(xmlString);
-    return MetaData.fromXmlObject(jsonObj.MetaData);
-  }
-
   toXmlObject(): any {
     const obj: any = { MetaData: {} };
     if (this.title !== undefined) obj.MetaData.Title = this.title;
@@ -95,22 +81,20 @@ export class MetaData extends XmlObject implements IMetaData {
     return obj;
   }
 
-  static fromXmlObject(xmlObject: any): MetaData {
-    const md = xmlObject || {};
-    return new MetaData(
-      md.Title,
-      md.Artist,
-      md.Album,
-      md.OriginalArtist,
-      md.Composer,
-      md.Songwriter,
-      md.Producer,
-      md.Arranger,
-      md.Year,
-      md.Genre,
-      md.Copyright,
-      md.Website,
-      md.Comment
-    );
+  fromXmlObject(xmlObject: any): this {
+    this.title = xmlObject.Title;
+    this.artist = xmlObject.Artist;
+    this.album = xmlObject.Album;
+    this.originalArtist = xmlObject.OriginalArtist;
+    this.composer = xmlObject.Composer;
+    this.songwriter = xmlObject.Songwriter;
+    this.producer = xmlObject.Producer;
+    this.arranger = xmlObject.Arranger;
+    this.year = xmlObject.Year;
+    this.genre = xmlObject.Genre;
+    this.copyright = xmlObject.Copyright;
+    this.website = xmlObject.Website;
+    this.comment = xmlObject.Comment;
+    return this;
   }
 }

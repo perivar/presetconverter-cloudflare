@@ -1,5 +1,9 @@
-import { Timeline, TimelineConstructor } from "../timeline/timeline";
-import { BaseRegistry } from "./baseRegistry";
+import { Timeline } from "../timeline/timeline";
+import { BaseConstructor, BaseFactory, BaseRegistry } from "./baseRegistry";
+
+export interface TimelineConstructor extends BaseConstructor<Timeline> {}
+
+export interface TimelineFactory extends BaseFactory<Timeline> {}
 
 export class TimelineRegistry extends BaseRegistry<Timeline> {
   private static instance: TimelineRegistry;
@@ -15,17 +19,32 @@ export class TimelineRegistry extends BaseRegistry<Timeline> {
     return TimelineRegistry.instance;
   }
 
-  static register(tagName: string, timelineClass: TimelineConstructor): void {
-    TimelineRegistry.getInstance().register(tagName, timelineClass);
+  static register(
+    tagName: string,
+    timelineClass: TimelineConstructor,
+    factory: TimelineFactory
+  ): void {
+    TimelineRegistry.getInstance().register(tagName, timelineClass, factory);
   }
 
   static getTimelineClass(tagName: string): TimelineConstructor | undefined {
-    return TimelineRegistry.getInstance().get(tagName);
+    return TimelineRegistry.getInstance().getConstructor(tagName);
+  }
+
+  static createTimelineFromXml(
+    tagName: string,
+    xmlObject: any
+  ): Timeline | undefined {
+    const factory = TimelineRegistry.getInstance().getFactory(tagName);
+    if (factory) {
+      return factory(xmlObject);
+    }
+    return undefined;
   }
 }
 
-export function registerTimeline(tagName: string) {
+export function registerTimeline(tagName: string, factory: TimelineFactory) {
   return function (target: TimelineConstructor) {
-    TimelineRegistry.register(tagName, target);
+    TimelineRegistry.register(tagName, target, factory);
   };
 }

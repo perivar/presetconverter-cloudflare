@@ -1,10 +1,7 @@
-import { XMLBuilder, XMLParser } from "fast-xml-parser";
-
 import { BoolParameter } from "../boolParameter";
 import { RealParameter } from "../realParameter";
 import type { ICompressor, IFileReference, IParameter } from "../types";
 import { Unit } from "../unit";
-import { XML_BUILDER_OPTIONS, XML_PARSER_OPTIONS } from "../xml/options";
 import { BuiltInDevice } from "./builtInDevice";
 import { DeviceRole } from "./deviceRole";
 
@@ -18,8 +15,9 @@ export class Compressor extends BuiltInDevice implements ICompressor {
   autoMakeup?: BoolParameter;
 
   constructor(
-    deviceRole: DeviceRole,
-    deviceName: string,
+    // Make required fields optional for deserialization, provide defaults
+    deviceRole?: DeviceRole,
+    deviceName?: string,
     threshold?: RealParameter,
     ratio?: RealParameter,
     attack?: RealParameter,
@@ -37,9 +35,10 @@ export class Compressor extends BuiltInDevice implements ICompressor {
     color?: string,
     comment?: string
   ) {
+    // Provide default placeholders for required fields
     super(
-      deviceRole, // Pass required deviceRole
-      deviceName, // Pass required deviceName
+      deviceRole || DeviceRole.AUDIO_FX, // Default placeholder
+      deviceName || "", // Default placeholder
       undefined, // deviceType is handled by the class name
       enabled,
       loaded,
@@ -63,124 +62,104 @@ export class Compressor extends BuiltInDevice implements ICompressor {
   toXmlObject(): any {
     const obj: any = {
       Compressor: {
-        ...super.getXmlAttributes(), // Get attributes from BuiltInDevice
-        ...super.getXmlChildren(), // Get children from BuiltInDevice
+        ...super.toXmlObject().BuiltinDevice,
       },
     };
 
-    // Define a helper function to add RealParameter elements
-    const addRealParameterObject = (
-      parentObj: any,
-      tag: string,
-      realParam?: RealParameter,
-      unit?: Unit
-    ) => {
-      if (realParam) {
-        parentObj[tag] = {
-          ...realParam.toXmlObject().RealParameter, // Assuming RealParameter has toXmlObject and returns { RealParameter: ... }
-        };
-        if (unit !== undefined) {
-          parentObj[tag]["@_unit"] = unit;
-        }
-      }
-    };
-
-    addRealParameterObject(obj.Compressor, "Attack", this.attack, Unit.SECONDS);
-    // Add BoolParameter element with appropriate tag
-    if (this.autoMakeup) {
-      obj.Compressor.AutoMakeup = this.autoMakeup.toXmlObject().BoolParameter; // Assuming BoolParameter has toXmlObject and returns { BoolParameter: ... }
+    if (this.attack) {
+      obj.Compressor.Attack = {
+        ...this.attack.toXmlObject().RealParameter,
+        ["@_unit"]: Unit.SECONDS,
+      };
     }
 
-    addRealParameterObject(
-      obj.Compressor,
-      "InputGain",
-      this.inputGain,
-      Unit.DECIBEL
-    );
-    addRealParameterObject(
-      obj.Compressor,
-      "OutputGain",
-      this.outputGain,
-      Unit.DECIBEL
-    );
-    addRealParameterObject(obj.Compressor, "Ratio", this.ratio, Unit.PERCENT);
-    addRealParameterObject(
-      obj.Compressor,
-      "Release",
-      this.release,
-      Unit.SECONDS
-    );
-    addRealParameterObject(
-      obj.Compressor,
-      "Threshold",
-      this.threshold,
-      Unit.DECIBEL
-    );
+    if (this.autoMakeup) {
+      obj.Compressor.AutoMakeup = this.autoMakeup.toXmlObject().BoolParameter;
+    }
+
+    if (this.inputGain) {
+      obj.Compressor.InputGain = {
+        ...this.inputGain.toXmlObject().RealParameter,
+        ["@_unit"]: Unit.DECIBEL,
+      };
+    }
+
+    if (this.outputGain) {
+      obj.Compressor.OutputGain = {
+        ...this.outputGain.toXmlObject().RealParameter,
+        ["@_unit"]: Unit.DECIBEL,
+      };
+    }
+
+    if (this.ratio) {
+      obj.Compressor.Ratio = {
+        ...this.ratio.toXmlObject().RealParameter,
+        ["@_unit"]: Unit.PERCENT,
+      };
+    }
+
+    if (this.release) {
+      obj.Compressor.Release = {
+        ...this.release.toXmlObject().RealParameter,
+        ["@_unit"]: Unit.SECONDS,
+      };
+    }
+
+    if (this.threshold) {
+      obj.Compressor.Threshold = {
+        ...this.threshold.toXmlObject().RealParameter,
+        ["@_unit"]: Unit.DECIBEL,
+      };
+    }
 
     return obj;
   }
 
-  toXml(): string {
-    const builder = new XMLBuilder(XML_BUILDER_OPTIONS);
-    return builder.build(this.toXmlObject());
-  }
-
-  static fromXmlObject(xmlObject: any): Compressor {
-    // Extract required deviceRole and deviceName from xmlObject
-    const deviceRole = xmlObject.deviceRole as DeviceRole;
-    const deviceName = xmlObject.deviceName as string;
-
-    const instance = new Compressor(deviceRole, deviceName); // Create instance with required properties
-    instance.populateFromXml(xmlObject); // Populate inherited attributes from BuiltInDevice
+  fromXmlObject(xmlObject: any): this {
+    super.fromXmlObject(xmlObject); // Populate inherited attributes from BuiltInDevice
 
     if (xmlObject.Threshold) {
-      instance.threshold = RealParameter.fromXmlObject({
+      this.threshold = new RealParameter().fromXmlObject({
         RealParameter: xmlObject.Threshold,
-      }); // Assuming RealParameter has fromXmlObject and returns { RealParameter: ... }
+      });
     }
 
     if (xmlObject.Ratio) {
-      instance.ratio = RealParameter.fromXmlObject({
+      this.ratio = new RealParameter().fromXmlObject({
         RealParameter: xmlObject.Ratio,
       });
     }
 
     if (xmlObject.Attack) {
-      instance.attack = RealParameter.fromXmlObject({
+      this.attack = new RealParameter().fromXmlObject({
         RealParameter: xmlObject.Attack,
       });
     }
 
     if (xmlObject.Release) {
-      instance.release = RealParameter.fromXmlObject({
+      this.release = new RealParameter().fromXmlObject({
         RealParameter: xmlObject.Release,
       });
     }
 
     if (xmlObject.InputGain) {
-      instance.inputGain = RealParameter.fromXmlObject({
+      this.inputGain = new RealParameter().fromXmlObject({
         RealParameter: xmlObject.InputGain,
       });
     }
 
     if (xmlObject.OutputGain) {
-      instance.outputGain = RealParameter.fromXmlObject({
+      this.outputGain = new RealParameter().fromXmlObject({
         RealParameter: xmlObject.OutputGain,
       });
     }
 
     if (xmlObject.AutoMakeup) {
-      instance.autoMakeup = BoolParameter.fromXmlObject({
+      this.autoMakeup = new BoolParameter().fromXmlObject({
         BoolParameter: xmlObject.AutoMakeup,
-      }); // Assuming BoolParameter has fromXmlObject and returns { BoolParameter: ... }
+      });
     }
 
-    return instance;
-  }
-
-  static fromXml(xmlString: string): Compressor {
-    const parser = new XMLParser(XML_PARSER_OPTIONS);
-    const jsonObj = parser.parse(xmlString);
-    return Compressor.fromXmlObject(jsonObj.Compressor);
+    return this;
   }
 }

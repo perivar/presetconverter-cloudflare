@@ -1,8 +1,5 @@
-import { XMLBuilder, XMLParser } from "fast-xml-parser";
-
 import { BoolParameter } from "../boolParameter";
 import { IFileReference, IParameter, IVst3Plugin } from "../types";
-import { XML_BUILDER_OPTIONS, XML_PARSER_OPTIONS } from "../xml/options";
 import { DeviceRole } from "./deviceRole";
 import { Plugin } from "./plugin";
 
@@ -11,7 +8,8 @@ import { Plugin } from "./plugin";
  */
 export class Vst3Plugin extends Plugin implements IVst3Plugin {
   constructor(
-    deviceName: string,
+    // Make required fields optional for deserialization, provide defaults
+    deviceName?: string,
     pluginVersion?: string,
     enabled?: BoolParameter,
     loaded: boolean = true,
@@ -23,9 +21,10 @@ export class Vst3Plugin extends Plugin implements IVst3Plugin {
     color?: string,
     comment?: string
   ) {
+    // Provide default placeholders for required fields
     super(
       DeviceRole.AUDIO_FX, // Default to audio effect role
-      deviceName,
+      deviceName || "", // Default placeholder
       enabled,
       loaded,
       deviceID,
@@ -40,29 +39,10 @@ export class Vst3Plugin extends Plugin implements IVst3Plugin {
   }
 
   toXmlObject(): any {
-    const obj: any = {
-      Vst3Plugin: {
-        ...this.getXmlAttributes(),
-        ...this.getXmlChildren(),
-      },
+    const pluginContent = super.toXmlObject(); // Get attributes and children from Plugin's toXmlObject
+
+    return {
+      Vst3Plugin: pluginContent, // Wrap the content in the Vst3Plugin tag
     };
-    return obj;
-  }
-
-  toXml(): string {
-    const builder = new XMLBuilder(XML_BUILDER_OPTIONS);
-    return builder.build(this.toXmlObject());
-  }
-
-  static fromXmlObject(xmlObject: any): Vst3Plugin {
-    const instance = new Vst3Plugin(xmlObject.deviceName || "");
-    instance.populateFromXml(xmlObject);
-    return instance;
-  }
-
-  static fromXml(xmlString: string): Vst3Plugin {
-    const parser = new XMLParser(XML_PARSER_OPTIONS);
-    const jsonObj = parser.parse(xmlString);
-    return Vst3Plugin.fromXmlObject(jsonObj.Vst3Plugin);
   }
 }

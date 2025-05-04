@@ -16,7 +16,7 @@ export abstract class Nameable extends XmlObject implements INameable {
     this.comment = comment;
   }
 
-  protected getXmlAttributes(): any {
+  toXmlObject(): any {
     // Create object for attributes
     const attributes: any = {};
 
@@ -34,7 +34,7 @@ export abstract class Nameable extends XmlObject implements INameable {
     return attributes;
   }
 
-  protected populateFromXml(xmlObject: any): void {
+  fromXmlObject(xmlObject: any): this {
     // Populate optional attributes
     if (xmlObject["@_name"] !== undefined) {
       this.name = xmlObject["@_name"];
@@ -45,5 +45,6 @@ export abstract class Nameable extends XmlObject implements INameable {
     if (xmlObject["@_comment"] !== undefined) {
       this.comment = xmlObject["@_comment"];
     }
+    return this;
   }
 }

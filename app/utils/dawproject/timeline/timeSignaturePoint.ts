@@ -1,46 +1,32 @@
-import { XMLBuilder, XMLParser } from "fast-xml-parser";
-
 import type { ITimeSignaturePoint } from "../types";
-import { XML_BUILDER_OPTIONS, XML_PARSER_OPTIONS } from "../xml/options";
 import { Point } from "./point";
 
 export class TimeSignaturePoint extends Point implements ITimeSignaturePoint {
   numerator: number;
   denominator: number;
 
-  constructor(time: number, numerator: number, denominator: number) {
-    super(time);
-    this.numerator = numerator;
-    this.denominator = denominator;
+  constructor(time?: number, numerator?: number, denominator?: number) {
+    super(time); // time is now optional in Point
+    // Make numerator and denominator optional for deserialization, fromXmlObject will set them
+    this.numerator = numerator || 0; // Provide a default placeholder
+    this.denominator = denominator || 0; // Provide a default placeholder
   }
 
   toXmlObject(): any {
-    const obj = super.getXmlAttributes(); // Get attributes from Point
-    obj.numerator = this.numerator;
-    obj.denominator = this.denominator;
-    return { TimeSignaturePoint: obj };
+    const attributes = super.toXmlObject(); // Get attributes from Point
+    attributes.numerator = this.numerator;
+    attributes.denominator = this.denominator;
+    return { TimeSignaturePoint: attributes };
   }
 
-  toXml(): string {
-    const builder = new XMLBuilder(XML_BUILDER_OPTIONS);
-    return builder.build(this.toXmlObject());
-  }
-
-  static fromXmlObject(xmlObject: any): TimeSignaturePoint {
-    const instance = new TimeSignaturePoint(0, 0, 0); // Create instance with default values
-    instance.populateFromXml(xmlObject); // Populate inherited attributes from Point
-    instance.numerator =
+  fromXmlObject(xmlObject: any): this {
+    super.fromXmlObject(xmlObject); // Populate inherited attributes from Point
+    this.numerator =
       xmlObject.numerator !== undefined ? parseInt(xmlObject.numerator, 10) : 0;
-    instance.denominator =
+    this.denominator =
       xmlObject.denominator !== undefined
         ? parseInt(xmlObject.denominator, 10)
         : 0;
-    return instance;
-  }
-
-  static fromXml(xmlString: string): TimeSignaturePoint {
-    const parser = new XMLParser(XML_PARSER_OPTIONS);
-    const jsonObj = parser.parse(xmlString);
-    return TimeSignaturePoint.fromXmlObject(jsonObj.TimeSignaturePoint);
+    return this;
   }
 }

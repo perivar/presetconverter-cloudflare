@@ -1,18 +1,11 @@
-import { XMLBuilder, XMLParser } from "fast-xml-parser";
-
 import { BoolParameter } from "../boolParameter";
 import { FileReference } from "../fileReference";
 import { Parameter } from "../parameter";
 import { RealParameter } from "../realParameter";
 import { Referenceable } from "../referenceable";
 import type { IDevice, IFileReference, IParameter } from "../types";
-import { XML_BUILDER_OPTIONS, XML_PARSER_OPTIONS } from "../xml/options";
+import { Unit } from "../unit";
 import { DeviceRole } from "./deviceRole";
-
-export interface DeviceConstructor {
-  new (...args: any[]): Device;
-  fromXmlObject(xmlObject: any): Device;
-}
 
 export abstract class Device extends Referenceable implements IDevice {
   enabled?: BoolParameter;
@@ -25,8 +18,9 @@ export abstract class Device extends Referenceable implements IDevice {
   parameters: IParameter[];
 
   constructor(
-    deviceRole: DeviceRole,
-    deviceName: string,
+    // Make required fields optional for deserialization, provide defaults
+    deviceRole?: DeviceRole,
+    deviceName?: string,
     enabled?: BoolParameter,
     loaded: boolean = true,
     deviceID?: string,
@@ -38,8 +32,10 @@ export abstract class Device extends Referenceable implements IDevice {
     comment?: string
   ) {
     super(name, color, comment);
-    this.deviceRole = deviceRole;
-    this.deviceName = deviceName;
+    // Initialize required fields with defaults or placeholders
+    // fromXmlObject will overwrite these with actual values from XML
+    this.deviceRole = deviceRole || DeviceRole.AUDIO_FX; // Default placeholder
+    this.deviceName = deviceName || ""; // Default placeholder
     this.enabled = enabled;
     this.loaded = loaded;
     this.deviceID = deviceID;
@@ -48,30 +44,23 @@ export abstract class Device extends Referenceable implements IDevice {
     this.parameters = parameters || [];
   }
 
-  protected getXmlAttributes(): any {
-    const attributes = super.getXmlAttributes(); // Get attributes from Referenceable
+  toXmlObject(): any {
+    const obj: any = {};
+    obj.Device = {
+      ...super.toXmlObject(), // Get attributes from Referenceable
+      // Add Device-specific attributes directly here
+      "@_deviceRole": this.deviceRole,
+      "@_deviceName": this.deviceName,
+      ...(this.loaded !== undefined && { "@_loaded": this.loaded }),
+      ...(this.deviceID !== undefined && { "@_deviceID": this.deviceID }),
+      ...(this.deviceVendor !== undefined && {
+        "@_deviceVendor": this.deviceVendor,
+      }),
+    };
 
-    attributes["@_deviceRole"] = this.deviceRole;
-    attributes["@_deviceName"] = this.deviceName;
-
-    if (this.loaded !== undefined) {
-      attributes["@_loaded"] = this.loaded;
-    }
-    if (this.deviceID !== undefined) {
-      attributes["@_deviceID"] = this.deviceID;
-    }
-    if (this.deviceVendor !== undefined) {
-      attributes["@_deviceVendor"] = this.deviceVendor;
-    }
-
-    return attributes;
-  }
-
-  protected getXmlChildren(): any {
-    const children: any = {};
-
+    // Add children directly
     if (this.parameters && this.parameters.length > 0) {
-      children.Parameters = this.parameters.reduce((acc: any, param) => {
+      obj.Device.Parameters = this.parameters.reduce((acc: any, param) => {
         const paramObj = (param as Parameter).toXmlObject();
         const tagName = Object.keys(paramObj)[0];
         if (!acc) acc = {};
@@ -82,20 +71,20 @@ export abstract class Device extends Referenceable implements IDevice {
     }
 
     if (this.enabled !== undefined) {
-      children.Enabled = this.enabled.toXmlObject().BoolParameter;
+      obj.Device.Enabled = this.enabled.toXmlObject().BoolParameter;
     }
 
     if (this.state) {
-      children.State = (
+      obj.Device.State = (
         this.state as FileReference
       ).toXmlObject().FileReference;
     }
 
-    return children;
+    return obj;
   }
 
-  protected populateFromXml(xmlObject: any): void {
-    super.populateFromXml(xmlObject);
+  fromXmlObject(xmlObject: any): this {
+    super.fromXmlObject(xmlObject);
 
     this.deviceRole = xmlObject["@_deviceRole"] as DeviceRole;
     this.deviceName = xmlObject["@_deviceName"];
@@ -108,13 +97,13 @@ export abstract class Device extends Referenceable implements IDevice {
     this.deviceVendor = xmlObject["@_deviceVendor"] || undefined;
 
     if (xmlObject.Enabled) {
-      this.enabled = BoolParameter.fromXmlObject({
+      this.enabled = new BoolParameter().fromXmlObject({
         BoolParameter: xmlObject.Enabled,
       });
     }
 
     if (xmlObject.State) {
-      this.state = FileReference.fromXmlObject({
+      this.state = new FileReference().fromXmlObject({
         FileReference: xmlObject.State,
       });
     }
@@ -122,8 +111,8 @@ export abstract class Device extends Referenceable implements IDevice {
     const parameters: Parameter[] = [];
     if (xmlObject.Parameters) {
       const parameterTypeMap: { [key: string]: (obj: any) => Parameter } = {
-        BoolParameter: BoolParameter.fromXmlObject,
-        RealParameter: RealParameter.fromXmlObject,
+        BoolParameter: new BoolParameter().fromXmlObject,
+        RealParameter: new RealParameter().fromXmlObject,
       };
 
       for (const tagName in xmlObject.Parameters) {
@@ -150,31 +139,24 @@ export abstract class Device extends Referenceable implements IDevice {
       }
     }
     this.parameters = parameters;
+
+    return this;
   }
 
-  toXmlObject(): any {
-    const obj: any = {};
-    obj.Device = {
-      ...this.getXmlAttributes(),
-      ...this.getXmlChildren(),
-    };
-    return obj;
-  }
-
-  toXml(): string {
-    const builder = new XMLBuilder(XML_BUILDER_OPTIONS);
-    return builder.build(this.toXmlObject());
-  }
-
-  static fromXml(xmlString: string): Device {
-    const parser = new XMLParser(XML_PARSER_OPTIONS);
-    const jsonObj = parser.parse(xmlString);
-    return Device.fromXmlObject(jsonObj.Device);
-  }
-
-  static fromXmlObject(xmlObject: any): Device {
-    const instance = new (this as any)();
-    instance.populateFromXml(xmlObject);
-    return instance;
-  }
+  // Define a helper function to add RealParameter elements
+  protected addRealParameterObject = (
+    parentObj: any,
+    tag: string,
+    realParam?: RealParameter,
+    unit?: Unit
+  ) => {
+    if (realParam) {
+      parentObj[tag] = {
+        ...realParam.toXmlObject().RealParameter,
+      };
+      if (unit !== undefined) {
+        parentObj[tag]["@_unit"] = unit;
+      }
+    }
+  };
 }

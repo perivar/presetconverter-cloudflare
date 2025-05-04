@@ -2,11 +2,6 @@ import { Referenceable } from "../referenceable";
 import type { ITimeline, ITrack } from "../types";
 import { TimeUnit } from "./timeUnit";
 
-export interface TimelineConstructor {
-  new (...args: any[]): Timeline;
-  fromXmlObject(xmlObject: any): Timeline;
-}
-
 export abstract class Timeline extends Referenceable implements ITimeline {
   track?: ITrack;
   timeUnit?: TimeUnit;
@@ -23,28 +18,29 @@ export abstract class Timeline extends Referenceable implements ITimeline {
     this.timeUnit = timeUnit;
   }
 
-  protected getXmlAttributes(): any {
-    const attributes = super.getXmlAttributes(); // Get attributes from Referenceable
+  toXmlObject(): any {
+    const attributes = super.toXmlObject(); // Get attributes from Referenceable
     if (this.track !== undefined) {
       attributes["@_track"] = this.track.id; // Use the track's ID as reference
     }
     if (this.timeUnit !== undefined) {
       attributes["@_timeUnit"] = this.timeUnit;
     }
+    // Since Timeline is abstract, it doesn't return a root element itself.
+    // Subclasses will wrap these attributes in their specific root tag.
     return attributes;
   }
 
-  protected populateFromXml(xmlObject: any): void {
-    super.populateFromXml(xmlObject); // Populate inherited attributes from Referenceable
+  fromXmlObject(xmlObject: any): this {
+    super.fromXmlObject(xmlObject); // Populate inherited attributes from Referenceable
+
     // For track references, we only store the ID - actual resolution should happen at a higher level
     const trackId = xmlObject["@_track"];
     this.track = trackId ? ({ id: trackId } as ITrack) : undefined;
     this.timeUnit = xmlObject["@_timeUnit"]
       ? (xmlObject["@_timeUnit"] as TimeUnit)
       : undefined; // Cast string to TimeUnit
-  }
 
-  static fromXmlObject(xmlObject: any): Timeline {
-    throw new Error("fromXmlObject must be implemented by derived class");
+    return this;
   }
 }

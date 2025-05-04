@@ -1,42 +1,28 @@
-import { XMLBuilder, XMLParser } from "fast-xml-parser";
-
 import { DoubleAdapter } from "../doubleAdapter";
 import { Nameable } from "../nameable";
 import type { IMarker } from "../types";
-import { XML_BUILDER_OPTIONS, XML_PARSER_OPTIONS } from "../xml/options";
 
 export class Marker extends Nameable implements IMarker {
   time: number;
 
-  constructor(time: number, name?: string, color?: string, comment?: string) {
+  constructor(time?: number, name?: string, color?: string, comment?: string) {
     super(name, color, comment);
-    this.time = time;
+    // Make time optional for deserialization, fromXmlObject will set it
+    this.time = time || 0; // Provide a default placeholder
   }
 
   toXmlObject(): any {
-    const obj = super.getXmlAttributes(); // Get attributes from Nameable
-    obj.time = DoubleAdapter.toXml(this.time) || "";
-    return obj;
+    const attributes = super.toXmlObject(); // Get attributes from Nameable
+    attributes.time = DoubleAdapter.toXml(this.time) || "";
+    return attributes;
   }
 
-  toXml(): string {
-    const builder = new XMLBuilder(XML_BUILDER_OPTIONS);
-    return builder.build({ Marker: this.toXmlObject() });
-  }
-
-  static fromXmlObject(xmlObject: any): Marker {
-    const instance = new Marker(0); // Create instance with a default time
-    instance.populateFromXml(xmlObject); // Populate inherited attributes from Nameable
-    instance.time =
+  fromXmlObject(xmlObject: any): this {
+    super.fromXmlObject(xmlObject); // Populate inherited attributes from Nameable
+    this.time =
       xmlObject.time !== undefined
         ? DoubleAdapter.fromXml(xmlObject.time) || 0
         : 0;
-    return instance;
-  }
-
-  static fromXml(xmlString: string): Marker {
-    const parser = new XMLParser(XML_PARSER_OPTIONS);
-    const jsonObj = parser.parse(xmlString);
-    return Marker.fromXmlObject(jsonObj.Marker);
+    return this;
   }
 }

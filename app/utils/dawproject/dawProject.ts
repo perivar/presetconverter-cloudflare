@@ -1,9 +1,10 @@
-import { XMLBuilder, XMLParser } from "fast-xml-parser";
+import { XMLParser } from "fast-xml-parser";
 import JSZip from "jszip";
 
 import { MetaData } from "./metaData";
 import { Project } from "./project";
-import { XML_BUILDER_OPTIONS, XML_PARSER_OPTIONS } from "./xml/options";
+import { XML_PARSER_OPTIONS } from "./xml/options";
+import { XmlObject } from "./XmlObject"; // Import XmlObject
 
 /**
  * The main class for handling DAWproject files.
@@ -19,18 +20,6 @@ export class DawProject {
   static METADATA_FILE = "metadata.xml";
 
   /**
-   * Convert an object to XML string representation
-   */
-  static toXml(obj: any): string {
-    try {
-      const xmlObj = obj.toXmlObject();
-      const builder = new XMLBuilder(XML_BUILDER_OPTIONS);
-      return builder.build(xmlObj);
-    } catch (e) {
-      throw new Error(`Failed to convert object to XML: ${e}`);
-    }
-  }
-
   /**
    * Remove BOM from the start of text
    */
@@ -57,8 +46,8 @@ export class DawProject {
     const zip = new JSZip();
 
     // Add metadata and project XML files
-    const metadataXml = DawProject.toXml(metadata);
-    const projectXml = DawProject.toXml(project);
+    const metadataXml = metadata.toXml(); // Use XmlObject.toXml()
+    const projectXml = project.toXml(); // Use XmlObject.toXml()
 
     zip.file(DawProject.METADATA_FILE, new TextEncoder().encode(metadataXml));
     zip.file(DawProject.PROJECT_FILE, new TextEncoder().encode(projectXml));
@@ -86,7 +75,7 @@ export class DawProject {
     }
 
     const xmlString = DawProject.stripBom(projectEntry);
-    return Project.fromXml(xmlString);
+    return XmlObject.fromXml(xmlString, Project);
   }
 
   /**
@@ -103,7 +92,7 @@ export class DawProject {
     }
 
     const xmlString = DawProject.stripBom(metadataEntry);
-    return MetaData.fromXml(xmlString);
+    return XmlObject.fromXml(xmlString, MetaData);
   }
 
   /**
@@ -129,7 +118,7 @@ export class DawProject {
    */
   static async validate(project: Project): Promise<void> {
     try {
-      const projectXml = DawProject.toXml(project);
+      const projectXml = project.toXml(); // Use XmlObject.toXml()
       const parser = new XMLParser(XML_PARSER_OPTIONS);
       try {
         parser.parse(projectXml);
@@ -139,7 +128,7 @@ export class DawProject {
         throw new Error("XML validation failed: XML is not well-formed");
       }
     } catch (e) {
-      throw new Error(`Validation failed: ${e}`);
+      throw new Error(`Validation failed: ${(e as any).message || e}`);
     }
   }
 }

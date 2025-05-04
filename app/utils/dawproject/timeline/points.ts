@@ -1,13 +1,21 @@
-import { XMLBuilder, XMLParser } from "fast-xml-parser";
-
+import {
+  registerTimeline,
+  TimelineRegistry,
+} from "../registry/timelineRegistry";
 import type { IPoints, ITrack } from "../types";
 import { Unit } from "../unit";
-import { XML_BUILDER_OPTIONS, XML_PARSER_OPTIONS } from "../xml/options";
 import { AutomationTarget } from "./automationTarget";
 import { Point } from "./point";
 import { Timeline } from "./timeline";
 import { TimeUnit } from "./timeUnit";
 
+const pointsFactory = (xmlObject: any): Points => {
+  const instance = new Points();
+  instance.fromXmlObject(xmlObject); // fromXmlObject expects the object representing the <Points> element
+  return instance;
+};
+
+@registerTimeline("Points", pointsFactory) // Register Points with the registry
 export class Points extends Timeline implements IPoints {
   target: AutomationTarget;
   points: Point[];
@@ -32,18 +40,36 @@ export class Points extends Timeline implements IPoints {
   toXmlObject(): any {
     const obj: any = {
       Points: {
-        ...super.getXmlAttributes(), // Get attributes from Timeline
+        ...super.toXmlObject(), // Get attributes from Timeline
       },
     };
 
-    // Append Target element
-    if (this.target) {
-      obj.Points.Target = this.target.toXmlObject(); // Assuming AutomationTarget has toXmlObject
+    // Append Target element with parameter attribute
+    if (this.target && this.target.parameter) {
+      obj.Points.Target = { "@_parameter": this.target.parameter.id };
     }
 
     // Append child elements for each point
     if (this.points && this.points.length > 0) {
-      obj.Points.Point = this.points.map(point => point.toXmlObject()); // Assuming Point subclasses have toXmlObject
+      // Iterate through points and add their XML objects directly to Points
+      this.points.forEach(point => {
+        const pointXmlObject = point.toXmlObject();
+        // pointXmlObject is expected to be like { RealPoint: { ...attributes } }
+        // Get the tag name (e.g., "RealPoint")
+        const tagName = Object.keys(pointXmlObject)[0];
+        if (tagName) {
+          // Add the point's XML object directly under the Points element
+          // Handle multiple points of the same type by creating an array if necessary
+          if (obj.Points[tagName]) {
+            if (!Array.isArray(obj.Points[tagName])) {
+              obj.Points[tagName] = [obj.Points[tagName]];
+            }
+            obj.Points[tagName].push(pointXmlObject[tagName]);
+          } else {
+            obj.Points[tagName] = pointXmlObject[tagName];
+          }
+        }
+      });
     }
 
     if (this.unit !== undefined) {
@@ -53,45 +79,56 @@ export class Points extends Timeline implements IPoints {
     return obj;
   }
 
-  toXml(): string {
-    const builder = new XMLBuilder(XML_BUILDER_OPTIONS);
-    return builder.build(this.toXmlObject());
-  }
-
-  static fromXmlObject(xmlObject: any): Points {
-    const instance = new Points(); // Create instance of Points
-    instance.populateFromXml(xmlObject); // Populate inherited attributes from Timeline
+  fromXmlObject(xmlObject: any): this {
+    super.fromXmlObject(xmlObject); // Populate inherited attributes from Timeline
 
     // Process Target element
     if (xmlObject.Target) {
-      instance.target = AutomationTarget.fromXmlObject(xmlObject.Target); // Assuming AutomationTarget has a static fromXmlObject
+      this.target = new AutomationTarget().fromXmlObject(xmlObject.Target);
     }
 
-    // Process child elements of type Point and its subclasses
+    // Process child elements of type Point and its subclasses using the registry
     const points: Point[] = [];
-    if (xmlObject.Point) {
-      const pointArray = Array.isArray(xmlObject.Point)
-        ? xmlObject.Point
-        : [xmlObject.Point];
+
+    // Iterate through all properties in xmlObject to find point elements
+    for (const tagName in xmlObject) {
+      // Skip attributes (those starting with @_), the Target element, and other non-point elements
+      if (
+        tagName === "Target" ||
+        tagName.startsWith("@_") ||
+        tagName === "Points"
+      )
+        continue;
+
+      const pointXmlObject = xmlObject[tagName];
+      const pointArray = Array.isArray(pointXmlObject)
+        ? pointXmlObject
+        : [pointXmlObject];
+
       pointArray.forEach((pointObj: any) => {
-        // This part needs a mechanism to determine the correct subclass of Point
-        // based on the XML element tag (e.g., RealPoint, EnumPoint, etc.)
-        // For now, we'll skip deserialization of nested points
-        console.warn(
-          `Skipping deserialization of nested point elements in Points`
+        // Use the registry to create the correct point instance
+        const pointInstance = TimelineRegistry.createTimelineFromXml(
+          tagName,
+          pointObj
         );
+
+        if (pointInstance instanceof Point) {
+          points.push(pointInstance);
+        } else if (pointInstance) {
+          console.warn(
+            `Registry returned non-Point timeline for tag ${tagName}`
+          );
+        } else {
+          console.warn(
+            `Skipping deserialization of unknown nested point element: ${tagName}`
+          );
+        }
       });
     }
-    instance.points = points;
+    this.points = points;
 
-    instance.unit = xmlObject.unit ? (xmlObject.unit as Unit) : undefined; // Cast string to Unit
+    this.unit = xmlObject.unit ? (xmlObject.unit as Unit) : undefined; // Cast string to Unit
 
-    return instance;
-  }
-
-  static fromXml(xmlString: string): Points {
-    const parser = new XMLParser(XML_PARSER_OPTIONS);
-    const jsonObj = parser.parse(xmlString);
-    return Points.fromXmlObject(jsonObj.Points);
+    return this;
   }
 }

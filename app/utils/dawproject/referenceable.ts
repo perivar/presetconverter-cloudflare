@@ -19,19 +19,15 @@ export abstract class Referenceable extends Nameable implements IReferenceable {
     Referenceable._instances[this.id] = this;
   }
 
-  protected getXmlAttributes(): any {
-    // Get inherited attributes first
-    const attributes = super.getXmlAttributes(); // Get attributes from Nameable
-
-    // Add required id attribute (type xs:ID)
-    attributes["@_id"] = this.id;
-
+  toXmlObject(): any {
+    const attributes = super.toXmlObject(); // Get attributes from Nameable
+    attributes["@_id"] = this.id; // Add the id attribute
     return attributes;
   }
 
-  protected populateFromXml(xmlObject: any): void {
+  fromXmlObject(xmlObject: any): this {
     // Populate inherited attributes first
-    super.populateFromXml(xmlObject);
+    super.fromXmlObject(xmlObject);
 
     // Populate required id attribute
     if (!xmlObject["@_id"]) {
@@ -41,6 +37,8 @@ export abstract class Referenceable extends Nameable implements IReferenceable {
 
     // Register instance for reference lookup
     Referenceable._instances[this.id] = this;
+
+    return this;
   }
 
   static getById(id: string): Referenceable | undefined {

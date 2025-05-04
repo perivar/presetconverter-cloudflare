@@ -1,10 +1,7 @@
-import { XMLBuilder, XMLParser } from "fast-xml-parser";
-
 import { Channel } from "./channel";
 import { ContentType } from "./contentType";
 import { Lane } from "./lane";
 import { ITrack } from "./types";
-import { XML_BUILDER_OPTIONS, XML_PARSER_OPTIONS } from "./xml/options";
 
 /** Represents a sequencer track.  */
 export class Track extends Lane implements ITrack {
@@ -36,7 +33,7 @@ export class Track extends Lane implements ITrack {
   toXmlObject(): any {
     const obj: any = {
       Track: {
-        ...super.getXmlAttributes(), // Get attributes from Lane
+        ...super.toXmlObject(), // Get attributes from Lane
       },
     };
 
@@ -63,29 +60,25 @@ export class Track extends Lane implements ITrack {
     return obj;
   }
 
-  toXml(): string {
-    const builder = new XMLBuilder(XML_BUILDER_OPTIONS);
-    return builder.build(this.toXmlObject());
-  }
-
-  static fromXmlObject(xmlObject: any): Track {
-    const instance = new Track(); // Create instance of Track
-    instance.populateFromXml(xmlObject); // Populate inherited attributes
+  fromXmlObject(xmlObject: any): this {
+    super.fromXmlObject(xmlObject); // Populate inherited attributes from Lane
 
     // Extract contentType text and split into a list
-    instance.contentType = xmlObject["@_contentType"]
+    this.contentType = xmlObject["@_contentType"]
       ? (String(xmlObject["@_contentType"]).split(",") as ContentType[])
       : []; // Cast strings to ContentType
 
     // Parse the loaded attribute
-    instance.loaded =
+    this.loaded =
       xmlObject["@_loaded"] !== undefined
         ? String(xmlObject["@_loaded"]).toLowerCase() === "true"
         : undefined;
 
     // Initialize channel using Channel's fromXmlObject method if present
     if (xmlObject.Channel) {
-      instance.channel = Channel.fromXmlObject({ Channel: xmlObject.Channel }); // Wrap in expected structure
+      this.channel = new Channel().fromXmlObject({
+        Channel: xmlObject.Channel,
+      });
     }
 
     // Recursively parse nested Track elements
@@ -95,17 +88,11 @@ export class Track extends Lane implements ITrack {
         ? xmlObject.Track
         : [xmlObject.Track];
       trackArray.forEach((trackObj: any) => {
-        tracks.push(Track.fromXmlObject(trackObj)); // Assuming Track has fromXmlObject
+        tracks.push(new Track().fromXmlObject(trackObj));
       });
     }
-    instance.tracks = tracks;
+    this.tracks = tracks;
 
-    return instance;
-  }
-
-  static fromXml(xmlString: string): Track {
-    const parser = new XMLParser(XML_PARSER_OPTIONS);
-    const jsonObj = parser.parse(xmlString);
-    return Track.fromXmlObject(jsonObj.Track);
+    return this;
   }
 }

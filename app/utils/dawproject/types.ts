@@ -268,7 +268,7 @@ export interface IAutomationTarget {
    * Corresponds to the `parameter` attribute in DAWProject.xsd.
    * Reference to the parameter being automated.
    */
-  parameter?: string; // Reference ID to a Parameter
+  parameter?: IParameter; // Reference ID to a Parameter
   /**
    * Corresponds to the `expression` attribute in DAWProject.xsd.
    * The type of expression being automated (e.g., gain, pan).
@@ -805,7 +805,7 @@ export interface ICompressor extends IBuiltInDevice {
    * Corresponds to the `Knee` element in DAWProject.xsd.
    * Parameter controlling the knee type. (Note: XSD does not explicitly define Knee, inferring from common compressor parameters)
    */
-  knee?: IRealParameter; // Assuming real based on common compressor parameters
+  knee?: IRealParameter;
   /**
    * Corresponds to the `AutoMakeup` element in DAWProject.xsd.
    * Parameter controlling auto makeup gain.

@@ -1,10 +1,7 @@
-import { XMLBuilder, XMLParser } from "fast-xml-parser";
-
 import { DoubleAdapter } from "../doubleAdapter";
 import { Nameable } from "../nameable";
 import { TimelineRegistry } from "../registry/timelineRegistry";
 import type { IClip } from "../types";
-import { XML_BUILDER_OPTIONS, XML_PARSER_OPTIONS } from "../xml/options";
 import { Timeline } from "./timeline";
 import { TimeUnit } from "./timeUnit";
 
@@ -23,7 +20,8 @@ export class Clip extends Nameable implements IClip {
   reference?: string; // Change type to string | undefined
 
   constructor(
-    time: number,
+    // Make time optional for deserialization, fromXmlObject will set it
+    time?: number,
     duration?: number,
     contentTimeUnit?: TimeUnit,
     playStart?: number,
@@ -40,7 +38,7 @@ export class Clip extends Nameable implements IClip {
     comment?: string
   ) {
     super(name, color, comment);
-    this.time = time;
+    this.time = time || 0; // Provide a default placeholder
     this.duration = duration;
     this.contentTimeUnit = contentTimeUnit;
     this.playStart = playStart;
@@ -57,7 +55,7 @@ export class Clip extends Nameable implements IClip {
   toXmlObject(): any {
     const obj: any = {
       Clip: {
-        ...super.getXmlAttributes(), // Get attributes from Nameable
+        ...super.toXmlObject(), // Get attributes from Nameable
         "@_time": DoubleAdapter.toXml(this.time) || "",
       },
     };
@@ -92,7 +90,6 @@ export class Clip extends Nameable implements IClip {
 
     // Append content if present
     if (this.content !== undefined) {
-      // Assuming content is a Timeline subclass and has a toXmlObject method
       const contentObj = this.content.toXmlObject();
       const tagName = Object.keys(contentObj)[0];
       obj.Clip[tagName] = contentObj[tagName];
@@ -106,50 +103,44 @@ export class Clip extends Nameable implements IClip {
     return obj;
   }
 
-  toXml(): string {
-    const builder = new XMLBuilder(XML_BUILDER_OPTIONS);
-    return builder.build(this.toXmlObject());
-  }
+  fromXmlObject(xmlObject: any): this {
+    super.fromXmlObject(xmlObject); // Populate inherited attributes
 
-  static fromXmlObject(xmlObject: any): Clip {
-    const instance = new Clip(0); // Create instance with a default time
-    instance.populateFromXml(xmlObject); // Populate inherited attributes
-
-    instance.time =
+    this.time =
       xmlObject["@_time"] !== undefined
         ? DoubleAdapter.fromXml(xmlObject["@_time"]) || 0
         : 0;
-    instance.duration =
+    this.duration =
       xmlObject["@_duration"] !== undefined
         ? DoubleAdapter.fromXml(xmlObject["@_duration"])
         : undefined;
-    instance.contentTimeUnit = xmlObject["@_contentTimeUnit"]
+    this.contentTimeUnit = xmlObject["@_contentTimeUnit"]
       ? (xmlObject["@_contentTimeUnit"] as TimeUnit)
       : undefined;
-    instance.playStart =
+    this.playStart =
       xmlObject["@_playStart"] !== undefined
         ? DoubleAdapter.fromXml(xmlObject["@_playStart"])
         : undefined;
-    instance.playStop =
+    this.playStop =
       xmlObject["@_playStop"] !== undefined
         ? DoubleAdapter.fromXml(xmlObject["@_playStop"])
         : undefined;
-    instance.loopStart =
+    this.loopStart =
       xmlObject["@_loopStart"] !== undefined
         ? DoubleAdapter.fromXml(xmlObject["@_loopStart"])
         : undefined;
-    instance.loopEnd =
+    this.loopEnd =
       xmlObject["@_loopEnd"] !== undefined
         ? DoubleAdapter.fromXml(xmlObject["@_loopEnd"])
         : undefined;
-    instance.fadeTimeUnit = xmlObject["@_fadeTimeUnit"]
+    this.fadeTimeUnit = xmlObject["@_fadeTimeUnit"]
       ? (xmlObject["@_fadeTimeUnit"] as TimeUnit)
       : undefined;
-    instance.fadeInTime =
+    this.fadeInTime =
       xmlObject["@_fadeInTime"] !== undefined
         ? DoubleAdapter.fromXml(xmlObject["@_fadeInTime"])
         : undefined;
-    instance.fadeOutTime =
+    this.fadeOutTime =
       xmlObject["@_fadeOutTime"] !== undefined
         ? DoubleAdapter.fromXml(xmlObject["@_fadeOutTime"])
         : undefined;
@@ -172,28 +163,23 @@ export class Clip extends Nameable implements IClip {
         continue; // Skip known properties
       }
 
-      const TimelineClass = TimelineRegistry.getTimelineClass(tagName);
-      if (TimelineClass) {
-        try {
-          instance.content = TimelineClass.fromXmlObject(xmlObject[tagName]);
-          break; // We found and processed the content
-        } catch (e) {
-          console.error(
-            `Error deserializing nested timeline content ${tagName} in Clip:`,
-            e
-          );
-        }
+      // Use the new createTimelineFromXml method
+      const timelineInstance = TimelineRegistry.createTimelineFromXml(
+        tagName,
+        xmlObject[tagName]
+      );
+      if (timelineInstance) {
+        this.content = timelineInstance;
+        break; // We found and processed the content
+      } else {
+        console.warn(
+          `Skipping deserialization of unknown nested timeline content in Clip: ${tagName}`
+        );
       }
     }
 
-    instance.reference = xmlObject["@_reference"]; // Assign string directly
+    this.reference = xmlObject["@_reference"]; // Assign string directly
 
-    return instance;
-  }
-
-  static fromXml(xmlString: string): Clip {
-    const parser = new XMLParser(XML_PARSER_OPTIONS);
-    const jsonObj = parser.parse(xmlString);
-    return Clip.fromXmlObject(jsonObj.Clip);
+    return this;
   }
 }

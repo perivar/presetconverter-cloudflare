@@ -1,39 +1,27 @@
-import { XMLBuilder, XMLParser } from "fast-xml-parser";
-
 import type { IIntegerPoint } from "../types";
-import { XML_BUILDER_OPTIONS, XML_PARSER_OPTIONS } from "../xml/options";
 import { Point } from "./point";
 
 export class IntegerPoint extends Point implements IIntegerPoint {
   value: number;
 
-  constructor(time: number, value: number) {
-    super(time);
-    this.value = value;
+  constructor(time?: number, value?: number) {
+    super(time); // time is now optional in Point
+    // Make value optional for deserialization, fromXmlObject will set it
+    this.value = value || 0; // Provide a default placeholder
   }
 
   toXmlObject(): any {
-    const obj = super.getXmlAttributes(); // Get attributes from Point
-    obj.value = this.value;
-    return { IntegerPoint: obj };
+    const attributes = super.toXmlObject(); // Get attributes from Point
+    attributes.value = this.value;
+    return { IntegerPoint: attributes };
   }
 
-  toXml(): string {
-    const builder = new XMLBuilder(XML_BUILDER_OPTIONS);
-    return builder.build(this.toXmlObject());
-  }
+  fromXmlObject(xmlObject: any): this {
+    super.fromXmlObject(xmlObject); // Populate inherited attributes from Point
 
-  static fromXmlObject(xmlObject: any): IntegerPoint {
-    const instance = new IntegerPoint(0, 0); // Create instance with default values
-    instance.populateFromXml(xmlObject); // Populate inherited attributes from Point
-    instance.value =
+    this.value =
       xmlObject.value !== undefined ? parseInt(xmlObject.value, 10) : 0;
-    return instance;
-  }
 
-  static fromXml(xmlString: string): IntegerPoint {
-    const parser = new XMLParser(XML_PARSER_OPTIONS);
-    const jsonObj = parser.parse(xmlString);
-    return IntegerPoint.fromXmlObject(jsonObj.IntegerPoint);
+    return this;
   }
 }

@@ -6,12 +6,15 @@ import { DawProject } from "../../dawproject/dawProject";
 import { ExpressionType } from "../../dawproject/expressionType";
 import { Interpolation } from "../../dawproject/interpolation";
 import { MetaData } from "../../dawproject/metaData";
+import { Project } from "../../dawproject/project";
 import { Referenceable } from "../../dawproject/referenceable";
+import { Lanes } from "../../dawproject/timeline/lanes";
 import { Points } from "../../dawproject/timeline/points";
 import { RealPoint } from "../../dawproject/timeline/realPoint";
 import { TimeUnit } from "../../dawproject/timeline/timeUnit";
 import { Track } from "../../dawproject/track";
 import { Unit } from "../../dawproject/unit";
+import { XmlObject } from "../../dawproject/XmlObject";
 import {
   createDummyProject,
   createMIDIAutomationExample,
@@ -42,7 +45,7 @@ describe("DAW Project", () => {
   test("should create basic project", () => {
     const project = createDummyProject(3, simpleFeatures);
 
-    const projectXml = DawProject.toXml(project);
+    const projectXml = project.toXml();
     fs.writeFileSync(
       path.join(targetDir, "dawproject_dummy_basic.xml"),
       projectXml
@@ -56,7 +59,7 @@ describe("DAW Project", () => {
   test("should have master track", () => {
     const project = createDummyProject(1, simpleFeatures);
 
-    const projectXml = DawProject.toXml(project);
+    const projectXml = project.toXml();
     fs.writeFileSync(
       path.join(targetDir, "dawproject_dummy_master.xml"),
       projectXml
@@ -81,7 +84,7 @@ describe("DAW Project", () => {
       ])
     );
 
-    const projectXml = DawProject.toXml(project);
+    const projectXml = project.toXml();
     fs.writeFileSync(
       path.join(targetDir, "dawproject_dummy_all.xml"),
       projectXml
@@ -125,33 +128,31 @@ describe("DAW Project", () => {
   test("should create correct lane content", () => {
     const project = createDummyProject(1, new Set(["CLIPS", "NOTES"]));
 
-    const projectXml = DawProject.toXml(project);
+    const projectXml = project.toXml();
     fs.writeFileSync(
       path.join(targetDir, "dawproject_dummy_clips_notes.xml"),
       projectXml
     );
 
-    if (project.arrangement?.lanes) {
-      const trackLanes = project.arrangement.lanes.lanes;
-      expect(trackLanes.length).toBeGreaterThan(0);
+    const tracks = project.structure;
+    expect(tracks.length).toBeGreaterThan(0);
 
-      // Find track with notes capability
-      const notesTrack = trackLanes.find(lane => {
-        if (lane instanceof Track) {
-          return lane.contentType.includes(ContentType.NOTES);
-        }
-        return false;
-      }) as Track | undefined;
+    // Find track with notes capability
+    const notesTrack = tracks.find(track => {
+      if (track instanceof Track) {
+        return track.contentType.includes(ContentType.NOTES);
+      }
+      return false;
+    }) as Track | undefined;
 
-      expect(notesTrack).toBeDefined();
-      expect(notesTrack?.contentType).toContain(ContentType.NOTES);
-    }
+    expect(notesTrack).toBeDefined();
+    expect(notesTrack?.contentType).toContain(ContentType.NOTES);
   });
 
   test("should create automation points", () => {
     const project = createDummyProject(1, new Set(["AUTOMATION"]));
 
-    const projectXml = DawProject.toXml(project);
+    const projectXml = project.toXml();
     fs.writeFileSync(
       path.join(targetDir, "dawproject_dummy_automation.xml"),
       projectXml
@@ -160,19 +161,74 @@ describe("DAW Project", () => {
     if (project.arrangement?.lanes) {
       const trackLanes = project.arrangement.lanes.lanes;
 
-      // Find automation points
-      const pointsLane = trackLanes.find(lane => {
-        if (lane instanceof Track) {
-          return lane.contentType.includes(ContentType.AUTOMATION);
-        }
-        return false;
-      });
+      // Find the track's lanes (assuming it's the first Lanes instance in arrangementLanes.lanes)
+      const trackLanesInstance = trackLanes.find(
+        lane => lane instanceof Lanes
+      ) as Lanes | undefined;
 
-      expect(pointsLane).toBeDefined();
-      if (pointsLane instanceof Track) {
-        expect(pointsLane.contentType).toContain(ContentType.AUTOMATION);
+      expect(trackLanesInstance).toBeDefined();
+
+      if (trackLanesInstance) {
+        // Find automation points lane within the track's lanes
+        const pointsLane = trackLanesInstance.lanes.find(
+          lane => lane instanceof Points
+        );
+
+        expect(pointsLane).toBeDefined();
+        expect(pointsLane instanceof Points).toBe(true);
       }
     }
+  });
+
+  test("should serialize and deserialize a simple project via XML", () => {
+    const project = createDummyProject(2, simpleFeatures);
+
+    fs.writeFileSync(
+      path.join(targetDir, "dawproject_simple_serialize.json"),
+      JSON.stringify(project, null, 2)
+    );
+
+    const projectXml = project.toXml();
+
+    fs.writeFileSync(
+      path.join(targetDir, "dawproject_simple_serialize.xml"),
+      projectXml
+    );
+
+    const loadedProject = XmlObject.fromXml(projectXml, Project);
+
+    // Deep comparison to check if the loaded project is equivalent to the original
+    expect(loadedProject).toEqual(project);
+  });
+
+  test("should serialize and deserialize a complex project via XML", () => {
+    const complexFeatures = new Set<Features>([
+      "CUE_MARKERS",
+      "CLIPS",
+      "AUDIO",
+      "NOTES",
+      "AUTOMATION",
+      "ALIAS_CLIPS",
+      "PLUGINS",
+    ]);
+    const project = createDummyProject(3, complexFeatures);
+
+    fs.writeFileSync(
+      path.join(targetDir, "dawproject_complex_serialize.json"),
+      JSON.stringify(project, null, 2)
+    );
+
+    const projectXml = project.toXml();
+
+    fs.writeFileSync(
+      path.join(targetDir, "dawproject_complex_serialize.xml"),
+      projectXml
+    );
+
+    const loadedProject = XmlObject.fromXml(projectXml, Project);
+
+    // Deep comparison to check if the loaded project is equivalent to the original
+    expect(loadedProject).toEqual(project);
   });
 });
 
@@ -268,6 +324,7 @@ describe("MIDI Automation", () => {
 describe("Save and Load", () => {
   test("should save and load DAW project with simple features", async () => {
     const project = createDummyProject(5, simpleFeatures);
+
     const metadata = new MetaData();
     const embeddedFiles: Record<string, Uint8Array> = {};
 
@@ -345,7 +402,7 @@ describe("Save and Load", () => {
     fs.writeFileSync(path.join(targetDir, "test-complex.dawproject"), zipData);
 
     // Convert project to XML for validation
-    const projectXml = DawProject.toXml(project);
+    const projectXml = project.toXml();
     fs.writeFileSync(
       path.join(targetDir, "test-complex.dawproject.xml"),
       projectXml
