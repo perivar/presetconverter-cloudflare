@@ -9,15 +9,15 @@ import { Warp } from "./warp";
 
 const warpsFactory = (xmlObject: any): Warps => {
   const instance = new Warps();
-  instance.fromXmlObject(xmlObject.Warps); // Assuming XML is wrapped in <Warps>
+  instance.fromXmlObject(xmlObject);
   return instance;
 };
 
 @registerTimeline("Warps", warpsFactory)
 export class Warps extends Timeline implements IWarps {
-  points: Warp[]; // Renamed from events and made required
+  points: Warp[];
   content?: Timeline;
-  contentTimeUnit: TimeUnit; // Made required
+  contentTimeUnit: TimeUnit;
 
   constructor(
     // Make required fields optional for deserialization, provide defaults
@@ -79,6 +79,7 @@ export class Warps extends Timeline implements IWarps {
         );
       }
     }
+    this.content = content;
 
     // Recursively parse nested Warp elements
     const points: Warp[] = []; // Renamed from events
@@ -90,16 +91,12 @@ export class Warps extends Timeline implements IWarps {
         points.push(new Warp().fromXmlObject(warpObj));
       });
     }
+    this.points = points;
 
     // Parse the contentTimeUnit attribute
-    const contentTimeUnit = xmlObject.contentTimeUnit
-      ? (xmlObject.contentTimeUnit as TimeUnit)
-      : undefined; // Cast string to TimeUnit
-
-    // Create instance with required properties
-    this.content = content;
-    this.points = points;
-    this.contentTimeUnit = contentTimeUnit as TimeUnit;
+    if (xmlObject["@_contentTimeUnit"] !== undefined) {
+      this.contentTimeUnit = xmlObject["@_contentTimeUnit"] as TimeUnit;
+    }
 
     return this;
   }

@@ -39,13 +39,11 @@ export class Transport extends XmlObject implements ITransport {
 
   fromXmlObject(xmlObject: any): this {
     this.tempo = xmlObject.Tempo
-      ? new RealParameter().fromXmlObject({ RealParameter: xmlObject.Tempo })
+      ? new RealParameter().fromXmlObject(xmlObject.Tempo)
       : undefined;
 
     this.timeSignature = xmlObject.TimeSignature
-      ? new TimeSignatureParameter(4, 4).fromXmlObject({
-          TimeSignatureParameter: xmlObject.TimeSignature,
-        })
+      ? new TimeSignatureParameter().fromXmlObject(xmlObject.TimeSignature)
       : undefined;
 
     return this;

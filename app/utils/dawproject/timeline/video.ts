@@ -1,13 +1,21 @@
 import { FileReference } from "../fileReference";
+import { registerTimeline } from "../registry/timelineRegistry";
 import type { IFileReference, IVideo } from "../types"; // Import IFileReference
 
 import { MediaFile } from "./mediaFile";
 import { TimeUnit } from "./timeUnit";
 
+const videoFactory = (xmlObject: any): Video => {
+  const instance = new Video();
+  instance.fromXmlObject(xmlObject);
+  return instance;
+};
+
+@registerTimeline("Video", videoFactory)
 export class Video extends MediaFile implements IVideo {
-  algorithm?: string;
-  channels: number;
   sampleRate: number;
+  channels: number;
+  algorithm?: string;
 
   constructor(
     // Make required fields optional for deserialization, provide defaults
@@ -24,42 +32,40 @@ export class Video extends MediaFile implements IVideo {
     this.sampleRate = sampleRate || 0; // Default placeholder
     this.channels = channels || 0; // Default placeholder
     this.algorithm = algorithm;
-    // duration and file are handled by the super constructor
   }
 
   toXmlObject(): any {
     const obj: any = {
       Video: {
         ...super.toXmlObject(), // Get attributes and children from MediaFile's toXmlObject
-        sampleRate: this.sampleRate,
-        channels: this.channels,
+        "@_sampleRate": this.sampleRate,
+        "@_channels": this.channels,
       },
     };
 
     if (this.algorithm !== undefined) {
-      obj.Video.algorithm = this.algorithm;
+      obj.Audio["@_algorithm"] = this.algorithm;
     }
 
     return obj;
   }
 
   fromXmlObject(xmlObject: any): this {
-    super.fromXmlObject(xmlObject); // Populate inherited attributes from MediaFile
+    super.fromXmlObject(xmlObject);
 
-    // Extract required sampleRate, channels, duration, and file from xmlObject
-    this.sampleRate =
-      xmlObject.sampleRate !== undefined
-        ? parseInt(xmlObject.sampleRate, 10)
-        : 0;
-    this.channels =
-      xmlObject.channels !== undefined ? parseInt(xmlObject.channels, 10) : 0;
-    this.duration =
-      xmlObject.duration !== undefined ? parseFloat(xmlObject.duration) : 0;
-    this.file = xmlObject.File
-      ? new FileReference().fromXmlObject(xmlObject.File)
-      : new FileReference("");
+    if (!xmlObject["@_sampleRate"]) {
+      throw new Error("Required attribute 'sampleRate' missing in Audio XML");
+    }
+    this.sampleRate = parseInt(xmlObject["@_sampleRate"], 10);
 
-    this.algorithm = xmlObject.algorithm || undefined;
+    if (!xmlObject["@_channels"]) {
+      throw new Error("Required attribute 'channels' missing in Audio XML");
+    }
+    this.channels = parseInt(xmlObject["@_channels"], 10);
+
+    if (xmlObject["@_algorithm"] !== undefined) {
+      this.algorithm = xmlObject["@_algorithm"];
+    }
 
     return this;
   }

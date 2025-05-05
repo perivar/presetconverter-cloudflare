@@ -117,8 +117,8 @@ class Channel(Lane):
         solo = element.get("solo")
         instance.solo = solo.lower() == "true" if solo else None
 
-        destination_id = element.get("destination")
         instance.destination = (
+        destination_id = element.get("destination")
             Channel.get_channel_by_id(destination_id)
             if destination_id is not None
             else None

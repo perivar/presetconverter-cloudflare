@@ -35,10 +35,10 @@ export class BoolParameter extends Parameter implements IBoolParameter {
 
   fromXmlObject(xmlObject: any): this {
     super.fromXmlObject(xmlObject); // Populate inherited attributes from Parameter
-    this.value =
-      xmlObject.value !== undefined
-        ? String(xmlObject.value).toLowerCase() === "true"
-        : undefined;
+
+    if (xmlObject["@_value"] !== undefined) {
+      this.value = String(xmlObject["@_value"]).toLowerCase() === "true";
+    }
     return this;
   }
 }

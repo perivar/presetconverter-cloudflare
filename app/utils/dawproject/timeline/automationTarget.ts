@@ -5,6 +5,7 @@ import type { IAutomationTarget } from "../types";
 import { XmlObject } from "../XmlObject";
 
 export class AutomationTarget extends XmlObject implements IAutomationTarget {
+  // Attributes
   parameter?: Parameter;
   expression?: ExpressionType;
   channel?: number;
@@ -28,37 +29,33 @@ export class AutomationTarget extends XmlObject implements IAutomationTarget {
 
   toXmlObject(): any {
     // Create target object with nested elements
-    const target: any = {
+    const obj: any = {
       Target: {},
     };
 
     // Add optional elements
     if (this.parameter !== undefined) {
-      target.Target.parameter = this.parameter;
+      obj.Target["@_parameter"] = this.parameter;
     }
     if (this.expression !== undefined) {
-      target.Target.expression = this.expression;
+      obj.Target["@_expression"] = this.expression;
     }
     if (this.channel !== undefined) {
-      target.Target.channel = this.channel;
+      obj.Target["@_channel"] = this.channel;
     }
     if (this.key !== undefined) {
-      target.Target.key = this.key;
+      obj.Target["@_key"] = this.key;
     }
     if (this.controller !== undefined) {
-      target.Target.controller = this.controller;
+      obj.Target["@_controller"] = this.controller;
     }
 
-    return target;
+    return obj;
   }
 
   fromXmlObject(xmlObject: any): this {
-    if (!xmlObject) {
-      throw new Error("Required Target element missing in XML");
-    }
-
     // Parse parameter attribute and get the referenced Parameter object
-    if (xmlObject["@_parameter"]) {
+    if (xmlObject["@_parameter"] !== undefined) {
       const parameterId = xmlObject["@_parameter"];
       const referencedParameter = Referenceable.getById(parameterId);
       if (referencedParameter instanceof Parameter) {
@@ -69,23 +66,23 @@ export class AutomationTarget extends XmlObject implements IAutomationTarget {
         );
         this.parameter = undefined; // Or handle error appropriately
       }
-    } else {
-      this.parameter = undefined;
     }
 
-    this.expression = xmlObject.expression
-      ? (xmlObject.expression as ExpressionType)
-      : undefined;
-    this.channel =
-      xmlObject.channel !== undefined
-        ? parseInt(xmlObject.channel, 10)
-        : undefined;
-    this.key =
-      xmlObject.key !== undefined ? parseInt(xmlObject.key, 10) : undefined;
-    this.controller =
-      xmlObject.controller !== undefined
-        ? parseInt(xmlObject.controller, 10)
-        : undefined;
+    if (xmlObject["@_expression"] !== undefined) {
+      this.expression = xmlObject["@_expression"] as ExpressionType;
+    }
+
+    if (xmlObject["@_channel"] !== undefined) {
+      this.channel = parseInt(xmlObject["@_channel"], 10);
+    }
+
+    if (xmlObject["@_key"] !== undefined) {
+      this.key = parseInt(xmlObject["@_key"], 10);
+    }
+
+    if (xmlObject["@_controller"] !== undefined) {
+      this.controller = parseInt(xmlObject["@_controller"], 10);
+    }
 
     return this;
   }

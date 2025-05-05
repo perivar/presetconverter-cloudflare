@@ -1,8 +1,16 @@
 import { Channel } from "./channel";
 import { ContentType } from "./contentType";
 import { Lane } from "./lane";
+import { registerLane } from "./registry/laneRegistry";
 import { ITrack } from "./types";
 
+const trackFactory = (xmlObject: any): Track => {
+  const instance = new Track();
+  instance.fromXmlObject(xmlObject);
+  return instance;
+};
+
+@registerLane("Track", trackFactory)
 /** Represents a sequencer track.  */
 export class Track extends Lane implements ITrack {
   /** Role of this track in timelines & arranger. Can be multiple (comma-separated). */
@@ -76,9 +84,7 @@ export class Track extends Lane implements ITrack {
 
     // Initialize channel using Channel's fromXmlObject method if present
     if (xmlObject.Channel) {
-      this.channel = new Channel().fromXmlObject({
-        Channel: xmlObject.Channel,
-      });
+      this.channel = new Channel().fromXmlObject(xmlObject.Channel);
     }
 
     // Recursively parse nested Track elements

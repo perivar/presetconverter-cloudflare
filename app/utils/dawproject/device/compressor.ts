@@ -1,10 +1,18 @@
 import { BoolParameter } from "../boolParameter";
 import { RealParameter } from "../realParameter";
+import { registerDevice } from "../registry/deviceRegistry";
 import type { ICompressor, IFileReference, IParameter } from "../types";
 import { Unit } from "../unit";
 import { BuiltInDevice } from "./builtInDevice";
 import { DeviceRole } from "./deviceRole";
 
+const compressorFactory = (xmlObject: any): Compressor => {
+  const instance = new Compressor();
+  instance.fromXmlObject(xmlObject);
+  return instance;
+};
+
+@registerDevice("Compressor", compressorFactory)
 export class Compressor extends BuiltInDevice implements ICompressor {
   threshold?: RealParameter;
   ratio?: RealParameter;
@@ -119,45 +127,31 @@ export class Compressor extends BuiltInDevice implements ICompressor {
     super.fromXmlObject(xmlObject); // Populate inherited attributes from BuiltInDevice
 
     if (xmlObject.Threshold) {
-      this.threshold = new RealParameter().fromXmlObject({
-        RealParameter: xmlObject.Threshold,
-      });
+      this.threshold = new RealParameter().fromXmlObject(xmlObject.Threshold);
     }
 
     if (xmlObject.Ratio) {
-      this.ratio = new RealParameter().fromXmlObject({
-        RealParameter: xmlObject.Ratio,
-      });
+      this.ratio = new RealParameter().fromXmlObject(xmlObject.Ratio);
     }
 
     if (xmlObject.Attack) {
-      this.attack = new RealParameter().fromXmlObject({
-        RealParameter: xmlObject.Attack,
-      });
+      this.attack = new RealParameter().fromXmlObject(xmlObject.Attack);
     }
 
     if (xmlObject.Release) {
-      this.release = new RealParameter().fromXmlObject({
-        RealParameter: xmlObject.Release,
-      });
+      this.release = new RealParameter().fromXmlObject(xmlObject.Release);
     }
 
     if (xmlObject.InputGain) {
-      this.inputGain = new RealParameter().fromXmlObject({
-        RealParameter: xmlObject.InputGain,
-      });
+      this.inputGain = new RealParameter().fromXmlObject(xmlObject.InputGain);
     }
 
     if (xmlObject.OutputGain) {
-      this.outputGain = new RealParameter().fromXmlObject({
-        RealParameter: xmlObject.OutputGain,
-      });
+      this.outputGain = new RealParameter().fromXmlObject(xmlObject.OutputGain);
     }
 
     if (xmlObject.AutoMakeup) {
-      this.autoMakeup = new BoolParameter().fromXmlObject({
-        BoolParameter: xmlObject.AutoMakeup,
-      });
+      this.autoMakeup = new BoolParameter().fromXmlObject(xmlObject.AutoMakeup);
     }
 
     return this;

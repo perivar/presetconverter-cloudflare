@@ -1,8 +1,16 @@
+import { registerTimeline } from "../registry/timelineRegistry";
 import type { INotes, ITrack } from "../types";
 import { Note } from "./note";
 import { Timeline } from "./timeline";
 import { TimeUnit } from "./timeUnit";
 
+const notesFactory = (xmlObject: any): Notes => {
+  const instance = new Notes();
+  instance.fromXmlObject(xmlObject);
+  return instance;
+};
+
+@registerTimeline("Notes", notesFactory)
 export class Notes extends Timeline implements INotes {
   notes: Note[];
 

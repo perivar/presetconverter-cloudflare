@@ -1,11 +1,19 @@
 import { BoolParameter } from "../boolParameter"; // Import BoolParameter
 import { RealParameter } from "../realParameter";
+import { registerDevice } from "../registry/deviceRegistry";
 import type { IEqualizer, IFileReference, IParameter } from "../types";
 import { Unit } from "../unit";
 import { BuiltInDevice } from "./builtInDevice";
 import { DeviceRole } from "./deviceRole";
 import { EqBand } from "./eqBand";
 
+const equalizerFactory = (xmlObject: any): Equalizer => {
+  const instance = new Equalizer();
+  instance.fromXmlObject(xmlObject);
+  return instance;
+};
+
+@registerDevice("Equalizer", equalizerFactory)
 export class Equalizer extends BuiltInDevice implements IEqualizer {
   bands: EqBand[];
   inputGain?: RealParameter;
@@ -89,22 +97,18 @@ export class Equalizer extends BuiltInDevice implements IEqualizer {
         ? xmlObject.Band
         : [xmlObject.Band];
       bandArray.forEach((bandObj: any) => {
-        bands.push(new EqBand().fromXmlObject({ Band: bandObj }));
+        bands.push(new EqBand().fromXmlObject(bandObj));
       });
     }
     this.bands = bands;
 
     // Extract the RealParameter from the InputGain and OutputGain elements
     if (xmlObject.InputGain) {
-      this.inputGain = new RealParameter().fromXmlObject({
-        RealParameter: xmlObject.InputGain,
-      });
+      this.inputGain = new RealParameter().fromXmlObject(xmlObject.InputGain);
     }
 
     if (xmlObject.OutputGain) {
-      this.outputGain = new RealParameter().fromXmlObject({
-        RealParameter: xmlObject.OutputGain,
-      });
+      this.outputGain = new RealParameter().fromXmlObject(xmlObject.OutputGain);
     }
 
     return this;

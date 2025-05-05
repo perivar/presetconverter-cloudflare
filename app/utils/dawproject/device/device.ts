@@ -3,8 +3,8 @@ import { FileReference } from "../fileReference";
 import { Parameter } from "../parameter";
 import { RealParameter } from "../realParameter";
 import { Referenceable } from "../referenceable";
+import { TimeSignatureParameter } from "../timeSignatureParameter";
 import type { IDevice, IFileReference, IParameter } from "../types";
-import { Unit } from "../unit";
 import { DeviceRole } from "./deviceRole";
 
 export abstract class Device extends Referenceable implements IDevice {
@@ -75,9 +75,7 @@ export abstract class Device extends Referenceable implements IDevice {
     }
 
     if (this.state) {
-      obj.Device.State = (
-        this.state as FileReference
-      ).toXmlObject().FileReference;
+      obj.Device.State = (this.state as FileReference).toXmlObject();
     }
 
     return obj;
@@ -97,15 +95,11 @@ export abstract class Device extends Referenceable implements IDevice {
     this.deviceVendor = xmlObject["@_deviceVendor"] || undefined;
 
     if (xmlObject.Enabled) {
-      this.enabled = new BoolParameter().fromXmlObject({
-        BoolParameter: xmlObject.Enabled,
-      });
+      this.enabled = new BoolParameter().fromXmlObject(xmlObject.Enabled);
     }
 
     if (xmlObject.State) {
-      this.state = new FileReference().fromXmlObject({
-        FileReference: xmlObject.State,
-      });
+      this.state = new FileReference().fromXmlObject(xmlObject.State);
     }
 
     const parameters: Parameter[] = [];
@@ -113,6 +107,7 @@ export abstract class Device extends Referenceable implements IDevice {
       const parameterTypeMap: { [key: string]: (obj: any) => Parameter } = {
         BoolParameter: new BoolParameter().fromXmlObject,
         RealParameter: new RealParameter().fromXmlObject,
+        TimeSignatureParameter: new TimeSignatureParameter().fromXmlObject,
       };
 
       for (const tagName in xmlObject.Parameters) {
@@ -142,21 +137,4 @@ export abstract class Device extends Referenceable implements IDevice {
 
     return this;
   }
-
-  // Define a helper function to add RealParameter elements
-  protected addRealParameterObject = (
-    parentObj: any,
-    tag: string,
-    realParam?: RealParameter,
-    unit?: Unit
-  ) => {
-    if (realParam) {
-      parentObj[tag] = {
-        ...realParam.toXmlObject().RealParameter,
-      };
-      if (unit !== undefined) {
-        parentObj[tag]["@_unit"] = unit;
-      }
-    }
-  };
 }

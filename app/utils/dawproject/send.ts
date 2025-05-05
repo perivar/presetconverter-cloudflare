@@ -1,3 +1,4 @@
+import { Channel } from "./channel";
 import { RealParameter } from "./realParameter";
 import { Referenceable } from "./referenceable";
 import { SendType } from "./sendType";
@@ -57,15 +58,11 @@ export class Send extends Referenceable implements ISend {
     super.fromXmlObject(xmlObject); // Populate inherited attributes from Referenceable
 
     if (xmlObject.Volume) {
-      this.volume = new RealParameter().fromXmlObject({
-        RealParameter: xmlObject.Volume,
-      });
+      this.volume = new RealParameter().fromXmlObject(xmlObject.Volume);
     }
 
     if (xmlObject.Pan) {
-      this.pan = new RealParameter().fromXmlObject({
-        RealParameter: xmlObject.Pan,
-      });
+      this.pan = new RealParameter().fromXmlObject(xmlObject.Pan);
     }
 
     this.type = xmlObject["@_type"]
@@ -74,11 +71,16 @@ export class Send extends Referenceable implements ISend {
 
     const destinationId = xmlObject["@_destination"];
     if (destinationId) {
-      // TODO:: This requires a way to look up Referenceable instances by ID
-      // For now, we'll leave it as undefined
-      console.warn(
-        `Skipping deserialization of Send destination with ID: ${destinationId}`
-      );
+      const destination = Referenceable.getById(destinationId);
+      // Check if the retrieved object is a Channel before assigning
+      if (destination instanceof Channel) {
+        this.destination = destination;
+      } else {
+        console.warn(
+          `Retrieved object with ID ${destinationId} is not a Channel and cannot be assigned as a destination.`
+        );
+        this.destination = undefined; // Ensure destination is undefined if not a Channel
+      }
     }
 
     return this;

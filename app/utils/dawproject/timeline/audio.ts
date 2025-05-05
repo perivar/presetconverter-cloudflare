@@ -1,9 +1,17 @@
 import { FileReference } from "../fileReference";
-import type { IAudio } from "../types"; // Import IFileReference
+import { registerTimeline } from "../registry/timelineRegistry";
+import type { IAudio, IFileReference } from "../types"; // Import IFileReference
 
 import { MediaFile } from "./mediaFile";
 import { TimeUnit } from "./timeUnit";
 
+const audioFactory = (xmlObject: any): Audio => {
+  const instance = new Audio();
+  instance.fromXmlObject(xmlObject);
+  return instance;
+};
+
+@registerTimeline("Audio", audioFactory)
 export class Audio extends MediaFile implements IAudio {
   sampleRate: number;
   channels: number;
@@ -14,7 +22,7 @@ export class Audio extends MediaFile implements IAudio {
     sampleRate?: number,
     channels?: number,
     duration?: number,
-    file?: FileReference,
+    file?: IFileReference,
     algorithm?: string,
     name?: string,
     timeUnit?: TimeUnit
@@ -24,7 +32,6 @@ export class Audio extends MediaFile implements IAudio {
     this.sampleRate = sampleRate || 0; // Default placeholder
     this.channels = channels || 0; // Default placeholder
     this.algorithm = algorithm;
-    // duration and file are handled by the super constructor
   }
 
   toXmlObject(): any {
@@ -46,19 +53,19 @@ export class Audio extends MediaFile implements IAudio {
   fromXmlObject(xmlObject: any): this {
     super.fromXmlObject(xmlObject);
 
-    this.sampleRate =
-      xmlObject.sampleRate !== undefined
-        ? parseInt(xmlObject.sampleRate, 10)
-        : 0;
-    this.channels =
-      xmlObject.channels !== undefined ? parseInt(xmlObject.channels, 10) : 0;
-    this.duration =
-      xmlObject.duration !== undefined ? parseFloat(xmlObject.duration) : 0;
-    this.file = xmlObject.File
-      ? new FileReference().fromXmlObject(xmlObject.File)
-      : new FileReference("");
+    if (!xmlObject["@_sampleRate"]) {
+      throw new Error("Required attribute 'sampleRate' missing in Audio XML");
+    }
+    this.sampleRate = parseInt(xmlObject["@_sampleRate"], 10);
 
-    this.algorithm = xmlObject.algorithm || undefined;
+    if (!xmlObject["@_channels"]) {
+      throw new Error("Required attribute 'channels' missing in Audio XML");
+    }
+    this.channels = parseInt(xmlObject["@_channels"], 10);
+
+    if (xmlObject["@_algorithm"] !== undefined) {
+      this.algorithm = xmlObject["@_algorithm"];
+    }
 
     return this;
   }

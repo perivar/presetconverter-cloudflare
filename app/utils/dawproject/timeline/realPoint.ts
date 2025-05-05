@@ -1,8 +1,16 @@
 import { DoubleAdapter } from "../doubleAdapter";
 import { Interpolation } from "../interpolation";
+import { registerPoint } from "../registry/pointRegistry";
 import type { IRealPoint } from "../types";
 import { Point } from "./point";
 
+const realPointFactory = (xmlObject: any): RealPoint => {
+  const instance = new RealPoint();
+  instance.fromXmlObject(xmlObject);
+  return instance;
+};
+
+@registerPoint("RealPoint", realPointFactory)
 export class RealPoint extends Point implements IRealPoint {
   value: number;
   interpolation?: Interpolation;
@@ -39,7 +47,6 @@ export class RealPoint extends Point implements IRealPoint {
     if (!xmlObject["@_value"]) {
       throw new Error("Required attribute 'value' missing in XML");
     }
-
     const pointValue = DoubleAdapter.fromXml(xmlObject["@_value"]);
     if (pointValue === undefined) {
       throw new Error("Invalid value in XML");

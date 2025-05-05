@@ -104,7 +104,7 @@ export class Clip extends Nameable implements IClip {
   }
 
   fromXmlObject(xmlObject: any): this {
-    super.fromXmlObject(xmlObject); // Populate inherited attributes
+    super.fromXmlObject(xmlObject);
 
     this.time =
       xmlObject["@_time"] !== undefined

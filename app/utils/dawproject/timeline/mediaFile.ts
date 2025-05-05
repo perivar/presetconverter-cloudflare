@@ -4,7 +4,7 @@ import { Timeline } from "./timeline";
 import { TimeUnit } from "./timeUnit";
 
 export abstract class MediaFile extends Timeline implements IMediaFile {
-  file: IFileReference; // Made required and changed type to interface
+  file: IFileReference;
   duration: number;
 
   constructor(
@@ -41,8 +41,10 @@ export abstract class MediaFile extends Timeline implements IMediaFile {
 
   fromXmlObject(xmlObject: any): this {
     super.fromXmlObject(xmlObject); // Populate inherited attributes from Timeline
+
     this.duration =
       xmlObject.duration !== undefined ? parseFloat(xmlObject.duration) : 0.0;
+
     if (xmlObject.File) {
       this.file = new FileReference().fromXmlObject(xmlObject.File);
     } else {

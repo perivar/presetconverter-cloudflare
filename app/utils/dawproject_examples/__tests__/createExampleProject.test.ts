@@ -184,18 +184,23 @@ describe("DAW Project", () => {
     const project = createDummyProject(2, simpleFeatures);
 
     fs.writeFileSync(
-      path.join(targetDir, "dawproject_simple_serialize.json"),
+      path.join(targetDir, "dawproject_simple_serialized.json"),
       JSON.stringify(project, null, 2)
     );
 
     const projectXml = project.toXml();
 
     fs.writeFileSync(
-      path.join(targetDir, "dawproject_simple_serialize.xml"),
+      path.join(targetDir, "dawproject_simple_serialized.xml"),
       projectXml
     );
 
     const loadedProject = XmlObject.fromXml(projectXml, Project);
+
+    fs.writeFileSync(
+      path.join(targetDir, "dawproject_simple_deserialized.json"),
+      JSON.stringify(loadedProject, null, 2)
+    );
 
     // Deep comparison to check if the loaded project is equivalent to the original
     expect(loadedProject).toEqual(project);
@@ -214,18 +219,23 @@ describe("DAW Project", () => {
     const project = createDummyProject(3, complexFeatures);
 
     fs.writeFileSync(
-      path.join(targetDir, "dawproject_complex_serialize.json"),
+      path.join(targetDir, "dawproject_complex_serialized.json"),
       JSON.stringify(project, null, 2)
     );
 
     const projectXml = project.toXml();
 
     fs.writeFileSync(
-      path.join(targetDir, "dawproject_complex_serialize.xml"),
+      path.join(targetDir, "dawproject_complex_serialized.xml"),
       projectXml
     );
 
     const loadedProject = XmlObject.fromXml(projectXml, Project);
+
+    fs.writeFileSync(
+      path.join(targetDir, "dawproject_complex_deserialized.json"),
+      JSON.stringify(loadedProject, null, 2)
+    );
 
     // Deep comparison to check if the loaded project is equivalent to the original
     expect(loadedProject).toEqual(project);

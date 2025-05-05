@@ -3,7 +3,9 @@ import { Device } from "./device/device";
 import { Lane } from "./lane";
 import { MixerRole } from "./mixerRole";
 import { RealParameter } from "./realParameter";
+import { Referenceable } from "./referenceable";
 import { DeviceRegistry } from "./registry/deviceRegistry";
+import { registerLane } from "./registry/laneRegistry";
 import { Send } from "./send";
 import { IChannel, IDevice } from "./types";
 
@@ -11,6 +13,14 @@ import { IChannel, IDevice } from "./types";
  * Represents a mixer channel. It provides the ability to route signals to other channels and can contain
  * Device/Plug-in for processing.
  */
+
+const channelFactory = (xmlObject: any): Channel => {
+  const instance = new Channel();
+  instance.fromXmlObject(xmlObject);
+  return instance;
+};
+
+@registerLane("Channel", channelFactory)
 export class Channel extends Lane implements IChannel {
   /** Role of this channel in the mixer. */
   role?: MixerRole;
@@ -85,17 +95,17 @@ export class Channel extends Lane implements IChannel {
     // Add elements
     if (this.devices && this.devices.length > 0) {
       // Devices element with nested device elements
-      obj.Channel.Devices = {
-        ...this.devices.reduce((acc: any, device) => {
-          const deviceObj = (device as Device).toXmlObject();
-          const tagName = Object.keys(deviceObj)[0];
-          if (!acc[tagName]) {
-            acc[tagName] = [];
-          }
-          acc[tagName].push(deviceObj[tagName]);
-          return acc;
-        }, {}),
-      };
+      obj.Channel.Devices = this.devices.reduce((acc: any, device) => {
+        const deviceObj = (device as Device).toXmlObject();
+        const tagName = Object.keys(deviceObj)[0]; // Get the device-specific tag name (e.g., "Vst3Plugin")
+        const deviceContent = deviceObj[tagName]; // Get the content for that tag
+
+        if (!acc[tagName]) {
+          acc[tagName] = [];
+        }
+        acc[tagName].push(deviceContent);
+        return acc;
+      }, {});
     }
 
     // Add optional elements, each in their proper XML element form
@@ -140,21 +150,15 @@ export class Channel extends Lane implements IChannel {
 
     // Handle optional elements
     if (xmlObject.Volume) {
-      this.volume = new RealParameter().fromXmlObject({
-        RealParameter: xmlObject.Volume,
-      });
+      this.volume = new RealParameter().fromXmlObject(xmlObject.Volume);
     }
 
     if (xmlObject.Pan) {
-      this.pan = new RealParameter().fromXmlObject({
-        RealParameter: xmlObject.Pan,
-      });
+      this.pan = new RealParameter().fromXmlObject(xmlObject.Pan);
     }
 
     if (xmlObject.Mute) {
-      this.mute = new BoolParameter().fromXmlObject({
-        BoolParameter: xmlObject.Mute,
-      });
+      this.mute = new BoolParameter().fromXmlObject(xmlObject.Mute);
     }
 
     // Handle optional solo attribute
@@ -164,11 +168,16 @@ export class Channel extends Lane implements IChannel {
 
     const destinationId = xmlObject["@_destination"];
     if (destinationId) {
-      // This requires a way to look up Channel instances by ID
-      // For now, we'll leave it as undefined
-      console.warn(
-        `Skipping deserialization of Channel destination with ID: ${destinationId}`
-      );
+      const destination = Referenceable.getById(destinationId);
+      // Check if the retrieved object is a Channel before assigning
+      if (destination instanceof Channel) {
+        this.destination = destination;
+      } else {
+        console.warn(
+          `Retrieved object with ID ${destinationId} is not a Channel and cannot be assigned as a destination.`
+        );
+        this.destination = undefined; // Ensure destination is undefined if not a Channel
+      }
     }
 
     // Handle sends array with proper error handling

@@ -1,8 +1,16 @@
+import { registerTimeline } from "../registry/timelineRegistry";
 import type { IMarkers, ITrack } from "../types";
 import { Marker } from "./marker";
 import { Timeline } from "./timeline";
 import { TimeUnit } from "./timeUnit";
 
+const markersFactory = (xmlObject: any): Markers => {
+  const instance = new Markers();
+  instance.fromXmlObject(xmlObject);
+  return instance;
+};
+
+@registerTimeline("Markers", markersFactory)
 export class Markers extends Timeline implements IMarkers {
   markers: Marker[];
 

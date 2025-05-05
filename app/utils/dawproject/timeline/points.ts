@@ -1,7 +1,5 @@
-import {
-  registerTimeline,
-  TimelineRegistry,
-} from "../registry/timelineRegistry";
+import { PointRegistry } from "../registry/pointRegistry";
+import { registerTimeline } from "../registry/timelineRegistry";
 import type { IPoints, ITrack } from "../types";
 import { Unit } from "../unit";
 import { AutomationTarget } from "./automationTarget";
@@ -11,11 +9,11 @@ import { TimeUnit } from "./timeUnit";
 
 const pointsFactory = (xmlObject: any): Points => {
   const instance = new Points();
-  instance.fromXmlObject(xmlObject); // fromXmlObject expects the object representing the <Points> element
+  instance.fromXmlObject(xmlObject);
   return instance;
 };
 
-@registerTimeline("Points", pointsFactory) // Register Points with the registry
+@registerTimeline("Points", pointsFactory)
 export class Points extends Timeline implements IPoints {
   target: AutomationTarget;
   points: Point[];
@@ -106,8 +104,8 @@ export class Points extends Timeline implements IPoints {
         : [pointXmlObject];
 
       pointArray.forEach((pointObj: any) => {
-        // Use the registry to create the correct point instance
-        const pointInstance = TimelineRegistry.createTimelineFromXml(
+        // Use PointRegistry to create point instances
+        const pointInstance = PointRegistry.createPointFromXml(
           tagName,
           pointObj
         );
@@ -116,7 +114,7 @@ export class Points extends Timeline implements IPoints {
           points.push(pointInstance);
         } else if (pointInstance) {
           console.warn(
-            `Registry returned non-Point timeline for tag ${tagName}`
+            `PointRegistry returned non-Point instance for tag ${tagName}`
           );
         } else {
           console.warn(
@@ -127,7 +125,9 @@ export class Points extends Timeline implements IPoints {
     }
     this.points = points;
 
-    this.unit = xmlObject.unit ? (xmlObject.unit as Unit) : undefined; // Cast string to Unit
+    if (xmlObject["@_unit"] !== undefined) {
+      this.unit = xmlObject["@_unit"] as Unit; // Cast string to Unit
+    }
 
     return this;
   }

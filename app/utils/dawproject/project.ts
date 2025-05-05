@@ -1,9 +1,8 @@
 import { Application } from "./application";
 import { Arrangement } from "./arrangement";
-import { Channel } from "./channel";
 import { Lane } from "./lane";
+import { LaneRegistry } from "./registry/laneRegistry";
 import { Scene } from "./scene";
-import { Track as TrackLane } from "./track";
 import { Transport } from "./transport";
 import { IProject } from "./types";
 import { XmlObject } from "./XmlObject";
@@ -89,47 +88,49 @@ export class Project extends XmlObject implements IProject {
   fromXmlObject(xmlObject: any): this {
     this.version = xmlObject["@_version"] || Project.CURRENT_VERSION;
     this.application = xmlObject.Application
-      ? new Application().fromXmlObject({ Application: xmlObject.Application })
+      ? new Application().fromXmlObject(xmlObject.Application)
       : new Application();
 
     this.transport = xmlObject.Transport
-      ? new Transport().fromXmlObject({ Transport: xmlObject.Transport })
+      ? new Transport().fromXmlObject(xmlObject.Transport)
       : undefined;
 
     const structure: Lane[] = [];
     if (xmlObject.Structure) {
-      // Need a mechanism to determine the correct subclass of Lane
-      // based on the XML element tag (e.g., Lane, Channel, Track, etc.)
-      const laneTypeMap: { [key: string]: (obj: any) => any } = {
-        Channel: new Channel().fromXmlObject,
-        Track: new TrackLane().fromXmlObject,
-        // Add other concrete Lane subclasses here
-      };
-
+      // Use the LaneRegistry to determine the correct subclass of Lane
       for (const tagName in xmlObject.Structure) {
-        if (laneTypeMap[tagName]) {
-          const laneData = xmlObject.Structure[tagName];
-          const laneArray = Array.isArray(laneData) ? laneData : [laneData];
-          laneArray.forEach((laneObj: any) => {
-            try {
-              structure.push(laneTypeMap[tagName](laneObj) as Lane); // Cast to Lane
-            } catch (e) {
-              console.error(
-                `Error deserializing nested lane element in Structure: ${tagName}`,
-                e
+        // Skip attributes (those starting with @_)
+        if (tagName.startsWith("@_")) continue;
+
+        const laneData = xmlObject.Structure[tagName];
+        const laneArray = Array.isArray(laneData) ? laneData : [laneData];
+
+        laneArray.forEach((laneObj: any) => {
+          try {
+            const laneInstance = LaneRegistry.createLaneFromXml(
+              tagName,
+              laneObj
+            );
+            if (laneInstance) {
+              structure.push(laneInstance);
+            } else {
+              console.warn(
+                `Skipping deserialization of unknown nested lane element in Structure: ${tagName}`
               );
             }
-          });
-        } else {
-          console.warn(
-            `Skipping deserialization of unknown nested lane element in Structure: ${tagName}`
-          );
-        }
+          } catch (e) {
+            console.error(
+              `Error deserializing nested lane element in Structure: ${tagName}`,
+              e
+            );
+          }
+        });
       }
     }
+    this.structure = structure;
 
     this.arrangement = xmlObject.Arrangement
-      ? new Arrangement().fromXmlObject({ Arrangement: xmlObject.Arrangement })
+      ? new Arrangement().fromXmlObject(xmlObject.Arrangement)
       : undefined;
 
     const scenes: Scene[] = [];
@@ -137,33 +138,11 @@ export class Project extends XmlObject implements IProject {
       const sceneArray = Array.isArray(xmlObject.Scenes.Scene)
         ? xmlObject.Scenes.Scene
         : [xmlObject.Scenes.Scene];
-      sceneArray.forEach((sceneObj: any) => {
-        // This part needs a mechanism to determine the correct subclass of Scene content
-        // Currently, Scene is the only concrete subclass, but use a map for consistency
-        const sceneTypeMap: { [key: string]: (obj: any) => any } = {
-          Scene: new Scene().fromXmlObject,
-          // Add other concrete Scene subclasses here
-        };
 
-        const tagName = Object.keys(sceneObj)[0]; // Get the actual scene tag name
-        if (sceneTypeMap[tagName]) {
-          try {
-            scenes.push(sceneTypeMap[tagName](sceneObj[tagName]) as Scene); // Cast to Scene
-          } catch (e) {
-            console.error(
-              `Error deserializing nested scene content: ${tagName}`,
-              e
-            );
-          }
-        } else {
-          console.warn(
-            `Skipping deserialization of unknown nested scene content: ${tagName}`
-          );
-        }
+      sceneArray.forEach((sceneObj: any) => {
+        scenes.push(new Scene().fromXmlObject(sceneObj));
       });
     }
-
-    this.structure = structure;
     this.scenes = scenes;
 
     return this;

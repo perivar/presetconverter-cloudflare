@@ -26,12 +26,10 @@ export abstract class Point extends XmlObject implements IPoint {
     if (!xmlObject["@_time"]) {
       throw new Error("Required attribute 'time' missing in XML");
     }
-
     const timeValue = DoubleAdapter.fromXml(xmlObject["@_time"]);
     if (timeValue === undefined) {
       throw new Error("Invalid time value in XML");
     }
-
     this.time = timeValue;
 
     return this;

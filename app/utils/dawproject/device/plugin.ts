@@ -42,14 +42,11 @@ export abstract class Plugin extends Device implements IPlugin {
 
   toXmlObject(): any {
     const obj: any = {
-      Plugin: {
-        ...super.toXmlObject().Device,
-      },
+      ...super.toXmlObject().Device,
     };
 
-    // Add Plugin-specific attributes
     if (this.pluginVersion !== undefined) {
-      obj.Plugin["@_pluginVersion"] = this.pluginVersion;
+      obj["@_pluginVersion"] = this.pluginVersion;
     }
 
     return obj;
@@ -57,7 +54,11 @@ export abstract class Plugin extends Device implements IPlugin {
 
   fromXmlObject(xmlObject: any): this {
     super.fromXmlObject(xmlObject);
-    this.pluginVersion = xmlObject.pluginVersion || undefined;
+
+    if (xmlObject["@_pluginVersion"] !== undefined) {
+      this.pluginVersion = xmlObject["@_pluginVersion"];
+    }
+
     return this;
   }
 }

@@ -13,15 +13,15 @@ export class Marker extends Nameable implements IMarker {
 
   toXmlObject(): any {
     const attributes = super.toXmlObject(); // Get attributes from Nameable
-    attributes.time = DoubleAdapter.toXml(this.time) || "";
+    attributes["@_time"] = DoubleAdapter.toXml(this.time) || "";
     return attributes;
   }
 
   fromXmlObject(xmlObject: any): this {
     super.fromXmlObject(xmlObject); // Populate inherited attributes from Nameable
     this.time =
-      xmlObject.time !== undefined
-        ? DoubleAdapter.fromXml(xmlObject.time) || 0
+      xmlObject["@_time"] !== undefined
+        ? DoubleAdapter.fromXml(xmlObject["@_time"]) || 0
         : 0;
     return this;
   }

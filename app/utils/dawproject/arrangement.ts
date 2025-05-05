@@ -62,13 +62,7 @@ export class Arrangement extends Referenceable implements IArrangement {
       obj.Arrangement.Lanes = this.lanes.toXmlObject().Lanes; // Get the inner object
     }
     if (this.markers) {
-      if (this.markers.markers) {
-        obj.Arrangement.Markers = {
-          Marker: this.markers.markers.map(
-            marker => marker.toXmlObject().Marker
-          ), // Get the inner object
-        };
-      }
+      obj.Arrangement.Markers = this.markers.toXmlObject().Markers; // Get the inner object
     }
 
     return obj;
@@ -78,22 +72,20 @@ export class Arrangement extends Referenceable implements IArrangement {
     super.fromXmlObject(xmlObject); // Populate inherited attributes from Referenceable
 
     if (xmlObject.TimeSignatureAutomation) {
-      this.timeSignatureAutomation = new Points().fromXmlObject({
-        Points: xmlObject.TimeSignatureAutomation,
-      });
+      this.timeSignatureAutomation = new Points().fromXmlObject(
+        xmlObject.TimeSignatureAutomation
+      );
     }
     if (xmlObject.TempoAutomation) {
-      this.tempoAutomation = new Points().fromXmlObject({
-        Points: xmlObject.TempoAutomation,
-      });
+      this.tempoAutomation = new Points().fromXmlObject(
+        xmlObject.TempoAutomation
+      );
     }
     if (xmlObject.Markers) {
-      this.markers = new Markers().fromXmlObject({
-        Markers: xmlObject.Markers,
-      });
+      this.markers = new Markers().fromXmlObject(xmlObject.Markers);
     }
     if (xmlObject.Lanes) {
-      this.lanes = new Lanes().fromXmlObject({ Lanes: xmlObject.Lanes });
+      this.lanes = new Lanes().fromXmlObject(xmlObject.Lanes);
     }
 
     return this;

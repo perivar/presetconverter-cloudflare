@@ -6,7 +6,7 @@ import { DeviceRole } from "./deviceRole";
 
 const builtInDeviceFactory = (xmlObject: any): BuiltInDevice => {
   const instance = new BuiltInDevice();
-  instance.fromXmlObject(xmlObject.BuiltinDevice); // Call the instance fromXmlObject
+  instance.fromXmlObject(xmlObject);
   return instance;
 };
 

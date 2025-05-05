@@ -73,32 +73,31 @@ export class EqBand extends XmlObject implements IEqBand {
 
   fromXmlObject(xmlObject: any): this {
     // Parse specific elements Freq, Gain, and Q
-    this.freq = xmlObject.Freq
-      ? new RealParameter().fromXmlObject({ RealParameter: xmlObject.Freq })
-      : new RealParameter(0, Unit.HERTZ); // Provide default required value and unit
+    if (xmlObject.Freq) {
+      this.freq = new RealParameter().fromXmlObject(xmlObject.Freq);
+    }
 
-    this.gain = xmlObject.Gain
-      ? new RealParameter().fromXmlObject({ RealParameter: xmlObject.Gain })
-      : undefined;
+    if (xmlObject.Gain) {
+      this.gain = new RealParameter().fromXmlObject(xmlObject.Gain);
+    }
 
-    this.q = xmlObject.Q
-      ? new RealParameter().fromXmlObject({ RealParameter: xmlObject.Q })
-      : undefined;
+    if (xmlObject.Q) {
+      this.q = new RealParameter().fromXmlObject(xmlObject.Q);
+    }
 
     // Parse BoolParameter element
-    this.enabled = xmlObject.Enabled
-      ? new BoolParameter().fromXmlObject({ BoolParameter: xmlObject.Enabled })
-      : undefined;
+    if (xmlObject.Enabled) {
+      this.enabled = new BoolParameter().fromXmlObject(xmlObject.Enabled);
+    }
 
     // Parse attributes
-    this.type = xmlObject["@_type"]
-      ? (xmlObject["@_type"] as EqBandType)
-      : EqBandType.BELL; // Default to BELL if not specified
+    if (xmlObject["@_type"] !== undefined) {
+      this.type = xmlObject["@_type"] as EqBandType;
+    }
 
-    this.order =
-      xmlObject["@_order"] !== undefined
-        ? parseInt(xmlObject["@_order"], 10)
-        : undefined;
+    if (xmlObject["@_order"] !== undefined) {
+      this.order = parseInt(xmlObject["@_order"], 10);
+    }
 
     return this;
   }

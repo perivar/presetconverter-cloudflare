@@ -1,8 +1,16 @@
+import { registerTimeline } from "../registry/timelineRegistry";
 import type { IClips, ITrack } from "../types";
 import { Clip } from "./clip";
 import { Timeline } from "./timeline";
 import { TimeUnit } from "./timeUnit";
 
+const clipsFactory = (xmlObject: any): Clips => {
+  const instance = new Clips();
+  instance.fromXmlObject(xmlObject);
+  return instance;
+};
+
+@registerTimeline("Clips", clipsFactory)
 export class Clips extends Timeline implements IClips {
   clips: Clip[];
 
@@ -34,7 +42,7 @@ export class Clips extends Timeline implements IClips {
   }
 
   fromXmlObject(xmlObject: any): this {
-    super.fromXmlObject(xmlObject); // Populate inherited attributes from Timeline
+    super.fromXmlObject(xmlObject);
 
     // Process child elements of type Clip
     const clips: Clip[] = [];

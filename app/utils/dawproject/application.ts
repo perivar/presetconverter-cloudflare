@@ -25,9 +25,8 @@ export class Application extends XmlObject implements IApplication {
   }
 
   fromXmlObject(xmlObject: any): this {
-    const applicationData = xmlObject.Application;
-    this.name = applicationData["@_name"] || "";
-    this.version = applicationData["@_version"] || "";
+    this.name = xmlObject["@_name"] || "";
+    this.version = xmlObject["@_version"] || "";
     return this;
   }
 }

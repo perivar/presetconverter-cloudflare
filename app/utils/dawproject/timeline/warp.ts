@@ -16,8 +16,8 @@ export class Warp extends XmlObject implements IWarp {
   toXmlObject(): any {
     const obj: any = {
       Warp: {
-        time: DoubleAdapter.toXml(this.time) || "",
-        contentTime: DoubleAdapter.toXml(this.contentTime) || "",
+        "@_time": DoubleAdapter.toXml(this.time) || "",
+        "@_contentTime": DoubleAdapter.toXml(this.contentTime) || "",
       },
     };
     return obj;
@@ -25,13 +25,14 @@ export class Warp extends XmlObject implements IWarp {
 
   fromXmlObject(xmlObject: any): this {
     this.time =
-      xmlObject.time !== undefined
-        ? DoubleAdapter.fromXml(xmlObject.time) || 0
+      xmlObject["@_time"] !== undefined
+        ? DoubleAdapter.fromXml(xmlObject["@_time"]) || 0
         : 0;
     this.contentTime =
-      xmlObject.contentTime !== undefined
-        ? DoubleAdapter.fromXml(xmlObject.contentTime) || 0
+      xmlObject["@_contentTime"] !== undefined
+        ? DoubleAdapter.fromXml(xmlObject["@_contentTime"]) || 0
         : 0;
+
     return this;
   }
 }

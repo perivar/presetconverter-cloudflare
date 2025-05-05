@@ -8,7 +8,7 @@ import { TimeUnit } from "./timeUnit";
 
 const lanesFactory = (xmlObject: any): Lanes => {
   const instance = new Lanes();
-  instance.fromXmlObject(xmlObject.Lanes); // Assuming XML is wrapped in <Lanes>
+  instance.fromXmlObject(xmlObject);
   return instance;
 };
 
@@ -58,28 +58,62 @@ export class Lanes extends Timeline implements ILanes {
   override fromXmlObject(xmlObject: any): this {
     super.fromXmlObject(xmlObject); // Populate inherited attributes from Timeline
 
-    const lanes: Timeline[] = [];
+    this.lanes = []; // Initialize the lanes array
 
-    // Iterate through all properties in xmlObject to find Timeline elements
-    for (const tagName in xmlObject) {
-      // Skip attributes (those starting with @_) and root Lanes element
-      if (tagName === "Lanes" || tagName.startsWith("@_")) continue;
+    // Start the recursive processing
+    this._processNestedTimelines(xmlObject);
 
-      // Use the new createTimelineFromXml method
-      const timelineInstance = TimelineRegistry.createTimelineFromXml(
-        tagName,
-        xmlObject[tagName]
-      );
-      if (timelineInstance) {
-        lanes.push(timelineInstance);
-      } else {
-        console.warn(
-          `Skipping deserialization of unknown nested timeline element: ${tagName}`
-        );
-      }
+    return this;
+  }
+
+  private _processNestedTimelines(xmlObject: any): void {
+    if (!xmlObject || typeof xmlObject !== "object") {
+      return; // Stop recursion if not an object
     }
 
-    this.lanes = lanes;
-    return this;
+    for (const tagName in xmlObject) {
+      // Skip attributes (those starting with @_)
+      if (tagName.startsWith("@_")) continue;
+
+      const elementData = xmlObject[tagName];
+
+      if (Array.isArray(elementData)) {
+        // If it's an array, iterate through the array
+        for (const item of elementData) {
+          // Attempt to create a timeline instance for the item
+          const timelineInstance = TimelineRegistry.createTimelineFromXml(
+            tagName, // Use the tag name for the type
+            item // Pass the individual item object
+          );
+
+          if (timelineInstance) {
+            this.lanes.push(timelineInstance);
+          } else if (typeof item === "object" && item !== null) {
+            // If createTimelineFromXml failed and the item is an object,
+            // recursively process its children. This handles nested structures within arrays.
+            this._processNestedTimelines(item);
+          } else {
+            console.warn(
+              `Skipping deserialization of unknown nested timeline element: ${tagName}`
+            );
+          }
+        }
+      } else if (typeof elementData === "object" && elementData !== null) {
+        // If it's a single object
+        // Attempt to create a timeline instance for the object
+        const timelineInstance = TimelineRegistry.createTimelineFromXml(
+          tagName,
+          elementData
+        );
+
+        if (timelineInstance) {
+          this.lanes.push(timelineInstance);
+        } else {
+          // If createTimelineFromXml failed, recursively process its children
+          this._processNestedTimelines(elementData);
+        }
+      }
+      // If elementData is a primitive, it's likely an attribute or text content, skip.
+    }
   }
 }

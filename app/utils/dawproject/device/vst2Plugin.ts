@@ -1,11 +1,19 @@
 import { BoolParameter } from "../boolParameter";
-import { IFileReference, IParameter, IVst2Plugin } from "../types";
+import { registerDevice } from "../registry/deviceRegistry";
+import type { IFileReference, IParameter, IVst2Plugin } from "../types";
 import { DeviceRole } from "./deviceRole";
 import { Plugin } from "./plugin";
 
 /** A VST2 Plug-in instance.
  * The VST2 plug-in state should be stored in FXB or FXP format.
  */
+const vst2PluginFactory = (xmlObject: any): Vst2Plugin => {
+  const instance = new Vst2Plugin();
+  instance.fromXmlObject(xmlObject);
+  return instance;
+};
+
+@registerDevice("Vst2Plugin", vst2PluginFactory)
 export class Vst2Plugin extends Plugin implements IVst2Plugin {
   constructor(
     // Make required fields optional for deserialization, provide defaults

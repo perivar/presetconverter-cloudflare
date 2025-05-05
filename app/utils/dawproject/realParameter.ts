@@ -53,19 +53,18 @@ export class RealParameter extends Parameter implements IRealParameter {
   fromXmlObject(xmlObject: any): this {
     super.fromXmlObject(xmlObject); // Populate inherited attributes from Parameter
 
-    this.value =
-      xmlObject["@_value"] !== undefined
-        ? DoubleAdapter.fromXml(xmlObject["@_value"])
-        : undefined;
-    this.unit = xmlObject["@_unit"] ? (xmlObject["@_unit"] as Unit) : undefined; // Cast string to Unit
-    this.min =
-      xmlObject["@_min"] !== undefined
-        ? DoubleAdapter.fromXml(xmlObject["@_min"])
-        : undefined;
-    this.max =
-      xmlObject["@_max"] !== undefined
-        ? DoubleAdapter.fromXml(xmlObject["@_max"])
-        : undefined;
+    if (xmlObject["@_value"] !== undefined) {
+      this.value = DoubleAdapter.fromXml(xmlObject["@_value"]);
+    }
+    if (xmlObject["@_unit"] !== undefined) {
+      this.unit = xmlObject["@_unit"] as Unit; // Cast string to Unit
+    }
+    if (xmlObject["@_min"] !== undefined) {
+      this.min = DoubleAdapter.fromXml(xmlObject["@_min"]);
+    }
+    if (xmlObject["@_max"] !== undefined) {
+      this.max = DoubleAdapter.fromXml(xmlObject["@_max"]);
+    }
 
     return this;
   }

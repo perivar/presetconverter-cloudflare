@@ -1,8 +1,16 @@
+import { registerTimeline } from "../registry/timelineRegistry";
 import type { IClipSlot, ITrack } from "../types";
 import { Clip } from "./clip";
 import { Timeline } from "./timeline";
 import { TimeUnit } from "./timeUnit";
 
+const clipSlotFactory = (xmlObject: any): ClipSlot => {
+  const instance = new ClipSlot();
+  instance.fromXmlObject(xmlObject);
+  return instance;
+};
+
+@registerTimeline("ClipSlot", clipSlotFactory)
 export class ClipSlot extends Timeline implements IClipSlot {
   clip?: Clip;
   hasStop?: boolean;
@@ -33,23 +41,22 @@ export class ClipSlot extends Timeline implements IClipSlot {
     }
 
     if (this.hasStop !== undefined) {
-      obj.ClipSlot.hasStop = this.hasStop;
+      obj.ClipSlot["@_hasStop"] = this.hasStop;
     }
 
     return obj;
   }
 
   fromXmlObject(xmlObject: any): this {
-    super.fromXmlObject(xmlObject); // Populate inherited attributes
+    super.fromXmlObject(xmlObject);
 
     if (xmlObject.Clip) {
       this.clip = new Clip().fromXmlObject(xmlObject.Clip);
     }
 
-    this.hasStop =
-      xmlObject.hasStop !== undefined
-        ? String(xmlObject.hasStop).toLowerCase() === "true"
-        : undefined;
+    if (this.hasStop !== undefined) {
+      this.hasStop = String(xmlObject["@_hasStop"]).toLowerCase() === "true";
+    }
 
     return this;
   }
