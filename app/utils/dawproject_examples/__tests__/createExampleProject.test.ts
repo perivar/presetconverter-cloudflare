@@ -126,7 +126,10 @@ describe("DAW Project", () => {
   });
 
   test("should create correct lane content", () => {
-    const project = createDummyProject(1, new Set(["CLIPS", "NOTES"]));
+    const project = createDummyProject(
+      1,
+      new Set<Features>(["CLIPS", "NOTES"])
+    );
 
     const projectXml = project.toXml();
     fs.writeFileSync(
@@ -150,7 +153,7 @@ describe("DAW Project", () => {
   });
 
   test("should create automation points", () => {
-    const project = createDummyProject(1, new Set(["AUTOMATION"]));
+    const project = createDummyProject(1, new Set<Features>(["AUTOMATION"]));
 
     const projectXml = project.toXml();
     fs.writeFileSync(
