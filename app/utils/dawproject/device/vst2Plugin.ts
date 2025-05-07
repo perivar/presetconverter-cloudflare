@@ -47,7 +47,7 @@ export class Vst2Plugin extends Plugin implements IVst2Plugin {
   }
 
   toXmlObject(): any {
-    const pluginContent = super.toXmlObject(); // Get attributes and children from Plugin's toXmlObject
+    const pluginContent = super.toXmlObject(); // get attributes and children from Plugin's toXmlObject
 
     return {
       Vst2Plugin: pluginContent, // Wrap the content in the Vst2Plugin tag

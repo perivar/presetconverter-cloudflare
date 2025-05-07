@@ -5,13 +5,14 @@ import { RealParameter } from "../realParameter";
 import { Referenceable } from "../referenceable";
 import { TimeSignatureParameter } from "../timeSignatureParameter";
 import type { IDevice, IFileReference, IParameter } from "../types";
+import { Utility } from "../utility";
 import { DeviceRole } from "./deviceRole";
 
 export abstract class Device extends Referenceable implements IDevice {
-  enabled?: BoolParameter;
   deviceRole: DeviceRole;
-  loaded?: boolean;
   deviceName: string;
+  enabled?: BoolParameter;
+  loaded?: boolean;
   deviceID?: string;
   deviceVendor?: string;
   state?: IFileReference;
@@ -45,29 +46,29 @@ export abstract class Device extends Referenceable implements IDevice {
   }
 
   toXmlObject(): any {
-    const obj: any = {};
-    obj.Device = {
-      ...super.toXmlObject(), // Get attributes from Referenceable
-      // Add Device-specific attributes directly here
-      "@_deviceRole": this.deviceRole,
-      "@_deviceName": this.deviceName,
-      ...(this.loaded !== undefined && { "@_loaded": this.loaded }),
-      ...(this.deviceID !== undefined && { "@_deviceID": this.deviceID }),
-      ...(this.deviceVendor !== undefined && {
-        "@_deviceVendor": this.deviceVendor,
-      }),
+    const obj: any = {
+      Device: {
+        ...super.toXmlObject(), // get attributes from Referenceable
+      },
     };
 
+    // add required attributes
+    Utility.addAttribute(obj.Device, "deviceRole", this, {
+      required: true,
+    });
+    Utility.addAttribute(obj.Device, "deviceName", this, {
+      required: true,
+    });
+
+    // add optional attributes
+    Utility.addAttribute(obj.Device, "loaded", this);
+    Utility.addAttribute(obj.Device, "deviceID", this);
+    Utility.addAttribute(obj.Device, "deviceVendor", this);
+
     // Add children directly
-    if (this.parameters && this.parameters.length > 0) {
-      obj.Device.Parameters = this.parameters.reduce((acc: any, param) => {
-        const paramObj = (param as Parameter).toXmlObject();
-        const tagName = Object.keys(paramObj)[0];
-        if (!acc) acc = {};
-        if (!acc[tagName]) acc[tagName] = [];
-        acc[tagName].push(paramObj[tagName]);
-        return acc;
-      }, {});
+    const groupedParameters = Utility.groupChildrenByTagName(this.parameters);
+    if (groupedParameters) {
+      obj.Device.Parameters = groupedParameters;
     }
 
     if (this.enabled !== undefined) {
@@ -82,17 +83,22 @@ export abstract class Device extends Referenceable implements IDevice {
   }
 
   fromXmlObject(xmlObject: any): this {
-    super.fromXmlObject(xmlObject);
+    super.fromXmlObject(xmlObject); // populate inherited attributes from Referenceable
 
-    this.deviceRole = xmlObject["@_deviceRole"] as DeviceRole;
-    this.deviceName = xmlObject["@_deviceName"];
-    this.id = xmlObject["@_id"];
-    this.loaded =
-      xmlObject["@_loaded"] !== undefined
-        ? String(xmlObject["@_loaded"]).toLowerCase() === "true"
-        : true;
-    this.deviceID = xmlObject["@_deviceID"] || undefined;
-    this.deviceVendor = xmlObject["@_deviceVendor"] || undefined;
+    // validate and populate required attributes
+    Utility.populateAttribute<DeviceRole>(xmlObject, "deviceRole", this, {
+      required: true,
+    });
+    Utility.populateAttribute<string>(xmlObject, "deviceName", this, {
+      required: true,
+    });
+
+    // populate optional attributes
+    Utility.populateAttribute<boolean>(xmlObject, "loaded", this, {
+      castTo: Boolean,
+    });
+    Utility.populateAttribute<string>(xmlObject, "deviceID", this);
+    Utility.populateAttribute<string>(xmlObject, "deviceVendor", this);
 
     if (xmlObject.Enabled) {
       this.enabled = new BoolParameter().fromXmlObject(xmlObject.Enabled);

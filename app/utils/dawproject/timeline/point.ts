@@ -22,7 +22,7 @@ export abstract class Point extends XmlObject implements IPoint {
   }
 
   fromXmlObject(xmlObject: any): this {
-    // Validate and populate required time attribute
+    // validate and populate required time attribute
     if (!xmlObject["@_time"]) {
       throw new Error("Required attribute 'time' missing in XML");
     }

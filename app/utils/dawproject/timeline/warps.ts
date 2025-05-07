@@ -3,6 +3,7 @@ import {
   TimelineRegistry,
 } from "../registry/timelineRegistry";
 import type { ITrack, IWarps } from "../types";
+import { Utility } from "../utility";
 import { Timeline } from "./timeline";
 import { TimeUnit } from "./timeUnit";
 import { Warp } from "./warp";
@@ -15,9 +16,9 @@ const warpsFactory = (xmlObject: any): Warps => {
 
 @registerTimeline("Warps", warpsFactory)
 export class Warps extends Timeline implements IWarps {
+  contentTimeUnit: TimeUnit;
   points: Warp[];
   content?: Timeline;
-  contentTimeUnit: TimeUnit;
 
   constructor(
     // Make required fields optional for deserialization, provide defaults
@@ -40,19 +41,23 @@ export class Warps extends Timeline implements IWarps {
   toXmlObject(): any {
     const obj: any = {
       Warps: {
-        ...super.toXmlObject(), // Populate inherited attributes from Timeline
-        "@_contentTimeUnit": this.contentTimeUnit, // contentTimeUnit is required
+        ...super.toXmlObject(), // populate inherited attributes from Timeline
       },
     };
 
-    // Append the nested content (e.g., another Timeline)
+    // add required attribute
+    Utility.addAttribute(obj.Warps, "contentTimeUnit", this, {
+      required: true,
+    });
+
+    // append the nested content (e.g., another Timeline)
     if (this.content) {
       const contentObj = this.content.toXmlObject();
       const tagName = Object.keys(contentObj)[0];
       obj.Warps.Content = { [tagName]: contentObj[tagName] }; // Wrap in "Content" tag
     }
 
-    // Recursively add nested Warp elements
+    // recursively add nested Warp elements
     if (this.points && this.points.length > 0) {
       obj.Warps.Warp = this.points.map(warp => warp.toXmlObject().Warp);
     }
@@ -61,14 +66,20 @@ export class Warps extends Timeline implements IWarps {
   }
 
   fromXmlObject(xmlObject: any): this {
-    super.fromXmlObject(xmlObject); // Populate inherited attributes from Timeline
+    super.fromXmlObject(xmlObject); // populate inherited attributes from Timeline
 
-    // Handle content if present
+    // validate and populate required attribute
+    Utility.populateAttribute<TimeUnit>(xmlObject, "contentTimeUnit", this, {
+      required: true,
+      castTo: TimeUnit,
+    });
+
+    // handle content if present
     let content: Timeline | undefined;
     if (xmlObject.Content) {
       const contentObj = xmlObject.Content;
       const tagName = Object.keys(contentObj)[0]; // Get the actual content tag name
-      // Use the new createTimelineFromXml method
+
       content = TimelineRegistry.createTimelineFromXml(
         tagName,
         contentObj[tagName]
@@ -81,7 +92,7 @@ export class Warps extends Timeline implements IWarps {
     }
     this.content = content;
 
-    // Recursively parse nested Warp elements
+    // recursively parse nested Warp elements
     const points: Warp[] = []; // Renamed from events
     if (xmlObject.Warp) {
       const warpArray = Array.isArray(xmlObject.Warp)
@@ -92,11 +103,6 @@ export class Warps extends Timeline implements IWarps {
       });
     }
     this.points = points;
-
-    // Parse the contentTimeUnit attribute
-    if (xmlObject["@_contentTimeUnit"] !== undefined) {
-      this.contentTimeUnit = xmlObject["@_contentTimeUnit"] as TimeUnit;
-    }
 
     return this;
   }

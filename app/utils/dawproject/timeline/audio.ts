@@ -1,7 +1,7 @@
 import { FileReference } from "../fileReference";
 import { registerTimeline } from "../registry/timelineRegistry";
 import type { IAudio, IFileReference } from "../types"; // Import IFileReference
-
+import { Utility } from "../utility";
 import { MediaFile } from "./mediaFile";
 import { TimeUnit } from "./timeUnit";
 
@@ -37,15 +37,20 @@ export class Audio extends MediaFile implements IAudio {
   toXmlObject(): any {
     const obj: any = {
       Audio: {
-        ...super.toXmlObject(), // Get attributes and children from MediaFile's toXmlObject
-        "@_sampleRate": this.sampleRate,
-        "@_channels": this.channels,
+        ...super.toXmlObject(), // get attributes and children from MediaFile's toXmlObject
       },
     };
 
-    if (this.algorithm !== undefined) {
-      obj.Audio["@_algorithm"] = this.algorithm;
-    }
+    // add required attributes
+    Utility.addAttribute(obj.Audio, "sampleRate", this, {
+      required: true,
+    });
+    Utility.addAttribute(obj.Audio, "channels", this, {
+      required: true,
+    });
+
+    // add optional attribute
+    Utility.addAttribute(obj.Audio, "algorithm", this);
 
     return obj;
   }
@@ -53,19 +58,18 @@ export class Audio extends MediaFile implements IAudio {
   fromXmlObject(xmlObject: any): this {
     super.fromXmlObject(xmlObject);
 
-    if (!xmlObject["@_sampleRate"]) {
-      throw new Error("Required attribute 'sampleRate' missing in Audio XML");
-    }
-    this.sampleRate = parseInt(xmlObject["@_sampleRate"], 10);
+    // validate and populate required attributes
+    Utility.populateAttribute<number>(xmlObject, "sampleRate", this, {
+      required: true,
+      castTo: Number,
+    });
+    Utility.populateAttribute<number>(xmlObject, "channels", this, {
+      required: true,
+      castTo: Number,
+    });
 
-    if (!xmlObject["@_channels"]) {
-      throw new Error("Required attribute 'channels' missing in Audio XML");
-    }
-    this.channels = parseInt(xmlObject["@_channels"], 10);
-
-    if (xmlObject["@_algorithm"] !== undefined) {
-      this.algorithm = xmlObject["@_algorithm"];
-    }
+    // populate optional attribute
+    Utility.populateAttribute(xmlObject, "algorithm", this);
 
     return this;
   }

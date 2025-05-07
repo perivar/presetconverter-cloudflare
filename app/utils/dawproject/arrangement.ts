@@ -46,7 +46,7 @@ export class Arrangement extends Referenceable implements IArrangement {
   toXmlObject(): any {
     const obj: any = {
       Arrangement: {
-        ...super.toXmlObject(), // Get attributes from Referenceable
+        ...super.toXmlObject(), // get attributes from Referenceable
       },
     };
 
@@ -69,7 +69,7 @@ export class Arrangement extends Referenceable implements IArrangement {
   }
 
   fromXmlObject(xmlObject: any): this {
-    super.fromXmlObject(xmlObject); // Populate inherited attributes from Referenceable
+    super.fromXmlObject(xmlObject); // populate inherited attributes from Referenceable
 
     if (xmlObject.TimeSignatureAutomation) {
       this.timeSignatureAutomation = new Points().fromXmlObject(

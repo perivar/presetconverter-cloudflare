@@ -2,7 +2,6 @@ import { BoolParameter } from "../boolParameter";
 import { RealParameter } from "../realParameter";
 import { registerDevice } from "../registry/deviceRegistry";
 import type { ICompressor, IFileReference, IParameter } from "../types";
-import { Unit } from "../unit";
 import { BuiltInDevice } from "./builtInDevice";
 import { DeviceRole } from "./deviceRole";
 
@@ -70,15 +69,12 @@ export class Compressor extends BuiltInDevice implements ICompressor {
   toXmlObject(): any {
     const obj: any = {
       Compressor: {
-        ...super.toXmlObject().BuiltinDevice,
+        ...super.toXmlObject().BuiltinDevice, // get attributes and children from BuiltInDevice's toXmlObject
       },
     };
 
     if (this.attack) {
-      obj.Compressor.Attack = {
-        ...this.attack.toXmlObject().RealParameter,
-        ["@_unit"]: Unit.SECONDS,
-      };
+      obj.Compressor.Attack = this.attack.toXmlObject().RealParameter;
     }
 
     if (this.autoMakeup) {
@@ -86,60 +82,37 @@ export class Compressor extends BuiltInDevice implements ICompressor {
     }
 
     if (this.inputGain) {
-      obj.Compressor.InputGain = {
-        ...this.inputGain.toXmlObject().RealParameter,
-        ["@_unit"]: Unit.DECIBEL,
-      };
+      obj.Compressor.InputGain = this.inputGain.toXmlObject().RealParameter;
     }
 
     if (this.outputGain) {
-      obj.Compressor.OutputGain = {
-        ...this.outputGain.toXmlObject().RealParameter,
-        ["@_unit"]: Unit.DECIBEL,
-      };
+      obj.Compressor.OutputGain = this.outputGain.toXmlObject().RealParameter;
     }
 
     if (this.ratio) {
-      obj.Compressor.Ratio = {
-        ...this.ratio.toXmlObject().RealParameter,
-        ["@_unit"]: Unit.PERCENT,
-      };
+      obj.Compressor.Ratio = this.ratio.toXmlObject().RealParameter;
     }
 
     if (this.release) {
-      obj.Compressor.Release = {
-        ...this.release.toXmlObject().RealParameter,
-        ["@_unit"]: Unit.SECONDS,
-      };
+      obj.Compressor.Release = this.release.toXmlObject().RealParameter;
     }
 
     if (this.threshold) {
-      obj.Compressor.Threshold = {
-        ...this.threshold.toXmlObject().RealParameter,
-        ["@_unit"]: Unit.DECIBEL,
-      };
+      obj.Compressor.Threshold = this.threshold.toXmlObject().RealParameter;
     }
 
     return obj;
   }
 
   fromXmlObject(xmlObject: any): this {
-    super.fromXmlObject(xmlObject); // Populate inherited attributes from BuiltInDevice
-
-    if (xmlObject.Threshold) {
-      this.threshold = new RealParameter().fromXmlObject(xmlObject.Threshold);
-    }
-
-    if (xmlObject.Ratio) {
-      this.ratio = new RealParameter().fromXmlObject(xmlObject.Ratio);
-    }
+    super.fromXmlObject(xmlObject); // populate inherited attributes from BuiltInDevice
 
     if (xmlObject.Attack) {
       this.attack = new RealParameter().fromXmlObject(xmlObject.Attack);
     }
 
-    if (xmlObject.Release) {
-      this.release = new RealParameter().fromXmlObject(xmlObject.Release);
+    if (xmlObject.AutoMakeup) {
+      this.autoMakeup = new BoolParameter().fromXmlObject(xmlObject.AutoMakeup);
     }
 
     if (xmlObject.InputGain) {
@@ -150,8 +123,16 @@ export class Compressor extends BuiltInDevice implements ICompressor {
       this.outputGain = new RealParameter().fromXmlObject(xmlObject.OutputGain);
     }
 
-    if (xmlObject.AutoMakeup) {
-      this.autoMakeup = new BoolParameter().fromXmlObject(xmlObject.AutoMakeup);
+    if (xmlObject.Ratio) {
+      this.ratio = new RealParameter().fromXmlObject(xmlObject.Ratio);
+    }
+
+    if (xmlObject.Release) {
+      this.release = new RealParameter().fromXmlObject(xmlObject.Release);
+    }
+
+    if (xmlObject.Threshold) {
+      this.threshold = new RealParameter().fromXmlObject(xmlObject.Threshold);
     }
 
     return this;

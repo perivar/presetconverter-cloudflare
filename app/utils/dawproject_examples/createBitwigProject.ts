@@ -211,10 +211,10 @@ export function createProjectWithAudioTracks(
     if (trackInfo.compressor_settings && audioTrack.channel) {
       const compInfo = trackInfo.compressor_settings;
       const compressor = new Compressor(
-        DeviceRole.AUDIO_FX, // Swapped order
-        `Compressor_${i + 1}`, // Swapped order
+        DeviceRole.AUDIO_FX,
+        `Compressor_${i + 1}`,
         new RealParameter(compInfo.threshold, Unit.DECIBEL),
-        new RealParameter(compInfo.ratio, Unit.LINEAR), // Assuming ratio is linear
+        new RealParameter(compInfo.ratio, Unit.PERCENT),
         new RealParameter(compInfo.attack, Unit.SECONDS),
         new RealParameter(compInfo.release, Unit.SECONDS),
         new RealParameter(compInfo.input_gain, Unit.DECIBEL),

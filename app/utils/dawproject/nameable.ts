@@ -1,4 +1,5 @@
 import { INameable } from "./types";
+import { Utility } from "./utility";
 import { XmlObject } from "./XmlObject";
 
 export abstract class Nameable extends XmlObject implements INameable {
@@ -17,34 +18,22 @@ export abstract class Nameable extends XmlObject implements INameable {
   }
 
   toXmlObject(): any {
-    // Create object for attributes
     const attributes: any = {};
 
-    // Add optional attributes
-    if (this.name !== undefined) {
-      attributes["@_name"] = this.name;
-    }
-    if (this.color !== undefined) {
-      attributes["@_color"] = this.color;
-    }
-    if (this.comment !== undefined) {
-      attributes["@_comment"] = this.comment;
-    }
+    // add optional attributes
+    Utility.addAttribute(attributes, "name", this);
+    Utility.addAttribute(attributes, "color", this);
+    Utility.addAttribute(attributes, "comment", this);
 
     return attributes;
   }
 
   fromXmlObject(xmlObject: any): this {
-    // Populate optional attributes
-    if (xmlObject["@_name"] !== undefined) {
-      this.name = xmlObject["@_name"];
-    }
-    if (xmlObject["@_color"] !== undefined) {
-      this.color = xmlObject["@_color"];
-    }
-    if (xmlObject["@_comment"] !== undefined) {
-      this.comment = xmlObject["@_comment"];
-    }
+    // populate optional attributes
+    Utility.populateAttribute(xmlObject, "name", this);
+    Utility.populateAttribute(xmlObject, "color", this);
+    Utility.populateAttribute(xmlObject, "comment", this);
+
     return this;
   }
 }

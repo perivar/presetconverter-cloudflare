@@ -1,5 +1,6 @@
 import { registerPoint } from "../registry/pointRegistry";
 import type { IIntegerPoint } from "../types";
+import { Utility } from "../utility";
 import { Point } from "./point";
 
 const integerPointFactory = (xmlObject: any): IntegerPoint => {
@@ -21,12 +22,8 @@ export class IntegerPoint extends Point implements IIntegerPoint {
   toXmlObject(): any {
     const attributes = super.toXmlObject();
 
-    // Add required value attribute
-    if (this.value !== undefined) {
-      attributes["@_value"] = this.value;
-    } else {
-      throw new Error("Required attribute 'value' missing for IntegerPoint");
-    }
+    // add required value attribute
+    Utility.addAttribute(attributes, "value", this, { required: true });
 
     return { IntegerPoint: attributes };
   }
@@ -34,14 +31,11 @@ export class IntegerPoint extends Point implements IIntegerPoint {
   fromXmlObject(xmlObject: any): this {
     super.fromXmlObject(xmlObject);
 
-    // Validate and populate required value attribute
-    if (xmlObject["@_value"] === undefined) {
-      throw new Error("Required attribute 'value' missing in XML");
-    }
-    this.value = parseInt(xmlObject["@_value"], 10);
-    if (isNaN(this.value)) {
-      throw new Error("Invalid enum value in XML");
-    }
+    // validate and populate required value attribute
+    Utility.populateAttribute<number>(xmlObject, "value", this, {
+      required: true,
+      castTo: Number,
+    });
 
     return this;
   }

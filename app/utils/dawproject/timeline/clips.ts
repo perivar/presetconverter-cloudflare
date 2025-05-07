@@ -29,7 +29,7 @@ export class Clips extends Timeline implements IClips {
   toXmlObject(): any {
     const obj: any = {
       Clips: {
-        ...super.toXmlObject(), // Get attributes from Timeline
+        ...super.toXmlObject(), // get attributes from Timeline
       },
     };
 

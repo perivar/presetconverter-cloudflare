@@ -1,5 +1,6 @@
 import { Nameable } from "./nameable";
 import { IReferenceable } from "./types";
+import { Utility } from "./utility";
 
 export abstract class Referenceable extends Nameable implements IReferenceable {
   /** Unique string identifier of this element. This is used for referencing this instance from other elements. */
@@ -20,22 +21,25 @@ export abstract class Referenceable extends Nameable implements IReferenceable {
   }
 
   toXmlObject(): any {
-    const attributes = super.toXmlObject(); // Get attributes from Nameable
-    attributes["@_id"] = this.id; // Add the id attribute
+    const attributes = super.toXmlObject(); // get attributes from Nameable
+
+    // add required attribute
+    Utility.addAttribute(attributes, "id", this, {
+      required: true,
+    });
+
     return attributes;
   }
 
   fromXmlObject(xmlObject: any): this {
-    // Populate inherited attributes first
-    super.fromXmlObject(xmlObject);
+    super.fromXmlObject(xmlObject); // populate inherited attributes from Nameable
 
-    // Populate required id attribute
-    if (!xmlObject["@_id"]) {
-      throw new Error("Required attribute 'id' missing for Referenceable");
-    }
-    this.id = xmlObject["@_id"];
+    // validate and populate required attribute
+    Utility.populateAttribute(xmlObject, "id", this, {
+      required: true,
+    });
 
-    // Register instance for reference lookup
+    // register instance for reference lookup
     Referenceable._instances[this.id] = this;
 
     return this;

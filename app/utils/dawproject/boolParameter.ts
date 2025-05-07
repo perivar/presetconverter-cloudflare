@@ -1,5 +1,6 @@
 import { Parameter } from "./parameter";
 import { IBoolParameter } from "./types";
+import { Utility } from "./utility";
 
 /** Represents a parameter which can provide a boolean (true/false) value and be used as an automation target. */
 export class BoolParameter extends Parameter implements IBoolParameter {
@@ -18,12 +19,10 @@ export class BoolParameter extends Parameter implements IBoolParameter {
   }
 
   toXmlObject(): any {
-    const attributes = super.toXmlObject(); // Get attributes from Parameter
+    const attributes = super.toXmlObject(); // get attributes from Parameter
 
-    // Add BoolParameter-specific attribute
-    if (this.value !== undefined) {
-      attributes["@_value"] = this.value;
-    }
+    // add optional attribute
+    Utility.addAttribute(attributes, "value", this);
 
     // Return with proper structure
     return {
@@ -34,11 +33,13 @@ export class BoolParameter extends Parameter implements IBoolParameter {
   }
 
   fromXmlObject(xmlObject: any): this {
-    super.fromXmlObject(xmlObject); // Populate inherited attributes from Parameter
+    super.fromXmlObject(xmlObject); // populate inherited attributes from Parameter
 
-    if (xmlObject["@_value"] !== undefined) {
-      this.value = String(xmlObject["@_value"]).toLowerCase() === "true";
-    }
+    // populate optional attribute
+    Utility.populateAttribute<boolean>(xmlObject, "value", this, {
+      castTo: Boolean,
+    });
+
     return this;
   }
 }

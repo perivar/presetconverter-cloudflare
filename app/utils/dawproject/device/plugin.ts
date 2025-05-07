@@ -1,5 +1,6 @@
 import { BoolParameter } from "../boolParameter";
 import { IFileReference, IParameter, IPlugin } from "../types";
+import { Utility } from "../utility";
 import { Device } from "./device";
 import { DeviceRole } from "./deviceRole";
 
@@ -45,9 +46,8 @@ export abstract class Plugin extends Device implements IPlugin {
       ...super.toXmlObject().Device,
     };
 
-    if (this.pluginVersion !== undefined) {
-      obj["@_pluginVersion"] = this.pluginVersion;
-    }
+    // add optional attribute
+    Utility.addAttribute(obj, "pluginVersion", this);
 
     return obj;
   }
@@ -55,9 +55,8 @@ export abstract class Plugin extends Device implements IPlugin {
   fromXmlObject(xmlObject: any): this {
     super.fromXmlObject(xmlObject);
 
-    if (xmlObject["@_pluginVersion"] !== undefined) {
-      this.pluginVersion = xmlObject["@_pluginVersion"];
-    }
+    // populate optional attribute
+    Utility.populateAttribute(xmlObject, "pluginVersion", this);
 
     return this;
   }

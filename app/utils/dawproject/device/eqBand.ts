@@ -2,6 +2,7 @@ import { BoolParameter } from "../boolParameter";
 import { RealParameter } from "../realParameter";
 import type { IEqBand } from "../types";
 import { Unit } from "../unit";
+import { Utility } from "../utility";
 import { XmlObject } from "../XmlObject";
 import { EqBandType } from "./eqBandType";
 
@@ -34,34 +35,29 @@ export class EqBand extends XmlObject implements IEqBand {
 
   toXmlObject(): any {
     const obj: any = {
-      Band: {
-        "@_type": this.type,
-      },
+      Band: {},
     };
 
-    if (this.order !== undefined) {
-      obj.Band["@_order"] = this.order;
-    }
+    // add required attribute
+    Utility.addAttribute(obj.Band, "type", this, {
+      required: true,
+    });
+
+    // add optional attribute
+    Utility.addAttribute(obj.Band, "order", this);
 
     if (this.freq) {
-      obj.Band.Freq = {
-        ...this.freq.toXmlObject().RealParameter,
-        "@_unit": Unit.HERTZ,
-      };
+      obj.Band.Freq = this.freq.toXmlObject().RealParameter;
+    } else {
+      throw new Error("Required attribute 'freq' missing for EqBand");
     }
 
     if (this.gain) {
-      obj.Band.Gain = {
-        ...this.gain.toXmlObject().RealParameter,
-        "@_unit": Unit.DECIBEL,
-      };
+      obj.Band.Gain = this.gain.toXmlObject().RealParameter;
     }
 
     if (this.q) {
-      obj.Band.Q = {
-        ...this.q.toXmlObject().RealParameter,
-        "@_unit": Unit.LINEAR,
-      };
+      obj.Band.Q = this.q.toXmlObject().RealParameter;
     }
 
     if (this.enabled) {
@@ -72,9 +68,21 @@ export class EqBand extends XmlObject implements IEqBand {
   }
 
   fromXmlObject(xmlObject: any): this {
-    // Parse specific elements Freq, Gain, and Q
+    // validate and populate required attribute
+    Utility.populateAttribute<EqBandType>(xmlObject, "type", this, {
+      required: true,
+      castTo: EqBandType,
+    });
+
+    // populate optional attribute
+    Utility.populateAttribute<number>(xmlObject, "order", this, {
+      castTo: Number,
+    });
+
     if (xmlObject.Freq) {
       this.freq = new RealParameter().fromXmlObject(xmlObject.Freq);
+    } else {
+      throw new Error("Required element 'Freq' missing in XML");
     }
 
     if (xmlObject.Gain) {
@@ -85,18 +93,8 @@ export class EqBand extends XmlObject implements IEqBand {
       this.q = new RealParameter().fromXmlObject(xmlObject.Q);
     }
 
-    // Parse BoolParameter element
     if (xmlObject.Enabled) {
       this.enabled = new BoolParameter().fromXmlObject(xmlObject.Enabled);
-    }
-
-    // Parse attributes
-    if (xmlObject["@_type"] !== undefined) {
-      this.type = xmlObject["@_type"] as EqBandType;
-    }
-
-    if (xmlObject["@_order"] !== undefined) {
-      this.order = parseInt(xmlObject["@_order"], 10);
     }
 
     return this;

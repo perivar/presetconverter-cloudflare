@@ -1,11 +1,13 @@
+import { DoubleAdapter } from "../doubleAdapter";
 import { FileReference } from "../fileReference";
 import type { IFileReference, IMediaFile } from "../types"; // Added IFileReference
+import { Utility } from "../utility";
 import { Timeline } from "./timeline";
 import { TimeUnit } from "./timeUnit";
 
 export abstract class MediaFile extends Timeline implements IMediaFile {
-  file: IFileReference;
   duration: number;
+  file: IFileReference;
 
   constructor(
     // Make file optional for deserialization, fromXmlObject will set it
@@ -21,29 +23,37 @@ export abstract class MediaFile extends Timeline implements IMediaFile {
   }
 
   toXmlObject(): any {
-    const obj: any = super.toXmlObject(); // Get attributes from Timeline
-    obj["@_duration"] = this.duration;
+    const obj: any = super.toXmlObject(); // get attributes from Timeline
 
-    // Handle the 'File' child directly
+    // add required duration attribute
+    Utility.addAttribute(obj, "duration", this, {
+      required: true,
+      adapter: DoubleAdapter.toXml,
+    });
+
+    // handle the 'File' child directly
     if (this.file && "toXmlObject" in this.file) {
       obj.File = (this.file as FileReference).toXmlObject();
     } else if (this.file) {
-      // Handle case where file is IFileReference but not FileReference
+      // handle case where file is IFileReference but not FileReference
       console.warn(
         "File property is IFileReference but not FileReference instance. Cannot call toXmlObject."
       );
     }
 
-    // Since MediaFile is abstract, it doesn't return a root element itself.
-    // Subclasses will wrap these attributes and children in their specific root tag.
+    // since MediaFile is abstract, it doesn't return a root element itself.
+    // subclasses will wrap these attributes and children in their specific root tag.
     return obj;
   }
 
   fromXmlObject(xmlObject: any): this {
-    super.fromXmlObject(xmlObject); // Populate inherited attributes from Timeline
+    super.fromXmlObject(xmlObject); // populate inherited attributes from Timeline
 
-    this.duration =
-      xmlObject.duration !== undefined ? parseFloat(xmlObject.duration) : 0.0;
+    // validate and populate required time attribute
+    Utility.populateAttribute<number>(xmlObject, "duration", this, {
+      required: true,
+      adapter: DoubleAdapter.fromXml,
+    });
 
     if (xmlObject.File) {
       this.file = new FileReference().fromXmlObject(xmlObject.File);

@@ -1,5 +1,6 @@
 import { registerTimeline } from "../registry/timelineRegistry";
 import type { IClipSlot, ITrack } from "../types";
+import { Utility } from "../utility";
 import { Clip } from "./clip";
 import { Timeline } from "./timeline";
 import { TimeUnit } from "./timeUnit";
@@ -40,9 +41,8 @@ export class ClipSlot extends Timeline implements IClipSlot {
       obj.ClipSlot.Clip = this.clip.toXmlObject().Clip;
     }
 
-    if (this.hasStop !== undefined) {
-      obj.ClipSlot["@_hasStop"] = this.hasStop;
-    }
+    // add optional attribute
+    Utility.addAttribute(obj.ClipSlot, "hasStop", this);
 
     return obj;
   }
@@ -54,9 +54,10 @@ export class ClipSlot extends Timeline implements IClipSlot {
       this.clip = new Clip().fromXmlObject(xmlObject.Clip);
     }
 
-    if (this.hasStop !== undefined) {
-      this.hasStop = String(xmlObject["@_hasStop"]).toLowerCase() === "true";
-    }
+    // populate optional attribute
+    Utility.populateAttribute<boolean>(xmlObject, "hasStop", this, {
+      castTo: Boolean,
+    });
 
     return this;
   }

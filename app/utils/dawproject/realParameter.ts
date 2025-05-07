@@ -2,6 +2,7 @@ import { DoubleAdapter } from "./doubleAdapter";
 import { Parameter } from "./parameter";
 import { IRealParameter } from "./types";
 import { Unit } from "./unit";
+import { Utility } from "./utility";
 
 /** Represents a real valued (double) parameter which can provide a value and be used as an automation target. */
 export class RealParameter extends Parameter implements IRealParameter {
@@ -34,37 +35,37 @@ export class RealParameter extends Parameter implements IRealParameter {
   }
 
   toXmlObject(): any {
-    const attributes = super.toXmlObject(); // Get attributes from Parameter
-    if (this.value !== undefined) {
-      attributes["@_value"] = DoubleAdapter.toXml(this.value) || "";
-    }
-    if (this.unit !== undefined) {
-      attributes["@_unit"] = this.unit;
-    }
-    if (this.min !== undefined) {
-      attributes["@_min"] = DoubleAdapter.toXml(this.min) || "";
-    }
-    if (this.max !== undefined) {
-      attributes["@_max"] = DoubleAdapter.toXml(this.max) || "";
-    }
+    const attributes = super.toXmlObject(); // get attributes from Parameter
+
+    // add optional attributes
+    Utility.addAttribute(attributes, "value", this, {
+      adapter: DoubleAdapter.toXml,
+    });
+    Utility.addAttribute(attributes, "unit", this);
+    Utility.addAttribute(attributes, "min", this, {
+      adapter: DoubleAdapter.toXml,
+    });
+    Utility.addAttribute(attributes, "max", this, {
+      adapter: DoubleAdapter.toXml,
+    });
+
     return { RealParameter: attributes };
   }
 
   fromXmlObject(xmlObject: any): this {
-    super.fromXmlObject(xmlObject); // Populate inherited attributes from Parameter
+    super.fromXmlObject(xmlObject); // populate inherited attributes from Parameter
 
-    if (xmlObject["@_value"] !== undefined) {
-      this.value = DoubleAdapter.fromXml(xmlObject["@_value"]);
-    }
-    if (xmlObject["@_unit"] !== undefined) {
-      this.unit = xmlObject["@_unit"] as Unit; // Cast string to Unit
-    }
-    if (xmlObject["@_min"] !== undefined) {
-      this.min = DoubleAdapter.fromXml(xmlObject["@_min"]);
-    }
-    if (xmlObject["@_max"] !== undefined) {
-      this.max = DoubleAdapter.fromXml(xmlObject["@_max"]);
-    }
+    // populate optional attributes
+    Utility.populateAttribute<number>(xmlObject, "value", this, {
+      adapter: DoubleAdapter.fromXml,
+    });
+    Utility.populateAttribute<Unit>(xmlObject, "unit", this, { castTo: Unit });
+    Utility.populateAttribute<number>(xmlObject, "min", this, {
+      adapter: DoubleAdapter.fromXml,
+    });
+    Utility.populateAttribute<number>(xmlObject, "max", this, {
+      adapter: DoubleAdapter.fromXml,
+    });
 
     return this;
   }

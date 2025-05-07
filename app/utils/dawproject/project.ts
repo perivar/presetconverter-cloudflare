@@ -5,6 +5,7 @@ import { LaneRegistry } from "./registry/laneRegistry";
 import { Scene } from "./scene";
 import { Transport } from "./transport";
 import { IProject } from "./types";
+import { Utility } from "./utility";
 import { XmlObject } from "./XmlObject";
 
 /** The main root element of the DAWPROJECT format. This is stored in the file project.xml file inside the container. */
@@ -43,12 +44,12 @@ export class Project extends XmlObject implements IProject {
 
   toXmlObject(): any {
     const obj: any = {
-      Project: {
-        "@_version": this.version,
-      },
+      Project: {},
     };
 
-    // Correctly handling Application element with attributes
+    // add required attribute
+    Utility.addAttribute(obj.Project, "version", this, { required: true });
+
     if (this.application) {
       obj.Project.Application = this.application.toXmlObject().Application;
     }
@@ -57,18 +58,11 @@ export class Project extends XmlObject implements IProject {
       obj.Project.Transport = this.transport.toXmlObject().Transport;
     }
 
-    if (this.structure && this.structure.length > 0) {
+    // add children directly
+    const groupedStructure = Utility.groupChildrenByTagName(this.structure);
+    if (groupedStructure) {
       obj.Project.Structure = {
-        // Need to handle different types of Lane subclasses
-        ...this.structure.reduce((acc: any, lane) => {
-          const laneObj = lane.toXmlObject();
-          const tagName = Object.keys(laneObj)[0]; // Get the root tag name from the object
-          if (!acc[tagName]) {
-            acc[tagName] = [];
-          }
-          acc[tagName].push(laneObj[tagName]);
-          return acc;
-        }, {}),
+        ...groupedStructure,
       };
     }
 
@@ -86,14 +80,18 @@ export class Project extends XmlObject implements IProject {
   }
 
   fromXmlObject(xmlObject: any): this {
-    this.version = xmlObject["@_version"] || Project.CURRENT_VERSION;
-    this.application = xmlObject.Application
-      ? new Application().fromXmlObject(xmlObject.Application)
-      : new Application();
+    // validate and populate required attribute
+    Utility.populateAttribute<string>(xmlObject, "version", this, {
+      required: true,
+    });
 
-    this.transport = xmlObject.Transport
-      ? new Transport().fromXmlObject(xmlObject.Transport)
-      : undefined;
+    if (xmlObject.Application) {
+      this.application = new Application().fromXmlObject(xmlObject.Application);
+    }
+
+    if (xmlObject.Transport) {
+      this.transport = new Transport().fromXmlObject(xmlObject.Transport);
+    }
 
     const structure: Lane[] = [];
     if (xmlObject.Structure) {
@@ -129,9 +127,9 @@ export class Project extends XmlObject implements IProject {
     }
     this.structure = structure;
 
-    this.arrangement = xmlObject.Arrangement
-      ? new Arrangement().fromXmlObject(xmlObject.Arrangement)
-      : undefined;
+    if (xmlObject.Arrangement) {
+      this.arrangement = new Arrangement().fromXmlObject(xmlObject.Arrangement);
+    }
 
     const scenes: Scene[] = [];
     if (xmlObject.Scenes && xmlObject.Scenes.Scene) {

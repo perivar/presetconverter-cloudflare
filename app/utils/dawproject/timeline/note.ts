@@ -1,6 +1,7 @@
 import { DoubleAdapter } from "../doubleAdapter";
 import { TimelineRegistry } from "../registry/timelineRegistry";
 import type { INote } from "../types";
+import { Utility } from "../utility";
 import { XmlObject } from "../XmlObject";
 import { Timeline } from "./timeline";
 
@@ -36,22 +37,31 @@ export class Note extends XmlObject implements INote {
 
   toXmlObject(): any {
     const obj: any = {
-      Note: {
-        "@_time": DoubleAdapter.toXml(this.time) || "",
-        "@_duration": DoubleAdapter.toXml(this.duration) || "",
-        "@_key": this.key,
-      },
+      Note: {},
     };
 
-    if (this.channel !== undefined) {
-      obj.Note["@_channel"] = this.channel;
-    }
-    if (this.velocity !== undefined) {
-      obj.Note["@_vel"] = DoubleAdapter.toXml(this.velocity) || "";
-    }
-    if (this.releaseVelocity !== undefined) {
-      obj.Note["@_rel"] = DoubleAdapter.toXml(this.releaseVelocity) || "";
-    }
+    // add required attributes
+    Utility.addAttribute(obj.Note, "time", this, {
+      required: true,
+      adapter: DoubleAdapter.toXml,
+    });
+    Utility.addAttribute(obj.Note, "duration", this, {
+      required: true,
+      adapter: DoubleAdapter.toXml,
+    });
+    Utility.addAttribute(obj.Note, "key", this, { required: true });
+
+    // add optional attributes
+    Utility.addAttribute(obj.Note, "channel", this);
+    Utility.addAttribute(obj.Note, "vel", this, {
+      sourceProperty: "velocity",
+      adapter: DoubleAdapter.toXml,
+    });
+    Utility.addAttribute(obj.Note, "rel", this, {
+      sourceProperty: "releaseVelocity",
+      adapter: DoubleAdapter.toXml,
+    });
+
     if (this.content !== undefined) {
       const contentObj = this.content.toXmlObject();
       const tagName = Object.keys(contentObj)[0];
@@ -62,28 +72,32 @@ export class Note extends XmlObject implements INote {
   }
 
   fromXmlObject(xmlObject: any): this {
-    this.time =
-      xmlObject["@_time"] !== undefined
-        ? DoubleAdapter.fromXml(xmlObject["@_time"]) || 0
-        : 0;
-    this.duration =
-      xmlObject["@_duration"] !== undefined
-        ? DoubleAdapter.fromXml(xmlObject["@_duration"]) || 0
-        : 0;
-    this.key =
-      xmlObject["@_key"] !== undefined ? parseInt(xmlObject["@_key"], 10) : 0;
-    this.channel =
-      xmlObject["@_channel"] !== undefined
-        ? parseInt(xmlObject["@_channel"], 10)
-        : 0;
-    this.velocity =
-      xmlObject["@_vel"] !== undefined
-        ? DoubleAdapter.fromXml(xmlObject["@_vel"])
-        : undefined;
-    this.releaseVelocity =
-      xmlObject["@_rel"] !== undefined
-        ? DoubleAdapter.fromXml(xmlObject["@_rel"])
-        : undefined;
+    // validate and populate required attributes
+    Utility.populateAttribute<number>(xmlObject, "time", this, {
+      required: true,
+      adapter: DoubleAdapter.fromXml,
+    });
+    Utility.populateAttribute<number>(xmlObject, "duration", this, {
+      required: true,
+      adapter: DoubleAdapter.fromXml,
+    });
+    Utility.populateAttribute<number>(xmlObject, "key", this, {
+      required: true,
+      castTo: Number,
+    });
+
+    // populate optional attributes
+    Utility.populateAttribute<number>(xmlObject, "channel", this, {
+      castTo: Number,
+    });
+    Utility.populateAttribute<number | undefined>(xmlObject, "vel", this, {
+      targetProperty: "velocity",
+      adapter: DoubleAdapter.fromXml,
+    });
+    Utility.populateAttribute<number | undefined>(xmlObject, "rel", this, {
+      targetProperty: "releaseVelocity",
+      adapter: DoubleAdapter.fromXml,
+    });
 
     // Handle content if present
     if (xmlObject.Content) {

@@ -3,6 +3,7 @@ import {
   TimelineRegistry,
 } from "../registry/timelineRegistry";
 import type { ILanes, ITrack } from "../types";
+import { Utility } from "../utility";
 import { Timeline } from "./timeline";
 import { TimeUnit } from "./timeUnit";
 
@@ -31,24 +32,16 @@ export class Lanes extends Timeline implements ILanes {
   toXmlObject(): any {
     const obj: any = {
       Lanes: {
-        ...super.toXmlObject(), // Get attributes from Timeline
+        ...super.toXmlObject(), // get attributes from Timeline
       },
     };
 
-    // Append child elements for each lane
-    if (this.lanes && this.lanes.length > 0) {
-      // Need to handle different types of Timeline subclasses
+    // append child elements for each lane
+    const groupedLanes = Utility.groupChildrenByTagName(this.lanes);
+    if (groupedLanes) {
       obj.Lanes = {
-        ...obj.Lanes, // Keep existing attributes
-        ...this.lanes.reduce((acc: any, lane) => {
-          const laneObj = lane.toXmlObject();
-          const tagName = Object.keys(laneObj)[0]; // Get the root tag name from the object
-          if (!acc[tagName]) {
-            acc[tagName] = [];
-          }
-          acc[tagName].push(laneObj[tagName]);
-          return acc;
-        }, {}),
+        ...obj.Lanes, // keep existing attributes
+        ...groupedLanes,
       };
     }
 
@@ -56,11 +49,11 @@ export class Lanes extends Timeline implements ILanes {
   }
 
   override fromXmlObject(xmlObject: any): this {
-    super.fromXmlObject(xmlObject); // Populate inherited attributes from Timeline
+    super.fromXmlObject(xmlObject); // populate inherited attributes from Timeline
 
     this.lanes = []; // Initialize the lanes array
 
-    // Start the recursive processing
+    // start the recursive processing
     this._processNestedTimelines(xmlObject);
 
     return this;

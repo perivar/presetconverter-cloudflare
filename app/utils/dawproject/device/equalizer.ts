@@ -2,7 +2,6 @@ import { BoolParameter } from "../boolParameter"; // Import BoolParameter
 import { RealParameter } from "../realParameter";
 import { registerDevice } from "../registry/deviceRegistry";
 import type { IEqualizer, IFileReference, IParameter } from "../types";
-import { Unit } from "../unit";
 import { BuiltInDevice } from "./builtInDevice";
 import { DeviceRole } from "./deviceRole";
 import { EqBand } from "./eqBand";
@@ -59,40 +58,33 @@ export class Equalizer extends BuiltInDevice implements IEqualizer {
   toXmlObject(): any {
     const obj: any = {
       Equalizer: {
-        ...super.toXmlObject().BuiltinDevice, // Get attributes and children from BuiltInDevice's toXmlObject
+        ...super.toXmlObject().BuiltinDevice, // get attributes and children from BuiltInDevice's toXmlObject
       },
     };
 
-    // Add bands as child elements directly
+    // add bands as child elements directly
     if (this.bands && this.bands.length > 0) {
       obj.Equalizer.Band = this.bands.map(band => band.toXmlObject().Band);
     }
 
-    // Add InputGain as a child element directly with the unit attribute
+    // add InputGain as a child element directly
     if (this.inputGain) {
-      obj.Equalizer.InputGain = {
-        ...this.inputGain.toXmlObject().RealParameter,
-        ["@_unit"]: Unit.DECIBEL,
-      };
+      obj.Equalizer.InputGain = this.inputGain.toXmlObject().RealParameter;
     }
 
-    // Add OutputGain as a child element directly with the unit attribute
+    // add OutputGain as a child element directly
     if (this.outputGain) {
-      obj.Equalizer.OutputGain = {
-        ...this.outputGain.toXmlObject().RealParameter,
-        ["@_unit"]: Unit.DECIBEL,
-      };
+      obj.Equalizer.OutputGain = this.outputGain.toXmlObject().RealParameter;
     }
-
     return obj;
   }
 
   fromXmlObject(xmlObject: any): this {
-    super.fromXmlObject(xmlObject); // Populate inherited attributes from BuiltInDevice
+    super.fromXmlObject(xmlObject); // populate inherited attributes from BuiltInDevice
 
     const bands: EqBand[] = [];
     if (xmlObject.Band) {
-      // Handle single or multiple bands
+      // handle single or multiple bands
       const bandArray = Array.isArray(xmlObject.Band)
         ? xmlObject.Band
         : [xmlObject.Band];
@@ -102,7 +94,7 @@ export class Equalizer extends BuiltInDevice implements IEqualizer {
     }
     this.bands = bands;
 
-    // Extract the RealParameter from the InputGain and OutputGain elements
+    // extract the RealParameter from the InputGain and OutputGain elements
     if (xmlObject.InputGain) {
       this.inputGain = new RealParameter().fromXmlObject(xmlObject.InputGain);
     }

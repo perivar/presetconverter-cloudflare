@@ -8,6 +8,7 @@ import { DeviceRegistry } from "./registry/deviceRegistry";
 import { registerLane } from "./registry/laneRegistry";
 import { Send } from "./send";
 import { IChannel, IDevice } from "./types";
+import { Utility } from "./utility";
 
 /**
  * Represents a mixer channel. It provides the ability to route signals to other channels and can contain
@@ -68,44 +69,24 @@ export class Channel extends Lane implements IChannel {
   }
 
   toXmlObject(): any {
-    // Get base attributes from Lane
-    const attributes = super.toXmlObject();
-
-    // Add Channel-specific attributes
-    if (this.role !== undefined) {
-      attributes["@_role"] = this.role;
-    }
-    if (this.audioChannels !== undefined) {
-      attributes["@_audioChannels"] = this.audioChannels;
-    }
-    if (this.solo !== undefined) {
-      attributes["@_solo"] = this.solo;
-    }
-    if (this.destination !== undefined) {
-      attributes["@_destination"] = this.destination.id;
-    }
-
-    // Build object with elements
     const obj: any = {
       Channel: {
-        ...attributes,
+        ...super.toXmlObject(),
       },
     };
 
-    // Add elements
-    if (this.devices && this.devices.length > 0) {
-      // Devices element with nested device elements
-      obj.Channel.Devices = this.devices.reduce((acc: any, device) => {
-        const deviceObj = (device as Device).toXmlObject();
-        const tagName = Object.keys(deviceObj)[0]; // Get the device-specific tag name (e.g., "Vst3Plugin")
-        const deviceContent = deviceObj[tagName]; // Get the content for that tag
+    // add optional attributes
+    Utility.addAttribute(obj.Channel, "role", this);
+    Utility.addAttribute(obj.Channel, "audioChannels", this);
+    Utility.addAttribute(obj.Channel, "solo", this);
+    Utility.addAttribute(obj.Channel, "destination", this, {
+      sourceProperty: "destination.id",
+    });
 
-        if (!acc[tagName]) {
-          acc[tagName] = [];
-        }
-        acc[tagName].push(deviceContent);
-        return acc;
-      }, {});
+    // Add children directly
+    const groupedDevices = Utility.groupChildrenByTagName(this.devices);
+    if (groupedDevices) {
+      obj.Channel.Devices = groupedDevices;
     }
 
     // Add optional elements, each in their proper XML element form
@@ -128,25 +109,21 @@ export class Channel extends Lane implements IChannel {
   }
 
   fromXmlObject(xmlObject: any): this {
-    super.fromXmlObject(xmlObject); // Populate inherited attributes from Lane
+    super.fromXmlObject(xmlObject); // populate inherited attributes from Lane
 
-    // Handle required attribute role
-    if (!xmlObject["@_role"]) {
-      throw new Error("Required attribute 'role' missing in Channel XML");
-    }
-    this.role = xmlObject["@_role"] as MixerRole;
+    // handle optional attributes
+    Utility.populateAttribute<MixerRole>(xmlObject, "role", this, {
+      castTo: MixerRole,
+    });
 
-    // Handle required attribute audioChannels
-    if (!xmlObject["@_audioChannels"]) {
-      throw new Error(
-        "Required attribute 'audioChannels' missing in Channel XML"
-      );
-    }
-    const audioChannels = parseInt(xmlObject["@_audioChannels"], 10);
-    if (isNaN(audioChannels) || audioChannels < 1) {
-      throw new Error("Invalid audioChannels value in Channel XML");
-    }
-    this.audioChannels = audioChannels;
+    Utility.populateAttribute<number>(xmlObject, "audioChannels", this, {
+      castTo: Number,
+      validator: v => v > 0,
+    });
+
+    Utility.populateAttribute<boolean>(xmlObject, "solo", this, {
+      castTo: Boolean,
+    });
 
     // Handle optional elements
     if (xmlObject.Volume) {
@@ -161,11 +138,7 @@ export class Channel extends Lane implements IChannel {
       this.mute = new BoolParameter().fromXmlObject(xmlObject.Mute);
     }
 
-    // Handle optional solo attribute
-    if (xmlObject["@_solo"] !== undefined) {
-      this.solo = String(xmlObject["@_solo"]).toLowerCase() === "true";
-    }
-
+    // read destination ID and look it up in the Referenceable registry
     const destinationId = xmlObject["@_destination"];
     if (destinationId) {
       const destination = Referenceable.getById(destinationId);

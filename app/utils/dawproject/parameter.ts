@@ -1,5 +1,6 @@
 import { Referenceable } from "./referenceable";
 import { IParameter } from "./types";
+import { Utility } from "./utility";
 
 /** Represents a parameter which can provide a value and be used as an automation target. */
 export abstract class Parameter extends Referenceable implements IParameter {
@@ -19,21 +20,19 @@ export abstract class Parameter extends Referenceable implements IParameter {
   protected getXmlAttributes(): any {
     const attributes = super.toXmlObject(); // Get inherited attributes first
 
-    // Add Parameter-specific attribute
-    if (this.parameterID !== undefined) {
-      attributes["@_parameterID"] = this.parameterID;
-    }
+    // add optional attribute
+    Utility.addAttribute(attributes, "parameterID", this);
 
     return attributes;
   }
 
   fromXmlObject(xmlObject: any): this {
-    super.fromXmlObject(xmlObject); // Populate inherited attributes from Referenceable
+    super.fromXmlObject(xmlObject); // populate inherited attributes from Referenceable
 
-    // Populate Parameter-specific attribute
-    if (xmlObject["@_parameterID"] !== undefined) {
-      this.parameterID = parseInt(xmlObject["@_parameterID"], 10);
-    }
+    // populate optional attribute
+    Utility.populateAttribute<number>(xmlObject, "parameterID", this, {
+      castTo: Number,
+    });
 
     return this;
   }

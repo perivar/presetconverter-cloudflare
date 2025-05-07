@@ -29,7 +29,7 @@ export class Markers extends Timeline implements IMarkers {
   toXmlObject(): any {
     const obj: any = {
       Markers: {
-        ...super.toXmlObject(), // Get attributes from Timeline
+        ...super.toXmlObject(), // get attributes from Timeline
       },
     };
 
@@ -42,7 +42,7 @@ export class Markers extends Timeline implements IMarkers {
   }
 
   fromXmlObject(xmlObject: any): this {
-    super.fromXmlObject(xmlObject); // Populate inherited attributes from Timeline
+    super.fromXmlObject(xmlObject); // populate inherited attributes from Timeline
 
     // Process child elements of type Marker
     const markers: Marker[] = [];

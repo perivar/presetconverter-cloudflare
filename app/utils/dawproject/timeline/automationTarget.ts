@@ -2,10 +2,10 @@ import { ExpressionType } from "../expressionType";
 import { Parameter } from "../parameter";
 import { Referenceable } from "../referenceable"; // Import Referenceable
 import type { IAutomationTarget } from "../types";
+import { Utility } from "../utility";
 import { XmlObject } from "../XmlObject";
 
 export class AutomationTarget extends XmlObject implements IAutomationTarget {
-  // Attributes
   parameter?: Parameter;
   expression?: ExpressionType;
   channel?: number;
@@ -28,33 +28,22 @@ export class AutomationTarget extends XmlObject implements IAutomationTarget {
   }
 
   toXmlObject(): any {
-    // Create target object with nested elements
     const obj: any = {
       Target: {},
     };
 
-    // Add optional elements
-    if (this.parameter !== undefined) {
-      obj.Target["@_parameter"] = this.parameter;
-    }
-    if (this.expression !== undefined) {
-      obj.Target["@_expression"] = this.expression;
-    }
-    if (this.channel !== undefined) {
-      obj.Target["@_channel"] = this.channel;
-    }
-    if (this.key !== undefined) {
-      obj.Target["@_key"] = this.key;
-    }
-    if (this.controller !== undefined) {
-      obj.Target["@_controller"] = this.controller;
-    }
+    // add optional attributes
+    Utility.addAttribute(obj.Target, "parameter", this);
+    Utility.addAttribute(obj.Target, "expression", this);
+    Utility.addAttribute(obj.Target, "channel", this);
+    Utility.addAttribute(obj.Target, "key", this);
+    Utility.addAttribute(obj.Target, "controller", this);
 
     return obj;
   }
 
   fromXmlObject(xmlObject: any): this {
-    // Parse parameter attribute and get the referenced Parameter object
+    // parse parameter attribute and get the referenced Parameter object
     if (xmlObject["@_parameter"] !== undefined) {
       const parameterId = xmlObject["@_parameter"];
       const referencedParameter = Referenceable.getById(parameterId);
@@ -68,21 +57,19 @@ export class AutomationTarget extends XmlObject implements IAutomationTarget {
       }
     }
 
-    if (xmlObject["@_expression"] !== undefined) {
-      this.expression = xmlObject["@_expression"] as ExpressionType;
-    }
-
-    if (xmlObject["@_channel"] !== undefined) {
-      this.channel = parseInt(xmlObject["@_channel"], 10);
-    }
-
-    if (xmlObject["@_key"] !== undefined) {
-      this.key = parseInt(xmlObject["@_key"], 10);
-    }
-
-    if (xmlObject["@_controller"] !== undefined) {
-      this.controller = parseInt(xmlObject["@_controller"], 10);
-    }
+    // validate and populate optional attributes
+    Utility.populateAttribute<ExpressionType>(xmlObject, "expression", this, {
+      castTo: ExpressionType,
+    });
+    Utility.populateAttribute<number>(xmlObject, "channel", this, {
+      castTo: Number,
+    });
+    Utility.populateAttribute<number>(xmlObject, "key", this, {
+      castTo: Number,
+    });
+    Utility.populateAttribute<number>(xmlObject, "controller", this, {
+      castTo: Number,
+    });
 
     return this;
   }

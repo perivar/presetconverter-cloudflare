@@ -49,7 +49,7 @@ export class BuiltInDevice extends Device implements IBuiltInDevice {
   toXmlObject(): any {
     const obj: any = {
       BuiltinDevice: {
-        ...super.toXmlObject().Device,
+        ...super.toXmlObject().Device, // get attributes from Device
       },
     };
 
@@ -63,7 +63,7 @@ export class BuiltInDevice extends Device implements IBuiltInDevice {
   }
 
   public fromXmlObject(xmlObject: any): this {
-    super.fromXmlObject(xmlObject); // Call the base class instance method
+    super.fromXmlObject(xmlObject); // populate inherited attributes from Device
 
     // Handle device type using the registry
     for (const tagName in xmlObject) {

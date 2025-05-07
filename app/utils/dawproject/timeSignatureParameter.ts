@@ -1,5 +1,6 @@
 import { Parameter } from "./parameter";
 import { ITimeSignatureParameter } from "./types";
+import { Utility } from "./utility";
 
 /** Represents a (the) time-signature parameter which can provide a value and be used as an automation target. */
 export class TimeSignatureParameter
@@ -26,49 +27,31 @@ export class TimeSignatureParameter
   }
 
   toXmlObject(): any {
-    const attributes = super.toXmlObject(); // Get attributes from Parameter
+    const attributes = super.toXmlObject(); // get attributes from Parameter
 
-    // Add required numerator attribute
-    if (this.numerator !== undefined) {
-      attributes["@_numerator"] = this.numerator;
-    } else {
-      throw new Error(
-        "Required attribute 'numerator' missing for TimeSignatureParameter"
-      );
-    }
-
-    // Add required denominator attribute
-    if (this.denominator !== undefined) {
-      attributes["@_denominator"] = this.denominator;
-    } else {
-      throw new Error(
-        "Required attribute 'denominator' missing for TimeSignatureParameter"
-      );
-    }
+    // add required attributes
+    Utility.addAttribute(attributes, "numerator", this, {
+      required: true,
+    });
+    Utility.addAttribute(attributes, "denominator", this, {
+      required: true,
+    });
 
     return { TimeSignatureParameter: attributes };
   }
 
   fromXmlObject(xmlObject: any): this {
-    super.fromXmlObject(xmlObject); // Populate inherited attributes from Parameter
+    super.fromXmlObject(xmlObject); // populate inherited attributes from Parameter
 
-    // Validate and populate required numerator attribute
-    if (!xmlObject["@_numerator"]) {
-      throw new Error("Required attribute 'numerator' missing in XML");
-    }
-    this.numerator = parseInt(xmlObject["@_numerator"], 10);
-    if (isNaN(this.numerator)) {
-      throw new Error("Invalid numerator value in XML");
-    }
-
-    // Validate and populate required denominator attribute
-    if (!xmlObject["@_denominator"]) {
-      throw new Error("Required attribute 'denominator' missing in XML");
-    }
-    this.denominator = parseInt(xmlObject["@_denominator"], 10);
-    if (isNaN(this.denominator)) {
-      throw new Error("Invalid denominator value in XML");
-    }
+    // validate and populate required attributes
+    Utility.populateAttribute<number>(xmlObject, "numerator", this, {
+      required: true,
+      castTo: Number,
+    });
+    Utility.populateAttribute<number>(xmlObject, "denominator", this, {
+      required: true,
+      castTo: Number,
+    });
 
     return this;
   }

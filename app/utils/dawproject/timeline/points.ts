@@ -38,7 +38,7 @@ export class Points extends Timeline implements IPoints {
   toXmlObject(): any {
     const obj: any = {
       Points: {
-        ...super.toXmlObject(), // Get attributes from Timeline
+        ...super.toXmlObject(), // get attributes from Timeline
       },
     };
 
@@ -78,7 +78,7 @@ export class Points extends Timeline implements IPoints {
   }
 
   fromXmlObject(xmlObject: any): this {
-    super.fromXmlObject(xmlObject); // Populate inherited attributes from Timeline
+    super.fromXmlObject(xmlObject); // populate inherited attributes from Timeline
 
     // Process Target element
     if (xmlObject.Target) {

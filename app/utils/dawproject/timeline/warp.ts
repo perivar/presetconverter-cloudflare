@@ -1,5 +1,6 @@
 import { DoubleAdapter } from "../doubleAdapter";
 import type { IWarp } from "../types";
+import { Utility } from "../utility";
 import { XmlObject } from "../XmlObject";
 
 export class Warp extends XmlObject implements IWarp {
@@ -15,23 +16,32 @@ export class Warp extends XmlObject implements IWarp {
 
   toXmlObject(): any {
     const obj: any = {
-      Warp: {
-        "@_time": DoubleAdapter.toXml(this.time) || "",
-        "@_contentTime": DoubleAdapter.toXml(this.contentTime) || "",
-      },
+      Warp: {},
     };
+
+    // add required attributes
+    Utility.addAttribute(obj.Warp, "time", this, {
+      required: true,
+      adapter: DoubleAdapter.toXml,
+    });
+    Utility.addAttribute(obj.Warp, "contentTime", this, {
+      required: true,
+      adapter: DoubleAdapter.toXml,
+    });
+
     return obj;
   }
 
   fromXmlObject(xmlObject: any): this {
-    this.time =
-      xmlObject["@_time"] !== undefined
-        ? DoubleAdapter.fromXml(xmlObject["@_time"]) || 0
-        : 0;
-    this.contentTime =
-      xmlObject["@_contentTime"] !== undefined
-        ? DoubleAdapter.fromXml(xmlObject["@_contentTime"]) || 0
-        : 0;
+    // validate and populate required attributes
+    Utility.populateAttribute<number>(xmlObject, "time", this, {
+      required: true,
+      adapter: DoubleAdapter.fromXml,
+    });
+    Utility.populateAttribute<number>(xmlObject, "contentTime", this, {
+      required: true,
+      adapter: DoubleAdapter.fromXml,
+    });
 
     return this;
   }

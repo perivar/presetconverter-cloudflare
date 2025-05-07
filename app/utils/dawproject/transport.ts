@@ -1,7 +1,6 @@
 import { RealParameter } from "./realParameter";
 import { TimeSignatureParameter } from "./timeSignatureParameter";
 import { ITransport } from "./types";
-import { Unit } from "./unit";
 import { XmlObject } from "./XmlObject";
 
 /** Transport element containing playback parameters such as Tempo and Time-signature. */
@@ -23,10 +22,7 @@ export class Transport extends XmlObject implements ITransport {
     };
 
     if (this.tempo) {
-      obj.Transport.Tempo = {
-        ...this.tempo.toXmlObject().RealParameter,
-        ["@_unit"]: Unit.BPM,
-      };
+      obj.Transport.Tempo = this.tempo.toXmlObject().RealParameter;
     }
 
     if (this.timeSignature) {
@@ -38,13 +34,15 @@ export class Transport extends XmlObject implements ITransport {
   }
 
   fromXmlObject(xmlObject: any): this {
-    this.tempo = xmlObject.Tempo
-      ? new RealParameter().fromXmlObject(xmlObject.Tempo)
-      : undefined;
+    if (xmlObject.Tempo) {
+      this.tempo = new RealParameter().fromXmlObject(xmlObject.Tempo);
+    }
 
-    this.timeSignature = xmlObject.TimeSignature
-      ? new TimeSignatureParameter().fromXmlObject(xmlObject.TimeSignature)
-      : undefined;
+    if (xmlObject.TimeSignature) {
+      this.timeSignature = new TimeSignatureParameter().fromXmlObject(
+        xmlObject.TimeSignature
+      );
+    }
 
     return this;
   }

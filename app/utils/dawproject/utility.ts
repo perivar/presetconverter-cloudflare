@@ -14,43 +14,63 @@ import { Unit } from "./unit";
 
 export class Utility {
   /**
-   * Adds an attribute to an XML attributes object, handling optionality and value adaptation.
+   * Adds an attribute from a target object to an XML attributes object, handling optionality and value adaptation.
    * If the attribute is required and the value (after potential adaptation) is undefined, it throws an error.
    * If the attribute is optional and the value is undefined, it does nothing.
    * @param attributes The object to add the attribute to (e.g., for XML serialization).
    * @param attributeName The name of the attribute (without '@_').
-   * @param attributeValue The original value of the attribute.
+   * @param targetObject The object containing the attribute value.
    * @param options Configuration options.
    * @param options.required If true, throws an error if the final attributeValue is undefined. Defaults to false.
    * @param options.adapter An optional function to convert the attributeValue before adding it (e.g., DoubleAdapter.toXml).
    *                        The adapter should return the processed value or undefined if it shouldn't be added.
+   * @param options.sourceProperty The name of the property on the targetObject to get the value from. Defaults to attributeName.
    *
    * @example
    * // Add a required attribute
-   * Utility.addAttribute(attributes, "name", this.name, { required: true });
+   * Utility.addAttribute(attributes, "name", this, { required: true });
    *
    * @example
    * // Add an optional attribute
-   * Utility.addAttribute(attributes, "color", this.color);
+   * Utility.addAttribute(attributes, "color", this);
    *
    * @example
    * // Add an optional attribute using an adapter (e.g., duration with DoubleAdapter)
-   * Utility.addAttribute(attributes, "duration", this.duration, { adapter: DoubleAdapter.toXml });
+   * Utility.addAttribute(attributes, "duration", this, { adapter: DoubleAdapter.toXml });
    *
    * @example
    * // Add an optional enum attribute (e.g., timeUnit)
-   * Utility.addAttribute(attributes, "contentTimeUnit", this.contentTimeUnit);
+   * Utility.addAttribute(attributes, "contentTimeUnit", this);
+   *
+   * @example
+   * // Add an optional boolean attribute (e.g., solo)
+   * Utility.addAttribute(attributes, "solo", this);
+   *
+   * @example
+   * // Add an optional attribute using a source property (e.g., destination.id)
+   * Utility.addAttribute(attributes, "destination", this, { sourceProperty: "destination.id" });
    */
   static addAttribute(
     attributes: any,
     attributeName: string,
-    attributeValue: any,
+    targetObject: any,
     options?: {
       required?: boolean;
       adapter?: (value: any) => any | undefined;
+      sourceProperty?: string;
     }
   ): void {
     const isRequired = options?.required || false;
+    const sourceProperty = options?.sourceProperty || attributeName;
+
+    // Helper function to get nested property value
+    const getNestedPropertyValue = (obj: any, path: string) => {
+      return path.split(".").reduce((current, property) => {
+        return current ? current[property] : undefined;
+      }, obj);
+    };
+
+    const attributeValue = getNestedPropertyValue(targetObject, sourceProperty);
     let finalValue = attributeValue;
 
     if (options?.adapter) {
@@ -126,7 +146,7 @@ export class Utility {
     targetObject: any,
     options?: {
       required?: boolean;
-      castTo?: new (...args: any[]) => T;
+      castTo?: any;
       adapter?: (value: any) => T | undefined;
       validator?: (value: T) => boolean;
       targetProperty?: string;
@@ -154,6 +174,11 @@ export class Utility {
         );
       }
     } else if (options?.castTo) {
+      if (typeof options.castTo === "string") {
+        throw new Error(
+          `Invalid castTo option for attribute '${attributeName}'. Expected a constructor function (e.g., Number, Boolean, or an enum type), but received a string.`
+        );
+      }
       // Use constructor name for comparison to avoid TS errors
       if (options.castTo.name === "Number") {
         processedValue = parseInt(value, 10);
@@ -177,6 +202,30 @@ export class Utility {
     }
 
     targetObject[targetProperty] = processedValue;
+  }
+
+  /**
+   * Groups an array of objects by their root XML tag name after calling toXmlObject on each.
+   * This is useful for creating nested XML structures where elements of different types
+   * need to be grouped under their respective tag names.
+   * @param children The array of objects to group. Each object is expected to have a toXmlObject method.
+   * @returns An object where keys are XML tag names and values are arrays of the corresponding XML content,
+   *          or undefined if the input array is null, undefined, or empty.
+   */
+  static groupChildrenByTagName(children: any[]): any | undefined {
+    if (!children || children.length === 0) {
+      return undefined;
+    }
+
+    return children.reduce((acc: any, child) => {
+      const childObj = child.toXmlObject();
+      const tagName = Object.keys(childObj)[0];
+      if (!acc[tagName]) {
+        acc[tagName] = [];
+      }
+      acc[tagName].push(childObj[tagName]);
+      return acc;
+    }, {});
   }
 
   /**

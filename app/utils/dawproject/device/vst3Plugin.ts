@@ -47,7 +47,7 @@ export class Vst3Plugin extends Plugin implements IVst3Plugin {
   }
 
   toXmlObject(): any {
-    const pluginContent = super.toXmlObject(); // Get attributes and children from Plugin's toXmlObject
+    const pluginContent = super.toXmlObject(); // get attributes and children from Plugin's toXmlObject
 
     return {
       Vst3Plugin: pluginContent, // Wrap the content in the Vst3Plugin tag

@@ -1,5 +1,6 @@
 import { registerPoint } from "../registry/pointRegistry";
 import type { IBoolPoint } from "../types";
+import { Utility } from "../utility";
 import { Point } from "./point";
 
 const boolPointFactory = (xmlObject: any): BoolPoint => {
@@ -19,14 +20,10 @@ export class BoolPoint extends Point implements IBoolPoint {
   }
 
   toXmlObject(): any {
-    const attributes = super.toXmlObject(); // Get attributes from Point
+    const attributes = super.toXmlObject(); // get attributes from Point
 
-    // Add required value attribute
-    if (this.value !== undefined) {
-      attributes["@_value"] = this.value;
-    } else {
-      throw new Error("Required attribute 'value' missing for BoolPoint");
-    }
+    // add required value attribute
+    Utility.addAttribute(attributes, "value", this, { required: true });
 
     return { BoolPoint: attributes };
   }
@@ -34,11 +31,11 @@ export class BoolPoint extends Point implements IBoolPoint {
   fromXmlObject(xmlObject: any): this {
     super.fromXmlObject(xmlObject);
 
-    // Validate and populate required value attribute
-    if (xmlObject["@_value"] === undefined) {
-      throw new Error("Required attribute 'value' missing in XML");
-    }
-    this.value = String(xmlObject["@_value"]).toLowerCase() === "true";
+    // validate and populate required value attribute
+    Utility.populateAttribute<boolean>(xmlObject, "value", this, {
+      required: true,
+      castTo: Boolean,
+    });
 
     return this;
   }

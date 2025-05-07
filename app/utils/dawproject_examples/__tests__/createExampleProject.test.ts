@@ -350,6 +350,9 @@ describe("Save and Load", () => {
 
     expect(loadedProject.structure.length).toBe(project.structure.length);
     expect(loadedProject.scenes?.length).toBe(project.scenes?.length);
+
+    // Deep comparison to check if the loaded project is equivalent to the original
+    expect(loadedProject).toEqual(project);
   });
 
   test("should save and load complex DAW project", async () => {
@@ -389,6 +392,9 @@ describe("Save and Load", () => {
     expect(loadedProject.arrangement?.markers?.markers?.length).toBe(
       project.arrangement?.markers?.markers?.length
     );
+
+    // Deep comparison to check if the loaded project is equivalent to the original
+    expect(loadedProject).toEqual(project);
   });
 
   test("should save complex project with validation", async () => {

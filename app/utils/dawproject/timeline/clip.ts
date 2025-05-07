@@ -2,6 +2,7 @@ import { DoubleAdapter } from "../doubleAdapter";
 import { Nameable } from "../nameable";
 import { TimelineRegistry } from "../registry/timelineRegistry";
 import type { IClip } from "../types";
+import { Utility } from "../utility";
 import { Timeline } from "./timeline";
 import { TimeUnit } from "./timeUnit";
 
@@ -17,7 +18,7 @@ export class Clip extends Nameable implements IClip {
   fadeInTime?: number;
   fadeOutTime?: number;
   content?: Timeline;
-  reference?: string; // Change type to string | undefined
+  reference?: string;
 
   constructor(
     // Make time optional for deserialization, fromXmlObject will set it
@@ -55,38 +56,39 @@ export class Clip extends Nameable implements IClip {
   toXmlObject(): any {
     const obj: any = {
       Clip: {
-        ...super.toXmlObject(), // Get attributes from Nameable
-        "@_time": DoubleAdapter.toXml(this.time) || "",
+        ...super.toXmlObject(), // get attributes from Nameable
       },
     };
 
-    if (this.duration !== undefined) {
-      obj.Clip["@_duration"] = DoubleAdapter.toXml(this.duration) || "";
-    }
-    if (this.contentTimeUnit !== undefined) {
-      obj.Clip["@_contentTimeUnit"] = this.contentTimeUnit;
-    }
-    if (this.playStart !== undefined) {
-      obj.Clip["@_playStart"] = DoubleAdapter.toXml(this.playStart) || "";
-    }
-    if (this.playStop !== undefined) {
-      obj.Clip["@_playStop"] = DoubleAdapter.toXml(this.playStop) || "";
-    }
-    if (this.loopStart !== undefined) {
-      obj.Clip["@_loopStart"] = DoubleAdapter.toXml(this.loopStart) || "";
-    }
-    if (this.loopEnd !== undefined) {
-      obj.Clip["@_loopEnd"] = DoubleAdapter.toXml(this.loopEnd) || "";
-    }
-    if (this.fadeTimeUnit !== undefined) {
-      obj.Clip["@_fadeTimeUnit"] = this.fadeTimeUnit;
-    }
-    if (this.fadeInTime !== undefined) {
-      obj.Clip["@_fadeInTime"] = DoubleAdapter.toXml(this.fadeInTime) || "";
-    }
-    if (this.fadeOutTime !== undefined) {
-      obj.Clip["@_fadeOutTime"] = DoubleAdapter.toXml(this.fadeOutTime) || "";
-    }
+    // add required attribute
+    Utility.addAttribute(obj.Clip, "time", this, {
+      adapter: DoubleAdapter.toXml,
+    });
+
+    // add optional attributes
+    Utility.addAttribute(obj.Clip, "duration", this, {
+      adapter: DoubleAdapter.toXml,
+    });
+    Utility.addAttribute(obj.Clip, "contentTimeUnit", this);
+    Utility.addAttribute(obj.Clip, "playStart", this, {
+      adapter: DoubleAdapter.toXml,
+    });
+    Utility.addAttribute(obj.Clip, "playStop", this, {
+      adapter: DoubleAdapter.toXml,
+    });
+    Utility.addAttribute(obj.Clip, "loopStart", this, {
+      adapter: DoubleAdapter.toXml,
+    });
+    Utility.addAttribute(obj.Clip, "loopEnd", this, {
+      adapter: DoubleAdapter.toXml,
+    });
+    Utility.addAttribute(obj.Clip, "fadeTimeUnit", this);
+    Utility.addAttribute(obj.Clip, "fadeInTime", this, {
+      adapter: DoubleAdapter.toXml,
+    });
+    Utility.addAttribute(obj.Clip, "fadeOutTime", this, {
+      adapter: DoubleAdapter.toXml,
+    });
 
     // Append content if present
     if (this.content !== undefined) {
@@ -96,9 +98,7 @@ export class Clip extends Nameable implements IClip {
     }
 
     // Reference handling
-    if (this.reference !== undefined) {
-      obj.Clip["@_reference"] = this.reference; // Assign string directly
-    }
+    Utility.addAttribute(obj.Clip, "reference", this);
 
     return obj;
   }
@@ -106,46 +106,42 @@ export class Clip extends Nameable implements IClip {
   fromXmlObject(xmlObject: any): this {
     super.fromXmlObject(xmlObject);
 
-    this.time =
-      xmlObject["@_time"] !== undefined
-        ? DoubleAdapter.fromXml(xmlObject["@_time"]) || 0
-        : 0;
-    this.duration =
-      xmlObject["@_duration"] !== undefined
-        ? DoubleAdapter.fromXml(xmlObject["@_duration"])
-        : undefined;
-    this.contentTimeUnit = xmlObject["@_contentTimeUnit"]
-      ? (xmlObject["@_contentTimeUnit"] as TimeUnit)
-      : undefined;
-    this.playStart =
-      xmlObject["@_playStart"] !== undefined
-        ? DoubleAdapter.fromXml(xmlObject["@_playStart"])
-        : undefined;
-    this.playStop =
-      xmlObject["@_playStop"] !== undefined
-        ? DoubleAdapter.fromXml(xmlObject["@_playStop"])
-        : undefined;
-    this.loopStart =
-      xmlObject["@_loopStart"] !== undefined
-        ? DoubleAdapter.fromXml(xmlObject["@_loopStart"])
-        : undefined;
-    this.loopEnd =
-      xmlObject["@_loopEnd"] !== undefined
-        ? DoubleAdapter.fromXml(xmlObject["@_loopEnd"])
-        : undefined;
-    this.fadeTimeUnit = xmlObject["@_fadeTimeUnit"]
-      ? (xmlObject["@_fadeTimeUnit"] as TimeUnit)
-      : undefined;
-    this.fadeInTime =
-      xmlObject["@_fadeInTime"] !== undefined
-        ? DoubleAdapter.fromXml(xmlObject["@_fadeInTime"])
-        : undefined;
-    this.fadeOutTime =
-      xmlObject["@_fadeOutTime"] !== undefined
-        ? DoubleAdapter.fromXml(xmlObject["@_fadeOutTime"])
-        : undefined;
+    // validate and populate required attribute
+    Utility.populateAttribute<number>(xmlObject, "time", this, {
+      required: true,
+      adapter: DoubleAdapter.fromXml,
+    });
 
-    // Handle content if present
+    // populate optional attributes
+    Utility.populateAttribute<number>(xmlObject, "duration", this, {
+      adapter: DoubleAdapter.fromXml,
+    });
+    Utility.populateAttribute<TimeUnit>(xmlObject, "contentTimeUnit", this, {
+      castTo: TimeUnit,
+    });
+    Utility.populateAttribute<number>(xmlObject, "playStart", this, {
+      adapter: DoubleAdapter.fromXml,
+    });
+    Utility.populateAttribute<number>(xmlObject, "playStop", this, {
+      adapter: DoubleAdapter.fromXml,
+    });
+    Utility.populateAttribute<number>(xmlObject, "loopStart", this, {
+      adapter: DoubleAdapter.fromXml,
+    });
+    Utility.populateAttribute<number>(xmlObject, "loopEnd", this, {
+      adapter: DoubleAdapter.fromXml,
+    });
+    Utility.populateAttribute<TimeUnit>(xmlObject, "fadeTimeUnit", this, {
+      castTo: TimeUnit,
+    });
+    Utility.populateAttribute<number>(xmlObject, "fadeInTime", this, {
+      adapter: DoubleAdapter.fromXml,
+    });
+    Utility.populateAttribute<number>(xmlObject, "fadeOutTime", this, {
+      adapter: DoubleAdapter.fromXml,
+    });
+
+    // handle content if present
     for (const tagName in xmlObject) {
       if (
         tagName === "@_time" ||
@@ -163,7 +159,6 @@ export class Clip extends Nameable implements IClip {
         continue; // Skip known properties
       }
 
-      // Use the new createTimelineFromXml method
       const timelineInstance = TimelineRegistry.createTimelineFromXml(
         tagName,
         xmlObject[tagName]
@@ -178,7 +173,7 @@ export class Clip extends Nameable implements IClip {
       }
     }
 
-    this.reference = xmlObject["@_reference"]; // Assign string directly
+    Utility.populateAttribute<string>(xmlObject, "reference", this);
 
     return this;
   }

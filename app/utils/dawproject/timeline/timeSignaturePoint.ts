@@ -1,5 +1,6 @@
 import { registerPoint } from "../registry/pointRegistry";
 import type { ITimeSignaturePoint } from "../types";
+import { Utility } from "../utility";
 import { Point } from "./point";
 
 const timeSignaturePointFactory = (xmlObject: any): TimeSignaturePoint => {
@@ -21,25 +22,13 @@ export class TimeSignaturePoint extends Point implements ITimeSignaturePoint {
   }
 
   toXmlObject(): any {
-    const attributes = super.toXmlObject(); // Get attributes from Point
+    const attributes = super.toXmlObject(); // get attributes from Point
 
     // Add required numerator attribute
-    if (this.numerator !== undefined) {
-      attributes["@_numerator"] = this.numerator;
-    } else {
-      throw new Error(
-        "Required attribute 'numerator' missing for TimeSignaturePoint"
-      );
-    }
+    Utility.addAttribute(attributes, "numerator", this, { required: true });
 
     // Add required denominator attribute
-    if (this.denominator !== undefined) {
-      attributes["@_denominator"] = this.denominator;
-    } else {
-      throw new Error(
-        "Required attribute 'denominator' missing for TimeSignaturePoint"
-      );
-    }
+    Utility.addAttribute(attributes, "denominator", this, { required: true });
 
     return { TimeSignaturePoint: attributes };
   }
@@ -47,23 +36,17 @@ export class TimeSignaturePoint extends Point implements ITimeSignaturePoint {
   fromXmlObject(xmlObject: any): this {
     super.fromXmlObject(xmlObject);
 
-    // Validate and populate required numerator attribute
-    if (!xmlObject["@_numerator"]) {
-      throw new Error("Required attribute 'numerator' missing in XML");
-    }
-    this.numerator = parseInt(xmlObject["@_numerator"], 10);
-    if (isNaN(this.numerator)) {
-      throw new Error("Invalid numerator value in XML");
-    }
+    // validate and populate required numerator attribute
+    Utility.populateAttribute<number>(xmlObject, "numerator", this, {
+      required: true,
+      castTo: Number,
+    });
 
-    // Validate and populate required denominator attribute
-    if (!xmlObject["@_denominator"]) {
-      throw new Error("Required attribute 'denominator' missing in XML");
-    }
-    this.denominator = parseInt(xmlObject["@_denominator"], 10);
-    if (isNaN(this.denominator)) {
-      throw new Error("Invalid denominator value in XML");
-    }
+    // validate and populate required denominator attribute
+    Utility.populateAttribute<number>(xmlObject, "denominator", this, {
+      required: true,
+      castTo: Number,
+    });
 
     return this;
   }

@@ -3,6 +3,7 @@ import { ContentType } from "./contentType";
 import { Lane } from "./lane";
 import { registerLane } from "./registry/laneRegistry";
 import { ITrack } from "./types";
+import { Utility } from "./utility";
 
 const trackFactory = (xmlObject: any): Track => {
   const instance = new Track();
@@ -41,26 +42,23 @@ export class Track extends Lane implements ITrack {
   toXmlObject(): any {
     const obj: any = {
       Track: {
-        ...super.toXmlObject(), // Get attributes from Lane
+        ...super.toXmlObject(), // get attributes from Lane
       },
     };
 
-    // Set content_type as XML attribute
-    if (this.contentType && this.contentType.length > 0) {
-      obj.Track["@_contentType"] = this.contentType.join(",");
-    }
+    // add optional attributes
+    // contentType is a list of strings, so we join them with commas
+    Utility.addAttribute(obj.Track, "contentType", this, {
+      adapter: (value: ContentType[]) => value.join(","),
+    });
+    Utility.addAttribute(obj.Track, "loaded", this);
 
-    // Set loaded as XML attribute
-    if (this.loaded !== undefined) {
-      obj.Track["@_loaded"] = this.loaded;
-    }
-
-    // Append Channel as a nested XML element if present
+    // append Channel as a nested XML element if present
     if (this.channel) {
       obj.Track.Channel = this.channel.toXmlObject().Channel;
     }
 
-    // Recursively add nested tracks
+    // recursively add nested tracks
     if (this.tracks && this.tracks.length > 0) {
       obj.Track.Track = this.tracks.map(track => track.toXmlObject().Track);
     }
@@ -69,25 +67,24 @@ export class Track extends Lane implements ITrack {
   }
 
   fromXmlObject(xmlObject: any): this {
-    super.fromXmlObject(xmlObject); // Populate inherited attributes from Lane
+    super.fromXmlObject(xmlObject); // populate inherited attributes from Lane
 
-    // Extract contentType text and split into a list
-    this.contentType = xmlObject["@_contentType"]
-      ? (String(xmlObject["@_contentType"]).split(",") as ContentType[])
-      : []; // Cast strings to ContentType
+    // extract contentType text and split into a list
+    Utility.populateAttribute<ContentType[]>(xmlObject, "contentType", this, {
+      adapter: (value: string) => value.split(",") as ContentType[],
+    });
 
-    // Parse the loaded attribute
-    this.loaded =
-      xmlObject["@_loaded"] !== undefined
-        ? String(xmlObject["@_loaded"]).toLowerCase() === "true"
-        : undefined;
+    // parse the loaded attribute, converting 'true'/'false' to Boolean
+    Utility.populateAttribute<boolean>(xmlObject, "loaded", this, {
+      castTo: Boolean,
+    });
 
-    // Initialize channel using Channel's fromXmlObject method if present
+    // initialize channel using Channel's fromXmlObject method if present
     if (xmlObject.Channel) {
       this.channel = new Channel().fromXmlObject(xmlObject.Channel);
     }
 
-    // Recursively parse nested Track elements
+    // recursively parse nested Track elements
     const tracks: Track[] = [];
     if (xmlObject.Track) {
       const trackArray = Array.isArray(xmlObject.Track)

@@ -1,5 +1,6 @@
 /** References a file either within a DAWPROJECT container or on disk. */
 import { IFileReference } from "./types";
+import { Utility } from "./utility";
 import { XmlObject } from "./XmlObject";
 
 /** References a file either within a DAWPROJECT container or on disk. */
@@ -21,21 +22,28 @@ export class FileReference extends XmlObject implements IFileReference {
   }
 
   toXmlObject(): any {
-    const obj: any = {
-      "@_path": this.path,
-    };
-    if (this.external !== undefined) {
-      obj["@_external"] = this.external;
-    }
+    const obj: any = {};
+
+    // add required path attribute
+    Utility.addAttribute(obj, "path", this, { required: true });
+
+    // add optional external attribute
+    Utility.addAttribute(obj, "external", this);
+
     return obj;
   }
 
   fromXmlObject(xmlObject: any): this {
-    this.path = xmlObject["@_path"] || "";
-    this.external =
-      xmlObject["@_external"] !== undefined
-        ? String(xmlObject["@_external"]).toLowerCase() === "true"
-        : false;
+    // validate and populate required path attribute
+    Utility.populateAttribute<string>(xmlObject, "path", this, {
+      required: true,
+    });
+
+    // populate optional external attribute
+    Utility.populateAttribute<boolean>(xmlObject, "external", this, {
+      castTo: Boolean,
+    });
+
     return this;
   }
 }

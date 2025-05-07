@@ -3,6 +3,7 @@ import path from "path";
 
 import { EqBandType } from "../../dawproject/device/eqBandType";
 import { Project } from "../../dawproject/project";
+import { XmlObject } from "../../dawproject/XmlObject";
 import {
   AudioTrackConfig,
   createProjectWithAudioTracks,
@@ -12,7 +13,7 @@ import {
 const targetDir = path.join(__dirname, "dawproject-tests");
 
 describe("createBitwigProject", () => {
-  test("should generate a Project object", () => {
+  test("should serialize and deserialize a BitwigProject", () => {
     const audioTracks: AudioTrackConfig[] = [
       {
         file_path: "./audio_in/masks-bass.wav",
@@ -174,17 +175,29 @@ describe("createBitwigProject", () => {
 
     const project = createProjectWithAudioTracks(audioTracks);
 
+    fs.writeFileSync(
+      path.join(targetDir, "dawproject_bitwig_serialized.json"),
+      JSON.stringify(project, null, 2)
+    );
+
     const projectXml = project.toXml();
 
-    fs.writeFileSync(path.join(targetDir, "dawproject_bitwig.xml"), projectXml);
+    fs.writeFileSync(
+      path.join(targetDir, "dawproject_bitwig_serialized.xml"),
+      projectXml
+    );
 
     // Check if the returned object is an instance of Project
     expect(project).toBeInstanceOf(Project);
 
-    // Add more specific checks based on the expected structure of the generated project
-    // For example, check if tracks are created, if transport is set, etc.
-    expect(project.structure.length).toBeGreaterThan(0); // Should contain at least the master track and one audio track
-    expect(project.transport).toBeDefined();
-    expect(project.arrangement).toBeDefined();
+    const loadedProject = XmlObject.fromXml(projectXml, Project);
+
+    fs.writeFileSync(
+      path.join(targetDir, "dawproject_bitwig_deserialized.json"),
+      JSON.stringify(loadedProject, null, 2)
+    );
+
+    // Deep comparison to check if the loaded project is equivalent to the original
+    expect(loadedProject).toEqual(project);
   });
 });

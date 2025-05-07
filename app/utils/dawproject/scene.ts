@@ -34,23 +34,23 @@ export class Scene extends Referenceable implements IScene {
   toXmlObject(): any {
     const obj: any = {
       Scene: {
-        ...super.toXmlObject(), // Get attributes from Referenceable
+        ...super.toXmlObject(), // get attributes from Referenceable
       },
     };
 
     if (this.content) {
       const contentObj = this.content.toXmlObject();
       const tagName = Object.keys(contentObj)[0];
-      obj.Scene.Content = { [tagName]: contentObj[tagName] }; // Wrap in "Content" tag
+      obj.Scene.Content = { [tagName]: contentObj[tagName] }; // wrap in "Content" tag
     }
 
     return obj;
   }
 
   fromXmlObject(xmlObject: any): this {
-    super.fromXmlObject(xmlObject); // Populate inherited attributes from Referenceable
+    super.fromXmlObject(xmlObject); // populate inherited attributes from Referenceable
 
-    // Handle content if present
+    // handle content if present
     let content: Timeline | undefined;
     if (xmlObject.Content) {
       const contentObj = xmlObject.Content;
@@ -59,7 +59,6 @@ export class Scene extends Referenceable implements IScene {
 
       if (TimelineClass) {
         try {
-          // Use the new createTimelineFromXml method
           const timelineInstance = TimelineRegistry.createTimelineFromXml(
             tagName,
             contentObj[tagName]

@@ -1,6 +1,7 @@
 import { DoubleAdapter } from "../doubleAdapter";
 import { Nameable } from "../nameable";
 import type { IMarker } from "../types";
+import { Utility } from "../utility";
 
 export class Marker extends Nameable implements IMarker {
   time: number;
@@ -12,17 +13,26 @@ export class Marker extends Nameable implements IMarker {
   }
 
   toXmlObject(): any {
-    const attributes = super.toXmlObject(); // Get attributes from Nameable
-    attributes["@_time"] = DoubleAdapter.toXml(this.time) || "";
+    const attributes = super.toXmlObject(); // get attributes from Nameable
+
+    // add required time attribute
+    Utility.addAttribute(attributes, "time", this, {
+      required: true,
+      adapter: DoubleAdapter.toXml,
+    });
+
     return attributes;
   }
 
   fromXmlObject(xmlObject: any): this {
-    super.fromXmlObject(xmlObject); // Populate inherited attributes from Nameable
-    this.time =
-      xmlObject["@_time"] !== undefined
-        ? DoubleAdapter.fromXml(xmlObject["@_time"]) || 0
-        : 0;
+    super.fromXmlObject(xmlObject); // populate inherited attributes from Nameable
+
+    // validate and populate required time attribute
+    Utility.populateAttribute<number>(xmlObject, "time", this, {
+      required: true,
+      adapter: DoubleAdapter.fromXml,
+    });
+
     return this;
   }
 }

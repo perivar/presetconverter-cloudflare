@@ -1,4 +1,5 @@
 import { IApplication } from "./types";
+import { Utility } from "./utility";
 import { XmlObject } from "./XmlObject";
 
 /** Metadata about the application which saved the DAWPROJECT file. */
@@ -16,17 +17,29 @@ export class Application extends XmlObject implements IApplication {
 
   toXmlObject(): any {
     const obj = {
-      Application: {
-        "@_name": this.name,
-        "@_version": this.version,
-      },
+      Application: {},
     };
+
+    // add required attributes
+    Utility.addAttribute(obj.Application, "name", this, {
+      required: true,
+    });
+    Utility.addAttribute(obj.Application, "version", this, {
+      required: true,
+    });
+
     return obj;
   }
 
   fromXmlObject(xmlObject: any): this {
-    this.name = xmlObject["@_name"] || "";
-    this.version = xmlObject["@_version"] || "";
+    // validate and populate required attributes
+    Utility.populateAttribute(xmlObject, "name", this, {
+      required: true,
+    });
+    Utility.populateAttribute(xmlObject, "version", this, {
+      required: true,
+    });
+
     return this;
   }
 }
