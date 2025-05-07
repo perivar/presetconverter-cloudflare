@@ -8,7 +8,6 @@ import { EqBand } from "../dawproject/device/eqBand";
 import { EqBandType } from "../dawproject/device/eqBandType";
 import { Equalizer } from "../dawproject/device/equalizer";
 import { FileReference } from "../dawproject/fileReference";
-import { MetaData } from "../dawproject/metaData";
 import { MixerRole } from "../dawproject/mixerRole";
 import { Project } from "../dawproject/project";
 import { RealParameter } from "../dawproject/realParameter";
@@ -42,56 +41,11 @@ export interface AudioTrackConfig {
   };
 }
 
-/**
- * Method to retrieve the audio file content as bytes.
- * This will need to be adapted for the target environment (e.g., Cloudflare Workers)
- * where direct file system access is not available.
- * For now, we'll assume audio data is provided as ArrayBuffer or similar.
- */
-function getAudioFileAsArrayBuffer(samplePath: string): ArrayBuffer {
-  // Placeholder implementation: In a real scenario, you would load the file content here.
-  // For a Cloudflare Worker, you might fetch the file from an R2 bucket or other storage.
-  console.warn(`Placeholder: Loading audio file from ${samplePath}`);
-  // Return a dummy ArrayBuffer for now
-  return new ArrayBuffer(0);
-}
-
 function createEmptyProject(): Project {
   Referenceable.resetIdCounter();
   const project = new Project();
   project.application = new Application("RoEx Automix", "1.0");
   return project;
-}
-
-/**
- * This will need to be adapted for the target environment (e.g., Cloudflare Workers)
- * using a library like JSZip for creating the zip file.
- */
-export function saveTestProject(
-  project: Project,
-  name: string,
-  configurer?: (
-    metadata: MetaData,
-    embeddedFiles: { [path: string]: ArrayBuffer }
-  ) => void
-): void {
-  const metadata = new MetaData();
-  const embeddedFiles: { [path: string]: ArrayBuffer } = {};
-
-  if (configurer) {
-    configurer(metadata, embeddedFiles);
-  }
-
-  // Placeholder for saving logic
-  console.warn(`Placeholder: Saving project "${name}"`);
-  console.log("Project XML:", project.toXmlObject());
-  console.log("Metadata XML:", metadata);
-  console.log("Embedded files:", embeddedFiles);
-
-  // In a real implementation, you would use a library like JSZip to create the .dawproject file
-  // and save the project.xml, metadata.xml, and embedded files within it.
-  // You would also save the project.xml separately for debugging/validation.
-  // Validation would also be performed here if a suitable library is available.
 }
 
 /**
@@ -136,8 +90,6 @@ export function createProjectWithAudioTracks(
   project.arrangement.lanes = new Lanes();
   project.arrangement.lanes.timeUnit = TimeUnit.SECONDS;
 
-  const embeddedFiles: { [path: string]: ArrayBuffer } = {};
-
   audioTracks.forEach((trackInfo, i) => {
     // Create audio track
     const trackName = trackInfo.file_path.split("/").pop() || `Track_${i + 1}`;
@@ -155,8 +107,6 @@ export function createProjectWithAudioTracks(
     project.structure.push(audioTrack);
 
     // Load audio file
-    const samplePath = trackInfo.file_path;
-    // Assuming sample_duration is provided in the input
     const sampleDuration = trackInfo.sample_duration;
     const audio = Utility.createAudio(
       trackName, // Use trackName as the path within the DAWproject
@@ -164,11 +114,7 @@ export function createProjectWithAudioTracks(
       2,
       sampleDuration
     );
-    audio.file = new FileReference(trackName, false); // Embedded file
-
-    // Add the audio file to the embedded files
-    // In a real implementation, you would read the file content here
-    embeddedFiles[trackName] = getAudioFileAsArrayBuffer(samplePath);
+    audio.file = new FileReference(trackName, true); // external file
 
     // Create and add clip to the track
     const audioClip = Utility.createClip(audio, 0, sampleDuration);
@@ -199,8 +145,8 @@ export function createProjectWithAudioTracks(
         eqBands.push(eqBand);
       });
       const equalizer = new Equalizer(
-        DeviceRole.AUDIO_FX, // Swapped order
-        `Eq_${i + 1}`, // Swapped order
+        DeviceRole.AUDIO_FX,
+        `Eq_${i + 1}`,
         eqBands
         // input_gain, output_gain are optional
       );
@@ -225,11 +171,5 @@ export function createProjectWithAudioTracks(
     }
   });
 
-  // Save the project with embedded files
-  // This part needs to be async and adapted for the target environment
-  // saveTestProject(project, "RoEx_Automix", (meta, files) => {
-  //   Object.assign(files, embeddedFiles);
-  // });
-
-  return project; // Return the project object for now
+  return project;
 }
