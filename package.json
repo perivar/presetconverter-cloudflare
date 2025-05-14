@@ -50,7 +50,7 @@
     "chalk": "^5.4.1",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
-    "dawproject-typescript": "^1.0.5",
+    "dawproject-typescript": "^1.0.7",
     "fast-xml-parser": "^5.2.0",
     "i18next": "^23.16.8",
     "i18next-browser-languagedetector": "^8.0.4",

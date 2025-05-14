@@ -10,3 +10,4 @@ DotNet
 build-tmp
 *_tmp.vstpreset
 dawproject-tests
+ableton-tests

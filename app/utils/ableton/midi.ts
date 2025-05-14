@@ -1,6 +1,7 @@
 import type {
   MidiControllerEvent,
   MidiData,
+  MidiEndOfTrackEvent,
   MidiEvent,
   MidiHeader,
   MidiNoteOffEvent,
@@ -161,7 +162,6 @@ export function convertToMidi(
     numTracks: 1, // Start with 1 for the meta track
     ticksPerBeat: TICKS_PER_BEAT,
   };
-
   const tracks: MidiEvent[][] = [];
 
   // Track 0: Meta track (Tempo, Time Signature)
@@ -429,26 +429,32 @@ export function convertAutomationToMidi(
   const midiDataArray: MidiData[] = [];
   let fileNum = 1;
 
+  // Iterate through the top-level automation categories (e.g., "track", "master")
   for (const trackTypeKey in cvpj.automation) {
     const trackTypeValue = cvpj.automation[trackTypeKey];
-    for (const trackTypeEntryKey in trackTypeValue) {
-      const trackTypeEntryValue = trackTypeValue[trackTypeEntryKey];
-      for (const trackNameKey in trackTypeEntryValue) {
-        const trackNameValue = trackTypeEntryValue[trackNameKey];
 
-        const automationGroupName = `${fileName}_Automation_${trackNameKey}`;
+    // Iterate through track IDs within each category (e.g., "midi_1", "master_track_id")
+    for (const trackIdKey in trackTypeValue) {
+      const trackIdValue = trackTypeValue[trackIdKey];
+
+      // Iterate through Ableton track names or group names
+      // A new MidiData object (representing a MIDI file) is created for each of these.
+      for (const abletonTrackNameKey in trackIdValue) {
+        const abletonTrackNameValue = trackIdValue[abletonTrackNameKey]; // This object contains device paths as keys
+
+        const automationGroupName = `${fileName}_Automation_${abletonTrackNameKey}`;
         Log.Debug(
-          `Creating MIDI data for automation group: ${trackNameKey} (${trackTypeKey}/${trackTypeEntryKey})`
+          `Creating MIDI data for automation group: ${abletonTrackNameKey} (Type: ${trackTypeKey}, ID: ${trackIdKey})`
         );
 
         const header: MidiHeader = {
-          format: 1,
-          numTracks: 1, // Start with meta track
+          format: 1, // Multi-track format
+          numTracks: 1, // Start with 1 for the meta track
           ticksPerBeat: TICKS_PER_BEAT,
         };
         const tracks: MidiEvent[][] = [];
 
-        // Track 0: Meta track
+        // Track 0: Meta track for this automation group (MIDI file)
         const metaTrack: MidiEvent[] = [
           {
             deltaTime: 0,
@@ -458,33 +464,44 @@ export function convertAutomationToMidi(
             denominator: 4,
             metronome: 24,
             thirtyseconds: 8,
-          },
+          } as MidiTimeSignatureEvent,
           {
             deltaTime: 0,
             meta: true,
             type: "setTempo",
             microsecondsPerBeat: microsecondsPerBeat,
-          },
+          } as MidiSetTempoEvent,
           {
             deltaTime: 0,
             meta: true,
             type: "trackName",
-            text: automationGroupName,
-          },
-          { deltaTime: 0, meta: true, type: "endOfTrack" },
+            text: automationGroupName, // Name of the overall MIDI file
+          } as MidiTrackNameEvent,
+          {
+            deltaTime: 0,
+            meta: true,
+            type: "endOfTrack",
+          } as MidiEndOfTrackEvent,
         ];
         tracks.push(metaTrack);
 
         const midiChannelManager = new MidiChannelManager();
 
-        for (const paramPathKey in trackNameValue) {
-          const paramData = trackNameValue[paramPathKey];
+        // Iterate over each device path within this Ableton track's automation
+        // Each device path's data becomes a new track within the current MidiData object.
+        for (const devicePathKey in abletonTrackNameValue) {
+          const paramData = abletonTrackNameValue[devicePathKey]; // paramData IS the { type: "...", placements: [...] } object
           const paramType = paramData.type;
           const placements = paramData.placements;
 
-          if (!placements || placements.length === 0) continue;
+          if (!placements || placements.length === 0) {
+            Log.Debug(
+              `Skipping ${devicePathKey} in ${abletonTrackNameKey}: No placements.`
+            );
+            continue;
+          }
 
-          const midiTrackName = makeValidFileName(paramPathKey);
+          const midiTrackName = makeValidFileName(devicePathKey); // Name for the individual MIDI track (controller data)
           const midiChannel = midiChannelManager.getUnusedChannel();
 
           Log.Debug(
@@ -499,7 +516,7 @@ export function convertAutomationToMidi(
             text: midiTrackName,
           });
 
-          // Determine min/max values
+          // Determine min/max values based on all points across all placements for this parameter
           let globalMinValue = Infinity;
           let globalMaxValue = -Infinity;
           placements.forEach((placement: any) => {
@@ -509,39 +526,45 @@ export function convertAutomationToMidi(
             });
           });
           if (globalMinValue === Infinity || globalMaxValue === -Infinity) {
+            // Fallback if no points were found (should be caught by placements.length check, but as a safeguard)
             if (paramType === "float" || paramType === "bool") {
               globalMinValue = 0.0;
               globalMaxValue = 1.0;
             } else {
               globalMinValue = 0;
-              globalMaxValue = 127;
+              globalMaxValue = 127; // Default MIDI range
             }
             Log.Warning(
-              `Could not determine min/max for ${paramPathKey}, assuming range [${globalMinValue}-${globalMaxValue}]`
+              `Could not determine min/max for ${devicePathKey} in ${abletonTrackNameKey}, assuming range [${globalMinValue}-${globalMaxValue}]`
             );
           }
 
-          const controlNumber = 11; // CC 11 for Expression
+          const controlNumber = 11; // CC 11 for Expression (Common choice for automation)
           let allPlacementEvents: AutomationEvent[] = [];
 
+          // Process each placement for the current parameter
           for (const placement of placements) {
-            const placementPos = placement.position ?? 0;
-            const points = placement.points ?? [];
+            const placementPos = placement.position ?? 0; // Position of the placement in ticks (already scaled by ABLETON_TICK_MULTIPLIER earlier in C#)
+            const points = placement.points ?? []; // Automation points within this placement
 
             if (points.length === 0) continue;
 
-            // 1. Prepare AutomationEvent[] for interpolation
+            // 1. Prepare AutomationEvent[] for interpolation for this placement
             const initialEvents: AutomationEvent[] = points.map(
               (point: any) => {
-                const pointPos = point.position ?? 0;
+                const pointPos = point.position ?? 0; // Position of the point relative to the placement start (already scaled by ABLETON_TICK_MULTIPLIER earlier in C#)
                 const pointValue = point.value ?? 0;
+
+                // Calculate absolute tick position for the point
                 const tick = Math.round(
-                  (placementPos + pointPos) * ABLETON_TICK_MULTIPLIER
+                  placementPos + pointPos // placementPos and pointPos are already in ticks
                 );
+
                 let scaledValue: number;
                 if (paramType === "bool") {
-                  scaledValue = pointValue >= 0.5 ? 127 : 0;
+                  scaledValue = pointValue >= 0.5 ? 127 : 0; // Boolean to 0 or 127
                 } else {
+                  // Scale the value from its original range to 0-127 MIDI range
                   scaledValue = scaleValue(
                     pointValue,
                     globalMinValue,
@@ -556,6 +579,7 @@ export function convertAutomationToMidi(
             initialEvents.sort((a, b) => a.position - b.position);
 
             // 2. Interpolate the events for this placement
+            // The interpolateEvents function handles creating points for every tick difference
             const interpolatedPlacementEvents =
               interpolateEvents(initialEvents);
 
@@ -563,9 +587,9 @@ export function convertAutomationToMidi(
             allPlacementEvents = allPlacementEvents.concat(
               interpolatedPlacementEvents
             );
-          }
+          } // End of placement loop
 
-          // Sort events by absolute tick time
+          // Sort all collected events for this parameter by absolute tick time
           // Use a Map to ensure unique ticks and keep the last value for duplicates, then sort.
           const uniqueTickEvents = new Map<number, AutomationEvent>();
           allPlacementEvents.forEach(event => {
@@ -575,52 +599,61 @@ export function convertAutomationToMidi(
             (a, b) => a.position - b.position
           );
 
-          // Calculate delta times and add to track
+          // Calculate delta times and add Control Change events to the current track
           let lastTick = 0;
           for (const automationEvent of sortedUniqueEvents) {
             const deltaTime = automationEvent.position - lastTick;
+            // Only add event if deltaTime is non-negative (should be true after sorting)
+            // and if the value is different from the last value (optional optimization)
+            // For simplicity, adding all unique tick events for now.
             currentTrackEvents.push({
               type: "controller",
               channel: midiChannel,
               controllerType: controlNumber,
-              value: automationEvent.value,
+              value: automationEvent.value, // Value is already scaled 0-127
               deltaTime: deltaTime,
             } as MidiControllerEvent);
             lastTick = automationEvent.position;
-          }
+          } // End of sortedUniqueEvents loop
 
+          // Add End of Track meta event for this parameter track
           currentTrackEvents.push({
             deltaTime: 0,
             meta: true,
             type: "endOfTrack",
           });
-          tracks.push(currentTrackEvents);
-          header.numTracks++;
-        }
+          tracks.push(currentTrackEvents); // Add the parameter track to the MIDI data's tracks
+          header.numTracks++; // Increment the track count in the header
+        } // End of devicePathKey loop (iterating through parameters for one MIDI file group)
 
+        // After processing all device parameters for the current abletonTrackNameKey
         if (tracks.length > 1) {
+          // Check if any parameter tracks (beyond the initial meta track) were added
           const midiData: MidiData = { header, tracks };
-          midiDataArray.push(midiData);
+          midiDataArray.push(midiData); // Add the completed MidiData object to the array
           Log.Information(
             `Generated MIDI data for automation group: ${automationGroupName}`
           );
           if (doOutputDebugFile) {
             const logString = logMidiDataToString(midiData);
-            Log.Debug(`MIDI Log (${fileNum}):\n${logString}`);
+            Log.Debug(
+              `MIDI Log for ${automationGroupName} (File ${fileNum}):\n${logString}`
+            );
           }
-          fileNum++;
+          fileNum++; // Increment file number for debug logging
         } else {
           Log.Warning(
-            `No automation tracks generated for group: ${automationGroupName}`
+            `No automation tracks with data generated for group: ${automationGroupName}`
           );
         }
-      }
-    }
-  }
+      } // End of abletonTrackNameKey loop (processing one Ableton track's automation into one MidiData)
+    } // End of trackIdKey loop
+  } // End of trackTypeKey loop
 
   Log.Information("MIDI conversion for automation completed.");
-  return midiDataArray.length > 0 ? midiDataArray : null;
+  return midiDataArray.length > 0 ? midiDataArray : null; // Return the array of MidiData objects or null
 }
+
 /**
  * Generates a string representation of a MIDI data object for logging.
  * Adapts C# LogMidiFile logic for the 'midi-file' structure.

@@ -1,6 +1,6 @@
 import { XMLParser, XMLValidator } from "fast-xml-parser";
 
-import { makeValidFileName, makeValidIdentifier } from "../StringUtils";
+import { makeValidIdentifier } from "../StringUtils";
 import { AbletonEq3 } from "./AbletonEq3";
 import { AbletonEq8 } from "./AbletonEq8";
 import { Log } from "./Log";
@@ -451,7 +451,9 @@ export class AbletonProject {
             ? tracksOfType
             : [tracksOfType];
           trackElements.push(
-            ...trackArray.filter(t => typeof t === "object" && t !== null)
+            ...trackArray
+              .filter(t => typeof t === "object" && t !== null)
+              .map(t => ({ type: type, element: t })) // Include type with element
           );
         }
       });
@@ -460,7 +462,7 @@ export class AbletonProject {
     // Read Tracks
     if (doVerbose) Log.Debug(`Found ${trackElements.length} Tracks ...`);
 
-    for (const xTrackData of trackElements) {
+    for (const { type: trackType, element: xTrackData } of trackElements) {
       if (!xTrackData) continue; // Skip null/undefined elements
 
       const trackId = this.getAttr(xTrackData, "Id", "");
@@ -483,32 +485,12 @@ export class AbletonProject {
       let fxLoc: string[] = []; // Location identifier for devices/automation
       let trackData: any = {}; // Data for cvpj.track_data
       let trackPlacementData: any = {}; // Data for cvpj.track_placements
-      let trackType = "Unknown"; // Determined based on content
 
-      // Determine track type (more robustly than C# version)
       const deviceChain = xTrackData?.DeviceChain;
       const mainSequencer = deviceChain?.MainSequencer;
       const clipTimeable = mainSequencer?.ClipTimeable;
       const arrangerAutomation = clipTimeable?.ArrangerAutomation;
       const events = arrangerAutomation?.Events;
-
-      // Infer type based on XML structure/elements present
-      if (events?.MidiClip) {
-        trackType = "MidiTrack";
-      } else if (events?.AudioClip) {
-        trackType = "AudioTrack";
-      } else if (xTrackData.TrackDelay && xTrackData.IsFolded) {
-        // Heuristic for GroupTrack
-        trackType = "GroupTrack";
-      } else if (xTrackData.ReturnTrack) {
-        // Check if it's explicitly a ReturnTrack element
-        trackType = "ReturnTrack";
-      } else if (trackName?.toLowerCase().includes("return")) {
-        // Fallback heuristic for ReturnTrack
-        trackType = "ReturnTrack";
-      }
-      // Note: The original C# code determines type *before* the switch, which seems odd.
-      // This TS version determines type first, then switches.
 
       // Get common track parameters
       const trackVol = this.getParam(xTrackMixer, "Volume", "float", "0.85");
@@ -536,8 +518,8 @@ export class AbletonProject {
           if (trackInsideGroup !== "-1") {
             trackData.group = `group_${trackInsideGroup}`;
           }
-          cvpj.track_data[midiTrackId] = trackData;
-          cvpj.track_order.push(midiTrackId);
+          cvpj.track_data[trackId] = trackData; // TODO: midiTrackId
+          cvpj.track_order.push(trackId); // TODO: midiTrackId
 
           // Process MIDI Clips
           const xTrackMidiClipsSource = events?.MidiClip;
@@ -651,7 +633,7 @@ export class AbletonProject {
               const midiKey = parseInt(
                 this.getValue(xTrackMidiClipKTKTs, "MidiKey", "60") // Default C4
               );
-              // C# calculates abletonNoteKey = midiKey - 60; TS uses midiKey directly. Keep TS for now.
+              const abletonNoteKey = midiKey - 60;
 
               // Process individual note events
               const xTrackMidiClipKT_KT_Notes = xTrackMidiClipKTKTs?.Notes;
@@ -697,11 +679,11 @@ export class AbletonProject {
                 // Store note data if ID is valid
                 if (noteId > 0) {
                   const noteData = {
-                    key: midiKey, // Use the key from the KeyTrack
+                    key: abletonNoteKey,
                     position: noteTime * 4, // Convert to beats
                     duration: noteDuration * 4,
-                    vol: noteVelocity / 127.0, // Normalize velocity (0-1)
-                    off_vol: noteOffVelocity / 127.0, // Normalize off velocity
+                    vol: noteVelocity / 100.0, // Normalize velocity (0-1)
+                    off_vol: noteOffVelocity / 100.0, // Normalize off velocity
                     probability: noteProbability,
                     enabled: noteIsEnabled,
                     // 'notemod' for pitch bend is processed later
@@ -799,8 +781,8 @@ export class AbletonProject {
           if (trackInsideGroup !== "-1") {
             trackData.group = `group_${trackInsideGroup}`;
           }
-          cvpj.track_data[audioTrackId] = trackData;
-          cvpj.track_order.push(audioTrackId);
+          // cvpj.track_data[trackId] = trackData; // TODO: audioTrackId
+          // cvpj.track_order.push(trackId); // TODO: audioTrackId
 
           // Process Audio Clips (mainly for collecting unique file paths)
           const audioClipsSource = events?.AudioClip;
@@ -836,7 +818,7 @@ export class AbletonProject {
             }
           }
           // Initialize placement data for audio tracks (can be extended later)
-          trackPlacementData = { audio: [] };
+          // trackPlacementData = { audio: [] };
           break; // End AudioTrack case
         }
         case "ReturnTrack": {
@@ -857,9 +839,11 @@ export class AbletonProject {
             },
           };
           // Return tracks cannot be grouped in Ableton, so no group check needed
-          cvpj.track_data[returnTrackId] = trackData;
-          cvpj.track_order.push(returnTrackId);
+          // cvpj.track_data[trackId] = trackData; // TODO: returnTrackId
+          // cvpj.track_order.push(trackId); // TODO: returnTrackId
+
           returnId++; // Increment return track counter
+
           // No placement data typically associated with return tracks initially
           break; // End ReturnTrack case
         }
@@ -884,41 +868,43 @@ export class AbletonProject {
             // Nested groups
             trackData.group = `group_${trackInsideGroup}`;
           }
-          cvpj.track_data[groupTrackId] = trackData;
-          cvpj.track_order.push(groupTrackId);
+          // cvpj.track_data[trackId] = trackData; // TODO: groupTrackId
+          // cvpj.track_order.push(trackId); // TODO: groupTrackId
+
           // No placement data typically associated with group tracks initially
           break; // End GroupTrack case
         }
-        default: {
-          Log.Warning(
-            `Encountered unknown track type for track ID ${trackId}, Name: ${trackName}. Skipping specific processing.`
-          );
-          // Basic track data might still be useful
-          const unknownTrackId = `unknown_${trackId}`;
-          fxLoc = ["unknown", unknownTrackId];
-          trackData = {
-            type: "unknown",
-            name: trackName,
-            color: trackColor,
-            parameters: {
-              pan: { name: "Pan", type: "float", value: trackPan },
-              vol: { name: "Volume", type: "float", value: trackVol },
-            },
-          };
-          if (trackInsideGroup !== "-1") {
-            trackData.group = `group_${trackInsideGroup}`;
-          }
-          cvpj.track_data[unknownTrackId] = trackData;
-          cvpj.track_order.push(unknownTrackId);
-          break;
-        }
+        // default: {
+        //   Log.Warning(
+        //     `Encountered unknown track type for track ID ${trackId}, Name: ${trackName}. Skipping specific processing.`
+        //   );
+        //   // Basic track data might still be useful
+        //   const unknownTrackId = `unknown_${trackId}`;
+        //   fxLoc = ["unknown", unknownTrackId];
+        //   trackData = {
+        //     type: "unknown",
+        //     name: trackName,
+        //     color: trackColor,
+        //     parameters: {
+        //       pan: { name: "Pan", type: "float", value: trackPan },
+        //       vol: { name: "Volume", type: "float", value: trackVol },
+        //     },
+        //   };
+        //   if (trackInsideGroup !== "-1") {
+        //     trackData.group = `group_${trackInsideGroup}`;
+        //   }
+        //   cvpj.track_data[trackId] = trackData; // TODO: unknownTrackId
+        //   cvpj.track_order.push(trackId); // TODO: unknownTrackId
+
+        //   break;
+        // }
       } // End switch (trackType)
 
       // Add placement data if it was generated
       if (Object.keys(trackPlacementData).length > 0) {
         const currentTrackId = fxLoc[1]; // Get the generated ID (e.g., midi_123)
         if (currentTrackId) {
-          cvpj.track_placements[currentTrackId] = trackPlacementData;
+          cvpj.track_placements[trackId] = trackPlacementData; // TODO: currentTrackId
         } else {
           Log.Warning(
             `Could not add placement data for track ${trackName} (ID: ${trackId}) due to missing fxLoc ID.`
@@ -1231,307 +1217,304 @@ export class AbletonProject {
     // ../AudioEffectGroupDevice/Branches/AudioEffectBranch/DeviceChain/AudioToAudioDeviceChain/Devices/*
     // where * is plugins as well as another AudioEffectGroupDevice with same recursive behaviour
 
-    // Ensure devices is an array for iteration
-    let devices: any[] = [];
-    if (xTrackDevicesSource) {
-      // The actual devices are children of the <Devices> tag
-      // e.g., <Devices><Eq8>...</Eq8><PluginDevice>...</PluginDevice></Devices>
-      // We need to iterate over the *keys* of xTrackDevicesSource if it's the parsed <Devices> object
-      if (
-        typeof xTrackDevicesSource === "object" &&
-        !Array.isArray(xTrackDevicesSource)
-      ) {
-        // Extract the device elements (values) from the Devices object
-        devices = Object.values(xTrackDevicesSource).flat(); // Use flat in case a type has multiple instances as an array
-      } else if (Array.isArray(xTrackDevicesSource)) {
-        // If it's already an array (e.g., passed recursively)
-        devices = xTrackDevicesSource;
-      }
+    // Ensure xTrackDevicesSource is a valid object (the parsed <Devices> element)
+    if (
+      !xTrackDevicesSource ||
+      typeof xTrackDevicesSource !== "object" ||
+      Array.isArray(xTrackDevicesSource)
+    ) {
+      if (doVerbose)
+        Log.Debug(
+          `doDevices: Invalid or empty <Devices> element provided at level ${level}.`
+        );
+      return; // Exit if input is not the expected <Devices> object
     }
 
-    if (devices.length === 0) return; // No devices to process
+    const devicesObject = xTrackDevicesSource; // Rename for clarity
+
+    if (doVerbose) {
+      const deviceTypeCount = Object.keys(devicesObject).filter(
+        key => !key.startsWith("@_")
+      ).length;
+      Log.Debug(
+        `Found ${deviceTypeCount} device types within <Devices> element for track: ${trackName ?? "Master"} ${trackId ?? ""} ${level > 1 ? `[Group Level ${level}]` : ""}`
+      );
+    }
 
     const fileNameNoExtension = file.includes(".")
       ? file.substring(0, file.lastIndexOf("."))
       : file;
 
-    // Read Tracks (Devices in this context)
-    if (doVerbose)
-      Log.Debug(
-        `Found ${devices.length} device elements for track: ${trackName ?? "Master"} ${trackId ?? ""} ${level > 1 ? `[Group Level ${level}]` : ""}`
-      );
+    let internalDeviceCount = 0; // Counter for individual device instances
 
-    let internalDeviceCount = 0;
-    for (const deviceWrapper of devices) {
-      // In fast-xml-parser, the deviceWrapper might be the object like { Eq8: { ... } }
-      // or just the content if it was flattened. We need the type name (key).
-      if (!deviceWrapper || typeof deviceWrapper !== "object") continue;
-
-      // Find the actual device type key (e.g., "Eq8", "PluginDevice")
-      // There should ideally be only one key representing the device type per wrapper object
-      const deviceType = Object.keys(deviceWrapper).find(
-        key => !key.startsWith("@_")
-      );
-
-      if (!deviceType) {
-        Log.Warning(
-          `doDevices: Could not determine device type for element at level ${level}, index ${internalDeviceCount}. Keys: ${Object.keys(deviceWrapper)}`
-        );
+    // Iterate over the keys (device types) within the <Devices> object
+    for (const deviceType in devicesObject) {
+      // Skip attributes and other non-element properties
+      if (
+        deviceType.startsWith("@_") ||
+        typeof devicesObject[deviceType] !== "object" ||
+        devicesObject[deviceType] === null
+      ) {
         continue;
       }
 
-      const deviceElement = deviceWrapper[deviceType];
-      if (!deviceElement || typeof deviceElement !== "object") {
-        Log.Warning(
-          `doDevices: Invalid device element content for type ${deviceType} at level ${level}, index ${internalDeviceCount}.`
-        );
-        continue;
-      }
+      const deviceValue = devicesObject[deviceType];
 
-      internalDeviceCount++;
-      const deviceId = this.getAttr(deviceElement, "Id", "0");
-      // this is set in .adv preset files
-      const userName = this.getValue(
-        deviceElement.UserName,
-        "EffectiveName",
-        ""
-      ); // Get UserName if present
+      // Ensure deviceValue is treated as an array for consistent iteration
+      const deviceElements = Array.isArray(deviceValue)
+        ? deviceValue
+        : [deviceValue];
 
-      // check if it's on
-      const onElement = deviceElement?.On;
-      // Default to true if 'On' element is missing? Ableton default is On. C# defaults to false. Let's default to true.
-      const isOn = onElement
-        ? this.getValue(onElement, "Manual", "true").toLowerCase() === "true"
-        : true;
+      for (const deviceElement of deviceElements) {
+        // deviceElement is now the actual parsed object for a single device instance
 
-      if (!isOn) {
-        if (doVerbose)
-          Log.Debug(
-            `Skipping device ${internalDeviceCount} '${deviceType}' @ level ${level} (id: ${deviceId}) - Disabled`
-          );
-        continue; // Skip disabled devices
-      } else {
-        if (doVerbose)
-          Log.Debug(
-            `Processing device ${internalDeviceCount} '${deviceType}' @ level ${level} (id: ${deviceId}) ...`
-          );
-      }
+        internalDeviceCount++; // Increment for each actual device instance
 
-      // Add automation targets found within this device
-      this.addAutomationTargets(
-        rootXElement,
-        deviceElement,
-        trackId,
-        trackName,
-        fxLoc,
-        [deviceType, deviceId] // Pass device type and ID
-      );
+        const deviceId = this.getAttr(deviceElement, "Id", "0");
+        // this is set in .adv preset files
+        const userName = this.getValue(
+          deviceElement.UserName,
+          "EffectiveName",
+          ""
+        ); // Get UserName if present
 
-      // --- Process Specific Device Types ---
-      // This TS version is simplified compared to C#, only handling a few types explicitly.
-      switch (deviceType) {
-        case "FilterEQ3": {
-          // read EQ
-          const eq3 = new AbletonEq3(deviceElement);
-          const outputFileNameBase = `${fileNameNoExtension} - ${trackName ?? "Master"} - (${level}-${internalDeviceCount}) - ${deviceType}`;
-          if (eq3.hasBeenModified()) {
-            // TODO: convert to Fabfilter Pro Q3 as well
-            Log.Information(
-              `Processing modified ${deviceType} Preset: ${outputFileNameBase}`
-            );
-            // Example: eq3.savePreset(outputDirectoryPath, outputFileNameBase);
-          } else {
-            Log.Information(
-              `Skipping unmodified ${deviceType}: ${outputFileNameBase}`
-            );
-          }
-          break;
-        }
-        case "Eq8": {
-          // read EQ
-          const eq8 = new AbletonEq8(deviceElement);
-          const outputFileNameBase = `${fileNameNoExtension} - ${trackName ?? "Master"} - (${level}-${internalDeviceCount}) - ${deviceType}`;
-          if (eq8.hasBeenModified()) {
-            // Convert EQ8 to Steinberg Frequency
-            // convert to Fabfilter Pro Q3 as well
-            // debug
-            Log.Information(
-              `Processing modified ${deviceType} Preset: ${outputFileNameBase}`
-            );
-            // Example: eq8.savePreset(outputDirectoryPath, outputFileNameBase);
-            // Example: const steinbergFreq = eq8.toSteinbergFrequency();
-            // Example: steinbergFreq.write(Path.Combine(outputDirectoryPath, "Frequency", ...));
-          } else {
-            Log.Information(
-              `Skipping unmodified ${deviceType}: ${outputFileNameBase}`
-            );
-          }
-          break;
-        }
-        case "Compressor2": {
-          // Convert Compressor2 to Steinberg Compressor
-          Log.Information(
-            `Placeholder for Compressor2 processing: ${userName || deviceType}`
-          );
-          // TODO: Implement Compressor2 parsing and conversion
-          break;
-        }
-        case "GlueCompressor": {
-          // Convert Glue compressor to Waves SSL Compressor
-          Log.Information(
-            `Placeholder for GlueCompressor processing: ${userName || deviceType}`
-          );
-          // TODO: Implement GlueCompressor parsing and conversion
-          break;
-        }
-        case "Limiter": {
-          Log.Information(
-            `Placeholder for Limiter processing: ${userName || deviceType}`
-          );
-          // TODO: Implement Limiter parsing and conversion
-          break;
-        }
-        case "AutoPan": {
-          Log.Information(
-            `Placeholder for AutoPan processing: ${userName || deviceType}`
-          );
-          // TODO: Implement AutoPan parsing and conversion
-          break;
-        }
-        case "PluginDevice": {
-          // Handle Plugin Presets
-          // Path: PluginDevice/PluginDesc/VstPluginInfo/Preset/VstPreset
-          const xPluginDesc = deviceElement?.PluginDesc;
-          const xVstPluginInfo = xPluginDesc?.VstPluginInfo;
-          const vstPlugName = xVstPluginInfo
-            ? this.getValue(xVstPluginInfo, "PlugName", "UnknownPlugin")
-            : "UnknownPlugin";
-          const xPreset = xVstPluginInfo?.Preset;
-          const xVstPreset = xPreset?.VstPreset;
-          const vstPresetId = xVstPreset
-            ? this.getAttr(xVstPreset, "Id", "0")
-            : "0";
+        // check if it's on
+        const onElement = deviceElement?.On;
+        // Default to true if 'On' element is missing? Ableton default is On. C# defaults to false. Let's default to true.
+        const isOn = onElement
+          ? this.getValue(onElement, "Manual", "true").toLowerCase() === "true"
+          : true; // Default to true if 'On' element is missing
 
+        if (!isOn) {
           if (doVerbose)
             Log.Debug(
-              `Found VST Plugin: '${vstPlugName}' (Preset ID: ${vstPresetId})`
+              `Skipping device ${internalDeviceCount} '${deviceType}' @ level ${level} (id: ${deviceId}) - Disabled`
             );
-
-          // read the byte data buffer
-          const xVstPluginBuffer = xVstPreset?.Buffer;
-          // fast-xml-parser puts text content in "#text"
-          const vstPluginBufferHex = xVstPluginBuffer
-            ? (xVstPluginBuffer["#text"] ?? "")
-            : "";
-
-          // check if this is a zlib file
-          // Serum presets are zlib compressed, but don't deflate
-          // if (vstPluginBufferBytes[0] == 0x78 && vstPluginBufferBytes[1] == 0x01) ...
-
-          // TODO: Implement VST preset saving/conversion (e.g., to FXP) if needed
-          // This requires converting the hex string to bytes, similar to C#'s XmlHelpers.GetInnerValueAsByteArray
-          // and then using an FXP library or logic (like C#'s SaveAsFXP).
-
-          if (vstPluginBufferHex.length > 0) {
-            const outputFileNameBase = `${fileNameNoExtension} - ${trackName ?? "Master"} - (${level}-${internalDeviceCount}) - ${makeValidFileName(vstPlugName)}`;
-            Log.Information(
-              `Processing VST Preset: ${outputFileNameBase} (FXP conversion skipped)`
-            );
-            // Example: const bytes = hexToBytes(vstPluginBufferHex);
-            // Example: saveAsFXP(bytes, vstPlugName, outputDirectoryPath, outputFileNameBase);
-          } else {
-            Log.Information(
-              `VST Plugin '${vstPlugName}' has empty preset buffer.`
-            );
-          }
-          break;
-        }
-        case "AudioEffectGroupDevice": {
-          // recursively handle group of plugins
+          continue; // Skip disabled devices
+        } else {
           if (doVerbose)
-            Log.Debug(`Entering AudioEffectGroupDevice Level ${level + 1}`);
-          // Find nested devices within branches
-          const branchesSource = deviceElement?.Branches?.AudioEffectBranch;
-          // Ensure array
-          const branches = branchesSource
-            ? Array.isArray(branchesSource)
-              ? branchesSource
-              : [branchesSource]
-            : [];
+            Log.Debug(
+              `Processing device ${internalDeviceCount} '${deviceType}' @ level ${level} (id: ${deviceId}) ...`
+            );
+        }
 
-          for (const branch of branches) {
-            if (!branch || typeof branch !== "object") continue;
-            // Navigate down to the nested Devices element
-            const branchDeviceChain = branch?.DeviceChain;
-            const branchAudioChain = branchDeviceChain?.AudioToAudioDeviceChain; // Specific chain type for audio effects
-            const nestedDevices = branchAudioChain?.Devices;
+        // Add automation targets found within this device
+        this.addAutomationTargets(
+          rootXElement,
+          deviceElement, // Pass the actual device element
+          trackId, // Original Ableton ID
+          trackName, // Name of the track
+          fxLoc, // Location identifier (e.g., ["track", "midi_123"])
+          [deviceType, deviceId] // Pass device type and ID
+        );
 
-            if (nestedDevices) {
-              // Recursive call to process nested devices
-              this.doDevices(
-                rootXElement,
-                nestedDevices, // Pass the nested <Devices> element/object
-                trackId,
-                trackName,
-                fxLoc, // Keep the same track location context
-                outputDirectoryPath,
-                file,
-                level + 1, // Increment level
-                doVerbose
+        // --- Process Specific Device Types ---
+        // This TS version is simplified compared to C#, only handling a few types explicitly.
+        switch (deviceType) {
+          case "FilterEQ3": {
+            // read EQ
+            const eq3 = new AbletonEq3(deviceElement);
+            const outputFileNameBase = `${fileNameNoExtension} - ${trackName ?? "Master"} - (${level}-${internalDeviceCount}) - ${deviceType}`;
+            if (eq3.hasBeenModified()) {
+              // TODO: convert to Fabfilter Pro Q3 as well
+              Log.Information(
+                `Processing modified ${deviceType} Preset: ${outputFileNameBase}`
+              );
+              // Example: eq3.savePreset(outputDirectoryPath, outputFileNameBase);
+            } else {
+              Log.Information(
+                `Skipping unmodified ${deviceType}: ${outputFileNameBase}`
+              );
+            }
+            break;
+          }
+          case "Eq8": {
+            // read EQ
+            const eq8 = new AbletonEq8(deviceElement);
+            const outputFileNameBase = `${fileNameNoExtension} - ${trackName ?? "Master"} - (${level}-${internalDeviceCount}) - ${deviceType}`;
+            if (eq8.hasBeenModified()) {
+              // Convert EQ8 to Steinberg Frequency
+              // convert to Fabfilter Pro Q3 as well
+              // debug
+              Log.Information(
+                `Processing modified ${deviceType} Preset: ${outputFileNameBase}`
+              );
+              // Example: eq8.savePreset(outputDirectoryPath, outputFileNameBase);
+              // Example: const steinbergFreq = eq8.toSteinbergFrequency();
+              // Example: steinbergFreq.write(Path.combine(outputDirectoryPath, "Frequency", ...));
+            } else {
+              Log.Information(
+                `Skipping unmodified ${deviceType}: ${outputFileNameBase}`
+              );
+            }
+            break;
+          }
+          case "Compressor2": {
+            // Convert Compressor2 to Steinberg Compressor
+            Log.Information(
+              `Placeholder for Compressor2 processing: ${userName || deviceType}`
+            );
+            // TODO: Implement Compressor2 parsing and conversion
+            break;
+          }
+          case "GlueCompressor": {
+            // Convert Glue compressor to Waves SSL Compressor
+            Log.Information(
+              `Placeholder for GlueCompressor processing: ${userName || deviceType}`
+            );
+            // TODO: Implement GlueCompressor parsing and conversion
+            break;
+          }
+          case "Limiter": {
+            Log.Information(
+              `Placeholder for Limiter processing: ${userName || deviceType}`
+            );
+            // TODO: Implement Limiter parsing and conversion
+            break;
+          }
+          case "AutoPan": {
+            Log.Information(
+              `Placeholder for AutoPan processing: ${userName || deviceType}`
+            );
+            // TODO: Implement AutoPan parsing and conversion
+            break;
+          }
+          case "PluginDevice": {
+            // Handle Plugin Presets
+            // Path: PluginDevice/PluginDesc/VstPluginInfo/Preset/VstPreset
+            const xPluginDesc = deviceElement?.PluginDesc;
+            const xVstPluginInfo = xPluginDesc?.VstPluginInfo;
+            const vstPlugName = xVstPluginInfo
+              ? this.getValue(xVstPluginInfo, "PlugName", "UnknownPlugin")
+              : "UnknownPlugin";
+            const xPreset = xVstPluginInfo?.Preset;
+            const xVstPreset = xPreset?.VstPreset;
+            const vstPresetId = xVstPreset
+              ? this.getAttr(xVstPreset, "Id", "0")
+              : "0";
+
+            if (doVerbose)
+              Log.Debug(
+                `Found VST Plugin: '${vstPlugName}' (Preset ID: ${vstPresetId})`
+              );
+
+            // read the byte data buffer
+            const xVstPluginBuffer = xVstPreset?.Buffer;
+            // fast-xml-parser puts text content in "#text"
+            const vstPluginBufferHex = xVstPluginBuffer
+              ? (xVstPluginBuffer["#text"] ?? "")
+              : "";
+
+            // check if this is a zlib file
+            // Serum presets are zlib compressed, but don't deflate
+            // if (vstPluginBufferBytes[0] == 0x78 && vstPluginBufferBytes[1] == 0x01) ...
+
+            // TODO: Implement VST preset saving/conversion (e.g., to FXP) if needed
+            // This requires converting the hex string to bytes, similar to C#'s XmlHelpers.GetInnerValueAsByteArray
+            // and then using an FXP library or logic (like C#'s SaveAsFXP).
+
+            if (vstPluginBufferHex.length > 0) {
+              const outputFileNameBase = `${fileNameNoExtension} - ${trackName ?? "Master"} - (${level}-${internalDeviceCount}) - ${deviceType}`;
+              Log.Information(
+                `Processing VST Preset: ${outputFileNameBase} (FXP conversion skipped)`
+              );
+              // Example: const bytes = hexToBytes(vstPluginBufferHex);
+              // Example: saveAsFXP(bytes, vstPlugName, outputDirectoryPath, outputFileNameBase);
+            } else {
+              Log.Information(
+                `VST Plugin '${vstPlugName}' has empty preset buffer.`
+              );
+            }
+            break;
+          }
+          case "AudioEffectGroupDevice": {
+            // recursively handle group of plugins
+            if (doVerbose)
+              Log.Debug(`Entering AudioEffectGroupDevice Level ${level + 1}`);
+            // Find nested devices within branches
+            const branchesSource = deviceElement?.Branches?.AudioEffectBranch;
+            // Ensure array
+            const branches = branchesSource
+              ? Array.isArray(branchesSource)
+                ? branchesSource
+                : [branchesSource]
+              : [];
+
+            for (const branch of branches) {
+              if (!branch || typeof branch !== "object") continue;
+              // Navigate down to the nested Devices element
+              const branchDeviceChain = branch?.DeviceChain;
+              const branchAudioChain =
+                branchDeviceChain?.AudioToAudioDeviceChain; // Specific chain type for audio effects
+              const nestedDevices = branchAudioChain?.Devices; // This is the <Devices> object
+
+              if (nestedDevices) {
+                // Recursive call to process nested devices
+                this.doDevices(
+                  rootXElement,
+                  nestedDevices, // Pass the nested <Devices> element/object
+                  trackId,
+                  trackName,
+                  fxLoc, // Keep the same track location context
+                  outputDirectoryPath,
+                  file,
+                  level + 1, // Increment level
+                  doVerbose
+                );
+              } else {
+                Log.Information(
+                  `Could not find nested Devices in AudioEffectGroupDevice branch at level ${level}`
+                );
+              }
+            }
+            if (doVerbose)
+              Log.Debug(`Exiting AudioEffectGroupDevice Level ${level + 1}`);
+            break;
+          }
+          case "MidiPitcher": {
+            // read <Pitch><Manual Value="0" />
+            Log.Information(
+              `Placeholder for MidiPitcher processing: ${userName || deviceType}`
+            );
+            // TODO: Implement MidiPitcher parsing
+            break;
+          }
+          // Placeholders for devices handled in C# default case
+          case "MultibandDynamics":
+          case "AutoFilter":
+          case "Reverb":
+          case "Saturator":
+          case "Tuner":
+          case "StereoGain": {
+            Log.Information(
+              `Placeholder for ${deviceType} processing: ${userName || deviceType}`
+            );
+            // TODO: Implement parsing for these specific device types if needed
+            break;
+          }
+          // C# Handles these in default: MultibandDynamics, AutoFilter, Reverb, Saturator, Tuner, StereoGain
+          default: {
+            // Handle other device types generically
+            const outputFileNameBase = `${fileNameNoExtension} - ${trackName ?? "Master"} - (${level}-${internalDeviceCount}) - ${deviceType}`;
+            if (userName) {
+              // we are likely processing an .adv preset file
+              // TODO: This is not always a correct assumption!
+              // C# tries to extract VST bytes from RawData here, skipped in TS
+              Log.Information(
+                `Processing Device/Preset (from UserName): ${userName} (${deviceType}) - Generic handling. Path: ${outputFileNameBase}`
               );
             } else {
               Log.Information(
-                `Could not find nested Devices in AudioEffectGroupDevice branch at level ${level}`
+                `Processing Generic/Unhandled Device: ${deviceType} - Path: ${outputFileNameBase}`
               );
             }
+            // TODO: Implement generic preset saving (e.g., saving the raw XML part) if needed
+            // Example: saveDeviceXml(deviceElement, outputDirectoryPath, outputFileNameBase);
+            break;
           }
-          if (doVerbose)
-            Log.Debug(`Exiting AudioEffectGroupDevice Level ${level + 1}`);
-          break;
-        }
-        case "MidiPitcher": {
-          // read <Pitch><Manual Value="0" />
-          Log.Information(
-            `Placeholder for MidiPitcher processing: ${userName || deviceType}`
-          );
-          // TODO: Implement MidiPitcher parsing
-          break;
-        }
-        // Placeholders for devices handled in C# default case
-        case "MultibandDynamics":
-        case "AutoFilter":
-        case "Reverb":
-        case "Saturator":
-        case "Tuner":
-        case "StereoGain": {
-          Log.Information(
-            `Placeholder for ${deviceType} processing: ${userName || deviceType}`
-          );
-          // TODO: Implement parsing for these specific device types if needed
-          break;
-        }
-        // C# Handles these in default: MultibandDynamics, AutoFilter, Reverb, Saturator, Tuner, StereoGain
-        default: {
-          // Handle other device types generically
-          const outputFileNameBase = `${fileNameNoExtension} - ${trackName ?? "Master"} - (${level}-${internalDeviceCount}) - ${deviceType}`;
-          if (userName) {
-            // we are likely processing an .adv preset file
-            // TODO: This is not always a correct assumption!
-            // C# tries to extract VST bytes from RawData here, skipped in TS
-            Log.Information(
-              `Processing Device/Preset (from UserName): ${userName} (${deviceType}) - Generic handling. Path: ${outputFileNameBase}`
-            );
-          } else {
-            Log.Information(
-              `Processing Generic/Unhandled Device: ${deviceType} - Path: ${outputFileNameBase}`
-            );
-          }
-          // TODO: Implement generic preset saving (e.g., saving the raw XML part) if needed
-          // Example: saveDeviceXml(deviceElement, outputDirectoryPath, outputFileNameBase);
-          break;
-        }
-      } // End switch (deviceType)
-    } // End for loop over devices
+        } // End switch (deviceType)
+      } // End for loop over deviceElements (individual device instances)
+    } // End for loop over device types (keys in <Devices> object)
   }
 
   /** Applies compatibility fixes, like removing loop/cut data after processing */
