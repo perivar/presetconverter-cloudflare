@@ -344,9 +344,9 @@ export class AbletonProject {
     const cvpj: any = {
       track_master: {},
       parameters: {},
-      track_data: {}, // Use object/dictionary for easier lookup by ID
+      track_data: new Map(), // Use Map for ordered iteration
       track_order: [],
-      track_placements: {}, // Use object/dictionary
+      track_placements: new Map(), // Use Map for ordered iteration
       automation: {},
     };
 
@@ -388,6 +388,7 @@ export class AbletonProject {
         1.0,
         1.0, // Default white
       ];
+
       // Get parameters using the helper
       const masTrackVol = this.getParam(
         xMasterTrackMixer, // Source element
@@ -518,11 +519,12 @@ export class AbletonProject {
           if (trackInsideGroup !== "-1") {
             trackData.group = `group_${trackInsideGroup}`;
           }
-          cvpj.track_data[trackId] = trackData; // TODO: midiTrackId
-          cvpj.track_order.push(trackId); // TODO: midiTrackId
+          cvpj.track_data.set(midiTrackId, trackData); // use set to retain order, originally midiTrackId
+          cvpj.track_order.push(midiTrackId);
 
           // Process MIDI Clips
           const xTrackMidiClipsSource = events?.MidiClip;
+
           // Ensure it's an array for iteration
           const xTrackMidiClips = xTrackMidiClipsSource
             ? Array.isArray(xTrackMidiClipsSource)
@@ -614,6 +616,7 @@ export class AbletonProject {
             const xTrackMidiClipNotes = xTrackMidiClip?.Notes;
             const xTrackMidiClipKT = xTrackMidiClipNotes?.KeyTracks;
             const keyTracksSource = xTrackMidiClipKT?.KeyTrack;
+
             // Ensure array for iteration
             const keyTracks = keyTracksSource
               ? Array.isArray(keyTracksSource)
@@ -675,7 +678,6 @@ export class AbletonProject {
                 const noteId = parseInt(
                   this.getAttr(xTrackMidiClipMNE, "NoteId", "0") // Get NoteId attribute
                 );
-
                 // Store note data if ID is valid
                 if (noteId > 0) {
                   const noteData = {
@@ -781,8 +783,8 @@ export class AbletonProject {
           if (trackInsideGroup !== "-1") {
             trackData.group = `group_${trackInsideGroup}`;
           }
-          // cvpj.track_data[trackId] = trackData; // TODO: audioTrackId
-          // cvpj.track_order.push(trackId); // TODO: audioTrackId
+          // cvpj.track_data.set(audioTrackId, trackData); // use set to retain order, originally audioTrackId
+          // cvpj.track_order.push(audioTrackId);
 
           // Process Audio Clips (mainly for collecting unique file paths)
           const audioClipsSource = events?.AudioClip;
@@ -839,8 +841,8 @@ export class AbletonProject {
             },
           };
           // Return tracks cannot be grouped in Ableton, so no group check needed
-          // cvpj.track_data[trackId] = trackData; // TODO: returnTrackId
-          // cvpj.track_order.push(trackId); // TODO: returnTrackId
+          // cvpj.track_data.set(returnTrackId, trackData); // use set to retain order, originally returnTrackId
+          // cvpj.track_order.push(returnTrackId);
 
           returnId++; // Increment return track counter
 
@@ -868,8 +870,8 @@ export class AbletonProject {
             // Nested groups
             trackData.group = `group_${trackInsideGroup}`;
           }
-          // cvpj.track_data[trackId] = trackData; // TODO: groupTrackId
-          // cvpj.track_order.push(trackId); // TODO: groupTrackId
+          // cvpj.track_data.set(groupTrackId, trackData); // use set to retain order, originally groupTrackId
+          // cvpj.track_order.push(groupTrackId);
 
           // No placement data typically associated with group tracks initially
           break; // End GroupTrack case
@@ -893,8 +895,8 @@ export class AbletonProject {
         //   if (trackInsideGroup !== "-1") {
         //     trackData.group = `group_${trackInsideGroup}`;
         //   }
-        //   cvpj.track_data[trackId] = trackData; // TODO: unknownTrackId
-        //   cvpj.track_order.push(trackId); // TODO: unknownTrackId
+        //   cvpj.track_data.set(unknownTrackId, trackData); // use set to retain order, originally unknownTrackId
+        //   cvpj.track_order.push(unknownTrackId); // original unknownTrackId
 
         //   break;
         // }
@@ -904,10 +906,10 @@ export class AbletonProject {
       if (Object.keys(trackPlacementData).length > 0) {
         const currentTrackId = fxLoc[1]; // Get the generated ID (e.g., midi_123)
         if (currentTrackId) {
-          cvpj.track_placements[trackId] = trackPlacementData; // TODO: currentTrackId
+          cvpj.track_placements.set(currentTrackId, trackPlacementData); // use set to retain order
         } else {
           Log.Warning(
-            `Could not add placement data for track ${trackName} (ID: ${trackId}) due to missing fxLoc ID.`
+            `Could not add placement data for track ${trackName} (ID: ${currentTrackId}) due to missing track ID.`
           );
         }
       }
@@ -937,7 +939,6 @@ export class AbletonProject {
 
     // --- Final Steps ---
     this.inOutput(cvpj); // Process collected automation data
-    // fix output
     this.compat(cvpj); // Apply compatibility fixes (loop/cut removal)
 
     // --- MIDI Conversion ---
@@ -972,7 +973,14 @@ export class AbletonProject {
       "AbletonProject.handleAbletonLiveContent: Parsing completed."
     );
 
-    return cvpj; // Return the converted project data
+    // Convert Maps to plain objects for JSON serialization
+    const jsonCompatibleCvpj = {
+      ...cvpj, // Copy existing properties
+      track_data: Object.fromEntries(cvpj.track_data.entries()),
+      track_placements: Object.fromEntries(cvpj.track_placements.entries()),
+    };
+
+    return jsonCompatibleCvpj; // Return the converted project data
   }
 
   /** Processes automation envelopes within a track or master track */
@@ -980,6 +988,7 @@ export class AbletonProject {
     // Navigate to AutomationEnvelope elements
     const autoEnvelopes = xTrackData?.AutomationEnvelopes?.Envelopes;
     const automationEnvelopesSource = autoEnvelopes?.AutomationEnvelope;
+
     // Ensure array
     const automationEnvelopes = automationEnvelopesSource
       ? Array.isArray(automationEnvelopesSource)
@@ -1216,7 +1225,6 @@ export class AbletonProject {
     // or * can be a whole new group of effects AudioEffectGroupDevice
     // ../AudioEffectGroupDevice/Branches/AudioEffectBranch/DeviceChain/AudioToAudioDeviceChain/Devices/*
     // where * is plugins as well as another AudioEffectGroupDevice with same recursive behaviour
-
     // Ensure xTrackDevicesSource is a valid object (the parsed <Devices> element)
     if (
       !xTrackDevicesSource ||
@@ -1743,7 +1751,7 @@ class AbletonFunctions {
 
         // Create new placements for each cut segment
         for (const cutpoint of cutpoints) {
-          const notePlacementCutted = { ...notePlacementBase }; // Clone base
+          const notePlacementCutted = { ...notePlacementBase }; // Shallow clone
           notePlacementCutted.position = cutpoint[0]; // New position
           notePlacementCutted.duration = cutpoint[1]; // New duration
           // Add 'cut' info representing the source segment
@@ -1894,7 +1902,7 @@ class XtraMath {
       // Update positions and remaining duration
       currentWritePos += segmentDur;
       remainingDuration -= segmentDur;
-      // currentReadPos is reset to loopStart in the next iteration
+      currentReadPos += segmentDur; // Move read position forward
     }
 
     return cutPoints;
