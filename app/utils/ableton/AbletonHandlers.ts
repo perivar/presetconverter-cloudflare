@@ -121,6 +121,7 @@ export class AbletonHandlers {
         return; // Stop processing this preset on parse error
       }
 
+      // TODO: Fix this!
       // The C# code calls AbletonProject.DoDevices directly with the root element
       // and a specific location identifier ["preset"].
       // We need to find the relevant device element within the preset XML.
@@ -128,32 +129,32 @@ export class AbletonHandlers {
       // Let's assume the root element *is* the device element for simplicity,
       // or that the relevant device is the first child element that is an object.
 
-      const deviceElement = rootXElement
-        ? Object.values(rootXElement).find(
-            val => typeof val === "object" && val !== null
-          )
-        : null;
+      // const deviceElement = rootXElement
+      //   ? Object.values(rootXElement).find(
+      //       val => typeof val === "object" && val !== null
+      //     )
+      //   : null;
 
-      if (deviceElement) {
-        // Call doDevices with the parsed device element
-        // The C# code passes rootXElement as the first argument, which seems to be for automation target lookup context.
-        // We'll pass the parsed rootXElement for that purpose.
-        AbletonProject.doDevices(
-          rootXElement, // Pass the parsed root for context
-          { Devices: deviceElement }, // Wrap the device element in a 'Devices' object to match doDevices expected input structure
-          null, // No trackId for a preset
-          null, // No trackName for a preset
-          ["preset"], // Location identifier for a preset
-          outputDirectoryPath,
-          "unknown_preset", // Use placeholder as original file name is not available
-          1, // Level 1
-          true // Assume verbose for presets? Or pass a parameter? Using true for now.
-        );
-        Log.Information(`Successfully processed Ableton Live Preset`); // Removed fileName from log
-        // TODO: Handle the output (presets are saved by doDevices internally in C# version)
-      } else {
-        Log.Error(`Could not find device element in preset file`); // Removed fileName from log
-      }
+      // if (deviceElement) {
+      //   // Call doDevices with the parsed device element
+      //   // The C# code passes rootXElement as the first argument, which seems to be for automation target lookup context.
+      //   // We'll pass the parsed rootXElement for that purpose.
+      //   AbletonProject.doDevices(
+      //     rootXElement, // Pass the parsed root for context
+      //     { Devices: deviceElement }, // Wrap the device element in a 'Devices' object to match doDevices expected input structure
+      //     null, // No trackId for a preset
+      //     null, // No trackName for a preset
+      //     ["preset"], // Location identifier for a preset
+      //     outputDirectoryPath,
+      //     "unknown_preset", // Use placeholder as original file name is not available
+      //     1, // Level 1
+      //     true // Assume verbose for presets? Or pass a parameter? Using true for now.
+      //   );
+      //   Log.Information(`Successfully processed Ableton Live Preset`); // Removed fileName from log
+      //   // TODO: Handle the output (presets are saved by doDevices internally in C# version)
+      // } else {
+      //   Log.Error(`Could not find device element in preset file`); // Removed fileName from log
+      // }
     } catch (error) {
       Log.Error(
         `Error handling Ableton Live Preset: ${error instanceof Error ? error.message : error}`

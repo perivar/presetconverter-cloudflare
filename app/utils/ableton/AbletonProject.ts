@@ -1,10 +1,10 @@
 import { XMLParser, XMLValidator } from "fast-xml-parser";
 
-import { makeValidIdentifier } from "../StringUtils";
 import { AbletonEq3 } from "./AbletonEq3";
 import { AbletonEq8 } from "./AbletonEq8";
 import { Log } from "./Log";
 import { convertAutomationToMidi, convertToMidi } from "./Midi"; // Import MIDI functions
+import { getElementByPath, splitPath } from "./XMLUtils";
 
 export class AbletonProject {
   // Use Map for easier key-value access compared to C#'s SortedDictionary
@@ -116,8 +116,6 @@ export class AbletonProject {
       // inData[id] = new List<dynamic?> { null, null, null, new List<dynamic>() }; // Original C# init before simplification
       this.inData.set(id, []);
     }
-    // inData[id][3].Add(autoPl); (Original Python logic)
-    // inData[id].Add(autoPointList); // C# simplified logic
     const currentList = this.inData.get(id);
     // Ensure it's an array before pushing
     if (Array.isArray(currentList)) {
@@ -212,7 +210,6 @@ export class AbletonProject {
     this.inData.clear();
     this.automationTargetLookup.clear();
 
-    // C# uses System.Xml.Linq, TS uses fast-xml-parser
     const parser = new XMLParser({
       ignoreAttributes: false, // Need attributes like @_Value, @_Id
       attributeNamePrefix: "@_", // Standard prefix
@@ -364,6 +361,7 @@ export class AbletonProject {
         this.doDevices(
           abletonRoot, // Pass root for automation target path lookup
           xMasterTrackTrackDevices,
+          ["LiveSet", "MasterTrack", "DeviceChain", "DeviceChain", "Devices"],
           null, // No trackId for master
           "Master",
           ["master", "master_1"], // Location identifier for master
@@ -442,28 +440,41 @@ export class AbletonProject {
     let returnId = 1; // Counter for return tracks
 
     // Consolidate track elements from different types (Midi, Audio, Group, Return)
-    const trackElements: any[] = [];
+
+    /** Holds every track with its tag‑name (`type`) and 0‑based `index`. */
+    interface TrackInfo {
+      type: string; // "MidiTrack" | "AudioTrack" | ...
+      index: number; // position among siblings with the same tag
+      element: any; // the actual XML node
+    }
+    const trackElements: TrackInfo[] = [];
+
     const trackTypes = ["MidiTrack", "AudioTrack", "GroupTrack", "ReturnTrack"];
+
     if (xTracks) {
       trackTypes.forEach(type => {
-        const tracksOfType = xTracks[type];
-        if (tracksOfType) {
-          const trackArray = Array.isArray(tracksOfType)
-            ? tracksOfType
-            : [tracksOfType];
-          trackElements.push(
-            ...trackArray
-              .filter(t => typeof t === "object" && t !== null)
-              .map(t => ({ type: type, element: t })) // Include type with element
-          );
-        }
+        const group = xTracks[type];
+        if (!group) return;
+
+        // Ensure we always work with an array
+        const arr = Array.isArray(group) ? group : [group];
+
+        arr.forEach((t, idx) => {
+          if (typeof t === "object" && t !== null) {
+            trackElements.push({ type, index: idx, element: t });
+          }
+        });
       });
     }
 
     // Read Tracks
     if (doVerbose) Log.Debug(`Found ${trackElements.length} Tracks ...`);
 
-    for (const { type: trackType, element: xTrackData } of trackElements) {
+    for (const {
+      type: trackType,
+      index: trackIndex,
+      element: xTrackData,
+    } of trackElements) {
       if (!xTrackData) continue; // Skip null/undefined elements
 
       const trackId = this.getAttr(xTrackData, "Id", "");
@@ -504,7 +515,7 @@ export class AbletonProject {
           fxLoc = ["track", midiTrackId];
           if (doVerbose)
             Log.Debug(
-              `Reading MIDI Track. Id: ${trackId}, Name: ${trackName}, Volume: ${trackVol}, Pan: ${trackPan}`
+              `Reading MIDI Track. Id: ${trackId}, Index: ${trackIndex}, Name: ${trackName}, Volume: ${trackVol}, Pan: ${trackPan}`
             );
 
           trackData = {
@@ -768,7 +779,7 @@ export class AbletonProject {
           fxLoc = ["track", audioTrackId];
           if (doVerbose)
             Log.Debug(
-              `Reading Audio Track. Id: ${trackId}, Name: ${trackName}, Volume: ${trackVol}, Pan: ${trackPan}`
+              `Reading Audio Track. Id: ${trackId}, Index: ${trackIndex}, Name: ${trackName}, Volume: ${trackVol}, Pan: ${trackPan}`
             );
 
           trackData = {
@@ -798,7 +809,6 @@ export class AbletonProject {
           for (const xAudioClip of xAudioClips) {
             if (!xAudioClip || typeof xAudioClip !== "object") continue;
 
-            // C# checks FreezeStart/End, TS checks directly
             // Only process non-frozen clips (heuristic based on C#)
             const freezeStart = parseFloat(
               this.getValue(xAudioClip, "FreezeStart", "0")
@@ -828,7 +838,7 @@ export class AbletonProject {
           fxLoc = ["return", returnTrackId];
           if (doVerbose)
             Log.Debug(
-              `Reading Return Track. Id: ${trackId}, Name: ${trackName}, Volume: ${trackVol}, Pan: ${trackPan}`
+              `Reading Return Track. Id: ${trackId}, Index: ${trackIndex}, Name: ${trackName}, Volume: ${trackVol}, Pan: ${trackPan}`
             );
 
           trackData = {
@@ -854,7 +864,7 @@ export class AbletonProject {
           fxLoc = ["group", groupTrackId];
           if (doVerbose)
             Log.Debug(
-              `Reading Group Track. Id: ${trackId}, Name: ${trackName}, Volume: ${trackVol}, Pan: ${trackPan}`
+              `Reading Group Track. Id: ${trackId}, Index: ${trackIndex}, Name: ${trackName}, Volume: ${trackVol}, Pan: ${trackPan}`
             );
 
           trackData = {
@@ -925,6 +935,14 @@ export class AbletonProject {
           this.doDevices(
             abletonRoot,
             xTrackDevices,
+            [
+              "LiveSet",
+              "Tracks",
+              `${trackType}[${trackIndex + 1}]`,
+              "DeviceChain",
+              "DeviceChain",
+              "Devices",
+            ],
             trackId, // Original Ableton ID
             trackName,
             fxLoc, // Location identifier (e.g., ["track", "midi_123"])
@@ -1068,121 +1086,121 @@ export class AbletonProject {
 
   /** Finds AutomationTarget elements within a device and adds them to the lookup table */
   private static addAutomationTargets(
-    rootXElement: any, // Root needed for XPath-like lookup (simulated)
+    rootXElement: any, // Root needed for XPath-like lookup
     xDevice: any, // The device element (e.g., Eq8, PluginDevice) being processed
+    xDevicePath: string[], // full path to the xDevice
     trackId: string | null, // Ableton track ID
     trackName: string | null, // Track name
     fxLoc: string[], // Location identifier (e.g., ["track", "midi_123"])
     fxLocDetails: string[] // Device type and ID (e.g., ["Eq8", "5"])
   ): void {
-    // add all AutomationTargets
-    // Recursive function to find AutomationTarget elements and their paths
-    const findAutomationTargets = (
-      element: any,
-      currentPath: string[] // Tracks the path down the XML structure
-    ): { id: number; path: string[] }[] => {
-      let targets: { id: number; path: string[] }[] = [];
-      if (!element || typeof element !== "object") return targets;
+    /**
+     * Recursively finds every `<AutomationTarget>` beneath `element` and returns:
+     *   • its numeric **Id** (taken from `@_Id`), and
+     *   • a **fully qualified XPath‑compatible path** whose segments include a
+     *     1‑based index (`[n]`) whenever siblings share the same name.
+     *
+     * The resulting path uniquely identifies each AutomationTarget—e.g.
+     * `"DeviceChain/Devices[3]/PluginDevice/AutomationTarget[2]"`.
+     *
+     * @param element      Any Fast‑XML‑Parser node (object or array).
+     * @param currentPath  Path segments accumulated so far.
+     * @returns            Array of `{ id, path }` objects.
+     */
+    function findAutomationTargets(
+      element: unknown,
+      currentPath: string[] = []
+    ): { id: number; path: string[] }[] {
+      if (element === null || typeof element !== "object") return [];
 
-      // Handle arrays by iterating through items
+      /* ────────── ARRAY ────────── */
       if (Array.isArray(element)) {
-        element.forEach(item => {
-          targets = targets.concat(findAutomationTargets(item, currentPath));
-        });
-        return targets;
+        const parentPath = currentPath.slice(0, -1);
+        const key = currentPath.at(-1) ?? "";
+
+        // Recurse on each item, decorating the parent key with a 1‑based index
+        return element.flatMap((item, idx) =>
+          findAutomationTargets(item, [...parentPath, `${key}[${idx + 1}]`])
+        );
       }
 
-      // Iterate through object keys
-      for (const key in element) {
-        // Skip attributes (starting with @_)
-        if (key.startsWith("@_")) continue;
+      /* ────────── OBJECT ───────── */
+      const obj = element as Record<string, unknown>;
+      const results: { id: number; path: string[] }[] = [];
 
-        const value = element[key];
-        const newPath = [...currentPath, key]; // Append current key to path
+      // Build a quick sibling count map to know when an index is needed
+      const siblingCounts: Record<string, number> = {};
+      for (const [k, v] of Object.entries(obj)) {
+        if (k.startsWith("@_")) continue;
+        siblingCounts[k] = Array.isArray(v) ? v.length : 1;
+      }
 
-        if (key === "AutomationTarget") {
-          // Found an AutomationTarget element
-          const targetArray = Array.isArray(value) ? value : [value]; // Ensure array
-          targetArray.forEach(target => {
-            if (target && typeof target === "object") {
-              const idStr = this.getAttr(target, "Id", "0");
-              const id = parseInt(idStr, 10);
-              if (!isNaN(id) && id > 0) {
-                // Store the ID and the path leading to it
-                targets.push({ id: id, path: newPath });
-              }
+      for (const [key, val] of Object.entries(obj)) {
+        if (key.startsWith("@_")) continue; // ignore attributes
+
+        const children = Array.isArray(val) ? val : [val];
+        const needIdx = siblingCounts[key] > 1;
+
+        children.forEach((child, idx) => {
+          const seg = needIdx ? `${key}[${idx + 1}]` : key;
+          const path = [...currentPath, seg];
+
+          if (
+            key === "AutomationTarget" &&
+            child &&
+            typeof child === "object"
+          ) {
+            const id = Number((child as Record<string, unknown>)["@_Id"] ?? 0);
+            if (id > 0) {
+              results.push({ id, path });
             }
-          });
-        } else if (value && typeof value === "object") {
-          // Recursively search deeper if the value is an object or array
-          targets = targets.concat(findAutomationTargets(value, newPath));
-        }
+            // no need to look inside AutomationTarget itself
+          } else if (child && typeof child === "object") {
+            results.push(...findAutomationTargets(child, path));
+          }
+        });
       }
-      return targets;
-    };
+      return results;
+    }
 
     // Start the search from the device element
     // Pass only the device details as the starting path for the parameter name
-    const automationTargets = findAutomationTargets(xDevice, []);
+    const automationTargets = findAutomationTargets(xDevice, xDevicePath);
 
     // Process found targets
     for (const targetInfo of automationTargets) {
       const autoNumId = targetInfo.id;
-      let parameterPath = "UnknownParameter"; // Default path
-
-      // Construct a meaningful parameter path string
-      // C# uses XPath, TS uses the collected path array
-      const pathSegments = targetInfo.path;
 
       // Get path elements
       // "Ableton/LiveSet/Tracks/GroupTrack/DeviceChain/DeviceChain/Devices/AudioEffectGroupDevice/Branches/AudioEffectBranch/DeviceChain/AudioToAudioDeviceChain/Devices/AutoFilter/Cutoff/AutomationTarget"
       // "Ableton/LiveSet/Tracks/GroupTrack/DeviceChain/DeviceChain/Devices/AudioEffectGroupDevice/Branches/AudioEffectBranch/DeviceChain/AudioToAudioDeviceChain/Devices/PluginDevice/ParameterList/PluginFloatParameter/ParameterValue/AutomationTarget"
-      // Example path: [ 'Volume', 'Manual', 'AutomationTarget' ]
-      // Example path: [ 'ParameterList', 'PluginFloatParameter', 'ParameterValue', 'AutomationTarget' ]
+      // Example path: ["AudioEffectGroupDevice","On","AutomationTarget"];
+      // Example path: ["AudioEffectGroupDevice","Branches","AudioEffectBranch","DeviceChain","AudioToAudioDeviceChain","Devices","PluginDevice","On","AutomationTarget"];
+      // Example path: ["AudioEffectGroupDevice","Branches","AudioEffectBranch","DeviceChain","AudioToAudioDeviceChain","Devices","PluginDevice","ParameterList","PluginFloatParameter","ParameterValue","AutomationTarget"];
 
-      // Try to create a more readable path
-      if (pathSegments.length > 1) {
-        // Often the parameter name is the segment before 'AutomationTarget' or 'Manual'/'ParameterValue'
-        let paramNameIndex = pathSegments.length - 2;
-        if (
-          pathSegments[paramNameIndex] === "Manual" ||
-          pathSegments[paramNameIndex] === "ParameterValue"
-        ) {
-          paramNameIndex--;
-        }
-        if (paramNameIndex >= 0) {
-          parameterPath = pathSegments[paramNameIndex];
-        } else {
-          // Fallback if structure is unexpected
-          parameterPath = pathSegments.join("_");
-        }
-      } else {
-        parameterPath = pathSegments.join("_"); // Fallback
-      }
+      const paths = splitPath(targetInfo.path, "Devices", "AutomationTarget");
 
-      // Special handling for PluginDevice based on C# logic
-      if (fxLocDetails[0] === "PluginDevice") {
+      // Replace / with _
+      let parameterPath = paths.after.join("_");
+
+      if (paths.after[0].startsWith("PluginDevice")) {
         // lookup VST Plugin Name using the path
-        const pluginDesc = xDevice?.PluginDesc;
-        const vstPluginInfo = pluginDesc?.VstPluginInfo;
-        const vstPlugName = vstPluginInfo
-          ? this.getValue(vstPluginInfo, "PlugName", "")
-          : "";
+        const lookupXPath = [...paths.before, "Devices", paths.after[0]].join(
+          "/"
+        );
 
-        if (vstPlugName) {
-          // Use VST name and parameter name/ID for uniqueness
-          // remove PluginDevice/
-          // pathFixed = pathFixed.Replace("PluginDevice", "");
-          // and add back the path suffix
-          // pathFixed = $"{vstPlugName}{pathFixed}";
-          // pathFixed = vstPlugName; // Simplified C# logic
-          parameterPath = `${vstPlugName}_${parameterPath}`;
-        } else {
-          parameterPath = `PluginDevice_${parameterPath}`;
+        // Use getElementByPath with the full path
+        const xFoundElement = getElementByPath(rootXElement, lookupXPath);
+        if (xFoundElement != null) {
+          // lookup VST Plugin Name using the path
+          const pluginDesc = xFoundElement?.PluginDesc;
+          const vstPluginInfo = pluginDesc?.VstPluginInfo;
+          const vstPlugName = vstPluginInfo
+            ? this.getValue(vstPluginInfo, "PlugName", "")
+            : "";
+
+          parameterPath = `${vstPlugName}`;
         }
-      } else {
-        // For native devices, use device type and parameter path
-        parameterPath = `${fxLocDetails[0]}_${parameterPath}`;
       }
 
       // add
@@ -1192,7 +1210,7 @@ export class AbletonProject {
         trackname: trackName,
         loc: fxLoc, // Store the track/master location
         details: fxLocDetails, // Store device type/id
-        path: makeValidIdentifier(parameterPath), // Ensure path is a valid identifier
+        path: parameterPath,
       };
 
       // Add to lookup table if not already present
@@ -1209,6 +1227,7 @@ export class AbletonProject {
   public static doDevices(
     rootXElement: any, // Root element for context (e.g., automation target lookup)
     xTrackDevicesSource: any, // The <Devices> element or array of device elements
+    xTrackDevicesSourcePath: string[], // Full path to the xTrackDevicesSource
     trackId: string | null, // Original Ableton track ID
     trackName: string | null, // Name of the track
     fxLoc: string[], // Location identifier (e.g., ["track", "midi_123"])
@@ -1217,11 +1236,11 @@ export class AbletonProject {
     level: number = 1, // Recursion level for groups
     doVerbose?: boolean
   ): void {
-    // C# comments on paths:
     // Path for MasterTrack: Ableton/LiveSet/MasterTrack/DeviceChain/DeviceChain/Devices/*
     // Path for Tracks: Ableton/LiveSet/Tracks/[Audio|Group|Midi]Track/DeviceChain/DeviceChain/Devices/*
     // where * is internal plugins like <Eq8>, <Limiter>
     // as well as <PluginDevice Id="X"> elements
+
     // or * can be a whole new group of effects AudioEffectGroupDevice
     // ../AudioEffectGroupDevice/Branches/AudioEffectBranch/DeviceChain/AudioToAudioDeviceChain/Devices/*
     // where * is plugins as well as another AudioEffectGroupDevice with same recursive behaviour
@@ -1306,14 +1325,20 @@ export class AbletonProject {
             );
         }
 
+        const deviceElementPath: string[] = [
+          ...xTrackDevicesSourcePath,
+          deviceType,
+        ];
+
         // Add automation targets found within this device
         this.addAutomationTargets(
           rootXElement,
           deviceElement, // Pass the actual device element
+          deviceElementPath, // Pass the full path to the deviceElement
           trackId, // Original Ableton ID
           trackName, // Name of the track
           fxLoc, // Location identifier (e.g., ["track", "midi_123"])
-          [deviceType, deviceId] // Pass device type and ID
+          [deviceType, deviceId] // Pass device type and ID,
         );
 
         // --- Process Specific Device Types ---
@@ -1461,6 +1486,14 @@ export class AbletonProject {
                 this.doDevices(
                   rootXElement,
                   nestedDevices, // Pass the nested <Devices> element/object
+                  [
+                    ...deviceElementPath,
+                    "Branches",
+                    "AudioEffectBranch",
+                    "DeviceChain",
+                    "AudioToAudioDeviceChain",
+                    "Devices",
+                  ],
                   trackId,
                   trackName,
                   fxLoc, // Keep the same track location context
@@ -1599,7 +1632,6 @@ class AbletonFunctions {
     }
 
     // Find the min and max position from the list
-    // C# calls GetDurPos, let's implement that logic here or call a helper
     const { startPos, endPos } = this.getDurPos(list);
 
     // Calculate duration based on min/max positions
@@ -1607,9 +1639,7 @@ class AbletonFunctions {
     const duration = endPos - startPos + 4;
 
     // Trim and move points relative to the start position
-    // C# calls TrimMove(pointsData, durPos.Item1, durPos.Item1 + durPos.Item2);
-    // The second parameter to TrimMove in C# seems wrong (should be endPos?). Let's use endPos.
-    const relativePoints = this.trimMove(list, startPos, endPos); // endAt should be exclusive in trim
+    const relativePoints = this.trimMove(list, startPos, startPos + endPos);
 
     return {
       position: startPos, // Overall start position
@@ -1639,7 +1669,6 @@ class AbletonFunctions {
       if (pos > maxPos) maxPos = pos;
     }
 
-    // C# returns Tuple.Create(posFinal, durationFinal); where durationFinal is maxPos
     // Let's return min and max directly for clarity
     return { startPos: minPos, endPos: maxPos };
   }
@@ -1712,7 +1741,7 @@ class AbletonFunctions {
    */
   static removeLoopsDoPlacements(
     notePlacements: any[],
-    outPlacementLoop: Set<string> // C# parameter, seems unused in logic
+    outPlacementLoop: Set<string>
   ): any[] {
     // loops_remove.py
     const newPlacements: any[] = [];
