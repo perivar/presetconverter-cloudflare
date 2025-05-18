@@ -1,3 +1,7 @@
+import fs from "fs";
+import path from "path";
+import * as midiFile from "midi-file";
+
 import {
   AutomationEvent,
   convertAutomationToMidi,
@@ -6,6 +10,21 @@ import {
   logMidiDataToString,
   MidiChannelManager,
 } from "../ableton/Midi";
+import { toPlainObject } from "./helpers/testUtils";
+
+const targetDir = path.join(__dirname, "ableton-tests");
+
+beforeAll(() => {
+  if (!fs.existsSync(targetDir)) {
+    fs.mkdirSync(targetDir, { recursive: true });
+  }
+});
+
+afterAll(() => {
+  // if (fs.existsSync(targetDir)) {
+  //   fs.rmSync(targetDir, { recursive: true, force: true });
+  // }
+});
 
 describe("MidiChannelManager", () => {
   test("should start with channel 0 by default", () => {
@@ -1855,6 +1874,47 @@ describe("convertAutomationToMidi", () => {
       (event: any) => event.type === "controller"
     ) as any[];
     expect(automationEvent[0].value).toBe(127);
+  });
+
+  test("should convert automation to midi, save, read, and compare bytes", () => {
+    const midiDataArray = convertAutomationToMidi(
+      mockCvpjWithAutomation,
+      "test_automation"
+    );
+    expect(midiDataArray).not.toBeNull();
+    expect(midiDataArray?.length).toBeGreaterThan(0);
+
+    if (!midiDataArray) {
+      return;
+    }
+
+    midiDataArray.forEach((midiData, index) => {
+      const tempFilePath = path.join(
+        targetDir,
+        `ableton_temp_automation_${index}.mid`
+      );
+
+      // Convert MIDI data to bytes
+      const outputArray = midiFile.writeMidi(midiData);
+      const outputUint8Array = new Uint8Array(outputArray);
+
+      // Write the MIDI data to a temporary file
+      fs.writeFileSync(tempFilePath, outputUint8Array);
+
+      // Read the file back
+      const inputUint8Array = fs.readFileSync(tempFilePath);
+
+      // Convert bytes to MIDI data
+      const midiDataRead = midiFile.parseMidi(inputUint8Array);
+
+      // Compare the original with the read
+      expect(toPlainObject(midiData)).toStrictEqual(
+        toPlainObject(midiDataRead)
+      );
+
+      // Clean up the temporary file
+      // fs.unlinkSync(tempFilePath);
+    });
   });
 });
 
