@@ -429,15 +429,15 @@ export function convertAutomationToMidi(
   const midiDataArray: MidiData[] = [];
   let fileNum = 1;
 
-  // Iterate through the top-level automation categories (e.g., "track", "master")
+  // Iterate through the top-level automation categories (e.g., "master", "group", "track")
   for (const trackTypeKey in cvpj.automation) {
     const trackTypeValue = cvpj.automation[trackTypeKey];
 
-    // Iterate through track IDs within each category (e.g., "midi_1", "master_track_id")
+    // Iterate through track IDs within each category (e.g., "master_<track_id>", "group_35", "audio_64")
     for (const trackIdKey in trackTypeValue) {
       const trackIdValue = trackTypeValue[trackIdKey];
 
-      // Iterate through Ableton track names or group names
+      // Iterate through Ableton track names or group names (e.g., "Master", "Lead")
       // A new MidiData object (representing a MIDI file) is created for each of these.
       for (const abletonTrackNameKey in trackIdValue) {
         const abletonTrackNameValue = trackIdValue[abletonTrackNameKey]; // This object contains device paths as keys
@@ -449,7 +449,7 @@ export function convertAutomationToMidi(
 
         const header: MidiHeader = {
           format: 1, // Multi-track format
-          numTracks: 1, // Start with 1 for the meta track
+          numTracks: 1, // Start with 1 for the meta track. This is incremented while adding tracks in the loop below.
           ticksPerBeat: TICKS_PER_BEAT,
         };
         const tracks: MidiEvent[][] = [];

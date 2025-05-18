@@ -284,45 +284,1413 @@ describe("convertAutomationToMidi", () => {
       bpm: { value: 120 },
     },
     automation: {
-      instrument: {
-        "Synth 1": {
-          Volume: {
-            type: "float",
-            placements: [
-              {
-                position: 0,
-                points: [
-                  { position: 0, value: 0 },
-                  { position: 1, value: 1 },
-                ],
-              },
-            ],
-          },
-          Pan: {
-            type: "float",
-            placements: [
-              {
-                position: 0,
-                points: [
-                  { position: 0, value: 0.5 },
-                  { position: 1, value: -0.5 },
-                ],
-              },
-            ],
+      master: {
+        master_1: {
+          Master: {
+            "Endless Smile 64": {
+              type: "float",
+              placements: [
+                {
+                  position: 0,
+                  duration: 1156,
+                  points: [
+                    {
+                      position: 0,
+                      value: 0,
+                    },
+                    {
+                      position: 370,
+                      value: 0,
+                    },
+                    {
+                      position: 370,
+                      value: 0.3214285672,
+                    },
+                    {
+                      position: 384,
+                      value: 0.3452380896,
+                    },
+                    {
+                      position: 384,
+                      value: 0,
+                    },
+                    {
+                      position: 1138,
+                      value: 0,
+                    },
+                    {
+                      position: 1138,
+                      value: 0.3214285672,
+                    },
+                  ],
+                },
+              ],
+            },
+            AutoFilter_Cutoff: {
+              type: "float",
+              placements: [
+                {
+                  position: 0,
+                  duration: 1160,
+                  points: [
+                    {
+                      position: 0,
+                      value: 135,
+                    },
+                    {
+                      position: 368,
+                      value: 135,
+                    },
+                    {
+                      position: 368,
+                      value: 128.154755,
+                    },
+                    {
+                      position: 382,
+                      value: 87.5396729,
+                    },
+                    {
+                      position: 386,
+                      value: 67.9166641,
+                    },
+                    {
+                      position: 388,
+                      value: 135,
+                    },
+                    {
+                      position: 1136,
+                      value: 135,
+                    },
+                    {
+                      position: 1136,
+                      value: 128.154755,
+                    },
+                    {
+                      position: 1150,
+                      value: 87.5396729,
+                    },
+                    {
+                      position: 1154,
+                      value: 67.9166641,
+                    },
+                  ],
+                },
+              ],
+            },
+            "FabFilter Pro-Q 3": {
+              type: "float",
+              placements: [
+                {
+                  position: 0,
+                  duration: 1156,
+                  points: [
+                    {
+                      position: 0,
+                      value: 0,
+                    },
+                    {
+                      position: 370,
+                      value: 0,
+                    },
+                    {
+                      position: 370,
+                      value: 1,
+                    },
+                    {
+                      position: 384,
+                      value: 0,
+                    },
+                    {
+                      position: 1138,
+                      value: 0,
+                    },
+                    {
+                      position: 1138,
+                      value: 1,
+                    },
+                  ],
+                },
+              ],
+            },
           },
         },
-        "Drum Rack": {
-          Mute: {
-            type: "bool",
-            placements: [
-              {
-                position: 0,
-                points: [
-                  { position: 0, value: 0 },
-                  { position: 1, value: 1 },
-                ],
-              },
-            ],
+      },
+      group: {
+        group_35: {
+          Lead: {
+            "Endless Smile 64": {
+              type: "float",
+              placements: [
+                {
+                  position: 0,
+                  duration: 1860,
+                  points: [
+                    {
+                      position: 0,
+                      value: 0,
+                    },
+                    {
+                      position: 0,
+                      value: 0,
+                    },
+                    {
+                      position: 0,
+                      value: 0.3072727323,
+                    },
+                    {
+                      position: 240,
+                      value: 0.2399999946,
+                    },
+                    {
+                      position: 240,
+                      value: 0,
+                    },
+                    {
+                      position: 259,
+                      value: 0,
+                    },
+                    {
+                      position: 260,
+                      value: 0.8199999928,
+                    },
+                    {
+                      position: 260,
+                      value: 0,
+                    },
+                    {
+                      position: 266,
+                      value: 0,
+                    },
+                    {
+                      position: 268,
+                      value: 1,
+                    },
+                    {
+                      position: 268,
+                      value: 0,
+                    },
+                    {
+                      position: 270.5,
+                      value: 0,
+                    },
+                    {
+                      position: 271.25,
+                      value: 0.5400000215,
+                    },
+                    {
+                      position: 271.25,
+                      value: 0,
+                    },
+                    {
+                      position: 274,
+                      value: 0,
+                    },
+                    {
+                      position: 276,
+                      value: 0.5799999833,
+                    },
+                    {
+                      position: 276,
+                      value: 0,
+                    },
+                    {
+                      position: 278,
+                      value: 0,
+                    },
+                    {
+                      position: 280,
+                      value: 0.6600000262,
+                    },
+                    {
+                      position: 280,
+                      value: 0,
+                    },
+                    {
+                      position: 283.5,
+                      value: 0,
+                    },
+                    {
+                      position: 284,
+                      value: 0.8199999928,
+                    },
+                    {
+                      position: 284,
+                      value: 0,
+                    },
+                    {
+                      position: 290,
+                      value: 0,
+                    },
+                    {
+                      position: 292,
+                      value: 1,
+                    },
+                    {
+                      position: 292,
+                      value: 0,
+                    },
+                    {
+                      position: 297.5,
+                      value: 0,
+                    },
+                    {
+                      position: 300,
+                      value: 0.6800000072,
+                    },
+                    {
+                      position: 300,
+                      value: 0,
+                    },
+                    {
+                      position: 302,
+                      value: 0.6200000048,
+                    },
+                    {
+                      position: 302,
+                      value: 0,
+                    },
+                    {
+                      position: 306.5,
+                      value: 0,
+                    },
+                    {
+                      position: 308,
+                      value: 0.5600000024,
+                    },
+                    {
+                      position: 308,
+                      value: 0,
+                    },
+                    {
+                      position: 310,
+                      value: 0,
+                    },
+                    {
+                      position: 312,
+                      value: 0.4199999869,
+                    },
+                    {
+                      position: 312,
+                      value: 0,
+                    },
+                    {
+                      position: 323,
+                      value: 0,
+                    },
+                    {
+                      position: 324,
+                      value: 0.8199999928,
+                    },
+                    {
+                      position: 324,
+                      value: 0,
+                    },
+                    {
+                      position: 330,
+                      value: 0,
+                    },
+                    {
+                      position: 332,
+                      value: 1,
+                    },
+                    {
+                      position: 332,
+                      value: 0,
+                    },
+                    {
+                      position: 334.5,
+                      value: 0,
+                    },
+                    {
+                      position: 335.25,
+                      value: 0.5400000215,
+                    },
+                    {
+                      position: 335.25,
+                      value: 0,
+                    },
+                    {
+                      position: 338,
+                      value: 0,
+                    },
+                    {
+                      position: 340,
+                      value: 0.5799999833,
+                    },
+                    {
+                      position: 340,
+                      value: 0,
+                    },
+                    {
+                      position: 342,
+                      value: 0,
+                    },
+                    {
+                      position: 344,
+                      value: 0.6600000262,
+                    },
+                    {
+                      position: 344,
+                      value: 0,
+                    },
+                    {
+                      position: 347.5,
+                      value: 0,
+                    },
+                    {
+                      position: 348,
+                      value: 0.8199999928,
+                    },
+                    {
+                      position: 348,
+                      value: 0,
+                    },
+                    {
+                      position: 354,
+                      value: 0,
+                    },
+                    {
+                      position: 356,
+                      value: 1,
+                    },
+                    {
+                      position: 356,
+                      value: 0,
+                    },
+                    {
+                      position: 361.5,
+                      value: 0,
+                    },
+                    {
+                      position: 364,
+                      value: 0.6800000072,
+                    },
+                    {
+                      position: 364,
+                      value: 0,
+                    },
+                    {
+                      position: 367,
+                      value: 0.4110447764,
+                    },
+                    {
+                      position: 367,
+                      value: 0,
+                    },
+                    {
+                      position: 370.5,
+                      value: 0,
+                    },
+                    {
+                      position: 372,
+                      value: 0.5600000024,
+                    },
+                    {
+                      position: 372,
+                      value: 0,
+                    },
+                    {
+                      position: 374,
+                      value: 0,
+                    },
+                    {
+                      position: 376,
+                      value: 0.4199999869,
+                    },
+                    {
+                      position: 376,
+                      value: 0,
+                    },
+                    {
+                      position: 387,
+                      value: 0,
+                    },
+                    {
+                      position: 388,
+                      value: 0.8199999928,
+                    },
+                    {
+                      position: 388,
+                      value: 0,
+                    },
+                    {
+                      position: 394,
+                      value: 0,
+                    },
+                    {
+                      position: 396,
+                      value: 1,
+                    },
+                    {
+                      position: 396,
+                      value: 0,
+                    },
+                    {
+                      position: 398.5,
+                      value: 0,
+                    },
+                    {
+                      position: 399.25,
+                      value: 0.5400000215,
+                    },
+                    {
+                      position: 399.25,
+                      value: 0,
+                    },
+                    {
+                      position: 402,
+                      value: 0,
+                    },
+                    {
+                      position: 404,
+                      value: 0.5799999833,
+                    },
+                    {
+                      position: 404,
+                      value: 0,
+                    },
+                    {
+                      position: 406,
+                      value: 0,
+                    },
+                    {
+                      position: 408,
+                      value: 0.6600000262,
+                    },
+                    {
+                      position: 408,
+                      value: 0,
+                    },
+                    {
+                      position: 411.5,
+                      value: 0,
+                    },
+                    {
+                      position: 412,
+                      value: 0.8199999928,
+                    },
+                    {
+                      position: 412,
+                      value: 0,
+                    },
+                    {
+                      position: 418,
+                      value: 0,
+                    },
+                    {
+                      position: 420,
+                      value: 1,
+                    },
+                    {
+                      position: 420,
+                      value: 0,
+                    },
+                    {
+                      position: 425.5,
+                      value: 0,
+                    },
+                    {
+                      position: 428,
+                      value: 0.6800000072,
+                    },
+                    {
+                      position: 428,
+                      value: 0,
+                    },
+                    {
+                      position: 430,
+                      value: 0.6200000048,
+                    },
+                    {
+                      position: 430,
+                      value: 0,
+                    },
+                    {
+                      position: 434.5,
+                      value: 0,
+                    },
+                    {
+                      position: 436,
+                      value: 0.5600000024,
+                    },
+                    {
+                      position: 436,
+                      value: 0,
+                    },
+                    {
+                      position: 438,
+                      value: 0,
+                    },
+                    {
+                      position: 440,
+                      value: 0.4199999869,
+                    },
+                    {
+                      position: 440,
+                      value: 0,
+                    },
+                    {
+                      position: 451,
+                      value: 0,
+                    },
+                    {
+                      position: 452,
+                      value: 0.8199999928,
+                    },
+                    {
+                      position: 452,
+                      value: 0,
+                    },
+                    {
+                      position: 458,
+                      value: 0,
+                    },
+                    {
+                      position: 460,
+                      value: 1,
+                    },
+                    {
+                      position: 460,
+                      value: 0,
+                    },
+                    {
+                      position: 462.5,
+                      value: 0,
+                    },
+                    {
+                      position: 463.25,
+                      value: 0.5400000215,
+                    },
+                    {
+                      position: 463.25,
+                      value: 0,
+                    },
+                    {
+                      position: 466,
+                      value: 0,
+                    },
+                    {
+                      position: 468,
+                      value: 0.5799999833,
+                    },
+                    {
+                      position: 468,
+                      value: 0,
+                    },
+                    {
+                      position: 470,
+                      value: 0,
+                    },
+                    {
+                      position: 472,
+                      value: 0.6600000262,
+                    },
+                    {
+                      position: 472,
+                      value: 0,
+                    },
+                    {
+                      position: 475.5,
+                      value: 0,
+                    },
+                    {
+                      position: 476,
+                      value: 0.8199999928,
+                    },
+                    {
+                      position: 476,
+                      value: 0,
+                    },
+                    {
+                      position: 482,
+                      value: 0,
+                    },
+                    {
+                      position: 484,
+                      value: 1,
+                    },
+                    {
+                      position: 484,
+                      value: 0,
+                    },
+                    {
+                      position: 489.5,
+                      value: 0,
+                    },
+                    {
+                      position: 492,
+                      value: 0.6800000072,
+                    },
+                    {
+                      position: 492,
+                      value: 0,
+                    },
+                    {
+                      position: 495,
+                      value: 0.4110447764,
+                    },
+                    {
+                      position: 495,
+                      value: 0,
+                    },
+                    {
+                      position: 498.5,
+                      value: 0,
+                    },
+                    {
+                      position: 500,
+                      value: 0.5600000024,
+                    },
+                    {
+                      position: 500,
+                      value: 0,
+                    },
+                    {
+                      position: 502,
+                      value: 0,
+                    },
+                    {
+                      position: 504,
+                      value: 0.4199999869,
+                    },
+                    {
+                      position: 504,
+                      value: 0,
+                    },
+                    {
+                      position: 1027,
+                      value: 0,
+                    },
+                    {
+                      position: 1028,
+                      value: 0.8199999928,
+                    },
+                    {
+                      position: 1028,
+                      value: 0,
+                    },
+                    {
+                      position: 1034,
+                      value: 0,
+                    },
+                    {
+                      position: 1036,
+                      value: 1,
+                    },
+                    {
+                      position: 1036,
+                      value: 0,
+                    },
+                    {
+                      position: 1038.5,
+                      value: 0,
+                    },
+                    {
+                      position: 1039.25,
+                      value: 0.5400000215,
+                    },
+                    {
+                      position: 1039.25,
+                      value: 0,
+                    },
+                    {
+                      position: 1042,
+                      value: 0,
+                    },
+                    {
+                      position: 1044,
+                      value: 0.5799999833,
+                    },
+                    {
+                      position: 1044,
+                      value: 0,
+                    },
+                    {
+                      position: 1046,
+                      value: 0,
+                    },
+                    {
+                      position: 1048,
+                      value: 0.6600000262,
+                    },
+                    {
+                      position: 1048,
+                      value: 0,
+                    },
+                    {
+                      position: 1051.5,
+                      value: 0,
+                    },
+                    {
+                      position: 1052,
+                      value: 0.8199999928,
+                    },
+                    {
+                      position: 1052,
+                      value: 0,
+                    },
+                    {
+                      position: 1058,
+                      value: 0,
+                    },
+                    {
+                      position: 1060,
+                      value: 1,
+                    },
+                    {
+                      position: 1060,
+                      value: 0,
+                    },
+                    {
+                      position: 1065.5,
+                      value: 0,
+                    },
+                    {
+                      position: 1068,
+                      value: 0.6800000072,
+                    },
+                    {
+                      position: 1068,
+                      value: 0,
+                    },
+                    {
+                      position: 1070,
+                      value: 0.6200000048,
+                    },
+                    {
+                      position: 1070,
+                      value: 0,
+                    },
+                    {
+                      position: 1074.5,
+                      value: 0,
+                    },
+                    {
+                      position: 1076,
+                      value: 0.5600000024,
+                    },
+                    {
+                      position: 1076,
+                      value: 0,
+                    },
+                    {
+                      position: 1078,
+                      value: 0,
+                    },
+                    {
+                      position: 1080,
+                      value: 0.4199999869,
+                    },
+                    {
+                      position: 1080,
+                      value: 0,
+                    },
+                    {
+                      position: 1091,
+                      value: 0,
+                    },
+                    {
+                      position: 1092,
+                      value: 0.8199999928,
+                    },
+                    {
+                      position: 1092,
+                      value: 0,
+                    },
+                    {
+                      position: 1098,
+                      value: 0,
+                    },
+                    {
+                      position: 1100,
+                      value: 1,
+                    },
+                    {
+                      position: 1100,
+                      value: 0,
+                    },
+                    {
+                      position: 1102.5,
+                      value: 0,
+                    },
+                    {
+                      position: 1103.25,
+                      value: 0.5400000215,
+                    },
+                    {
+                      position: 1103.25,
+                      value: 0,
+                    },
+                    {
+                      position: 1106,
+                      value: 0,
+                    },
+                    {
+                      position: 1108,
+                      value: 0.5799999833,
+                    },
+                    {
+                      position: 1108,
+                      value: 0,
+                    },
+                    {
+                      position: 1110,
+                      value: 0,
+                    },
+                    {
+                      position: 1112,
+                      value: 0.6600000262,
+                    },
+                    {
+                      position: 1112,
+                      value: 0,
+                    },
+                    {
+                      position: 1115.5,
+                      value: 0,
+                    },
+                    {
+                      position: 1116,
+                      value: 0.8199999928,
+                    },
+                    {
+                      position: 1116,
+                      value: 0,
+                    },
+                    {
+                      position: 1122,
+                      value: 0,
+                    },
+                    {
+                      position: 1124,
+                      value: 1,
+                    },
+                    {
+                      position: 1124,
+                      value: 0,
+                    },
+                    {
+                      position: 1129.5,
+                      value: 0,
+                    },
+                    {
+                      position: 1132,
+                      value: 0.6800000072,
+                    },
+                    {
+                      position: 1132,
+                      value: 0,
+                    },
+                    {
+                      position: 1135,
+                      value: 0.4110447764,
+                    },
+                    {
+                      position: 1135,
+                      value: 0,
+                    },
+                    {
+                      position: 1138.5,
+                      value: 0,
+                    },
+                    {
+                      position: 1140,
+                      value: 0.5600000024,
+                    },
+                    {
+                      position: 1140,
+                      value: 0,
+                    },
+                    {
+                      position: 1142,
+                      value: 0,
+                    },
+                    {
+                      position: 1144,
+                      value: 0.4199999869,
+                    },
+                    {
+                      position: 1144,
+                      value: 0,
+                    },
+                    {
+                      position: 1155,
+                      value: 0,
+                    },
+                    {
+                      position: 1156,
+                      value: 0.8199999928,
+                    },
+                    {
+                      position: 1156,
+                      value: 0,
+                    },
+                    {
+                      position: 1162,
+                      value: 0,
+                    },
+                    {
+                      position: 1164,
+                      value: 1,
+                    },
+                    {
+                      position: 1164,
+                      value: 0,
+                    },
+                    {
+                      position: 1166.5,
+                      value: 0,
+                    },
+                    {
+                      position: 1167.25,
+                      value: 0.5400000215,
+                    },
+                    {
+                      position: 1167.25,
+                      value: 0,
+                    },
+                    {
+                      position: 1170,
+                      value: 0,
+                    },
+                    {
+                      position: 1172,
+                      value: 0.5799999833,
+                    },
+                    {
+                      position: 1172,
+                      value: 0,
+                    },
+                    {
+                      position: 1174,
+                      value: 0,
+                    },
+                    {
+                      position: 1176,
+                      value: 0.6600000262,
+                    },
+                    {
+                      position: 1176,
+                      value: 0,
+                    },
+                    {
+                      position: 1179.5,
+                      value: 0,
+                    },
+                    {
+                      position: 1180,
+                      value: 0.8199999928,
+                    },
+                    {
+                      position: 1180,
+                      value: 0,
+                    },
+                    {
+                      position: 1186,
+                      value: 0,
+                    },
+                    {
+                      position: 1188,
+                      value: 1,
+                    },
+                    {
+                      position: 1188,
+                      value: 0,
+                    },
+                    {
+                      position: 1193.5,
+                      value: 0,
+                    },
+                    {
+                      position: 1196,
+                      value: 0.6800000072,
+                    },
+                    {
+                      position: 1196,
+                      value: 0,
+                    },
+                    {
+                      position: 1198,
+                      value: 0.6200000048,
+                    },
+                    {
+                      position: 1198,
+                      value: 0,
+                    },
+                    {
+                      position: 1202.5,
+                      value: 0,
+                    },
+                    {
+                      position: 1204,
+                      value: 0.5600000024,
+                    },
+                    {
+                      position: 1204,
+                      value: 0,
+                    },
+                    {
+                      position: 1206,
+                      value: 0,
+                    },
+                    {
+                      position: 1208,
+                      value: 0.4199999869,
+                    },
+                    {
+                      position: 1208,
+                      value: 0,
+                    },
+                    {
+                      position: 1219,
+                      value: 0,
+                    },
+                    {
+                      position: 1220,
+                      value: 0.8199999928,
+                    },
+                    {
+                      position: 1220,
+                      value: 0,
+                    },
+                    {
+                      position: 1226,
+                      value: 0,
+                    },
+                    {
+                      position: 1228,
+                      value: 1,
+                    },
+                    {
+                      position: 1228,
+                      value: 0,
+                    },
+                    {
+                      position: 1230.5,
+                      value: 0,
+                    },
+                    {
+                      position: 1231.25,
+                      value: 0.5400000215,
+                    },
+                    {
+                      position: 1231.25,
+                      value: 0,
+                    },
+                    {
+                      position: 1234,
+                      value: 0,
+                    },
+                    {
+                      position: 1236,
+                      value: 0.5799999833,
+                    },
+                    {
+                      position: 1236,
+                      value: 0,
+                    },
+                    {
+                      position: 1238,
+                      value: 0,
+                    },
+                    {
+                      position: 1240,
+                      value: 0.6600000262,
+                    },
+                    {
+                      position: 1240,
+                      value: 0,
+                    },
+                    {
+                      position: 1243.5,
+                      value: 0,
+                    },
+                    {
+                      position: 1244,
+                      value: 0.8199999928,
+                    },
+                    {
+                      position: 1244,
+                      value: 0,
+                    },
+                    {
+                      position: 1250,
+                      value: 0,
+                    },
+                    {
+                      position: 1252,
+                      value: 1,
+                    },
+                    {
+                      position: 1252,
+                      value: 0,
+                    },
+                    {
+                      position: 1257.5,
+                      value: 0,
+                    },
+                    {
+                      position: 1260,
+                      value: 0.6800000072,
+                    },
+                    {
+                      position: 1260,
+                      value: 0,
+                    },
+                    {
+                      position: 1263,
+                      value: 0.4110447764,
+                    },
+                    {
+                      position: 1263,
+                      value: 0,
+                    },
+                    {
+                      position: 1266.5,
+                      value: 0,
+                    },
+                    {
+                      position: 1268,
+                      value: 0.5600000024,
+                    },
+                    {
+                      position: 1268,
+                      value: 0,
+                    },
+                    {
+                      position: 1270,
+                      value: 0,
+                    },
+                    {
+                      position: 1272,
+                      value: 0.4199999869,
+                    },
+                    {
+                      position: 1272,
+                      value: 0,
+                    },
+                  ],
+                },
+              ],
+            },
+            AutoFilter_Cutoff: {
+              type: "float",
+              placements: [
+                {
+                  position: 0,
+                  duration: 2116,
+                  points: [
+                    {
+                      position: 0,
+                      value: 125.800003,
+                    },
+                    {
+                      position: 128,
+                      value: 125.800003,
+                    },
+                    {
+                      position: 128,
+                      value: 96.1190491,
+                    },
+                    {
+                      position: 172,
+                      value: 86.9190521,
+                    },
+                    {
+                      position: 182.5,
+                      value: 96.1190491,
+                    },
+                    {
+                      position: 186,
+                      value: 129.137833,
+                    },
+                    {
+                      position: 188.5,
+                      value: 132.699997,
+                    },
+                    {
+                      position: 192,
+                      value: 89.2190475,
+                    },
+                    {
+                      position: 240,
+                      value: 121.419044,
+                    },
+                    {
+                      position: 256,
+                      value: 121.419044,
+                    },
+                    {
+                      position: 256,
+                      value: 135,
+                    },
+                    {
+                      position: 320,
+                      value: 135,
+                    },
+                    {
+                      position: 384,
+                      value: 135,
+                    },
+                    {
+                      position: 448,
+                      value: 135,
+                    },
+                    {
+                      position: 1024,
+                      value: 135,
+                    },
+                    {
+                      position: 1088,
+                      value: 135,
+                    },
+                    {
+                      position: 1152,
+                      value: 135,
+                    },
+                    {
+                      position: 1216,
+                      value: 135,
+                    },
+                  ],
+                },
+              ],
+            },
+            AutoPan_Lfo_LfoAmount: {
+              type: "float",
+              placements: [
+                {
+                  position: 0,
+                  duration: 1228,
+                  points: [
+                    {
+                      position: 0,
+                      value: 0,
+                    },
+                    {
+                      position: 262,
+                      value: 0,
+                    },
+                    {
+                      position: 262,
+                      value: 0.7023810148,
+                    },
+                    {
+                      position: 264,
+                      value: 0.7023810148,
+                    },
+                    {
+                      position: 264,
+                      value: 0,
+                    },
+                    {
+                      position: 326,
+                      value: 0,
+                    },
+                    {
+                      position: 326,
+                      value: 0.7023810148,
+                    },
+                    {
+                      position: 328,
+                      value: 0.7023810148,
+                    },
+                    {
+                      position: 328,
+                      value: 0,
+                    },
+                    {
+                      position: 390,
+                      value: 0,
+                    },
+                    {
+                      position: 390,
+                      value: 0.7023810148,
+                    },
+                    {
+                      position: 392,
+                      value: 0.7023810148,
+                    },
+                    {
+                      position: 392,
+                      value: 0,
+                    },
+                    {
+                      position: 454,
+                      value: 0,
+                    },
+                    {
+                      position: 454,
+                      value: 0.7023810148,
+                    },
+                    {
+                      position: 456,
+                      value: 0.7023810148,
+                    },
+                    {
+                      position: 456,
+                      value: 0,
+                    },
+                    {
+                      position: 1030,
+                      value: 0,
+                    },
+                    {
+                      position: 1030,
+                      value: 0.7023810148,
+                    },
+                    {
+                      position: 1032,
+                      value: 0.7023810148,
+                    },
+                    {
+                      position: 1032,
+                      value: 0,
+                    },
+                    {
+                      position: 1094,
+                      value: 0,
+                    },
+                    {
+                      position: 1094,
+                      value: 0.7023810148,
+                    },
+                    {
+                      position: 1096,
+                      value: 0.7023810148,
+                    },
+                    {
+                      position: 1096,
+                      value: 0,
+                    },
+                    {
+                      position: 1158,
+                      value: 0,
+                    },
+                    {
+                      position: 1158,
+                      value: 0.7023810148,
+                    },
+                    {
+                      position: 1160,
+                      value: 0.7023810148,
+                    },
+                    {
+                      position: 1160,
+                      value: 0,
+                    },
+                    {
+                      position: 1222,
+                      value: 0,
+                    },
+                    {
+                      position: 1222,
+                      value: 0.7023810148,
+                    },
+                  ],
+                },
+              ],
+            },
           },
         },
       },
@@ -335,73 +1703,61 @@ describe("convertAutomationToMidi", () => {
       "test_automation"
     );
     expect(midiDataArray).not.toBeNull();
-    expect(midiDataArray?.length).toBe(2); // Two automation groups: Synth 1 and Drum Rack
+    expect(midiDataArray?.length).toBe(2); // Two automation groups: Master and Group
 
-    // Check Synth 1 automation
-    const synth1Midi = midiDataArray?.[0];
-    expect(synth1Midi?.header.format).toBe(1);
-    expect(synth1Midi?.header.numTracks).toBe(3); // Meta track + Volume + Pan
-    expect(synth1Midi?.tracks.length).toBe(3);
+    // Check Master automation
+    const masterMidi = midiDataArray?.[0];
+    expect(masterMidi?.header.format).toBe(1);
+    expect(masterMidi?.header.numTracks).toBe(4); // Meta track + three plugins
+    expect(masterMidi?.tracks.length).toBe(4);
 
-    // Check Synth 1 meta track
-    const synth1MetaTrack = synth1Midi?.tracks[0];
-    expect(synth1MetaTrack?.[2].type).toBe("trackName");
-    expect((synth1MetaTrack?.[2] as any).text).toBe(
-      "test_automation_Automation_Synth 1"
+    // Check Master meta track
+    const masterMetaTrack = masterMidi?.tracks[0];
+    expect(masterMetaTrack?.[2].type).toBe("trackName");
+    expect((masterMetaTrack?.[2] as any).text).toBe(
+      "test_automation_Automation_Master"
     );
 
-    // Check Synth 1 Volume track
-    const synth1VolumeTrack = synth1Midi?.tracks[1];
-    expect(synth1VolumeTrack?.[0].type).toBe("trackName");
-    expect((synth1VolumeTrack?.[0] as any).text).toBe("Volume");
+    // Check Master Controller track
+    const masterControllerTrack = masterMidi?.tracks[1];
+    expect(masterControllerTrack?.[0].type).toBe("trackName");
+    expect((masterControllerTrack?.[0] as any).text).toBe("Endless Smile 64");
     expect(
-      synth1VolumeTrack?.filter(event => event.type === "controller").length
-    ).toBe(31); // Interpolated events from tick 0 to 30
-    const volumeEvents = synth1VolumeTrack?.filter(
+      masterControllerTrack?.filter(event => event.type === "controller").length
+    ).toBe(17);
+    const controllerEvents = masterControllerTrack?.filter(
       (event: any) => event.type === "controller"
     ) as any[];
-    expect(volumeEvents[0].value).toBe(0); // Start value
-    expect(volumeEvents[volumeEvents.length - 1].value).toBe(127); // End value
+    expect(controllerEvents[0].value).toBe(0); // Start value
+    expect(controllerEvents[controllerEvents.length - 1].value).toBe(118); // End value
 
-    // Check Synth 1 Pan track
-    const synth1PanTrack = synth1Midi?.tracks[2];
-    expect(synth1PanTrack?.[0].type).toBe("trackName");
-    expect((synth1PanTrack?.[0] as any).text).toBe("Pan");
-    expect(
-      synth1PanTrack?.filter(event => event.type === "controller").length
-    ).toBe(31); // Interpolated events from tick 0 to 30
-    const panEvents = synth1PanTrack?.filter(
-      (event: any) => event.type === "controller"
-    ) as any[];
-    // Min/max are now calculated as -0.5 to 0.5
-    expect(panEvents[0].value).toBe(127); // Scaled 0.5 (max)
-    expect(panEvents[panEvents.length - 1].value).toBe(0); // Scaled -0.5 (min)
+    // Check Lead automation
+    const leadMidi = midiDataArray?.[1];
+    expect(leadMidi?.header.format).toBe(1);
+    expect(leadMidi?.header.numTracks).toBe(4); // Meta track + three plugins
+    expect(leadMidi?.tracks.length).toBe(4);
 
-    // Check Drum Rack automation
-    const drumRackMidi = midiDataArray?.[1];
-    expect(drumRackMidi?.header.format).toBe(1);
-    expect(drumRackMidi?.header.numTracks).toBe(2); // Meta track + Mute
-    expect(drumRackMidi?.tracks.length).toBe(2);
-
-    // Check Drum Rack meta track
-    const drumRackMetaTrack = drumRackMidi?.tracks[0];
-    expect(drumRackMetaTrack?.[2].type).toBe("trackName");
-    expect((drumRackMetaTrack?.[2] as any).text).toBe(
-      "test_automation_Automation_Drum Rack"
+    // Check Lead meta track
+    const leadMetaTrack = leadMidi?.tracks[0];
+    expect(leadMetaTrack?.[2].type).toBe("trackName");
+    expect((leadMetaTrack?.[2] as any).text).toBe(
+      "test_automation_Automation_Lead"
     );
 
-    // Check Drum Rack Mute track
-    const drumRackMuteTrack = drumRackMidi?.tracks[1];
-    expect(drumRackMuteTrack?.[0].type).toBe("trackName");
-    expect((drumRackMuteTrack?.[0] as any).text).toBe("Mute");
+    // Check Lead first plugin track
+    const leadFirstPluginTrack = leadMidi?.tracks[1];
+    expect(leadFirstPluginTrack?.[0].type).toBe("trackName");
+    expect((leadFirstPluginTrack?.[0] as any).text).toBe("Endless Smile 64");
     expect(
-      drumRackMuteTrack?.filter(event => event.type === "controller").length
-    ).toBe(31); // Interpolated events from tick 0 to 30
-    const muteEvents = drumRackMuteTrack?.filter(
+      leadFirstPluginTrack?.filter(event => event.type === "controller").length
+    ).toBe(453);
+    const leadFirstPluginEvents = leadFirstPluginTrack?.filter(
       (event: any) => event.type === "controller"
     ) as any[];
-    expect(muteEvents[0].value).toBe(0); // Start value (bool 0)
-    expect(muteEvents[muteEvents.length - 1].value).toBe(127); // End value (bool 1)
+    expect(leadFirstPluginEvents[0].value).toBe(39); // Start value
+    expect(leadFirstPluginEvents[leadFirstPluginEvents.length - 1].value).toBe(
+      0
+    ); // End value
   });
 
   test("should return null if automation data is missing or empty", () => {
@@ -459,14 +1815,30 @@ describe("convertAutomationToMidi", () => {
     const cvpjWithSinglePoint = {
       parameters: { bpm: { value: 120 } },
       automation: {
-        instrument: {
-          "Synth 1": {
-            Volume: {
-              type: "float",
-              placements: [
-                { position: 0, points: [{ position: 0, value: 0.5 }] },
-              ],
-            }, // Single point
+        master: {
+          master_1: {
+            Master: {
+              AutoFilter_Cutoff: {
+                type: "float",
+                placements: [
+                  {
+                    position: 0,
+                    duration: 1160,
+                    points: [
+                      // single point
+                      // {
+                      //   position: 0,
+                      //   value: 135,
+                      // },
+                      {
+                        position: 368,
+                        value: 135,
+                      },
+                    ],
+                  },
+                ],
+              },
+            },
           },
         },
       },
@@ -474,14 +1846,15 @@ describe("convertAutomationToMidi", () => {
     const midiDataArray = convertAutomationToMidi(cvpjWithSinglePoint, "test");
     expect(midiDataArray).not.toBeNull();
     expect(midiDataArray?.length).toBe(1);
-    const volumeTrack = midiDataArray?.[0].tracks[1];
+    const automationTrack = midiDataArray?.[0].tracks[1];
     expect(
-      volumeTrack?.filter((event: any) => event.type === "controller").length
+      automationTrack?.filter((event: any) => event.type === "controller")
+        .length
     ).toBe(1);
-    const volumeEvent = volumeTrack?.filter(
+    const automationEvent = automationTrack?.filter(
       (event: any) => event.type === "controller"
     ) as any[];
-    expect(volumeEvent[0].value).toBe(127); // Scaled 0.5 (min=0.5, max=0.5 -> treated as max)
+    expect(automationEvent[0].value).toBe(127);
   });
 });
 
