@@ -688,80 +688,84 @@ export function convertAutomationToMidi(
 
 /**
  * Generates a string representation of a MIDI data object for logging.
- * Adapts C# LogMidiFile logic for the 'midi-file' structure.
  * @param midiData The MidiData object.
  * @returns A string containing the formatted MIDI data.
  */
 export function logMidiDataToString(midiData: MidiData): string {
   let logContent = "MIDI File Content:\n";
-  logContent += `Format: ${midiData.header.format}\n`;
-  logContent += `NumTracks: ${midiData.header.numTracks}\n`;
-  logContent += `TicksPerBeat: ${midiData.header.ticksPerBeat}\n\n`;
+  if (midiData.header.format) {
+    logContent += `Format: ${midiData.header.format}\n`;
+  }
+  if (midiData.header.numTracks) {
+    logContent += `NumTracks: ${midiData.header.numTracks}\n`;
+  }
+  if (midiData.header.timeDivision) {
+    logContent += `TimeDivision: ${midiData.header.timeDivision}\n`;
+  }
+  if (midiData.header.framesPerSecond) {
+    logContent += `FramesPerSecond: ${midiData.header.framesPerSecond}\n`;
+  }
+  if (midiData.header.ticksPerFrame) {
+    logContent += `TicksPerFrame: ${midiData.header.ticksPerFrame}\n`;
+  }
+  if (midiData.header.ticksPerBeat) {
+    logContent += `TicksPerBeat: ${midiData.header.ticksPerBeat}\n\n`;
+  }
 
   midiData.tracks.forEach((trackEvents, index) => {
-    logContent += `Track ${index}:\n`;
-    let trackName = `Track ${index}`; // Default name
-    let currentTick = 0; // Absolute tick counter for context
+    logContent += `Track ${index + 1}:\n`; // Use 1-based indexing for track number
 
     for (const event of trackEvents) {
-      currentTick += event.deltaTime; // Add delta time to get absolute time for context
-      logContent += `  tick: ${currentTick} (delta: ${event.deltaTime}) `; // Show absolute and delta
+      const deltaTime = event.deltaTime; // midi-file provides delta time directly
 
       switch (event.type) {
         case "trackName":
           const trackNameEvent = event as MidiTrackNameEvent;
-          trackName = trackNameEvent.text ?? trackName; // Capture track name
-          logContent += `Meta: Track Name - ${trackNameEvent.text}\n`;
+          logContent += `MetaMessage('track_name', name='${trackNameEvent.text}', time=${deltaTime})\n`;
           break;
         case "setTempo":
           const setTempoEvent = event as MidiSetTempoEvent;
-          logContent += `Meta: Set Tempo - ${setTempoEvent.microsecondsPerBeat} us/beat\n`;
+          logContent += `MetaMessage('set_tempo', tempo=${setTempoEvent.microsecondsPerBeat}, time=${deltaTime})\n`;
           break;
         case "timeSignature":
           const timeSignatureEvent = event as MidiTimeSignatureEvent;
-          logContent += `Meta: Time Signature - ${timeSignatureEvent.numerator}/${timeSignatureEvent.denominator}\n`;
+          logContent +=
+            `MetaMessage('time_signature', numerator=${timeSignatureEvent.numerator}, denominator=${timeSignatureEvent.denominator}, ` +
+            `clocks_per_click=${timeSignatureEvent.metronome}, notated_32nd_notes_per_beat=${timeSignatureEvent.thirtyseconds}, time=${deltaTime})\n`;
           break;
         case "sequencerSpecific":
           const sequencerSpecificEvent = event as MidiSequencerSpecificEvent;
-          logContent += `Meta: Sequencer Specific - Data: ${sequencerSpecificEvent.data}\n`;
+          logContent += `MetaMessage('sequencer_specific', data=(${Array.from(sequencerSpecificEvent.data).join(", ")}), time=${deltaTime})\n`;
           break;
         case "endOfTrack":
-          // const endOfTrackEvent = event as MidiEndOfTrackEvent;
-          logContent += `Meta: End Of Track\n`;
+          logContent += `MetaMessage('end_of_track', time=${deltaTime})\n`;
           break;
         case "noteOn":
           const noteOnEvent = event as MidiNoteOnEvent;
-          logContent += `Note On - Ch: ${noteOnEvent.channel}, Note: ${noteOnEvent.noteNumber}, Vel: ${noteOnEvent.velocity}\n`;
+          logContent += `note_on channel=${noteOnEvent.channel} note=${noteOnEvent.noteNumber} velocity=${noteOnEvent.velocity} time=${deltaTime}\n`;
           break;
         case "noteOff":
           const noteOffEvent = event as MidiNoteOffEvent;
-          logContent += `Note Off - Ch: ${noteOffEvent.channel}, Note: ${noteOffEvent.noteNumber}, Vel: ${noteOffEvent.velocity}\n`;
+          logContent += `note_off channel=${noteOffEvent.channel} note=${noteOffEvent.noteNumber} velocity=${noteOffEvent.velocity} time=${deltaTime}\n`;
           break;
         case "programChange":
           const programChangeEvent = event as MidiProgramChangeEvent;
-          logContent += `Program Change - Ch: ${programChangeEvent.channel}, Program: ${programChangeEvent.programNumber}\n`;
+          logContent += `program_change channel=${programChangeEvent.channel} program=${programChangeEvent.programNumber} time=${deltaTime}\n`;
           break;
         case "controller":
           const controlChangeEvent = event as MidiControllerEvent;
-          logContent += `Control Change - Ch: ${controlChangeEvent.channel}, Controller: ${controlChangeEvent.controllerType}, Value: ${controlChangeEvent.value}\n`;
+          logContent += `control_change channel=${controlChangeEvent.channel} number=${controlChangeEvent.controllerType} value=${controlChangeEvent.value} time=${deltaTime}\n`;
           break;
         case "pitchBend":
           const pitchBendEvent = event as MidiPitchBendEvent;
-          logContent += `Pitch Bend - Ch: ${pitchBendEvent.channel}, Value: ${pitchBendEvent.value}\n`;
+          logContent += `pitch_bend channel=${pitchBendEvent.channel} value=${pitchBendEvent.value} time=${deltaTime}\n`;
           break;
         default:
           // Log any other event types encountered
-          logContent += `Unknown Event Type: ${(event as any).type} - ${JSON.stringify(event)}\n`;
+          logContent += `Unknown Event: ${event.type} ${JSON.stringify(event)}, time=${deltaTime}\n`;
       }
     }
-    // Update track name in log header if found
-    if (trackName !== `Track ${index}`) {
-      logContent = logContent.replace(
-        `Track ${index}:`,
-        `Track ${index}: ${trackName}`
-      );
-    }
-    logContent += "\n";
+    logContent += "\n"; // Add empty line after each track
   });
 
   return logContent;

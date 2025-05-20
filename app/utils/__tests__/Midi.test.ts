@@ -2030,34 +2030,38 @@ describe("logMidiDataToString", () => {
 
     const logString = logMidiDataToString(mockMidiData as any); // Cast to any for simplicity in test mock
 
+    const tempFilePath = path.join(targetDir, `ableton_midi_data_test.txt`);
+
+    fs.writeFileSync(tempFilePath, logString);
+
     expect(logString).toContain("MIDI File Content:");
     expect(logString).toContain("Format: 1");
     expect(logString).toContain("NumTracks: 2");
     expect(logString).toContain("TicksPerBeat: 480");
 
-    expect(logString).toContain("Track 0: Meta Track");
+    expect(logString).toContain("Track 1:");
     expect(logString).toContain(
-      "tick: 0 (delta: 0) Meta: Time Signature - 4/4"
+      "MetaMessage('time_signature', numerator=4, denominator=4, clocks_per_click=undefined, notated_32nd_notes_per_beat=undefined, time=0)"
     );
     expect(logString).toContain(
-      "tick: 0 (delta: 0) Meta: Set Tempo - 500000 us/beat"
+      "MetaMessage('set_tempo', tempo=500000, time=0)"
     );
     expect(logString).toContain(
-      "tick: 0 (delta: 0) Meta: Track Name - Meta Track"
+      "MetaMessage('track_name', name='Meta Track', time=0)"
     );
-    expect(logString).toContain("tick: 0 (delta: 0) Meta: End Of Track");
+    expect(logString).toContain("MetaMessage('end_of_track', time=0)");
 
-    expect(logString).toContain("Track 1: Piano Track");
+    expect(logString).toContain("Track 2:");
     expect(logString).toContain(
-      "tick: 0 (delta: 0) Meta: Track Name - Piano Track"
+      "MetaMessage('track_name', name='Piano Track', time=0)"
     );
     expect(logString).toContain(
-      "tick: 480 (delta: 480) Note On - Ch: 0, Note: 60, Vel: 100"
+      "note_on channel=0 note=60 velocity=100 time=480"
     );
     expect(logString).toContain(
-      "tick: 960 (delta: 480) Note Off - Ch: 0, Note: 60, Vel: 64"
+      "note_off channel=0 note=60 velocity=64 time=480"
     );
-    expect(logString).toContain("tick: 960 (delta: 0) Meta: End Of Track");
+    expect(logString).toContain("MetaMessage('end_of_track', time=0)");
   });
 });
 
