@@ -2,6 +2,7 @@ import fs from "fs";
 import path from "path";
 import * as midiFile from "midi-file";
 
+import { puppeteerPlotlyToSVG } from "../../../jest.setup";
 import {
   AutomationEvent,
   convertAutomationToMidi,
@@ -1717,10 +1718,11 @@ describe("convertAutomationToMidi", () => {
   };
 
   test("should convert automation data to MidiData array", () => {
-    const midiDataArray = convertAutomationToMidi(
+    const midiAutomationConversionResult = convertAutomationToMidi(
       mockCvpjWithAutomation,
       "test_automation"
     );
+    const midiDataArray = midiAutomationConversionResult?.midiDataArray;
     expect(midiDataArray).not.toBeNull();
     expect(midiDataArray?.length).toBe(2); // Two automation groups: Master and Group
 
@@ -1781,13 +1783,23 @@ describe("convertAutomationToMidi", () => {
 
   test("should return null if automation data is missing or empty", () => {
     const cvpjWithoutAutomation = { ...mockCvpjWithAutomation, automation: {} };
-    expect(convertAutomationToMidi(cvpjWithoutAutomation, "test")).toBeNull();
+    const midiAutomationConversionResult1 = convertAutomationToMidi(
+      cvpjWithoutAutomation,
+      "test"
+    );
+    expect(midiAutomationConversionResult1).toBeNull();
 
     const cvpjWithEmptyAutomation = {
       ...mockCvpjWithAutomation,
       automation: { instrument: {} },
     };
-    expect(convertAutomationToMidi(cvpjWithEmptyAutomation, "test")).toBeNull();
+
+    const midiAutomationConversionResult2 = convertAutomationToMidi(
+      cvpjWithEmptyAutomation,
+      "test"
+    );
+    const midiDataArray2 = midiAutomationConversionResult2?.midiDataArray;
+    expect(midiDataArray2).toBeNull();
   });
 
   test("should return null if BPM is missing for automation", () => {
@@ -1807,9 +1819,13 @@ describe("convertAutomationToMidi", () => {
         },
       },
     };
-    expect(
-      convertAutomationToMidi(cvpjWithMissingPlacements, "test")
-    ).toBeNull(); // Only meta track generated
+
+    const midiAutomationConversionResult = convertAutomationToMidi(
+      cvpjWithMissingPlacements,
+      "test"
+    );
+    const midiDataArray = midiAutomationConversionResult?.midiDataArray;
+    expect(midiDataArray).toBeNull(); // Only meta track generated
   });
 
   test("should handle parameters with no points or empty points", () => {
@@ -1827,7 +1843,13 @@ describe("convertAutomationToMidi", () => {
         },
       },
     };
-    expect(convertAutomationToMidi(cvpjWithMissingPoints, "test")).toBeNull(); // Only meta track generated
+
+    const midiAutomationConversionResult = convertAutomationToMidi(
+      cvpjWithMissingPoints,
+      "test"
+    );
+    const midiDataArray = midiAutomationConversionResult?.midiDataArray;
+    expect(midiDataArray).toBeNull(); // Only meta track generated
   });
 
   test("should handle parameters with single point", () => {
@@ -1862,7 +1884,12 @@ describe("convertAutomationToMidi", () => {
         },
       },
     };
-    const midiDataArray = convertAutomationToMidi(cvpjWithSinglePoint, "test");
+    const midiAutomationConversionResult = convertAutomationToMidi(
+      cvpjWithSinglePoint,
+      "test"
+    );
+    const midiDataArray = midiAutomationConversionResult?.midiDataArray;
+
     expect(midiDataArray).not.toBeNull();
     expect(midiDataArray?.length).toBe(1);
     const automationTrack = midiDataArray?.[0].tracks[1];
@@ -1876,46 +1903,82 @@ describe("convertAutomationToMidi", () => {
     expect(automationEvent[0].value).toBe(127);
   });
 
-  test("should convert automation to midi, save, read, and compare bytes", () => {
-    const midiDataArray = convertAutomationToMidi(
+  test("should convert automation to midi, save, read, and compare bytes", async () => {
+    const midiAutomationConversionResult = convertAutomationToMidi(
       mockCvpjWithAutomation,
-      "test_automation"
+      "test_automation",
+      true
     );
+    const midiDataArray = midiAutomationConversionResult?.midiDataArray;
+
     expect(midiDataArray).not.toBeNull();
     expect(midiDataArray?.length).toBeGreaterThan(0);
 
-    if (!midiDataArray) {
-      return;
+    if (midiDataArray) {
+      midiDataArray.forEach((midiData, index) => {
+        const tempFilePath = path.join(
+          targetDir,
+          `ableton_temp_automation_${index}.mid`
+        );
+
+        // Convert MIDI data to bytes
+        const outputArray = midiFile.writeMidi(midiData);
+        const outputUint8Array = new Uint8Array(outputArray);
+
+        // Write the MIDI data to a temporary file
+        fs.writeFileSync(tempFilePath, outputUint8Array);
+
+        // Read the file back
+        const inputUint8Array = fs.readFileSync(tempFilePath);
+
+        // Convert bytes to MIDI data
+        const midiDataRead = midiFile.parseMidi(inputUint8Array);
+
+        // Compare the original with the read
+        expect(toPlainObject(midiData)).toStrictEqual(
+          toPlainObject(midiDataRead)
+        );
+
+        // Clean up the temporary file
+        // fs.unlinkSync(tempFilePath);
+      });
     }
 
-    midiDataArray.forEach((midiData, index) => {
+    if (midiAutomationConversionResult?.logString) {
       const tempFilePath = path.join(
         targetDir,
-        `ableton_temp_automation_${index}.mid`
+        `ableton_temp_automation_midi.txt`
       );
 
-      // Convert MIDI data to bytes
-      const outputArray = midiFile.writeMidi(midiData);
-      const outputUint8Array = new Uint8Array(outputArray);
+      fs.writeFileSync(tempFilePath, midiAutomationConversionResult.logString);
+    }
 
-      // Write the MIDI data to a temporary file
-      fs.writeFileSync(tempFilePath, outputUint8Array);
+    if (midiAutomationConversionResult?.automationPlots) {
+      await Promise.all(
+        midiAutomationConversionResult.automationPlots.map(
+          async (plot, index) => {
+            const tempFilePath = path.join(
+              targetDir,
+              `ableton_temp_automation_plot_${index}.json`
+            );
 
-      // Read the file back
-      const inputUint8Array = fs.readFileSync(tempFilePath);
+            fs.writeFileSync(tempFilePath, plot);
 
-      // Convert bytes to MIDI data
-      const midiDataRead = midiFile.parseMidi(inputUint8Array);
+            // Use Puppeteer helper to get pure SVG string
+            const fig = JSON.parse(plot); // Assuming 'plot' is the JSON string of the figure
+            const svg = await puppeteerPlotlyToSVG(fig);
 
-      // Compare the original with the read
-      expect(toPlainObject(midiData)).toStrictEqual(
-        toPlainObject(midiDataRead)
+            const outputPath = path.join(
+              targetDir,
+              `ableton_temp_automation_plot_${index}.svg`
+            );
+
+            fs.writeFileSync(outputPath, svg, "utf-8");
+          }
+        )
       );
-
-      // Clean up the temporary file
-      // fs.unlinkSync(tempFilePath);
-    });
-  });
+    }
+  }, 30000); // extend timeout for Puppeteer
 });
 
 describe("logMidiDataToString", () => {

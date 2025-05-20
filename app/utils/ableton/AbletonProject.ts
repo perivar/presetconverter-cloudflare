@@ -969,15 +969,15 @@ export class AbletonProject {
       Log.Information("Note MIDI conversion successful (JSON generated).");
     }
 
-    const midiAutomationJsonArray = convertAutomationToMidi(
+    const midiAutomationConversionResult = convertAutomationToMidi(
       cvpj,
       fileNameNoExtension,
       doVerbose
     );
     // TODO: Handle the returned midiAutomationJsonArray (e.g., save or process further)
-    if (midiAutomationJsonArray) {
+    if (midiAutomationConversionResult) {
       Log.Information(
-        `Automation MIDI conversion successful (${midiAutomationJsonArray.length} file(s) generated in JSON format).`
+        `Automation MIDI conversion successful (${midiAutomationConversionResult?.midiDataArray?.length} file(s) generated in JSON format).`
       );
     }
 

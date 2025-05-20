@@ -15,11 +15,18 @@ import type {
 } from "midi-file";
 
 import { makeValidFileName } from "../StringUtils";
+import { plotAutomationEvents } from "./AutomationPlot";
 import { Log } from "./Log";
 
 export interface AutomationEvent {
   position: number; // tick
   value: number; // scaled MIDI value 0-127
+}
+
+export interface AutomationConversionResult {
+  midiDataArray: MidiData[] | null; // Array of MidiData objects or null
+  automationPlots?: string[]; // Array of SVG strings (optional)
+  logString?: string; // (optional)
 }
 
 export class MidiChannelManager {
@@ -330,7 +337,7 @@ function clampValue(currentEvent: AutomationEvent) {
 }
 
 /**
- * Interpolates automation events linearly, similar to the C# implementation.
+ * Interpolates automation events linearly
  * Ensures unique positions and keeps the last value for each position.
  * @param events An array of AutomationEvent objects, sorted by position (tick), with values already scaled (0-127).
  * @returns A new array of interpolated AutomationEvent objects, sorted by position.
@@ -412,7 +419,7 @@ export function convertAutomationToMidi(
   cvpj: any,
   fileName: string,
   doOutputDebugFile: boolean = false
-): MidiData[] | null {
+): AutomationConversionResult | null {
   Log.Information(`Starting MIDI conversion for automation: ${fileName}`);
 
   if (!cvpj?.automation || Object.keys(cvpj.automation).length === 0) {
@@ -426,7 +433,9 @@ export function convertAutomationToMidi(
 
   const tempoBpm = cvpj.parameters.bpm.value;
   const microsecondsPerBeat = Math.round(60000000 / tempoBpm);
-  const midiDataArray: MidiData[] = [];
+  const allMidiData: MidiData[] = []; // Collect all MidiData objects here
+  const allAutomationPlots: string[] = []; // Collect all automation plots here
+  let combinedLogString: string | undefined;
   let fileNum = 1;
 
   // Iterate through the top-level automation categories (e.g., "master", "group", "track")
@@ -583,6 +592,20 @@ export function convertAutomationToMidi(
             const interpolatedPlacementEvents =
               interpolateEvents(initialEvents);
 
+            // save the interpolated events as a svg
+            // Generate the plot string only if doOutputDebugFile is true
+            if (doOutputDebugFile) {
+              const automationPlot = plotAutomationEvents(
+                interpolatedPlacementEvents,
+                {
+                  // TODO: Add more metadata if needed as per the original C# code
+                  // suggestedFilename: `automation_${fileNum}_${trackNum}_${trackTypeKey}_${trackNameKey}_${midiTrackName}`,
+                  suggestedFilename: `automation_${fileNum}_${trackTypeKey}_${midiTrackName}`,
+                }
+              );
+              allAutomationPlots.push(JSON.stringify(automationPlot));
+            }
+
             // 3. Add the results to the list for the entire parameter track
             allPlacementEvents = allPlacementEvents.concat(
               interpolatedPlacementEvents
@@ -630,7 +653,7 @@ export function convertAutomationToMidi(
         if (tracks.length > 1) {
           // Check if any parameter tracks (beyond the initial meta track) were added
           const midiData: MidiData = { header, tracks };
-          midiDataArray.push(midiData); // Add the completed MidiData object to the array
+          allMidiData.push(midiData); // Add the completed MidiData object to the array
           Log.Information(
             `Generated MIDI data for automation group: ${automationGroupName}`
           );
@@ -639,8 +662,13 @@ export function convertAutomationToMidi(
             Log.Debug(
               `MIDI Log for ${automationGroupName} (File ${fileNum}):\n${logString}`
             );
+            if (combinedLogString) {
+              combinedLogString += logString; // Append to combined log string
+            } else {
+              combinedLogString = logString;
+            }
           }
-          fileNum++; // Increment file number for debug logging
+          fileNum++; // Increment file number
         } else {
           Log.Warning(
             `No automation tracks with data generated for group: ${automationGroupName}`
@@ -651,7 +679,11 @@ export function convertAutomationToMidi(
   } // End of trackTypeKey loop
 
   Log.Information("MIDI conversion for automation completed.");
-  return midiDataArray.length > 0 ? midiDataArray : null; // Return the array of MidiData objects or null
+  return {
+    midiDataArray: allMidiData.length > 0 ? allMidiData : null, // Return null if no valid MIDI data was generated
+    automationPlots: allAutomationPlots,
+    logString: combinedLogString,
+  };
 }
 
 /**
