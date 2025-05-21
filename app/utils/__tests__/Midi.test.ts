@@ -4,10 +4,8 @@ import * as midiFile from "midi-file";
 
 import { puppeteerPlotlyToSVG } from "../../../jest.setup";
 import {
-  AutomationEvent,
   convertAutomationToMidi,
   convertToMidi,
-  interpolateEvents,
   logMidiDataToString,
   MidiChannelManager,
 } from "../ableton/Midi";
@@ -1745,7 +1743,7 @@ describe("convertAutomationToMidi", () => {
     expect((masterControllerTrack?.[0] as any).text).toBe("Endless Smile 64");
     expect(
       masterControllerTrack?.filter(event => event.type === "controller").length
-    ).toBe(17);
+    ).toBe(7);
     const controllerEvents = masterControllerTrack?.filter(
       (event: any) => event.type === "controller"
     ) as any[];
@@ -2062,109 +2060,5 @@ describe("logMidiDataToString", () => {
       "note_off channel=0 note=60 velocity=64 time=480"
     );
     expect(logString).toContain("MetaMessage('end_of_track', time=0)");
-  });
-});
-
-describe("interpolateEvents", () => {
-  test("should return input array if less than 2 events", () => {
-    const singleEvent: AutomationEvent[] = [{ position: 0, value: 50 }];
-    expect(interpolateEvents(singleEvent)).toEqual(singleEvent);
-    expect(interpolateEvents([])).toEqual([]);
-  });
-
-  test("should perform linear interpolation between two points", () => {
-    const events: AutomationEvent[] = [
-      { position: 0, value: 0 },
-      { position: 10, value: 100 }, // 10 steps, value increases by 10 each step
-    ];
-    const expected: AutomationEvent[] = [
-      { position: 0, value: 0 },
-      { position: 1, value: 10 },
-      { position: 2, value: 20 },
-      { position: 3, value: 30 },
-      { position: 4, value: 40 },
-      { position: 5, value: 50 },
-      { position: 6, value: 60 },
-      { position: 7, value: 70 },
-      { position: 8, value: 80 },
-      { position: 9, value: 90 },
-      { position: 10, value: 100 },
-    ];
-    expect(interpolateEvents(events)).toEqual(expected);
-  });
-
-  test("should handle multiple segments of interpolation", () => {
-    const events: AutomationEvent[] = [
-      { position: 0, value: 0 },
-      { position: 5, value: 50 }, // Segment 1: 0->50 over 5 ticks
-      { position: 10, value: 0 }, // Segment 2: 50->0 over 5 ticks
-    ];
-    const result = interpolateEvents(events);
-    expect(result.length).toBe(11); // 0 to 10 ticks inclusive
-    expect(result[0]).toEqual({ position: 0, value: 0 });
-    expect(result[5]).toEqual({ position: 5, value: 50 });
-    expect(result[10]).toEqual({ position: 10, value: 0 });
-    // Check intermediate points
-    expect(result[2]).toEqual({ position: 2, value: 20 }); // Segment 1 interpolation
-    expect(result[7]).toEqual({ position: 7, value: 30 }); // Segment 2 interpolation
-  });
-
-  test("should not interpolate if values are the same", () => {
-    const events: AutomationEvent[] = [
-      { position: 0, value: 50 },
-      { position: 10, value: 50 },
-    ];
-    const expected: AutomationEvent[] = [
-      { position: 0, value: 50 },
-      { position: 10, value: 50 },
-    ];
-    expect(interpolateEvents(events)).toEqual(expected);
-  });
-
-  test("should handle duplicate positions by keeping the last value", () => {
-    const events: AutomationEvent[] = [
-      { position: 0, value: 0 },
-      { position: 5, value: 50 },
-      { position: 5, value: 60 }, // Duplicate position
-      { position: 10, value: 100 },
-    ];
-    const result = interpolateEvents(events);
-    // Expecting interpolation from {0,0} to {5,60} and {5,60} to {10,100}
-    expect(result.find((e: AutomationEvent) => e.position === 5)?.value).toBe(
-      60
-    );
-    expect(result.length).toBe(11); // 0..10
-    expect(result[0]).toEqual({ position: 0, value: 0 });
-    expect(result[5]).toEqual({ position: 5, value: 60 });
-    expect(result[10]).toEqual({ position: 10, value: 100 });
-  });
-
-  test("should clamp interpolated values between 0 and 127", () => {
-    const events: AutomationEvent[] = [
-      { position: 0, value: -50 }, // Start below 0
-      { position: 10, value: 200 }, // End above 127
-    ];
-    const result = interpolateEvents(events);
-    expect(result[0].value).toBe(0); // Clamped start
-    expect(result[result.length - 1].value).toBe(127); // Clamped end
-    // Check if intermediate values are also clamped (though linear interpolation might not hit extremes mid-way)
-    result.forEach((event: AutomationEvent) => {
-      expect(event.value).toBeGreaterThanOrEqual(0);
-      expect(event.value).toBeLessThanOrEqual(127);
-    });
-  });
-
-  test("should handle floating point results by rounding", () => {
-    const events: AutomationEvent[] = [
-      { position: 0, value: 0 },
-      { position: 3, value: 10 }, // 10 / 3 = 3.33 step
-    ];
-    const expected: AutomationEvent[] = [
-      { position: 0, value: 0 },
-      { position: 1, value: 3 }, // 3.33 rounded
-      { position: 2, value: 7 }, // 6.66 rounded
-      { position: 3, value: 10 },
-    ];
-    expect(interpolateEvents(events)).toEqual(expected);
   });
 });

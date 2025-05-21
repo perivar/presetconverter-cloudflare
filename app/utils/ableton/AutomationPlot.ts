@@ -1,6 +1,6 @@
 import { Layout, PlotData } from "plotly.js-basic-dist";
 
-import { AutomationEvent } from "./Midi";
+import { AutomationEvent } from "./AutomationEvent";
 
 export interface AutomationMeta {
   suggestedFilename?: string;

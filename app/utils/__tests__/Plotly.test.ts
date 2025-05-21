@@ -3,8 +3,9 @@ import path from "path";
 import { type Layout } from "plotly.js-basic-dist";
 
 import { puppeteerPlotlyToSVG } from "../../../jest.setup";
+import { AutomationEvent } from "../ableton/AutomationEvent";
 import { plotAutomationEvents } from "../ableton/AutomationPlot";
-import { AutomationEvent, interpolateEvents } from "../ableton/Midi";
+import { interpolateEvents } from "../ableton/Interpolate";
 
 const targetDir = path.join(__dirname, "ableton-tests");
 
@@ -21,7 +22,7 @@ afterAll(() => {
 });
 
 test("figure JSON contains meta and correct ranges", () => {
-  const fig = plotAutomationEvents([{ position: 0, value: 64 }], {
+  const fig = plotAutomationEvents([new AutomationEvent(0, 64)], {
     suggestedFilename: "take-42.png",
     sourceFile: "foo.mid",
   });
@@ -34,9 +35,9 @@ test("figure JSON contains meta and correct ranges", () => {
 
 test("should plot interpolated automation events to SVG", async () => {
   const events: AutomationEvent[] = [
-    { position: 0, value: 0 },
-    { position: 100, value: 127 },
-    { position: 200, value: 0 },
+    new AutomationEvent(0, 0),
+    new AutomationEvent(100, 127),
+    new AutomationEvent(200, 0),
   ];
   const interpolatedEvents = interpolateEvents(events);
 

@@ -15,13 +15,10 @@ import type {
 } from "midi-file";
 
 import { makeValidFileName } from "../StringUtils";
+import { AutomationEvent } from "./AutomationEvent";
 import { plotAutomationEvents } from "./AutomationPlot";
+import { interpolateEvents } from "./Interpolate";
 import { Log } from "./Log";
-
-export interface AutomationEvent {
-  position: number; // tick
-  value: number; // scaled MIDI value 0-127
-}
 
 export interface AutomationConversionResult {
   midiDataArray: MidiData[] | null; // Array of MidiData objects or null
@@ -331,87 +328,6 @@ export function convertToMidi(
   return midiData;
 }
 
-function clampValue(currentEvent: AutomationEvent) {
-  // make sure currentEvent value is clamped to 0-127
-  const curClampedValue = clamp(currentEvent.value, 0, 127);
-  currentEvent.value = curClampedValue;
-  return currentEvent;
-}
-
-/**
- * Interpolates automation events linearly
- * Ensures unique positions and keeps the last value for each position.
- * @param events An array of AutomationEvent objects, sorted by position (tick), with values already scaled (0-127).
- * @returns A new array of interpolated AutomationEvent objects, sorted by position.
- */
-export function interpolateEvents(
-  events: AutomationEvent[]
-): AutomationEvent[] {
-  if (events.length < 2) {
-    return [...events]; // Return a copy if not enough points to interpolate
-  }
-
-  // Use Map directly to store the latest value for each position (tick)
-  const interpolatedEventsMap = new Map<number, AutomationEvent>();
-
-  for (let i = 0; i < events.length - 1; i++) {
-    const currentEvent = events[i];
-    const nextEvent = events[i + 1];
-
-    // Add the starting event of the pair, ensuring it's the latest for its position
-    interpolatedEventsMap.set(currentEvent.position, clampValue(currentEvent));
-
-    // Check if interpolation is needed (different values and different positions)
-    if (
-      currentEvent.value !== nextEvent.value &&
-      currentEvent.position !== nextEvent.position
-    ) {
-      const valueDiff = nextEvent.value - currentEvent.value;
-      const posDiff = nextEvent.position - currentEvent.position; // Should always be > 0 if sorted
-
-      // Determine number of steps: interpolate for each tick difference
-      // Ensure posDiff is positive before calculating steps
-      const numSteps = posDiff > 0 ? Math.max(Math.floor(posDiff), 1) : 1;
-
-      const valueStep = valueDiff / numSteps;
-      const positionStep = posDiff / numSteps;
-
-      // Interpolate points between currentEvent and nextEvent
-      for (let step = 1; step < numSteps; step++) {
-        // Iterate *between* points
-        const interpPos = Math.round(
-          currentEvent.position + step * positionStep
-        );
-
-        // Avoid adding points exactly at the next event's position during interpolation loop
-        if (interpPos >= nextEvent.position) continue;
-
-        const interpValue = Math.round(currentEvent.value + step * valueStep);
-        const clampedValue = clamp(interpValue, 0, 127); // Ensure value stays 0-127
-
-        const newEvent: AutomationEvent = {
-          position: interpPos,
-          value: clampedValue,
-        };
-
-        // Add to map, overwriting previous value for the same position if any
-        interpolatedEventsMap.set(newEvent.position, newEvent);
-      }
-    }
-    // The nextEvent will be added as currentEvent in the next iteration,
-    // or handled by the final step below if it's the last event.
-  }
-
-  // Ensure the very last event is always included and is the latest for its position
-  const finalEvent = events[events.length - 1];
-  interpolatedEventsMap.set(finalEvent.position, clampValue(finalEvent));
-
-  // Retrieve values sorted by position (tick)
-  return Array.from(interpolatedEventsMap.values()).sort(
-    (a, b) => a.position - b.position
-  );
-}
-
 /**
  * Converts automation data from the common project format (cvpj) into MIDI data structures.
  * Uses the 'midi-file' library format.
@@ -567,7 +483,7 @@ export function convertAutomationToMidi(
                 const pointPos = point.position ?? 0; // Position of the point relative to the placement start (already scaled by ABLETON_TICK_MULTIPLIER earlier in C#)
                 const pointValue = point.value ?? 0;
 
-                // Calculate absolute tick position for the point
+                // Calculate absolute midi position for the point
                 const midiPointPosition =
                   (placementPos * 4 + pointPos * 4) * 30;
 
@@ -588,14 +504,8 @@ export function convertAutomationToMidi(
               }
             );
 
-            // Ensure initialEvents are sorted by position before interpolating
-            // initialEvents.sort((a, b) => a.position - b.position);
-
             // 2. Interpolate the events for this placement
-            // The interpolateEvents function handles creating points for every tick difference
-            // const interpolatedPlacementEvents =
-            //   interpolateEvents(initialEvents);
-            interpolatedPlacementEvents = initialEvents;
+            interpolatedPlacementEvents = interpolateEvents(initialEvents);
 
             // save the interpolated events as a svg
             // Generate the plot string only if doOutputDebugFile is true
