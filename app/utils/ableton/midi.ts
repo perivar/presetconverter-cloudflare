@@ -63,19 +63,21 @@ export class MidiChannelManager {
 }
 
 // --- Helper Functions ---
+function clamp(number: number, min: number, max: number) {
+  const clamped = Math.max(min, Math.min(number, max));
+  return Math.round(clamped);
+}
 
 /** Scales a value from an input range to 0-127 */
 function scaleValue(value: number, minValue: number, maxValue: number): number {
   if (maxValue === minValue) {
     // Handle division by zero or constant value case
     // If value is at or above max, return 127, otherwise 0.
-    // Or, if min/max are equal, maybe just return a fixed value like 64?
-    // C# code doesn't explicitly handle this, but division by zero would error.
-    // Let's return 127 if value >= max, else 0, similar to bool scaling.
+
     return value >= maxValue ? 127 : 0;
   }
   const scaled = ((value - minValue) / (maxValue - minValue)) * 127;
-  return Math.max(0, Math.min(127, Math.round(scaled)));
+  return Math.round(scaled);
 }
 
 /** Converts RGB doubles (0-1) to RGB bytes (0-255) */
@@ -331,7 +333,7 @@ export function convertToMidi(
 
 function clampValue(currentEvent: AutomationEvent) {
   // make sure currentEvent value is clamped to 0-127
-  const curClampedValue = Math.max(0, Math.min(127, currentEvent.value)); // Ensure value stays 0-127
+  const curClampedValue = clamp(currentEvent.value, 0, 127);
   currentEvent.value = curClampedValue;
   return currentEvent;
 }
@@ -385,7 +387,7 @@ export function interpolateEvents(
         if (interpPos >= nextEvent.position) continue;
 
         const interpValue = Math.round(currentEvent.value + step * valueStep);
-        const clampedValue = Math.max(0, Math.min(127, interpValue)); // Ensure value stays 0-127
+        const clampedValue = clamp(interpValue, 0, 127); // Ensure value stays 0-127
 
         const newEvent: AutomationEvent = {
           position: interpPos,
@@ -550,6 +552,7 @@ export function convertAutomationToMidi(
 
           const controlNumber = 11; // CC 11 for Expression (Common choice for automation)
           let allPlacementEvents: AutomationEvent[] = [];
+          let interpolatedPlacementEvents: AutomationEvent[] = [];
 
           // Process each placement for the current parameter
           for (const placement of placements) {
@@ -565,32 +568,34 @@ export function convertAutomationToMidi(
                 const pointValue = point.value ?? 0;
 
                 // Calculate absolute tick position for the point
-                const tick = Math.round(
-                  placementPos + pointPos // placementPos and pointPos are already in ticks
-                );
+                const midiPointPosition =
+                  (placementPos * 4 + pointPos * 4) * 30;
 
                 let scaledValue: number;
-                if (paramType === "bool") {
-                  scaledValue = pointValue >= 0.5 ? 127 : 0; // Boolean to 0 or 127
-                } else {
-                  // Scale the value from its original range to 0-127 MIDI range
+                if (globalMaxValue > 1) {
+                  // Scale between 0 and 127 using minValue and maxValue
                   scaledValue = scaleValue(
                     pointValue,
                     globalMinValue,
                     globalMaxValue
                   );
+                } else {
+                  // Clamp and multiply with 127 if maxValue is 1 and minValue is 0
+                  scaledValue = clamp(pointValue * 127, 0, 127);
                 }
-                return { position: tick, value: scaledValue };
+
+                return { position: midiPointPosition, value: scaledValue };
               }
             );
 
             // Ensure initialEvents are sorted by position before interpolating
-            initialEvents.sort((a, b) => a.position - b.position);
+            // initialEvents.sort((a, b) => a.position - b.position);
 
             // 2. Interpolate the events for this placement
             // The interpolateEvents function handles creating points for every tick difference
-            const interpolatedPlacementEvents =
-              interpolateEvents(initialEvents);
+            // const interpolatedPlacementEvents =
+            //   interpolateEvents(initialEvents);
+            interpolatedPlacementEvents = initialEvents;
 
             // save the interpolated events as a svg
             // Generate the plot string only if doOutputDebugFile is true
@@ -612,20 +617,13 @@ export function convertAutomationToMidi(
             );
           } // End of placement loop
 
-          // Sort all collected events for this parameter by absolute tick time
-          // Use a Map to ensure unique ticks and keep the last value for duplicates, then sort.
-          const uniqueTickEvents = new Map<number, AutomationEvent>();
-          allPlacementEvents.forEach(event => {
-            uniqueTickEvents.set(event.position, event);
-          });
-          const sortedUniqueEvents = Array.from(uniqueTickEvents.values()).sort(
-            (a, b) => a.position - b.position
-          );
-
           // Calculate delta times and add Control Change events to the current track
-          let lastTick = 0;
-          for (const automationEvent of sortedUniqueEvents) {
-            const deltaTime = automationEvent.position - lastTick;
+          let prevPos = 0;
+          for (const currentEvent of interpolatedPlacementEvents) {
+            // Calculate delta time
+            const deltaTime = currentEvent.position - prevPos;
+            const scaledValue = currentEvent.value; // Value is already scaled 0-127
+
             // Only add event if deltaTime is non-negative (should be true after sorting)
             // and if the value is different from the last value (optional optimization)
             // For simplicity, adding all unique tick events for now.
@@ -633,11 +631,13 @@ export function convertAutomationToMidi(
               type: "controller",
               channel: midiChannel,
               controllerType: controlNumber,
-              value: automationEvent.value, // Value is already scaled 0-127
+              value: scaledValue,
               deltaTime: deltaTime,
             } as MidiControllerEvent);
-            lastTick = automationEvent.position;
-          } // End of sortedUniqueEvents loop
+
+            // Update prevPos with the current value for the next iteration
+            prevPos = currentEvent.position;
+          } // End of loop
 
           // Add End of Track meta event for this parameter track
           currentTrackEvents.push({
@@ -660,7 +660,7 @@ export function convertAutomationToMidi(
           if (doOutputDebugFile) {
             const logString = logMidiDataToString(midiData);
             Log.Debug(
-              `MIDI Log for ${automationGroupName} (File ${fileNum}):\n${logString}`
+              `MIDI Log for ${automationGroupName} (File ${fileNum}) generated`
             );
             if (combinedLogString) {
               combinedLogString += logString; // Append to combined log string
