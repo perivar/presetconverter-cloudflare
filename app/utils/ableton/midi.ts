@@ -729,9 +729,15 @@ export function logMidiDataToString(midiData: MidiData): string {
           break;
         case "timeSignature":
           const timeSignatureEvent = event as MidiTimeSignatureEvent;
-          logContent +=
-            `MetaMessage('time_signature', numerator=${timeSignatureEvent.numerator}, denominator=${timeSignatureEvent.denominator}, ` +
-            `clocks_per_click=${timeSignatureEvent.metronome}, notated_32nd_notes_per_beat=${timeSignatureEvent.thirtyseconds}, time=${deltaTime})\n`;
+          let timeSignatureString = `MetaMessage('time_signature', numerator=${timeSignatureEvent.numerator}, denominator=${timeSignatureEvent.denominator}`;
+          if (timeSignatureEvent.metronome !== undefined) {
+            timeSignatureString += `, clocks_per_click=${timeSignatureEvent.metronome}`;
+          }
+          if (timeSignatureEvent.thirtyseconds !== undefined) {
+            timeSignatureString += `, notated_32nd_notes_per_beat=${timeSignatureEvent.thirtyseconds}`;
+          }
+          timeSignatureString += `, time=${deltaTime})\n`;
+          logContent += timeSignatureString;
           break;
         case "sequencerSpecific":
           const sequencerSpecificEvent = event as MidiSequencerSpecificEvent;

@@ -2041,7 +2041,7 @@ describe("logMidiDataToString", () => {
 
     expect(logString).toContain("Track 1:");
     expect(logString).toContain(
-      "MetaMessage('time_signature', numerator=4, denominator=4, clocks_per_click=undefined, notated_32nd_notes_per_beat=undefined, time=0)"
+      "MetaMessage('time_signature', numerator=4, denominator=4, time=0)"
     );
     expect(logString).toContain(
       "MetaMessage('set_tempo', tempo=500000, time=0)"
