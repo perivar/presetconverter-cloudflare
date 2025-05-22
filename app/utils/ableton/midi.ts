@@ -360,18 +360,18 @@ export function convertAutomationToMidi(
   for (const trackTypeKey in cvpj.automation) {
     const trackTypeValue = cvpj.automation[trackTypeKey];
 
-    // Iterate through track IDs within each category (e.g., "master_<track_id>", "group_35", "audio_64")
-    for (const trackIdKey in trackTypeValue) {
-      const trackIdValue = trackTypeValue[trackIdKey];
+    // Iterate through track type entries within each category (e.g., "master_<track_id>", "group_35", "audio_64")
+    for (const trackTypeEntryKey in trackTypeValue) {
+      const trackTypeEntryValue = trackTypeValue[trackTypeEntryKey];
 
-      // Iterate through Ableton track names or group names (e.g., "Master", "Lead")
+      // Iterate through track names or group names (e.g., "Master", "Lead")
       // A new MidiData object (representing a MIDI file) is created for each of these.
-      for (const abletonTrackNameKey in trackIdValue) {
-        const abletonTrackNameValue = trackIdValue[abletonTrackNameKey]; // This object contains device paths as keys
+      for (const trackNameKey in trackTypeEntryValue) {
+        const trackNameValue = trackTypeEntryValue[trackNameKey]; // This object contains device paths as keys
 
-        const automationGroupName = `${fileName}_Automation_${abletonTrackNameKey}`;
+        const automationGroupName = `${fileName}_Automation_${trackNameKey}`;
         Log.Debug(
-          `Creating MIDI data for automation group: ${abletonTrackNameKey} (Type: ${trackTypeKey}, ID: ${trackIdKey})`
+          `Creating MIDI data for automation group: ${trackNameKey} (Type: ${trackTypeKey}, ID: ${trackTypeEntryKey})`
         );
 
         const header: MidiHeader = {
@@ -416,23 +416,24 @@ export function convertAutomationToMidi(
 
         // Iterate over each device path within this Ableton track's automation
         // Each device path's data becomes a new track within the current MidiData object.
-        for (const devicePathKey in abletonTrackNameValue) {
-          const paramData = abletonTrackNameValue[devicePathKey]; // paramData IS the { type: "...", placements: [...] } object
-          const paramType = paramData.type;
+        let trackNum = 1;
+        for (const pluginNameKey in trackNameValue) {
+          const paramData = trackNameValue[pluginNameKey]; // paramData IS the { type: "...", placements: [...] } object
+          const type = paramData.type;
           const placements = paramData.placements;
 
           if (!placements || placements.length === 0) {
             Log.Debug(
-              `Skipping ${devicePathKey} in ${abletonTrackNameKey}: No placements.`
+              `Skipping ${pluginNameKey} in ${trackNameKey}: No placements.`
             );
             continue;
           }
 
-          const midiTrackName = makeValidFileName(devicePathKey); // Name for the individual MIDI track (controller data)
+          const midiTrackName = makeValidFileName(pluginNameKey); // Name for the individual MIDI track (controller data)
           const midiChannel = midiChannelManager.getUnusedChannel();
 
           Log.Debug(
-            `Adding MIDI track for parameter: ${midiTrackName} on Channel: ${midiChannel}`
+            `Adding MIDI track: ${trackNum} ${midiTrackName} (${trackTypeKey}:${trackTypeEntryKey}, ${trackNameKey}, ${pluginNameKey}) on Channel: ${midiChannel}`
           );
 
           const currentTrackEvents: MidiEvent[] = [];
@@ -454,7 +455,7 @@ export function convertAutomationToMidi(
           });
           if (globalMinValue === Infinity || globalMaxValue === -Infinity) {
             // Fallback if no points were found (should be caught by placements.length check, but as a safeguard)
-            if (paramType === "float" || paramType === "bool") {
+            if (type === "float" || type === "bool") {
               globalMinValue = 0.0;
               globalMaxValue = 1.0;
             } else {
@@ -462,7 +463,7 @@ export function convertAutomationToMidi(
               globalMaxValue = 127; // Default MIDI range
             }
             Log.Warning(
-              `Could not determine min/max for ${devicePathKey} in ${abletonTrackNameKey}, assuming range [${globalMinValue}-${globalMaxValue}]`
+              `Could not determine min/max for ${pluginNameKey} in ${trackNameKey}, assuming range [${globalMinValue}-${globalMaxValue}]`
             );
           }
 
@@ -513,9 +514,7 @@ export function convertAutomationToMidi(
               const automationPlot = plotAutomationEvents(
                 interpolatedPlacementEvents,
                 {
-                  // TODO: Add more metadata if needed as per the original C# code
-                  // suggestedFilename: `automation_${fileNum}_${trackNum}_${trackTypeKey}_${trackNameKey}_${midiTrackName}`,
-                  suggestedFilename: `automation_${fileNum}_${trackTypeKey}_${midiTrackName}`,
+                  suggestedFilename: `automation_${fileNum}_${trackNum}_${trackTypeKey}_${trackNameKey}_${midiTrackName}`,
                 }
               );
               allAutomationPlots.push(JSON.stringify(automationPlot));
@@ -526,6 +525,8 @@ export function convertAutomationToMidi(
               interpolatedPlacementEvents
             );
           } // End of placement loop
+
+          trackNum++;
 
           // Calculate delta times and add Control Change events to the current track
           let prevPos = 0;

@@ -24,10 +24,15 @@ export function plotAutomationEvents(
   /* ── data (one scatter trace) ─────────────────────────────── */
   const trace = {
     type: "scatter",
-    mode: "markers",
+    mode: "lines+markers",
     x: xs,
     y: ys,
-    marker: { size: 4 },
+    marker: {
+      size: 8,
+    },
+    line: {
+      width: 1,
+    },
   } as PlotData;
 
   /* ── layout ───────────────────────────────────────────────── */
@@ -35,9 +40,9 @@ export function plotAutomationEvents(
     title,
     xaxis: { range: [0, Math.max(...xs)] },
     yaxis: { range: [0, 127] },
-    // width: Math.max(xs.length * 30, 3840), // disable guessing width, using autosize instead
+    width: Math.max(xs.length * 30, 3840), // disable guessing width, using autosize instead
     height: 480,
-    autosize: true,
+    autosize: false,
     meta, // figure‑level meta
   } as Partial<Layout> & { meta?: any }; // <- inline cast fixes TS
 

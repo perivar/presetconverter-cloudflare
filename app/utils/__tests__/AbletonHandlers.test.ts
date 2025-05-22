@@ -126,22 +126,24 @@ describe("AbletonHandlers", () => {
     if (midiAutomationConversionResult?.automationPlots) {
       await Promise.all(
         midiAutomationConversionResult.automationPlots.map(
-          async (plot, index) => {
+          async (plot, _index) => {
+            const fig = JSON.parse(plot); // Assuming 'plot' is the JSON string of the figure
+
+            const suggestedFilePath =
+              fig.layout?.meta?.suggestedFilename ??
+              "ableton_bayze_automation_plot";
+
             const tempFilePath = path.join(
               targetDir,
-              `ableton_bayze_automation_plot_${index}.json`
+              `${suggestedFilePath}.json`
             );
 
             fs.writeFileSync(tempFilePath, plot);
 
             // Use Puppeteer helper to get pure SVG string
-            const fig = JSON.parse(plot); // Assuming 'plot' is the JSON string of the figure
             const svg = await puppeteerPlotlyToSVG(fig);
 
-            const outputPath = path.join(
-              targetDir,
-              `ableton_bayze_automation_plot_${index}.svg`
-            );
+            const outputPath = path.join(targetDir, `${suggestedFilePath}.svg`);
 
             fs.writeFileSync(outputPath, svg, "utf-8");
           }

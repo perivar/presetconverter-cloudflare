@@ -3,7 +3,7 @@ import { XMLParser, XMLValidator } from "fast-xml-parser";
 import { AbletonEq3 } from "./AbletonEq3";
 import { AbletonEq8 } from "./AbletonEq8";
 import { Log } from "./Log";
-import { convertAutomationToMidi, convertToMidi } from "./Midi"; // Import MIDI functions
+// Import MIDI functions
 import { getElementByPath, splitPath } from "./XMLUtils";
 
 export class AbletonProject {
@@ -198,14 +198,15 @@ export class AbletonProject {
   /** Main function to parse Ableton Live XML content */
   public static handleAbletonLiveContent(
     xmlString: string,
-    file: string, // Filename for context
-    outputDirectoryPath: string, // Used by device handlers (though simplified here)
+    fileName: string, // Filename for context
     doList: boolean, // Not used in this simplified version
     doVerbose: boolean // Controls verbose logging
   ): any | null {
     // all credits go to SatyrDiamond and the DawVert code
     // https://raw.githubusercontent.com/SatyrDiamond/DawVert/main/plugin_input/r_ableton.py
-    Log.Information(`Starting Ableton Live content processing for: ${file}`);
+    Log.Information(
+      `Starting Ableton Live content processing for: ${fileName}`
+    );
     // Clear static maps for fresh processing
     this.inData.clear();
     this.automationTargetLookup.clear();
@@ -365,8 +366,7 @@ export class AbletonProject {
           null, // No trackId for master
           "Master",
           ["master", "master_1"], // Location identifier for master
-          outputDirectoryPath,
-          file,
+          fileName,
           1, // Level 1
           doVerbose
         );
@@ -946,8 +946,7 @@ export class AbletonProject {
             trackId, // Original Ableton ID
             trackName,
             fxLoc, // Location identifier (e.g., ["track", "midi_123"])
-            outputDirectoryPath,
-            file,
+            fileName,
             1, // Start at level 1 for track devices
             doVerbose
           );
@@ -959,33 +958,10 @@ export class AbletonProject {
     this.inOutput(cvpj); // Process collected automation data
     this.compat(cvpj); // Apply compatibility fixes (loop/cut removal)
 
-    // --- MIDI Conversion ---
-    const fileNameNoExtension = file.includes(".")
-      ? file.substring(0, file.lastIndexOf("."))
-      : file;
-    const midiNotesJson = convertToMidi(cvpj, fileNameNoExtension, doVerbose);
-    // TODO: Handle the returned midiNotesJson (e.g., save or process further)
-    if (midiNotesJson) {
-      Log.Information("Note MIDI conversion successful (JSON generated).");
-    }
-
-    const midiAutomationConversionResult = convertAutomationToMidi(
-      cvpj,
-      fileNameNoExtension,
-      doVerbose
-    );
-    // TODO: Handle the returned midiAutomationJsonArray (e.g., save or process further)
-    if (midiAutomationConversionResult) {
-      Log.Information(
-        `Automation MIDI conversion successful (${midiAutomationConversionResult?.midiDataArray?.length} file(s) generated in JSON format).`
-      );
-    }
-
     // --- Audio Clip Collection (Placeholder) ---
-    // C#: CollectAndCopyAudioClips(uniqueAudioClipList.ToList(), folderName ?? "", Path.Combine(outputDirectoryPath, "AudioClips"));
     Log.Information("Audio clip collection skipped in this port.");
-    if (doVerbose)
-      Log.Debug("Found unique audio clips:", Array.from(uniqueAudioClipList));
+    // if (doVerbose)
+    //   Log.Debug("Found unique audio clips:", Array.from(uniqueAudioClipList));
 
     Log.Information(
       "AbletonProject.handleAbletonLiveContent: Parsing completed."
@@ -1231,8 +1207,7 @@ export class AbletonProject {
     trackId: string | null, // Original Ableton track ID
     trackName: string | null, // Name of the track
     fxLoc: string[], // Location identifier (e.g., ["track", "midi_123"])
-    outputDirectoryPath: string, // Base path for saving presets (if implemented)
-    file: string, // Original filename for context
+    fileName: string, // Original filename for context
     level: number = 1, // Recursion level for groups
     doVerbose?: boolean
   ): void {
@@ -1268,9 +1243,9 @@ export class AbletonProject {
       );
     }
 
-    const fileNameNoExtension = file.includes(".")
-      ? file.substring(0, file.lastIndexOf("."))
-      : file;
+    const fileNameNoExtension = fileName.includes(".")
+      ? fileName.substring(0, fileName.lastIndexOf("."))
+      : fileName;
 
     let internalDeviceCount = 0; // Counter for individual device instances
 
@@ -1497,8 +1472,7 @@ export class AbletonProject {
                   trackId,
                   trackName,
                   fxLoc, // Keep the same track location context
-                  outputDirectoryPath,
-                  file,
+                  fileName,
                   level + 1, // Increment level
                   doVerbose
                 );
@@ -1574,8 +1548,7 @@ export class AbletonProject {
         Log.Debug(`[compat] RemoveLoops: Processing track ${trackId}`);
         // This function modifies the notes array in place or returns a new one
         placements.notes = AbletonFunctions.removeLoopsDoPlacements(
-          placements.notes,
-          new Set() // Pass an empty set (equivalent to C# HashSet)
+          placements.notes
         );
       }
     }
@@ -1739,10 +1712,7 @@ class AbletonFunctions {
    * @param outPlacementLoop Set to track processed loop types (not used in current logic).
    * @returns New array of note placements with loops expanded.
    */
-  static removeLoopsDoPlacements(
-    notePlacements: any[],
-    outPlacementLoop: Set<string>
-  ): any[] {
+  static removeLoopsDoPlacements(notePlacements: any[]): any[] {
     // loops_remove.py
     const newPlacements: any[] = [];
 
@@ -1753,7 +1723,6 @@ class AbletonFunctions {
         (notePlacement.cut.type === "loop" ||
           notePlacement.cut.type === "loop_off" ||
           notePlacement.cut.type === "loop_adv")
-        // C# includes: && !outPlacementLoop.Contains(cutType) - skipping this check
       ) {
         // Clone the base placement data, removing loop-specific fields
         const notePlacementBase = { ...notePlacement }; // Shallow clone

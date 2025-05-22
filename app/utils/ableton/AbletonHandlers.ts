@@ -13,17 +13,17 @@ export class AbletonHandlers {
    * Handles Ableton Live Project files (.als).
    * Ported from DotNet/Program.cs HandleAbletonLiveProject.
    * @param fileData The file content as a Uint8Array.
-   * @param outputDirectoryPath The directory path for output.
+   * @param fileName The file name for context.
    * @param doList Whether to list content (currently not fully implemented in TS port).
    * @param doVerbose Whether to output verbose information.
    */
   public static HandleAbletonLiveProject(
     fileData: Uint8Array,
-    outputDirectoryPath: string,
+    fileName: string,
     doList: boolean, // Not fully used in TS port yet
     doVerbose: boolean
   ): any {
-    Log.Information(`Handling Ableton Live Project`); // Removed fileName from log
+    Log.Information(`Handling Ableton Live Project: ${fileName}`);
 
     try {
       let decompressedBytes = fileData;
@@ -45,24 +45,23 @@ export class AbletonHandlers {
       // AbletonProject.handleAbletonLiveContent handles the XML parsing and processing
       const convertedProject = AbletonProject.handleAbletonLiveContent(
         xmlString,
-        "unknown_project", // Use placeholder as original file name is not available
-        outputDirectoryPath,
+        fileName,
         doList,
         doVerbose
       );
 
       if (convertedProject) {
-        Log.Information(`Successfully processed Ableton Live Project`); // Removed fileName from log
-        // TODO: Handle the convertedProject object (e.g., save to JSON, further processing)
-        // Example: console.log(JSON.stringify(convertedProject, null, 2));
+        Log.Information(
+          `Successfully processed Ableton Live Project: ${fileName}`
+        );
         return convertedProject;
       } else {
-        Log.Error(`Failed to process Ableton Live Project`); // Removed fileName from log
+        Log.Error(`Failed to process Ableton Live Project: ${fileName}`);
       }
     } catch (error) {
       Log.Error(
-        `Error handling Ableton Live Project: ${error instanceof Error ? error.message : error}`
-      ); // Removed fileName from log
+        `Error handling Ableton Live Project (${fileName}): ${error instanceof Error ? error.message : error}`
+      );
     }
   }
 
@@ -70,13 +69,13 @@ export class AbletonHandlers {
    * Handles Ableton Live Preset files (.adv).
    * Ported from DotNet/Program.cs HandleAbletonLivePreset.
    * @param fileData The file content as a Uint8Array.
-   * @param outputDirectoryPath The directory path for output.
+   * @param fileName The file name for context.
    */
   public static HandleAbletonLivePreset(
     fileData: Uint8Array,
-    outputDirectoryPath: string
+    fileName: string
   ): any {
-    Log.Information(`Handling Ableton Live Preset`); // Removed fileName from log
+    Log.Information(`Handling Ableton Live Preset: ${fileName}`);
 
     try {
       let decompressedBytes = fileData;
@@ -157,7 +156,7 @@ export class AbletonHandlers {
       // }
     } catch (error) {
       Log.Error(
-        `Error handling Ableton Live Preset: ${error instanceof Error ? error.message : error}`
+        `Error handling Ableton Live Preset (${fileName}): ${error instanceof Error ? error.message : error}`
       ); // Removed fileName from log
     }
   }
