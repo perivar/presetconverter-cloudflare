@@ -137,3 +137,44 @@ export function getElementByPath(obj: any, pathStr: string): any {
 
   return node; // typed as `any`, never `unknown`
 }
+
+/**
+ * Converts the inner text content of an XML element (expected to be a hex string)
+ * into a Uint8Array.
+ * Handles whitespace removal before conversion.
+ *
+ * @param xElement The parsed XML element object (from fast-xml-parser).
+ * @returns A Uint8Array containing the byte representation of the hex string,
+ *          or an empty Uint8Array if the element is null/undefined or has no text content.
+ */
+export function getInnerValueAsByteArray(
+  xBuffer: string | null | undefined
+): Uint8Array {
+  if (!xBuffer) {
+    return new Uint8Array(0);
+  }
+
+  // Remove whitespace (spaces, newlines, carriage returns, tabs)
+  const hexString = xBuffer.replace(/\s/g, "");
+
+  // Ensure the string has an even number of characters for byte conversion
+  if (hexString.length % 2 !== 0) {
+    console.error("Hex string has odd length, cannot convert to byte array.");
+    return new Uint8Array(0);
+  }
+
+  const byteArray = new Uint8Array(hexString.length / 2);
+  for (let i = 0; i < byteArray.length; i++) {
+    // Convert each pair of hex characters to a byte
+    const byteValue = parseInt(hexString.substring(i * 2, i * 2 + 2), 16);
+    if (isNaN(byteValue)) {
+      console.error(
+        `Invalid hex character sequence at position ${i * 2}: ${hexString.substring(i * 2, 2)}`
+      );
+      return new Uint8Array(0); // Return empty array on error
+    }
+    byteArray[i] = byteValue;
+  }
+
+  return byteArray;
+}

@@ -5,7 +5,11 @@ import { AbletonEq3 } from "./AbletonEq3";
 import { AbletonEq8 } from "./AbletonEq8";
 import { Log } from "./Log";
 // Import MIDI functions
-import { getElementByPath, splitPath } from "./XMLUtils";
+import {
+  getElementByPath,
+  getInnerValueAsByteArray,
+  splitPath,
+} from "./XMLUtils";
 
 export class AbletonProject {
   // Use Map for easier key-value access compared to C#'s SortedDictionary
@@ -1407,10 +1411,8 @@ export class AbletonProject {
 
             // read the byte data buffer
             const xVstPluginBuffer = xVstPreset?.Buffer;
-            // fast-xml-parser puts text content in "#text"
-            const vstPluginBufferHex = xVstPluginBuffer
-              ? (xVstPluginBuffer["#text"] ?? "")
-              : "";
+            const vstPluginBufferBytes =
+              getInnerValueAsByteArray(xVstPluginBuffer);
 
             // check if this is a zlib file
             // Serum presets are zlib compressed, but don't deflate
@@ -1420,7 +1422,7 @@ export class AbletonProject {
             // This requires converting the hex string to bytes, similar to C#'s XmlHelpers.GetInnerValueAsByteArray
             // and then using an FXP library or logic (like C#'s SaveAsFXP).
 
-            if (vstPluginBufferHex.length > 0) {
+            if (vstPluginBufferBytes.length > 0) {
               const outputFileNameBase = `${fileNameNoExtension} - ${trackName ?? "Master"} - (${level}-${internalDeviceCount}) - ${deviceType}`;
               Log.Information(
                 `Processing VST Preset: ${outputFileNameBase} (FXP conversion skipped)`
