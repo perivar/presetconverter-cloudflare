@@ -1,6 +1,10 @@
 import { XMLParser, XMLValidator } from "fast-xml-parser";
 
-import { getFileNameWithoutExtension } from "../StringUtils";
+import { FXP } from "../FXP";
+import {
+  extractBeforeSpace,
+  getFileNameWithoutExtension,
+} from "../StringUtils";
 import { AbletonEq3 } from "./AbletonEq3";
 import { AbletonEq8 } from "./AbletonEq8";
 import { Log } from "./Log";
@@ -1418,17 +1422,26 @@ export class AbletonProject {
             // Serum presets are zlib compressed, but don't deflate
             // if (vstPluginBufferBytes[0] == 0x78 && vstPluginBufferBytes[1] == 0x01) ...
 
-            // TODO: Implement VST preset saving/conversion (e.g., to FXP) if needed
-            // This requires converting the hex string to bytes, similar to C#'s XmlHelpers.GetInnerValueAsByteArray
-            // and then using an FXP library or logic (like C#'s SaveAsFXP).
-
             if (vstPluginBufferBytes.length > 0) {
-              const outputFileNameBase = `${fileNameNoExtension} - ${trackName ?? "Master"} - (${level}-${internalDeviceCount}) - ${deviceType}`;
-              Log.Information(
-                `Processing VST Preset: ${outputFileNameBase} (FXP conversion skipped)`
+              const fxpBytes = AbletonProject.getAsFXP(
+                vstPluginBufferBytes,
+                vstPlugName
               );
-              // Example: const bytes = hexToBytes(vstPluginBufferHex);
-              // Example: saveAsFXP(bytes, vstPlugName, outputDirectoryPath, outputFileNameBase);
+
+              if (fxpBytes) {
+                // TODO: Handle the returned fxpBytes (e.g., save to file, return in the main result)
+                const outputFileNameBase = `${fileNameNoExtension} - ${trackName ?? "Master"} - (${level}-${internalDeviceCount}) - ${vstPlugName}`;
+                Log.Information(
+                  `Successfully converted VST Preset '${vstPlugName}' to FXP bytes. Handle bytes for: ${outputFileNameBase}`
+                );
+                // Example: saveBytesToFile(fxpBytes, outputDirectoryPath, `${outputFileNameBase}.fxp`);
+              } else {
+                // getAsFXP logs an error if the plugin is not recognized
+                Log.Warning(
+                  `FXP conversion failed or plugin not recognized for '${vstPlugName}'.`
+                );
+                // TODO: Optionally save the raw bytes or XML for unrecognized plugins
+              }
             } else {
               Log.Information(
                 `VST Plugin '${vstPlugName}' has empty preset buffer.`
@@ -1510,22 +1523,49 @@ export class AbletonProject {
           }
           // C# Handles these in default: MultibandDynamics, AutoFilter, Reverb, Saturator, Tuner, StereoGain
           default: {
-            // Handle other device types generically
             const outputFileNameBase = `${fileNameNoExtension} - ${trackName ?? "Master"} - (${level}-${internalDeviceCount}) - ${deviceType}`;
             if (userName) {
               // we are likely processing an .adv preset file
-              // TODO: This is not always a correct assumption!
-              // C# tries to extract VST bytes from RawData here, skipped in TS
-              Log.Information(
-                `Processing Device/Preset (from UserName): ${userName} (${deviceType}) - Generic handling. Path: ${outputFileNameBase}`
-              );
+              // We will attempt to get FXP bytes using getInnerValueAsByteArray and getAsFXP.
+              const xFileRef = deviceElement?.Descendants?.FileRef; // Assuming Descendants is an object/property
+              const xBuffer = xFileRef?.Data; // Assuming Data is a property
+
+              const vstBytes = getInnerValueAsByteArray(xBuffer);
+
+              if (vstBytes.length > 0) {
+                const fxpBytes = AbletonProject.getAsFXP(
+                  vstBytes,
+                  extractBeforeSpace(userName) // Use userName as plugin name heuristic
+                );
+
+                if (fxpBytes) {
+                  // TODO: Handle the returned fxpBytes (e.g., save to file, return in the main result)
+                  Log.Information(
+                    `Successfully converted Device/Preset (from UserName): ${userName} (${deviceType}) to FXP bytes. Handle bytes for: ${outputFileNameBase}`
+                  );
+                  // Example: saveBytesToFile(fxpBytes, outputDirectoryPath, `${outputFileNameBase}.fxp`);
+                } else {
+                  // getAsFXP logs an error if the plugin is not recognized
+                  Log.Warning(
+                    `FXP conversion failed or plugin not recognized for Device/Preset (from UserName): '${userName}' (${deviceType}).`
+                  );
+                  // TODO: Optionally save the raw bytes or XML for unrecognized plugins
+                }
+              } else {
+                Log.Information(
+                  `Device/Preset (from UserName): '${userName}' (${deviceType}) has empty buffer.`
+                );
+                // TODO: Implement generic preset saving (e.g., saving the raw XML part) if needed
+                // Example: saveDeviceXml(deviceElement, outputDirectoryPath, outputFileNameBase);
+              }
             } else {
+              // Handle other device types generically
               Log.Information(
                 `Processing Generic/Unhandled Device: ${deviceType} - Path: ${outputFileNameBase}`
               );
+              // TODO: Implement generic preset saving (e.g., saving the raw XML part) if needed
+              // Example: saveDeviceXml(deviceElement, outputDirectoryPath, outputFileNameBase);
             }
-            // TODO: Implement generic preset saving (e.g., saving the raw XML part) if needed
-            // Example: saveDeviceXml(deviceElement, outputDirectoryPath, outputFileNameBase);
             break;
           }
         } // End switch (deviceType)
@@ -1565,6 +1605,105 @@ export class AbletonProject {
     }
 
     Log.Debug("[compat] Compatibility processing finished.");
+  }
+
+  /**
+   * Converts raw VST plugin buffer bytes into an FXP preset byte array.
+   * @param vstPluginBufferBytes The raw byte buffer from the Ableton XML.
+   * @param vstPlugName The name of the VST plugin.
+   * @returns A Uint8Array containing the FXP preset bytes, or undefined if the plugin is not recognized.
+   */
+  public static getAsFXP(
+    vstPluginBufferBytes: Uint8Array,
+    vstPlugName: string
+  ): Uint8Array | undefined {
+    // Use the FXP.WriteRaw2FXP function which handles the FXP structure
+    // and returns the byte array.
+    switch (vstPlugName) {
+      case "Sylenth1":
+        return FXP.WriteRaw2FXP(vstPluginBufferBytes, "syl1");
+      case "Serum":
+      case "Serum_x64":
+        return FXP.WriteRaw2FXP(vstPluginBufferBytes, "XfsX");
+      case "FabFilter Saturn 2":
+        return FXP.WriteRaw2FXP(vstPluginBufferBytes, "FS2a");
+      case "FabFilter Pro-Q 3":
+        return FXP.WriteRaw2FXP(vstPluginBufferBytes, "FQ3p");
+      case "FabFilter Pro-L 2":
+        return FXP.WriteRaw2FXP(vstPluginBufferBytes, "FL2p");
+      case "OTT":
+      case "OTT_x64":
+        return FXP.WriteRaw2FXP(vstPluginBufferBytes, "XfTT");
+      case "Endless Smile":
+      case "Endless Smile 64":
+        return FXP.WriteRaw2FXP(vstPluginBufferBytes, "ENDS");
+      case "soothe2":
+      case "soothe2_x64":
+        return FXP.WriteRaw2FXP(vstPluginBufferBytes, "SthB");
+      case "CamelCrusher":
+        return FXP.WriteRaw2FXP(vstPluginBufferBytes, "CaCr");
+      case "Kickstart":
+      case "Kickstart-64bit":
+        return FXP.WriteRaw2FXP(vstPluginBufferBytes, "CNKS");
+      case "LFOTool":
+      case "LFOTool_x64":
+        return FXP.WriteRaw2FXP(vstPluginBufferBytes, "XffO");
+      case "ValhallaRoom":
+      case "ValhallaRoom_x64": {
+        // Valhalla plugins have extra bytes at the start/end in Ableton's XML
+        const truncatedBytes = AbletonProject.truncateByteArray(
+          vstPluginBufferBytes,
+          8, // Skip first 8 bytes
+          2 // Skip last 2 bytes
+        );
+        return FXP.WriteRaw2FXP(truncatedBytes, "Ruum");
+      }
+      case "ValhallaVintageVerb":
+      case "ValhallaVintageVerb_x64": {
+        // Valhalla plugins have extra bytes at the start/end in Ableton's XML
+        const truncatedBytes = AbletonProject.truncateByteArray(
+          vstPluginBufferBytes,
+          8, // Skip first 8 bytes
+          2 // Skip last 2 bytes
+        );
+        return FXP.WriteRaw2FXP(truncatedBytes, "vee3");
+      }
+      case "SINE Player":
+        return FXP.WriteRaw2FXP(vstPluginBufferBytes, "Y355");
+      default:
+        Log.Error(
+          `Could not convert preset to fxp since vstplugin '${vstPlugName}' is not recognized!`
+        );
+        // Return undefined for unrecognized plugins
+        return undefined;
+    }
+  }
+
+  /**
+   * Truncates a Uint8Array by skipping a specified number of bytes from the start and end.
+   * @param originalArray The original Uint8Array.
+   * @param skipFirst The number of bytes to skip from the beginning.
+   * @param skipLast The number of bytes to skip from the end.
+   * @returns A new Uint8Array containing the truncated portion.
+   */
+  private static truncateByteArray(
+    originalArray: Uint8Array,
+    skipFirst: number,
+    skipLast: number
+  ): Uint8Array {
+    // Calculate the length of the truncated array
+    const truncatedLength = originalArray.length - skipFirst - skipLast;
+
+    // Ensure the truncated length is not negative
+    if (truncatedLength < 0) {
+      Log.Warning(
+        `TruncateByteArray: Invalid skip values. Original length: ${originalArray.length}, skipFirst: ${skipFirst}, skipLast: ${skipLast}. Returning empty array.`
+      );
+      return new Uint8Array(0);
+    }
+
+    // Create a new Uint8Array from the desired portion of the original array
+    return originalArray.slice(skipFirst, skipFirst + truncatedLength);
   }
 } // End AbletonProject Class
 
