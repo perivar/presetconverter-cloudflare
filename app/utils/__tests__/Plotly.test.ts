@@ -21,15 +21,10 @@ afterAll(() => {
   // }
 });
 
-test("figure JSON contains meta and correct ranges", () => {
-  const fig = plotAutomationEvents([new AutomationEvent(0, 64)], {
-    suggestedFilename: "take-42.png",
-    sourceFile: "foo.mid",
-  });
+test("figure JSON contains correct ranges", () => {
+  const fig = plotAutomationEvents([new AutomationEvent(0, 64)]);
 
-  const layout = fig.layout as Partial<Layout> & { meta?: any };
-  expect(layout.meta?.suggestedFilename).toBe("take-42.png");
-  expect(layout.meta?.sourceFile).toBe("foo.mid");
+  const layout = fig.layout as Partial<Layout>;
   expect(layout.xaxis?.range).toEqual([0, 0]);
 });
 
@@ -43,7 +38,6 @@ test("should plot interpolated automation events to SVG", async () => {
 
   const fig = plotAutomationEvents(
     interpolatedEvents,
-    {},
     "Interpolated Automation Plot"
   );
 

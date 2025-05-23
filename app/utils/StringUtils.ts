@@ -147,3 +147,24 @@ export function extractBeforeSpace(str: string): string {
   const spaceIndex = str.indexOf(" ");
   return spaceIndex === -1 ? str : str.substring(0, spaceIndex);
 }
+
+/**
+ * Returns the file name without its extension.
+ *
+ * Mimics the behavior of C#'s Path.GetFileNameWithoutExtension by removing
+ * the last period and everything after it. If there is no period, the original
+ * file name is returned.
+ *
+ * @param fileName - The full name of the file (e.g., "document.txt").
+ * @returns The file name without its extension (e.g., "document").
+ *
+ * @example
+ * getFileNameWithoutExtension("music.mp3");       // "music"
+ * getFileNameWithoutExtension("archive.tar.gz");  // "archive.tar"
+ * getFileNameWithoutExtension("README");          // "README"
+ */
+export function getFileNameWithoutExtension(fileName: string): string {
+  return fileName.includes(".")
+    ? fileName.substring(0, fileName.lastIndexOf("."))
+    : fileName;
+}

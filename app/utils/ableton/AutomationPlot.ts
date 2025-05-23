@@ -2,12 +2,6 @@ import { Layout, PlotData } from "plotly.js-basic-dist";
 
 import { AutomationEvent } from "./AutomationEvent";
 
-export interface AutomationMeta {
-  suggestedFilename?: string;
-  sourceFile?: string;
-  [key: string]: unknown;
-}
-
 /**
  * Build a **pure** Plotly figure (no DOM, no I/O).
  * Returns the JSON you can pass straight to Plotly.newPlot(),
@@ -15,7 +9,6 @@ export interface AutomationMeta {
  */
 export function plotAutomationEvents(
   events: AutomationEvent[],
-  meta: AutomationMeta = {},
   title = "Automation Events"
 ): { data: PlotData[]; layout: Partial<Layout> } {
   const xs = events.map(e => e.position);
@@ -43,8 +36,7 @@ export function plotAutomationEvents(
     width: Math.max(xs.length * 30, 3840), // disable guessing width, using autosize instead
     height: 480,
     autosize: false,
-    meta, // figure‑level meta
-  } as Partial<Layout> & { meta?: any }; // <- inline cast fixes TS
+  } as Partial<Layout>;
 
   return { data: [trace], layout };
 }

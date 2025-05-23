@@ -109,13 +109,13 @@ export class AbletonHandlers {
         const validationResult = XMLValidator.validate(xmlString); // Instantiate XMLValidator directly
         if (validationResult !== true) {
           Log.Warning(
-            `XML structure validation failed for preset: ${validationResult.err?.msg}. Attempting to parse anyway.` // Removed fileName from log
+            `XML structure validation failed for preset: ${validationResult.err?.msg}. Attempting to parse anyway. (${fileName})`
           );
         }
         rootXElement = parser.parse(xmlString);
       } catch (error) {
         Log.Error(
-          `XML Parsing Error for preset: ${error instanceof Error ? error.message : error}` // Removed fileName from log
+          `XML Parsing Error for preset: ${error instanceof Error ? error.message : error}. (${fileName})`
         );
         return; // Stop processing this preset on parse error
       }
@@ -149,15 +149,15 @@ export class AbletonHandlers {
       //     1, // Level 1
       //     true // Assume verbose for presets? Or pass a parameter? Using true for now.
       //   );
-      //   Log.Information(`Successfully processed Ableton Live Preset`); // Removed fileName from log
+      //   Log.Information(`Successfully processed Ableton Live Preset`);
       //   // TODO: Handle the output (presets are saved by doDevices internally in C# version)
       // } else {
-      //   Log.Error(`Could not find device element in preset file`); // Removed fileName from log
+      //   Log.Error(`Could not find device element in preset file`);
       // }
     } catch (error) {
       Log.Error(
         `Error handling Ableton Live Preset (${fileName}): ${error instanceof Error ? error.message : error}`
-      ); // Removed fileName from log
+      );
     }
   }
 }

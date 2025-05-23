@@ -5,6 +5,7 @@ import * as midiFile from "midi-file";
 import { puppeteerPlotlyToSVG } from "../../../jest.setup";
 import { AbletonHandlers } from "../ableton/AbletonHandlers";
 import { convertAutomationToMidi } from "../ableton/Midi";
+import { toPlainObject } from "./helpers/testUtils";
 
 const targetDir = path.join(__dirname, "ableton-tests");
 
@@ -22,30 +23,23 @@ afterAll(() => {
 
 describe("AbletonHandlers", () => {
   test("should handle Ableton Live Project files", () => {
-    const filePath = path.join(
-      __dirname,
-      "data/Ableton/Bayze - Move On REMAKE.als"
-    );
+    const fileName = "Bayze - Move On REMAKE.als";
+    const filePath = path.join(__dirname, `data/Ableton/${fileName}`);
     const fileContent = fs.readFileSync(filePath);
     const uint8ArrayRead = new Uint8Array(fileContent);
 
-    // Define dummy arguments for the function
-    const outputDirectoryPath = targetDir;
     const doList = false;
     const doVerbose = true;
 
     // Call the function with the file data
     const result = AbletonHandlers.HandleAbletonLiveProject(
       uint8ArrayRead,
-      outputDirectoryPath,
+      fileName,
       doList,
       doVerbose
     );
 
-    // Add assertions based on the expected structure or content of the result
-    // This is a basic assertion and should be refined based on the actual expected output
     expect(result).toBeDefined();
-    // expect(result).toHaveProperty('someExpectedProperty');
 
     fs.writeFileSync(
       path.join(targetDir, "ableton_output_pre_convert.json"),
@@ -54,42 +48,38 @@ describe("AbletonHandlers", () => {
   });
 
   test("should convert Ableton Live Project file automation", async () => {
-    const filePath = path.join(
-      __dirname,
-      "data/Ableton/Bayze - Move On REMAKE.als"
-    );
+    const fileName = "Bayze - Move On REMAKE.als";
+    const filePath = path.join(__dirname, `data/Ableton/${fileName}`);
     const fileContent = fs.readFileSync(filePath);
     const uint8ArrayRead = new Uint8Array(fileContent);
 
-    // Define dummy arguments for the function
-    const outputDirectoryPath = targetDir;
     const doList = false;
     const doVerbose = true;
 
     // Call the function with the file data
     const result = AbletonHandlers.HandleAbletonLiveProject(
       uint8ArrayRead,
-      outputDirectoryPath,
+      fileName,
       doList,
       doVerbose
     );
 
     const midiAutomationConversionResult = convertAutomationToMidi(
       result,
-      "bayze_automation",
+      fileName,
       true
     );
+
     const midiDataArray = midiAutomationConversionResult?.midiDataArray;
 
     expect(midiDataArray).not.toBeNull();
     expect(midiDataArray?.length).toBeGreaterThan(0);
 
     if (midiDataArray) {
-      midiDataArray.forEach((midiData, index) => {
-        const tempFilePath = path.join(
-          targetDir,
-          `ableton_bayze_automation_${index}.mid`
-        );
+      midiDataArray.forEach((automationMidi, _index) => {
+        const midiData = automationMidi.midiData;
+        const suggestedFileName = automationMidi.suggestedFileName;
+        const tempFilePath = path.join(targetDir, `${suggestedFileName}.mid`);
 
         // Convert MIDI data to bytes
         const outputArray = midiFile.writeMidi(midiData);
@@ -105,37 +95,34 @@ describe("AbletonHandlers", () => {
         const midiDataRead = midiFile.parseMidi(inputUint8Array);
 
         // Compare the original with the read
-        // expect(toPlainObject(midiData)).toStrictEqual(
-        //   toPlainObject(midiDataRead)
-        // );
-
-        // Clean up the temporary file
-        // fs.unlinkSync(tempFilePath);
+        expect(toPlainObject(midiData)).toStrictEqual(
+          toPlainObject(midiDataRead)
+        );
       });
     }
 
-    if (midiAutomationConversionResult?.logString) {
-      const tempFilePath = path.join(
-        targetDir,
-        `ableton_bayze_automation_midi.txt`
-      );
+    const midiDataLogArray = midiAutomationConversionResult?.midiLogArray;
+    if (midiDataLogArray) {
+      midiDataLogArray.forEach((automationMidiLog, _index) => {
+        const midiDataLog = automationMidiLog.logString;
+        const suggestedFileName = automationMidiLog.suggestedFileName;
+        const tempFilePath = path.join(targetDir, `${suggestedFileName}.txt`);
 
-      fs.writeFileSync(tempFilePath, midiAutomationConversionResult.logString);
+        fs.writeFileSync(tempFilePath, midiDataLog);
+      });
     }
 
-    if (midiAutomationConversionResult?.automationPlots) {
+    if (midiAutomationConversionResult?.automationPlotArray) {
       await Promise.all(
-        midiAutomationConversionResult.automationPlots.map(
-          async (plot, _index) => {
+        midiAutomationConversionResult.automationPlotArray.map(
+          async (automationPlot, _index) => {
+            const plot = automationPlot.plot;
+            const suggestedFileName = automationPlot.suggestedFileName;
             const fig = JSON.parse(plot); // Assuming 'plot' is the JSON string of the figure
-
-            const suggestedFilePath =
-              fig.layout?.meta?.suggestedFilename ??
-              "ableton_bayze_automation_plot";
 
             const tempFilePath = path.join(
               targetDir,
-              `${suggestedFilePath}.json`
+              `${suggestedFileName}.json`
             );
 
             fs.writeFileSync(tempFilePath, plot);
@@ -143,7 +130,7 @@ describe("AbletonHandlers", () => {
             // Use Puppeteer helper to get pure SVG string
             const svg = await puppeteerPlotlyToSVG(fig);
 
-            const outputPath = path.join(targetDir, `${suggestedFilePath}.svg`);
+            const outputPath = path.join(targetDir, `${suggestedFileName}.svg`);
 
             fs.writeFileSync(outputPath, svg, "utf-8");
           }

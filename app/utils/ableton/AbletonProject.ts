@@ -1,5 +1,6 @@
 import { XMLParser, XMLValidator } from "fast-xml-parser";
 
+import { getFileNameWithoutExtension } from "../StringUtils";
 import { AbletonEq3 } from "./AbletonEq3";
 import { AbletonEq8 } from "./AbletonEq8";
 import { Log } from "./Log";
@@ -1243,9 +1244,7 @@ export class AbletonProject {
       );
     }
 
-    const fileNameNoExtension = fileName.includes(".")
-      ? fileName.substring(0, fileName.lastIndexOf("."))
-      : fileName;
+    const fileNameNoExtension = getFileNameWithoutExtension(fileName);
 
     let internalDeviceCount = 0; // Counter for individual device instances
 

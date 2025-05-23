@@ -14,16 +14,32 @@ import type {
   MidiTrackNameEvent,
 } from "midi-file";
 
-import { makeValidFileName } from "../StringUtils";
+import { formatNumber } from "../FormatNumber";
+import { getFileNameWithoutExtension, makeValidFileName } from "../StringUtils";
 import { AutomationEvent } from "./AutomationEvent";
 import { plotAutomationEvents } from "./AutomationPlot";
 import { interpolateEvents } from "./Interpolate";
 import { Log } from "./Log";
 
+export interface AutomationMidi {
+  suggestedFileName: string; // Suggested file name for the midi file
+  midiData: MidiData; // MidiData object
+}
+
+export interface AutomationMidiLog {
+  suggestedFileName: string; // Suggested file name for the midi log file
+  logString: string; // Log string
+}
+
+export interface AutomationPlot {
+  suggestedFileName: string; // Suggested file name for the plot file
+  plot: string; // SVG string
+}
+
 export interface AutomationConversionResult {
-  midiDataArray: MidiData[] | null; // Array of MidiData objects or null
-  automationPlots?: string[]; // Array of SVG strings (optional)
-  logString?: string; // (optional)
+  midiDataArray: AutomationMidi[]; // Array of AutomationMidi
+  midiLogArray?: AutomationMidiLog[]; // Array of AutomationMidiLog (optional)
+  automationPlotArray?: AutomationPlot[]; // Array of AutomationPlot (optional)
 }
 
 export class MidiChannelManager {
@@ -351,9 +367,11 @@ export function convertAutomationToMidi(
 
   const tempoBpm = cvpj.parameters.bpm.value;
   const microsecondsPerBeat = Math.round(60000000 / tempoBpm);
-  const allMidiData: MidiData[] = []; // Collect all MidiData objects here
-  const allAutomationPlots: string[] = []; // Collect all automation plots here
-  let combinedLogString: string | undefined;
+
+  const midiDataArray: AutomationMidi[] = []; // Array of AutomationMidi
+  const midiLogArray: AutomationMidiLog[] = []; // Array of AutomationMidiLog
+  const automationPlotArray: AutomationPlot[] = []; // Array of AutomationPlot
+
   let fileNum = 1;
 
   // Iterate through the top-level automation categories (e.g., "master", "group", "track")
@@ -369,7 +387,9 @@ export function convertAutomationToMidi(
       for (const trackNameKey in trackTypeEntryValue) {
         const trackNameValue = trackTypeEntryValue[trackNameKey]; // This object contains device paths as keys
 
-        const automationGroupName = `${fileName}_Automation_${trackNameKey}`;
+        const fileNameNoExtension = getFileNameWithoutExtension(fileName);
+
+        const automationGroupName = `${fileNameNoExtension}_Automation_${trackNameKey}`;
         Log.Debug(
           `Creating MIDI data for automation group: ${trackNameKey} (Type: ${trackTypeKey}, ID: ${trackTypeEntryKey})`
         );
@@ -414,8 +434,7 @@ export function convertAutomationToMidi(
 
         const midiChannelManager = new MidiChannelManager();
 
-        // Iterate over each device path within this Ableton track's automation
-        // Each device path's data becomes a new track within the current MidiData object.
+        // Iterate through plugin names (e.g., "AutoFilter_Cutoff", "FabFilter Pro-Q 3")
         let trackNum = 1;
         for (const pluginNameKey in trackNameValue) {
           const paramData = trackNameValue[pluginNameKey]; // paramData IS the { type: "...", placements: [...] } object
@@ -512,12 +531,12 @@ export function convertAutomationToMidi(
             // Generate the plot string only if doOutputDebugFile is true
             if (doOutputDebugFile) {
               const automationPlot = plotAutomationEvents(
-                interpolatedPlacementEvents,
-                {
-                  suggestedFilename: `automation_${fileNum}_${trackNum}_${trackTypeKey}_${trackNameKey}_${midiTrackName}`,
-                }
+                interpolatedPlacementEvents
               );
-              allAutomationPlots.push(JSON.stringify(automationPlot));
+              automationPlotArray.push({
+                suggestedFileName: `automation_${formatNumber(fileNum)}_${formatNumber(trackNum)}_${trackTypeKey}_${trackNameKey}_${midiTrackName}`,
+                plot: JSON.stringify(automationPlot),
+              } as AutomationPlot);
             }
 
             // 3. Add the results to the list for the entire parameter track
@@ -558,26 +577,32 @@ export function convertAutomationToMidi(
           });
           tracks.push(currentTrackEvents); // Add the parameter track to the MIDI data's tracks
           header.numTracks++; // Increment the track count in the header
-        } // End of devicePathKey loop (iterating through parameters for one MIDI file group)
+        } // End of pluginNameKey
 
         // After processing all device parameters for the current abletonTrackNameKey
         if (tracks.length > 1) {
           // Check if any parameter tracks (beyond the initial meta track) were added
           const midiData: MidiData = { header, tracks };
-          allMidiData.push(midiData); // Add the completed MidiData object to the array
+
+          // Add the completed MidiData object to the array
+          midiDataArray.push({
+            suggestedFileName: `${automationGroupName}`,
+            midiData: midiData,
+          } as AutomationMidi);
+
           Log.Information(
             `Generated MIDI data for automation group: ${automationGroupName}`
           );
+
           if (doOutputDebugFile) {
             const logString = logMidiDataToString(midiData);
-            Log.Debug(
-              `MIDI Log for ${automationGroupName} (File ${fileNum}) generated`
-            );
-            if (combinedLogString) {
-              combinedLogString += logString; // Append to combined log string
-            } else {
-              combinedLogString = logString;
-            }
+            Log.Debug(`MIDI Log for ${automationGroupName} generated`);
+
+            // Add the completed MidiData log object to the array
+            midiLogArray.push({
+              suggestedFileName: `${automationGroupName}`,
+              logString: logString,
+            } as AutomationMidiLog);
           }
           fileNum++; // Increment file number
         } else {
@@ -585,15 +610,15 @@ export function convertAutomationToMidi(
             `No automation tracks with data generated for group: ${automationGroupName}`
           );
         }
-      } // End of abletonTrackNameKey loop (processing one Ableton track's automation into one MidiData)
-    } // End of trackIdKey loop
+      } // End of trackNameKey loop
+    } // End of trackTypeEntryKey loop
   } // End of trackTypeKey loop
 
   Log.Information("MIDI conversion for automation completed.");
   return {
-    midiDataArray: allMidiData.length > 0 ? allMidiData : null, // Return null if no valid MIDI data was generated
-    automationPlots: allAutomationPlots,
-    logString: combinedLogString,
+    midiDataArray: midiDataArray,
+    midiLogArray: midiLogArray,
+    automationPlotArray: automationPlotArray,
   };
 }
 
