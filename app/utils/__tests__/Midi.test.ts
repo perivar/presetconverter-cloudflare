@@ -1913,14 +1913,13 @@ describe("convertAutomationToMidi", () => {
     expect(midiDataArray?.length).toBeGreaterThan(0);
 
     if (midiDataArray) {
-      midiDataArray.forEach((automationMidi, index) => {
-        const tempFilePath = path.join(
-          targetDir,
-          `ableton_temp_automation_${index}.mid`
-        );
+      midiDataArray.forEach((automationMidi, _index) => {
+        const midiData = automationMidi.midiData;
+        const suggestedFileName = automationMidi.suggestedFileName;
+        const tempFilePath = path.join(targetDir, `${suggestedFileName}.mid`);
 
         // Convert MIDI data to bytes
-        const outputArray = midiFile.writeMidi(automationMidi.midiData);
+        const outputArray = midiFile.writeMidi(midiData);
         const outputUint8Array = new Uint8Array(outputArray);
 
         // Write the MIDI data to a temporary file
@@ -1933,7 +1932,7 @@ describe("convertAutomationToMidi", () => {
         const midiDataRead = midiFile.parseMidi(inputUint8Array);
 
         // Compare the original with the read
-        expect(toPlainObject(automationMidi.midiData)).toStrictEqual(
+        expect(toPlainObject(midiData)).toStrictEqual(
           toPlainObject(midiDataRead)
         );
       });
