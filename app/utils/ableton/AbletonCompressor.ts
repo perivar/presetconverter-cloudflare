@@ -50,6 +50,10 @@ export class AbletonCompressor implements AbletonPlugin {
     this.LookAhead = getParam(xElement, "LookAhead", "float", "0");
   }
 
+  hasBeenModified(): boolean {
+    return true;
+  }
+
   public toString(): string {
     return `Threshold: ${this.Threshold.toFixed(2)}, Ratio: ${this.Ratio.toFixed(2)}, ExpansionRatio: ${this.ExpansionRatio.toFixed(2)}, Attack: ${this.Attack.toFixed(2)}, Release: ${this.Release.toFixed(2)}, AutoRelease: ${this.AutoReleaseControlOnOff}, Gain: ${this.Gain.toFixed(2)}, GainCompensation: ${this.GainCompensation}, DryWet: ${this.DryWet.toFixed(2)}, Model: ${this.Model.toFixed(2)}, LegacyModel: ${this.LegacyModel.toFixed(2)}, Knee: ${this.Knee.toFixed(2)}, LookAhead: ${this.LookAhead.toFixed(2)}`;
   }

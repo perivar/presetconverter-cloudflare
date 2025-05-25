@@ -67,18 +67,18 @@ export class AbletonAutoPan implements AbletonPlugin {
     this.BeatRate = getParam(xElement?.Lfo, "BeatRate", "int", "0");
     this.StereoMode = getParam(xElement?.Lfo, "StereoMode", "int", "0");
     this.Spin = getParam(xElement?.Lfo, "Spin", "float", "0");
-    this.Phase = getParam(xElement?.Lfo, "Phase", "float", "0");
+    this.Phase = getParam(xElement?.Lfo, "Phase", "float", "180");
     this.Offset = getParam(xElement?.Lfo, "Offset", "float", "0");
     this.IsOn = getParam(xElement?.Lfo, "IsOn", "bool", "false");
     this.Quantize = getParam(xElement?.Lfo, "Quantize", "bool", "false");
-    this.BeatQuantize = getParam(xElement?.Lfo, "BeatQuantize", "float", "0");
-    this.NoiseWidth = getParam(xElement?.Lfo, "NoiseWidth", "float", "0");
-    this.LfoAmount = getParam(xElement?.Lfo, "LfoAmount", "float", "0");
+    this.BeatQuantize = getParam(xElement?.Lfo, "BeatQuantize", "float", "2.0");
+    this.NoiseWidth = getParam(xElement?.Lfo, "NoiseWidth", "float", "0.5");
+    this.LfoAmount = getParam(xElement?.Lfo, "LfoAmount", "float", "0.0");
     this.LfoInvert = getParam(xElement?.Lfo, "LfoInvert", "bool", "false");
-    this.LfoShape = getParam(xElement?.Lfo, "LfoShape", "float", "0");
+    this.LfoShape = getParam(xElement?.Lfo, "LfoShape", "float", "0.0");
   }
 
-  public HasBeenModified(): boolean {
+  public hasBeenModified(): boolean {
     const ceilingTolerance = 0.0001; // Adjust the tolerance as needed
     return (
       this.Type !== LfoWaveformType.Sine ||

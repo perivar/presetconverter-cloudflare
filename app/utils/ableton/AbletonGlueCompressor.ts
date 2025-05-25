@@ -48,6 +48,10 @@ export class AbletonGlueCompressor implements AbletonPlugin {
     this.PeakClipIn = getParam(xElement, "PeakClipIn", "bool", "false");
   }
 
+  hasBeenModified(): boolean {
+    return true;
+  }
+
   public toString(): string {
     return `Threshold: ${this.Threshold.toFixed(2)}, Range: ${this.Range.toFixed(2)}, Makeup: ${this.Makeup.toFixed(2)}, Attack: ${this.Attack}, Ratio: ${this.Ratio}, Release: ${this.Release}, DryWet: ${this.DryWet.toFixed(2)}, PeakClipIn: ${this.PeakClipIn}`;
   }

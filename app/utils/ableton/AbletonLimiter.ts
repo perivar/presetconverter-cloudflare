@@ -18,13 +18,13 @@ export class AbletonLimiter implements AbletonPlugin {
   constructor(xElement: any) {
     this.Gain = getParam(xElement, "Gain", "float", "0");
     this.Ceiling = getParam(xElement, "Ceiling", "float", "0");
-    this.Release = getParam(xElement, "Release", "float", "0");
+    this.Release = getParam(xElement, "Release", "float", "300");
     this.AutoRelease = getParam(xElement, "AutoRelease", "bool", "false");
     this.LinkChannels = getParam(xElement, "LinkChannels", "bool", "false");
     this.Lookahead = getParam(xElement, "Lookahead", "int", "0");
   }
 
-  public HasBeenModified(): boolean {
+  public hasBeenModified(): boolean {
     const ceilingTolerance = 0.0001; // Adjust the tolerance as needed
     return (
       this.Gain !== 0 ||
