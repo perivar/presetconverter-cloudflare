@@ -12,6 +12,8 @@ import { AbletonFunctions } from "./AbletonFunctions";
 import { AbletonGlueCompressor } from "./AbletonGlueCompressor";
 import { AbletonLimiter } from "./AbletonLimiter";
 import { AbletonPresetFile } from "./AbletonPresetFile";
+import { AbletonToFabFilterAdapter } from "./AbletonToFabFilterAdapter";
+import { AbletonToSteinbergAdapter } from "./AbletonToSteinbergAdapter";
 import { DataValues } from "./DataValues";
 import { Log } from "./Log";
 // Import MIDI functions
@@ -1276,6 +1278,52 @@ export class AbletonProject {
                   pluginName: eq8.constructor.name,
                 })
               );
+
+              // Generate a second preset for Steinberg Frequency
+              try {
+                const steinbergFrequency =
+                  AbletonToSteinbergAdapter.toSteinbergFrequency(eq8);
+                const steinbergOutputFileName = `${fileNameNoExtension} - ${trackName ?? "Master"} - (${level}-${internalDeviceCount}) - Eq8ToSteinbergFrequency`;
+                devicePresetFiles.push(
+                  new AbletonPresetFile({
+                    filename: steinbergOutputFileName,
+                    format: "vstpreset",
+                    content: steinbergFrequency.write() ?? new Uint8Array(),
+                    pluginName: "SteinbergFrequency",
+                  })
+                );
+
+                Log.Information(
+                  `Generated Steinberg Frequency preset for Eq8: ${steinbergOutputFileName}`
+                );
+              } catch (error) {
+                Log.Warning(
+                  `Failed to generate Steinberg Frequency preset for Eq8: ${error instanceof Error ? error.message : error}`
+                );
+              }
+
+              // Generate a third preset for Fabfilter Pro-Q 3
+              try {
+                const fabfilterProQ3 =
+                  AbletonToFabFilterAdapter.toFabfilterProQ3(eq8);
+                const fabfilterProQ3OutputFileName = `${fileNameNoExtension} - ${trackName ?? "Master"} - (${level}-${internalDeviceCount}) - Eq8ToFabfilterProQ3`;
+                devicePresetFiles.push(
+                  new AbletonPresetFile({
+                    filename: fabfilterProQ3OutputFileName,
+                    format: "vstpreset",
+                    content: fabfilterProQ3.write() ?? new Uint8Array(),
+                    pluginName: "FabfilterProQ3",
+                  })
+                );
+
+                Log.Information(
+                  `Generated Fabfilter Pro-Q 3 preset for Eq8: ${fabfilterProQ3OutputFileName}`
+                );
+              } catch (error) {
+                Log.Warning(
+                  `Failed to generate Fabfilter Pro-Q 3 preset for Eq8: ${error instanceof Error ? error.message : error}`
+                );
+              }
             }
 
             break;

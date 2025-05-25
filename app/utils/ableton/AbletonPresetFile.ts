@@ -1,4 +1,4 @@
-type PresetFormat = "text" | "xml" | "fxp" | "unknown";
+type PresetFormat = "text" | "xml" | "fxp" | "vstpreset" | "unknown";
 
 export class AbletonPresetFile {
   readonly filename: string; // Suggested filename without extension
@@ -29,7 +29,7 @@ export class AbletonPresetFile {
   }
 
   static isBinaryFormat(format: PresetFormat): boolean {
-    return format === "fxp" || format === "unknown";
+    return format === "fxp" || format === "vstpreset" || format === "unknown";
   }
 
   static isStringFormat(format: PresetFormat): boolean {
@@ -54,6 +54,8 @@ export class AbletonPresetFile {
         return "xml";
       case "text":
         return "txt";
+      case "vstpreset":
+        return "vstpreset";
       case "unknown":
         return "dat";
     }

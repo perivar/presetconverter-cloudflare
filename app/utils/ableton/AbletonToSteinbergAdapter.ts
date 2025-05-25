@@ -3,11 +3,11 @@ import {
   BandMode2To7,
   SteinbergFrequency,
 } from "../SteinbergFrequency";
-import { AbletonEq8, BandMode } from "./AbletonEq8";
+import { AbletonEq8, BandMode, ChannelMode } from "./AbletonEq8";
 
 export class AbletonToSteinbergAdapter {
   static toSteinbergFrequency(eq: AbletonEq8): SteinbergFrequency {
-    if (eq.Mode !== 0) {
+    if (eq.Mode !== ChannelMode.Stereo) {
       throw new Error(
         `Only Stereo conversion is supported. ChannelMode was ${eq.Mode}!`
       );
