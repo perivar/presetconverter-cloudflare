@@ -21,7 +21,12 @@ export class AbletonLimiter implements AbletonPlugin {
     this.Release = getParam(xElement, "Release", "float", "300");
     this.AutoRelease = getParam(xElement, "AutoRelease", "bool", "false");
     this.LinkChannels = getParam(xElement, "LinkChannels", "bool", "false");
-    this.Lookahead = getParam(xElement, "Lookahead", "int", "0");
+    this.Lookahead = getParam(
+      xElement,
+      "Lookahead",
+      "int",
+      "0"
+    ) as LimiterLookaheadMS;
   }
 
   public hasBeenModified(): boolean {
@@ -37,6 +42,11 @@ export class AbletonLimiter implements AbletonPlugin {
   }
 
   public toString(): string {
-    return `Gain: ${this.Gain.toFixed(2)} dB, Ceiling: ${this.Ceiling.toFixed(2)} dB, Release: ${this.Release.toFixed(2)} ms, AutoRelease: ${this.AutoRelease}, LinkChannels: ${this.LinkChannels}, Lookahead: ${this.Lookahead}`;
+    return `Gain: ${this.Gain.toFixed(2)} dB
+Ceiling: ${this.Ceiling.toFixed(2)} dB
+Release: ${this.Release.toFixed(2)} ms
+AutoRelease: ${this.AutoRelease}
+LinkChannels: ${this.LinkChannels}
+Lookahead: ${LimiterLookaheadMS[this.Lookahead]}`;
   }
 }

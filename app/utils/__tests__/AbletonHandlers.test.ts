@@ -4,6 +4,7 @@ import * as midiFile from "midi-file";
 
 import { puppeteerPlotlyToSVG } from "../../../jest.setup";
 import { AbletonHandlers } from "../ableton/AbletonHandlers";
+import { AbletonPresetFile } from "../ableton/AbletonPresetFile";
 import { convertAutomationToMidi } from "../ableton/Midi";
 import { toPlainObject } from "./helpers/testUtils";
 
@@ -48,24 +49,26 @@ describe("AbletonHandlers", () => {
       JSON.stringify(cvpj, null, 2)
     );
 
-    const abletonLiveDeviceContent = result?.abletonLiveDeviceContent;
-    expect(abletonLiveDeviceContent).not.toBeNull();
+    const devicePresetFiles = result?.devicePresetFiles;
+    expect(devicePresetFiles).not.toBeNull();
+    expect(devicePresetFiles?.length).toBeGreaterThan(0);
 
-    const abletonLivePresets = abletonLiveDeviceContent?.presets;
-    expect(abletonLivePresets?.length).toBeGreaterThan(0);
+    if (devicePresetFiles) {
+      devicePresetFiles.forEach((presetFile, _index) => {
+        const filename = presetFile.filename;
+        const extension = presetFile.getSuggestedExtension();
+        const format = presetFile.format;
+        const tempFilePath = path.join(targetDir, `${filename}.${extension}`);
 
-    if (abletonLivePresets) {
-      abletonLivePresets.forEach((preset, index) => {
-        const suggestedFileName =
-          abletonLiveDeviceContent.suggestedFileName[index];
-        const fileType = abletonLiveDeviceContent.types[index];
-
-        if (preset instanceof Uint8Array) {
-          const tempFilePath = path.join(targetDir, `${suggestedFileName}.fxp`);
-          fs.writeFileSync(tempFilePath, preset);
+        if (AbletonPresetFile.isBinaryFormat(format)) {
+          fs.writeFileSync(tempFilePath, presetFile.getBinaryContent());
+        } else if (AbletonPresetFile.isStringFormat(format)) {
+          fs.writeFileSync(tempFilePath, presetFile.getStringContent());
         } else {
-          const tempFilePath = path.join(targetDir, `${suggestedFileName}.xml`);
-          fs.writeFileSync(tempFilePath, JSON.stringify(preset, null, 2));
+          fs.writeFileSync(
+            tempFilePath,
+            JSON.stringify(presetFile.toJSON(), null, 2)
+          );
         }
       });
     }

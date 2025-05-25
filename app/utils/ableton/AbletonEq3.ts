@@ -6,12 +6,20 @@ export enum FilterSlope {
 }
 
 export class AbletonEq3Band {
+  Number: number; // Band index (0-2)
   Freq: number;
   Gain: number; // Stored in dB
   IsOn: boolean;
   Slope: FilterSlope;
 
-  constructor(freq: number, gain: number, isOn: boolean, slope: FilterSlope) {
+  constructor(
+    number: number,
+    freq: number,
+    gain: number,
+    isOn: boolean,
+    slope: FilterSlope
+  ) {
+    this.Number = number;
     this.Freq = freq;
     this.Gain = gain;
     this.IsOn = isOn;
@@ -19,7 +27,7 @@ export class AbletonEq3Band {
   }
 
   toString(): string {
-    return `Freq: ${this.Freq}, Gain: ${this.Gain.toFixed(2)} dB, Slope: ${FilterSlope[this.Slope]}, On: ${this.IsOn ? "On" : "Off"}`;
+    return `Band: ${this.Number + 1}, ${this.Freq.toFixed(2)} Hz, Gain: ${this.Gain.toFixed(2)} dB, Slope: ${FilterSlope[this.Slope]}, ${this.IsOn ? "On" : "Off"}`;
   }
 }
 
@@ -42,6 +50,7 @@ export class AbletonEq3 implements AbletonPlugin {
     // Directly parse bands using the simplified method
     const bandLow = this.parseBand(
       xElement,
+      0, // Add band index 0 for Low
       "FreqLo",
       "GainLo",
       "LowOn",
@@ -51,6 +60,7 @@ export class AbletonEq3 implements AbletonPlugin {
 
     const bandMid = this.parseBand(
       xElement,
+      1, // Add band index 1 for Mid
       "FreqMid",
       "GainMid",
       "MidOn",
@@ -60,6 +70,7 @@ export class AbletonEq3 implements AbletonPlugin {
 
     const bandHigh = this.parseBand(
       xElement,
+      2, // Add band index 2 for High
       "FreqHi",
       "GainHi",
       "HighOn",
@@ -68,8 +79,13 @@ export class AbletonEq3 implements AbletonPlugin {
     if (bandHigh) this.Bands.push(bandHigh);
   }
 
+  toString(): string {
+    return this.Bands.map(band => band.toString()).join("\n");
+  }
+
   private parseBand(
     xElement: any, // Allow any type from parser
+    bandIndex: number, // Add band index
     freqName: string,
     gainName: string,
     onName: string,
@@ -99,7 +115,7 @@ export class AbletonEq3 implements AbletonPlugin {
       return null; // Or handle error appropriately
     }
 
-    return new AbletonEq3Band(freq, gain, isOn, slope);
+    return new AbletonEq3Band(bandIndex, freq, gain, isOn, slope); // Add bandIndex
   }
 
   /**

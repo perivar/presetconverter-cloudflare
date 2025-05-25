@@ -61,11 +61,26 @@ export class AbletonAutoPan implements AbletonPlugin {
   public LfoShape: number; // 0,00 - 1,00 = 0 - 100%
 
   constructor(xElement: any) {
-    this.Type = getParam(xElement?.Lfo, "Type", "int", "0");
+    this.Type = getParam(xElement?.Lfo, "Type", "int", "0") as LfoWaveformType;
     this.Frequency = getParam(xElement?.Lfo, "Frequency", "float", "0");
-    this.RateType = getParam(xElement?.Lfo, "RateType", "int", "0");
-    this.BeatRate = getParam(xElement?.Lfo, "BeatRate", "int", "0");
-    this.StereoMode = getParam(xElement?.Lfo, "StereoMode", "int", "0");
+    this.RateType = getParam(
+      xElement?.Lfo,
+      "RateType",
+      "int",
+      "0"
+    ) as LFORateType;
+    this.BeatRate = getParam(
+      xElement?.Lfo,
+      "BeatRate",
+      "int",
+      "0"
+    ) as LFOBeatRate;
+    this.StereoMode = getParam(
+      xElement?.Lfo,
+      "StereoMode",
+      "int",
+      "0"
+    ) as LFOStereoMode;
     this.Spin = getParam(xElement?.Lfo, "Spin", "float", "0");
     this.Phase = getParam(xElement?.Lfo, "Phase", "float", "180");
     this.Offset = getParam(xElement?.Lfo, "Offset", "float", "0");
@@ -100,6 +115,20 @@ export class AbletonAutoPan implements AbletonPlugin {
   }
 
   public toString(): string {
-    return `Type: ${this.Type}\nFrequency: ${this.Frequency.toFixed(2)} Hz \nRateType: ${this.RateType}\nBeatRate: ${this.BeatRate}\nStereoMode: ${this.StereoMode}\nSpin: ${this.Spin.toFixed(2)} %\nPhase: ${this.Phase.toFixed(2)} °\nOffset: ${this.Offset.toFixed(2)} °\nIsOn: ${this.IsOn}\nQuantize: ${this.Quantize}\nBeatQuantize: ${this.BeatQuantize.toFixed(2)}\nNoiseWidth: ${this.NoiseWidth.toFixed(2)} %\nLfoAmount: ${this.LfoAmount.toFixed(2)} %\nLfoInvert: ${this.LfoInvert}\nLfoShape: ${this.LfoShape.toFixed(2)} %`;
+    return `Type: ${LfoWaveformType[this.Type]}
+Frequency: ${this.Frequency.toFixed(2)} Hz
+RateType: ${LFORateType[this.RateType]}
+BeatRate: ${LFOBeatRate[this.BeatRate]}
+StereoMode: ${LFOStereoMode[this.StereoMode]}
+Spin: ${this.Spin.toFixed(2)} %
+Phase: ${this.Phase.toFixed(2)} °
+Offset: ${this.Offset.toFixed(2)} °
+IsOn: ${this.IsOn}
+Quantize: ${this.Quantize}
+BeatQuantize: ${this.BeatQuantize.toFixed(2)}
+NoiseWidth: ${this.NoiseWidth.toFixed(2)} %
+LfoAmount: ${this.LfoAmount.toFixed(2)} %
+LfoInvert: ${this.LfoInvert}
+LfoShape: ${this.LfoShape.toFixed(2)} %`;
   }
 }

@@ -55,31 +55,21 @@ export class AbletonEq8 implements AbletonPlugin {
 
   constructor(xElement: any) {
     // Allow any for flexibility
-    // Parse Channel Mode
-    this.Mode = (xElement?.EditMode?.Manual?.["@_Value"] ?? 0) as ChannelMode;
+    // Parse Channel Mode from <Mode Value="...">
+    this.Mode =
+      (parseInt(xElement?.Mode?.["@_Value"] ?? "0", 10) as ChannelMode) ??
+      ChannelMode.Stereo;
 
     // --- Parse Bands ---
-    // Assuming bands are in an array structure like xElement.Bands.Band
-    // or potentially directly under xElement if parser flattens single-element arrays.
-    // We need to find the actual band elements.
-    // Let's look for a common structure like <Bands><Band>...</Band>...</Bands>
-    // or potentially named elements like <Band.0>, <Band.1> etc.
-
     const bandElements: any[] = [];
-    if (xElement?.Bands?.Band) {
-      // Structure: <Bands><Band>...</Band><Band>...</Band></Bands>
-      const bands = xElement.Bands.Band;
-      bandElements.push(...(Array.isArray(bands) ? bands : [bands]));
-    } else {
-      // Fallback: Look for elements named like Band.0, Band.1, ... Band.7 directly under xElement
-      for (let i = 0; i < 8; i++) {
-        const bandKey = `Band.${i}`;
-        if (xElement?.[bandKey]) {
-          // Add the band index info if not present in the element itself
-          const bandData = xElement[bandKey];
-          bandData._index = i; // Store index for parseBand
-          bandElements.push(bandData);
-        }
+    // Look for elements named like Band.0, Band.1, ... Band.7 directly under xElement
+    for (let i = 0; i < 8; i++) {
+      const bandKey = `Bands.${i}`;
+      if (xElement?.[bandKey]) {
+        // Add the band index info if not present in the element itself
+        const bandData = xElement[bandKey];
+        bandData._index = i; // Store index for parseBand
+        bandElements.push(bandData);
       }
     }
 
@@ -109,6 +99,10 @@ export class AbletonEq8 implements AbletonPlugin {
 
     // Sort bands by number just in case parsing order wasn't guaranteed
     this.Bands.sort((a, b) => a.Number - b.Number);
+  }
+
+  toString(): string {
+    return this.Bands.map(band => band.toString()).join("\n");
   }
 
   private parseBand(

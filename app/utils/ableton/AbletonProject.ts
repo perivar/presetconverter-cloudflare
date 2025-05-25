@@ -11,7 +11,7 @@ import { AbletonEq8 } from "./AbletonEq8";
 import { AbletonFunctions } from "./AbletonFunctions";
 import { AbletonGlueCompressor } from "./AbletonGlueCompressor";
 import { AbletonLimiter } from "./AbletonLimiter";
-import { AbletonPlugin } from "./AbletonPlugin";
+import { AbletonPresetFile } from "./AbletonPresetFile";
 import { DataValues } from "./DataValues";
 import { Log } from "./Log";
 // Import MIDI functions
@@ -30,13 +30,7 @@ import {
 export interface AbletonLiveContent {
   uniqueAudioClipList: Set<string>; // Holds unique audio clip names
   cvpj: any; // Holds the converted project data
-  abletonLiveDeviceContent: AbletonLiveDeviceContent;
-}
-
-export interface AbletonLiveDeviceContent {
-  suggestedFileName: string[];
-  types: string[]; // names of the found plugins, e.g., "AbletonCompressor"
-  presets: Array<string | AbletonPlugin | Uint8Array | null>; // and xml string, an ableton plugin or a Uint8Array
+  devicePresetFiles: AbletonPresetFile[]; // Holds the device presets
 }
 
 export class AbletonProject {
@@ -282,11 +276,7 @@ export class AbletonProject {
     };
 
     // Initialize the device data structure
-    const abletonLiveDeviceContent: AbletonLiveDeviceContent = {
-      suggestedFileName: [],
-      types: [],
-      presets: [],
-    };
+    const devicePresetFiles: AbletonPresetFile[] = []; // Holds device preset files
 
     // --- Master Track Processing ---
     const xMasterTrack = xLiveSet.MasterTrack;
@@ -308,7 +298,7 @@ export class AbletonProject {
           ["master", "master_1"], // Location identifier for master
           fileName,
           1, // Level 1
-          abletonLiveDeviceContent,
+          devicePresetFiles,
           doVerbose
         );
       }
@@ -885,7 +875,7 @@ export class AbletonProject {
             fxLoc, // Location identifier (e.g., ["track", "midi_123"])
             fileName,
             1, // Start at level 1 for track devices
-            abletonLiveDeviceContent,
+            devicePresetFiles,
             doVerbose
           );
         }
@@ -910,7 +900,7 @@ export class AbletonProject {
     return {
       uniqueAudioClipList,
       cvpj: jsonCompatibleCvpj,
-      abletonLiveDeviceContent,
+      devicePresetFiles,
     } as AbletonLiveContent;
   }
 
@@ -1146,7 +1136,7 @@ export class AbletonProject {
     fxLoc: string[], // Location identifier (e.g., ["track", "midi_123"])
     fileName: string, // Original filename for context
     level: number = 1, // Recursion level for groups
-    abletonLiveDeviceContent: AbletonLiveDeviceContent,
+    devicePresetFiles: AbletonPresetFile[],
     doVerbose?: boolean
   ): void {
     // Path for MasterTrack: Ableton/LiveSet/MasterTrack/DeviceChain/DeviceChain/Devices/*
@@ -1254,10 +1244,19 @@ export class AbletonProject {
             Log.Information(`Processing ${deviceType}`);
 
             const eq3 = new AbletonEq3(deviceElement);
-            const outputFileNameBase = `${fileNameNoExtension} - ${trackName ?? "Master"} - (${level}-${internalDeviceCount}) - ${deviceType}`;
-            abletonLiveDeviceContent.types.push(eq3.constructor.name);
-            abletonLiveDeviceContent.suggestedFileName.push(outputFileNameBase);
-            abletonLiveDeviceContent.presets.push(eq3);
+
+            // Only add if modified
+            if (eq3.hasBeenModified()) {
+              const outputFileNameBase = `${fileNameNoExtension} - ${trackName ?? "Master"} - (${level}-${internalDeviceCount}) - ${deviceType}`;
+              devicePresetFiles.push(
+                new AbletonPresetFile({
+                  filename: outputFileNameBase,
+                  format: "text",
+                  content: eq3.toString(),
+                  pluginName: eq3.constructor.name,
+                })
+              );
+            }
 
             break;
           }
@@ -1265,10 +1264,19 @@ export class AbletonProject {
             Log.Information(`Processing ${deviceType}`);
 
             const eq8 = new AbletonEq8(deviceElement);
-            const outputFileNameBase = `${fileNameNoExtension} - ${trackName ?? "Master"} - (${level}-${internalDeviceCount}) - ${deviceType}`;
-            abletonLiveDeviceContent.types.push(eq8.constructor.name);
-            abletonLiveDeviceContent.suggestedFileName.push(outputFileNameBase);
-            abletonLiveDeviceContent.presets.push(eq8);
+
+            // Only add if modified
+            if (eq8.hasBeenModified()) {
+              const outputFileNameBase = `${fileNameNoExtension} - ${trackName ?? "Master"} - (${level}-${internalDeviceCount}) - ${deviceType}`;
+              devicePresetFiles.push(
+                new AbletonPresetFile({
+                  filename: outputFileNameBase,
+                  format: "text",
+                  content: eq8.toString(),
+                  pluginName: eq8.constructor.name,
+                })
+              );
+            }
 
             break;
           }
@@ -1276,10 +1284,19 @@ export class AbletonProject {
             Log.Information(`Processing ${deviceType}`);
 
             const compressor = new AbletonCompressor(deviceElement);
-            const outputFileNameBase = `${fileNameNoExtension} - ${trackName ?? "Master"} - (${level}-${internalDeviceCount}) - ${deviceType}`;
-            abletonLiveDeviceContent.types.push(compressor.constructor.name);
-            abletonLiveDeviceContent.suggestedFileName.push(outputFileNameBase);
-            abletonLiveDeviceContent.presets.push(compressor);
+
+            // Only add if modified
+            if (compressor.hasBeenModified()) {
+              const outputFileNameBase = `${fileNameNoExtension} - ${trackName ?? "Master"} - (${level}-${internalDeviceCount}) - ${deviceType}`;
+              devicePresetFiles.push(
+                new AbletonPresetFile({
+                  filename: outputFileNameBase,
+                  format: "text",
+                  content: compressor.toString(),
+                  pluginName: compressor.constructor.name,
+                })
+              );
+            }
 
             break;
           }
@@ -1287,25 +1304,38 @@ export class AbletonProject {
             Log.Information(`Processing ${deviceType}`);
 
             const glueCompressor = new AbletonGlueCompressor(deviceElement);
-            const outputFileNameBase = `${fileNameNoExtension} - ${trackName ?? "Master"} - (${level}-${internalDeviceCount}) - ${deviceType}`;
-            abletonLiveDeviceContent.types.push(
-              glueCompressor.constructor.name
-            );
-            abletonLiveDeviceContent.suggestedFileName.push(outputFileNameBase);
-            abletonLiveDeviceContent.presets.push(glueCompressor);
 
+            // Only add if modified
+            if (glueCompressor.hasBeenModified()) {
+              const outputFileNameBase = `${fileNameNoExtension} - ${trackName ?? "Master"} - (${level}-${internalDeviceCount}) - ${deviceType}`;
+              devicePresetFiles.push(
+                new AbletonPresetFile({
+                  filename: outputFileNameBase,
+                  format: "text",
+                  content: glueCompressor.toString(),
+                  pluginName: glueCompressor.constructor.name,
+                })
+              );
+            }
             break;
           }
           case "Limiter": {
             Log.Information(`Processing ${deviceType}`);
 
             const abletonLimiter = new AbletonLimiter(deviceElement);
-            const outputFileNameBase = `${fileNameNoExtension} - ${trackName ?? "Master"} - (${level}-${internalDeviceCount}) - ${deviceType}`;
-            abletonLiveDeviceContent.types.push(
-              abletonLimiter.constructor.name
-            );
-            abletonLiveDeviceContent.suggestedFileName.push(outputFileNameBase);
-            abletonLiveDeviceContent.presets.push(abletonLimiter);
+
+            // Only add if modified
+            if (abletonLimiter.hasBeenModified()) {
+              const outputFileNameBase = `${fileNameNoExtension} - ${trackName ?? "Master"} - (${level}-${internalDeviceCount}) - ${deviceType}`;
+              devicePresetFiles.push(
+                new AbletonPresetFile({
+                  filename: outputFileNameBase,
+                  format: "text",
+                  content: abletonLimiter.toString(),
+                  pluginName: abletonLimiter.constructor.name,
+                })
+              );
+            }
 
             break;
           }
@@ -1313,12 +1343,19 @@ export class AbletonProject {
             Log.Information(`Processing ${deviceType}`);
 
             const abletonAutoPan = new AbletonAutoPan(deviceElement);
-            const outputFileNameBase = `${fileNameNoExtension} - ${trackName ?? "Master"} - (${level}-${internalDeviceCount}) - ${deviceType}`;
-            abletonLiveDeviceContent.types.push(
-              abletonAutoPan.constructor.name
-            );
-            abletonLiveDeviceContent.suggestedFileName.push(outputFileNameBase);
-            abletonLiveDeviceContent.presets.push(abletonAutoPan);
+
+            // Only add if modified
+            if (abletonAutoPan.hasBeenModified()) {
+              const outputFileNameBase = `${fileNameNoExtension} - ${trackName ?? "Master"} - (${level}-${internalDeviceCount}) - ${deviceType}`;
+              devicePresetFiles.push(
+                new AbletonPresetFile({
+                  filename: outputFileNameBase,
+                  format: "text",
+                  content: abletonAutoPan.toString(),
+                  pluginName: abletonAutoPan.constructor.name,
+                })
+              );
+            }
 
             break;
           }
@@ -1354,27 +1391,27 @@ export class AbletonProject {
 
               const outputFileNameBase = `${fileNameNoExtension} - ${trackName ?? "Master"} - (${level}-${internalDeviceCount}) - ${vstPlugName}`;
 
-              abletonLiveDeviceContent.types.push(vstPlugName);
-              abletonLiveDeviceContent.suggestedFileName.push(
-                outputFileNameBase
-              );
+              const pluginPresetFile = new AbletonPresetFile({
+                filename: outputFileNameBase,
+                format: fxpBytes ? "fxp" : "unknown",
+                content: fxpBytes ?? vstPluginBufferBytes, // Use original buffer if FXP conversion fails
+                pluginName: vstPlugName,
+              });
+              devicePresetFiles.push(pluginPresetFile);
 
               if (fxpBytes) {
                 Log.Information(
                   `Successfully converted VST Preset '${vstPlugName}' to FXP bytes. Handle bytes for: ${outputFileNameBase}`
                 );
-                abletonLiveDeviceContent.presets.push(fxpBytes);
               } else {
                 Log.Warning(
                   `FXP conversion failed or plugin not recognized for '${vstPlugName}'.`
                 );
-                abletonLiveDeviceContent.presets.push(null);
               }
             } else {
               Log.Information(
                 `VST Plugin '${vstPlugName}' has empty preset buffer.`
               );
-              abletonLiveDeviceContent.presets.push(null);
             }
             break;
           }
@@ -1420,7 +1457,7 @@ export class AbletonProject {
                   fxLoc, // Keep the same track location context
                   fileName,
                   level + 1, // Increment level
-                  abletonLiveDeviceContent,
+                  devicePresetFiles,
                   doVerbose
                 );
               } else {
@@ -1434,16 +1471,42 @@ export class AbletonProject {
             break;
           }
           case "MidiPitcher": {
+            Log.Information(`Processing ${deviceType}`);
+
             // read <Pitch><Manual Value="0" />
-            Log.Information(
-              `Placeholder for MidiPitcher processing: ${userName || deviceType}`
-            );
-            // TODO: Implement MidiPitcher parsing
+            const xPitch = deviceElement?.Pitch;
+            const xPitchValue = xPitch?.Manual;
+            if (xPitchValue) {
+              const pitchValue = parseFloat(getAttr(xPitchValue, "Value", "0"));
+
+              if (pitchValue !== 0) {
+                const outputFileNameBase = `${fileNameNoExtension} - ${trackName ?? "Master"} - (${level}-${internalDeviceCount}) - ${deviceType} (${pitchValue})`;
+
+                Log.Information(
+                  `Creating ${deviceType} Preset: ${outputFileNameBase}`
+                );
+
+                const deviceElementAsString = toXmlString({
+                  [deviceType]: deviceElement,
+                });
+
+                const pluginPresetFile = new AbletonPresetFile({
+                  filename: outputFileNameBase,
+                  format: "xml",
+                  content: deviceElementAsString,
+                  pluginName: deviceType,
+                });
+
+                devicePresetFiles.push(pluginPresetFile);
+              }
+            }
+
             break;
           }
           default: {
-            const outputFileNameBase = `${fileNameNoExtension} - ${trackName ?? "Master"} - (${level}-${internalDeviceCount}) - ${deviceType}`;
             if (userName) {
+              const outputFileNameBase = `${fileNameNoExtension} - ${trackName ?? "Master"} - (${level}-${internalDeviceCount}) - ${deviceType} - ${userName}`;
+
               // we are likely processing an .adv preset file
               // We will attempt to get FXP bytes using getInnerValueAsByteArray and getAsFXP.
               const xFileRef = deviceElement?.Descendants?.FileRef; // Assuming Descendants is an object/property
@@ -1457,43 +1520,48 @@ export class AbletonProject {
                   extractBeforeSpace(userName) // Use userName as plugin name heuristic
                 );
 
-                abletonLiveDeviceContent.types.push(deviceType);
-                abletonLiveDeviceContent.suggestedFileName.push(
-                  outputFileNameBase
-                );
+                const pluginPresetFile = new AbletonPresetFile({
+                  filename: outputFileNameBase,
+                  format: fxpBytes ? "fxp" : "unknown",
+                  content: fxpBytes ?? vstBytes, // Use original buffer if FXP conversion fails
+                  pluginName: userName,
+                });
+                devicePresetFiles.push(pluginPresetFile);
 
                 if (fxpBytes) {
                   Log.Information(
                     `Successfully converted Device/Preset (from UserName): ${userName} (${deviceType}) to FXP bytes. Handle bytes for: ${outputFileNameBase}`
                   );
-                  abletonLiveDeviceContent.presets.push(fxpBytes);
                 } else {
                   Log.Warning(
                     `FXP conversion failed or plugin not recognized for Device/Preset (from UserName): '${userName}' (${deviceType}).`
                   );
-                  abletonLiveDeviceContent.presets.push(null);
                 }
               } else {
                 Log.Information(
                   `Device/Preset (from UserName): '${userName}' (${deviceType}) has empty buffer.`
                 );
-                abletonLiveDeviceContent.presets.push(null);
               }
             } else {
+              const outputFileNameBase = `${fileNameNoExtension} - ${trackName ?? "Master"} - (${level}-${internalDeviceCount}) - ${deviceType}`;
+
               // Handle other device types generically
               Log.Information(
                 `Processing Generic/Unhandled Device: ${deviceType} - Path: ${outputFileNameBase}`
               );
 
-              abletonLiveDeviceContent.types.push(deviceType);
-              abletonLiveDeviceContent.suggestedFileName.push(
-                outputFileNameBase
-              );
-
               const deviceElementAsString = toXmlString({
                 [deviceType]: deviceElement,
               });
-              abletonLiveDeviceContent.presets.push(deviceElementAsString);
+
+              const pluginPresetFile = new AbletonPresetFile({
+                filename: outputFileNameBase,
+                format: "xml", // Assuming generic devices can be represented as XML
+                content: deviceElementAsString,
+                pluginName: deviceType,
+              });
+
+              devicePresetFiles.push(pluginPresetFile);
             }
             break;
           }

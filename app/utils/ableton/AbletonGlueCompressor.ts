@@ -41,9 +41,24 @@ export class AbletonGlueCompressor implements AbletonPlugin {
     this.Threshold = getParam(xElement, "Threshold", "float", "0");
     this.Range = getParam(xElement, "Range", "float", "0");
     this.Makeup = getParam(xElement, "Makeup", "float", "0");
-    this.Attack = getParam(xElement, "Attack", "int", "0");
-    this.Ratio = getParam(xElement, "Ratio", "int", "0");
-    this.Release = getParam(xElement, "Release", "int", "0");
+    this.Attack = getParam(
+      xElement,
+      "Attack",
+      "int",
+      "0"
+    ) as GlueCompressorAttackType;
+    this.Ratio = getParam(
+      xElement,
+      "Ratio",
+      "int",
+      "0"
+    ) as GlueCompressorRatioType;
+    this.Release = getParam(
+      xElement,
+      "Release",
+      "int",
+      "0"
+    ) as GlueCompressorReleaseType;
     this.DryWet = getParam(xElement, "DryWet", "float", "0");
     this.PeakClipIn = getParam(xElement, "PeakClipIn", "bool", "false");
   }
@@ -53,6 +68,13 @@ export class AbletonGlueCompressor implements AbletonPlugin {
   }
 
   public toString(): string {
-    return `Threshold: ${this.Threshold.toFixed(2)}, Range: ${this.Range.toFixed(2)}, Makeup: ${this.Makeup.toFixed(2)}, Attack: ${this.Attack}, Ratio: ${this.Ratio}, Release: ${this.Release}, DryWet: ${this.DryWet.toFixed(2)}, PeakClipIn: ${this.PeakClipIn}`;
+    return `Threshold: ${this.Threshold.toFixed(2)}
+Range: ${this.Range.toFixed(2)}
+Makeup: ${this.Makeup.toFixed(2)}
+Attack: ${GlueCompressorAttackType[this.Attack]}
+Ratio: ${GlueCompressorRatioType[this.Ratio]}
+Release: ${GlueCompressorReleaseType[this.Release]}
+DryWet: ${this.DryWet.toFixed(2)}
+PeakClipIn: ${this.PeakClipIn}`;
   }
 }
