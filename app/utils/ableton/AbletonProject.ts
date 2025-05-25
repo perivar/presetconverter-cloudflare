@@ -3,7 +3,7 @@ import {
   extractBeforeSpace,
   getFileNameWithoutExtension,
 } from "../StringUtils";
-import { AbletonAutoPan } from "./AbletonAutoPan";
+import { AbletonAutoPan, LFOBeatRate, LFORateType } from "./AbletonAutoPan";
 // Add imports for the new plugin classes
 import { AbletonCompressor } from "./AbletonCompressor";
 import { AbletonEq3 } from "./AbletonEq3";
@@ -1346,7 +1346,12 @@ export class AbletonProject {
 
             // Only add if modified
             if (abletonAutoPan.hasBeenModified()) {
-              const outputFileNameBase = `${fileNameNoExtension} - ${trackName ?? "Master"} - (${level}-${internalDeviceCount}) - ${deviceType}`;
+              let outputFileNameBase = `${fileNameNoExtension} - ${trackName ?? "Master"} - (${level}-${internalDeviceCount})`;
+              if (abletonAutoPan.RateType === LFORateType.TempoSync) {
+                outputFileNameBase = `${outputFileNameBase} - ${deviceType} - ${LFOBeatRate[abletonAutoPan.BeatRate]}`;
+              } else {
+                outputFileNameBase = `${outputFileNameBase} - ${deviceType} - ${abletonAutoPan.Frequency.toFixed(2)}hz`;
+              }
               devicePresetFiles.push(
                 new AbletonPresetFile({
                   filename: outputFileNameBase,
