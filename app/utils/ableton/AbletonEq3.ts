@@ -1,4 +1,5 @@
-// app/utils/AbletonEq3.ts (Simplified)
+import { AbletonPlugin } from "./AbletonPlugin";
+
 export enum FilterSlope {
   Slope24 = 0,
   Slope48 = 1,
@@ -22,7 +23,7 @@ export class AbletonEq3Band {
   }
 }
 
-export class AbletonEq3 {
+export class AbletonEq3 implements AbletonPlugin {
   Bands: AbletonEq3Band[] = [];
 
   // --- Static Conversion Methods (Unchanged) ---

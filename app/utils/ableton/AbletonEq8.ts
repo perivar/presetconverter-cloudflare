@@ -1,4 +1,5 @@
-// app/utils/AbletonEq8.ts (Simplified)
+import { AbletonPlugin } from "./AbletonPlugin";
+
 export enum BandMode {
   LowCut48 = 0,
   LowCut12 = 1,
@@ -48,7 +49,7 @@ export class AbletonEq8Band {
   }
 }
 
-export class AbletonEq8 {
+export class AbletonEq8 implements AbletonPlugin {
   Mode: ChannelMode = ChannelMode.Stereo;
   Bands: AbletonEq8Band[] = [];
 

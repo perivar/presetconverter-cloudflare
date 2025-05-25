@@ -1,12 +1,8 @@
 import { XMLParser, XMLValidator } from "fast-xml-parser"; // Import necessary classes
 
 import { IOUtils } from "../IOUtils"; // Import IOUtils
-import { AbletonProject } from "./AbletonProject";
+import { AbletonLiveContent, AbletonProject } from "./AbletonProject";
 import { Log } from "./Log"; // Assuming Log is needed
-
-// Assuming File and Path equivalents exist or are handled appropriately in the TS environment
-// For XML parsing, AbletonProject already uses 'fast-xml-parser'.
-// For encoding, Node.js 'buffer' or 'text-encoding' might be used, or assume UTF-8 string from file read.
 
 export class AbletonHandlers {
   /**
@@ -22,7 +18,7 @@ export class AbletonHandlers {
     fileName: string,
     doList: boolean, // Not fully used in TS port yet
     doVerbose: boolean
-  ): any {
+  ): AbletonLiveContent | null {
     Log.Information(`Handling Ableton Live Project: ${fileName}`);
 
     try {
@@ -57,11 +53,13 @@ export class AbletonHandlers {
         return convertedProject;
       } else {
         Log.Error(`Failed to process Ableton Live Project: ${fileName}`);
+        return null; // Return null if processing failed
       }
     } catch (error) {
       Log.Error(
         `Error handling Ableton Live Project (${fileName}): ${error instanceof Error ? error.message : error}`
       );
+      return null; // Return null if processing failed
     }
   }
 

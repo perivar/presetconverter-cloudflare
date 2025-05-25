@@ -41,10 +41,34 @@ describe("AbletonHandlers", () => {
 
     expect(result).toBeDefined();
 
+    const cvpj = result?.cvpj;
+
     fs.writeFileSync(
       path.join(targetDir, "ableton_output_pre_convert.json"),
-      JSON.stringify(result, null, 2)
+      JSON.stringify(cvpj, null, 2)
     );
+
+    const abletonLiveDeviceContent = result?.abletonLiveDeviceContent;
+    expect(abletonLiveDeviceContent).not.toBeNull();
+
+    const abletonLivePresets = abletonLiveDeviceContent?.presets;
+    expect(abletonLivePresets?.length).toBeGreaterThan(0);
+
+    if (abletonLivePresets) {
+      abletonLivePresets.forEach((preset, index) => {
+        const suggestedFileName =
+          abletonLiveDeviceContent.suggestedFileName[index];
+        const fileType = abletonLiveDeviceContent.types[index];
+
+        if (preset instanceof Uint8Array) {
+          const tempFilePath = path.join(targetDir, `${suggestedFileName}.fxp`);
+          fs.writeFileSync(tempFilePath, preset);
+        } else {
+          const tempFilePath = path.join(targetDir, `${suggestedFileName}.xml`);
+          fs.writeFileSync(tempFilePath, JSON.stringify(preset, null, 2));
+        }
+      });
+    }
   });
 
   test("should convert Ableton Live Project file automation", async () => {
@@ -64,8 +88,12 @@ describe("AbletonHandlers", () => {
       doVerbose
     );
 
+    expect(result).toBeDefined();
+
+    const cvpj = result?.cvpj;
+
     const midiAutomationConversionResult = convertAutomationToMidi(
-      result,
+      cvpj,
       fileName,
       true
     );

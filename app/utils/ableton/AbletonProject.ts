@@ -1,119 +1,47 @@
-import { XMLParser, XMLValidator } from "fast-xml-parser";
-
 import { FXP } from "../FXP";
 import {
   extractBeforeSpace,
   getFileNameWithoutExtension,
 } from "../StringUtils";
+import { AbletonAutoPan } from "./AbletonAutoPan";
+// Add imports for the new plugin classes
+import { AbletonCompressor } from "./AbletonCompressor";
 import { AbletonEq3 } from "./AbletonEq3";
 import { AbletonEq8 } from "./AbletonEq8";
+import { AbletonGlueCompressor } from "./AbletonGlueCompressor";
+import { AbletonLimiter } from "./AbletonLimiter";
+import { AbletonPlugin } from "./AbletonPlugin";
 import { Log } from "./Log";
 // Import MIDI functions
 import {
+  getAttr,
   getElementByPath,
   getInnerValueAsByteArray,
+  getParam,
+  getValue,
+  parseXml,
   splitPath,
+  toXmlString,
+  validateXml,
 } from "./XMLUtils";
 
+export interface AbletonLiveContent {
+  uniqueAudioClipList: Set<string>; // Holds unique audio clip names
+  cvpj: any; // Holds the converted project data
+  abletonLiveDeviceContent: AbletonLiveDeviceContent;
+}
+
+export interface AbletonLiveDeviceContent {
+  suggestedFileName: string[];
+  types: string[]; // names of the found plugins, e.g., "AbletonCompressor"
+  presets: Array<string | AbletonPlugin | Uint8Array>; // and xml string, an ableton plugin or a Uint8Array
+}
+
 export class AbletonProject {
-  // Use Map for easier key-value access compared to C#'s SortedDictionary
   // added another lookup table: automationTargetLookup
   // instead of the original code in DawVert which used inData as a full automation lookup object
   private static inData = new Map<number, any[]>();
   private static automationTargetLookup = new Map<number, any>();
-
-  /** Helper to get an attribute value from a fast-xml-parser element */
-  private static getAttr(
-    element: any,
-    attrName: string,
-    fallback: string
-  ): string {
-    if (element && typeof element === "object") {
-      const attr = element[`@_${attrName}`];
-      // Check for null or undefined explicitly
-      if (attr !== undefined && attr !== null) {
-        return String(attr);
-      }
-    }
-    return fallback;
-  }
-
-  /** Helper to get the Value attribute from a specific child element */
-  private static getValue(
-    xmlData: any,
-    varName: string,
-    fallback: string
-  ): string {
-    if (!xmlData) return fallback;
-    // fast-xml-parser structure: xmlData might contain the varName directly
-    const element = xmlData[varName];
-    // Pass the found element (or undefined) to getAttr
-    return this.getAttr(element, "Value", fallback);
-  }
-
-  /** Helper to get the Id attribute from a specific child element */
-  private static getId(
-    xmlData: any,
-    varName: string,
-    fallback: string
-  ): string {
-    if (!xmlData) return fallback;
-    const element = xmlData[varName];
-    return this.getAttr(element, "Id", fallback);
-  }
-
-  /** Converts a string value to a specified type */
-  private static useValueType(valType: string, val: string): any {
-    switch (valType) {
-      case "string":
-        return val;
-      case "float":
-        // Use parseFloat and check for NaN
-        const floatVal = parseFloat(val);
-        return isNaN(floatVal) ? 0.0 : floatVal;
-      case "int":
-        // Use parseInt with radix 10 and check for NaN
-        const intVal = parseInt(val, 10);
-        return isNaN(intVal) ? 0 : intVal;
-      case "bool":
-        // Case-insensitive comparison for boolean
-        return val?.toLowerCase() === "true";
-      default:
-        // Add more cases as needed
-        Log.Warning(`Unsupported value type: ${valType}. Returning string.`);
-        return val;
-    }
-  }
-
-  /** Gets a parameter value, handling potential automation targets (though automation target definition is simplified) */
-  private static getParam(
-    xmlData: any,
-    varName: string,
-    varType: string,
-    fallback: string
-    // loc and addMul parameters from C# are omitted as automation definition is simplified
-  ): any {
-    // Find the specific child element
-    const xElement = xmlData ? xmlData[varName] : undefined;
-
-    if (xElement) {
-      // Get the 'Manual' value from the child element
-      const manualValue = this.getValue(xElement, "Manual", fallback);
-
-      // Changed the original automation lookup code
-      // so InDefine is no longer used
-      // const autoNumIdStr = this.getId(xElement, "AutomationTarget", "0");
-      // const autoNumId = parseInt(autoNumIdStr, 10);
-      // if (!isNaN(autoNumId) && autoNumId !== 0) {
-      //   InDefine(autoNumId, loc, varType, addMul);
-      // }
-
-      return this.useValueType(varType, manualValue);
-    } else {
-      // If the element doesn't exist, return the fallback converted to the target type
-      return this.useValueType(varType, fallback);
-    }
-  }
 
   /** Adds a list of automation points (autoPointList) for a specific automation target ID */
   private static inAddPointList(id: number, autoPointList: any): void {
@@ -210,7 +138,7 @@ export class AbletonProject {
     fileName: string, // Filename for context
     doList: boolean, // Not used in this simplified version
     doVerbose: boolean // Controls verbose logging
-  ): any | null {
+  ): AbletonLiveContent | null {
     // all credits go to SatyrDiamond and the DawVert code
     // https://raw.githubusercontent.com/SatyrDiamond/DawVert/main/plugin_input/r_ableton.py
     Log.Information(
@@ -220,23 +148,17 @@ export class AbletonProject {
     this.inData.clear();
     this.automationTargetLookup.clear();
 
-    const parser = new XMLParser({
-      ignoreAttributes: false, // Need attributes like @_Value, @_Id
-      attributeNamePrefix: "@_", // Standard prefix
-      parseAttributeValue: true, // Attempt to parse numbers/booleans in attributes
-      // Consider other options if needed, e.g., arrayNodeName for consistent array handling
-    });
     let rootXElement: any;
     try {
       // Basic validation check
-      const validationResult = XMLValidator.validate(xmlString);
+      const validationResult = validateXml(xmlString);
       if (validationResult !== true) {
         // Log validation errors if needed: validationResult.err
         Log.Warning(
           `XML structure validation failed: ${validationResult.err?.msg}. Attempting to parse anyway.`
         );
       }
-      rootXElement = parser.parse(xmlString);
+      rootXElement = parseXml(xmlString);
     } catch (error) {
       Log.Error(
         `XML Parsing Error: ${error instanceof Error ? error.message : error}`
@@ -251,7 +173,7 @@ export class AbletonProject {
     }
 
     // Check Ableton version
-    const abletonVersion = this.getAttr(abletonRoot, "MinorVersion", "").split(
+    const abletonVersion = getAttr(abletonRoot, "MinorVersion", "").split(
       "."
     )[0];
     if (abletonVersion !== "11") {
@@ -357,6 +279,13 @@ export class AbletonProject {
       automation: {},
     };
 
+    // Initialize the device data structure
+    const abletonLiveDeviceContent: AbletonLiveDeviceContent = {
+      suggestedFileName: [],
+      types: [],
+      presets: [],
+    };
+
     // --- Master Track Processing ---
     const xMasterTrack = xLiveSet.MasterTrack;
     if (xMasterTrack) {
@@ -377,18 +306,19 @@ export class AbletonProject {
           ["master", "master_1"], // Location identifier for master
           fileName,
           1, // Level 1
+          abletonLiveDeviceContent,
           doVerbose
         );
       }
 
       // Get Master Track properties
-      const mastertrackName = this.getValue(
+      const mastertrackName = getValue(
         xMasterTrack.Name, // Pass the Name element itself
         "EffectiveName",
         "Master"
       );
       const mastertrackColorIndex = parseInt(
-        this.getValue(xMasterTrack, "Color", "0") // Get Color directly from MasterTrack
+        getValue(xMasterTrack, "Color", "0") // Get Color directly from MasterTrack
       );
       const mastertrackColor = colorlistOne[mastertrackColorIndex] ?? [
         1.0,
@@ -397,19 +327,14 @@ export class AbletonProject {
       ];
 
       // Get parameters using the helper
-      const masTrackVol = this.getParam(
+      const masTrackVol = getParam(
         xMasterTrackMixer, // Source element
         "Volume", // Parameter name
         "float", // Type
         "0.85" // Default value (as string)
       );
-      const masTrackPan = this.getParam(
-        xMasterTrackMixer,
-        "Pan",
-        "float",
-        "0.0"
-      );
-      const tempo = this.getParam(xMasterTrackMixer, "Tempo", "float", "120.0");
+      const masTrackPan = getParam(xMasterTrackMixer, "Pan", "float", "0.0");
+      const tempo = getParam(xMasterTrackMixer, "Tempo", "float", "120.0");
 
       if (doVerbose)
         Log.Debug(
@@ -486,7 +411,7 @@ export class AbletonProject {
     } of trackElements) {
       if (!xTrackData) continue; // Skip null/undefined elements
 
-      const trackId = this.getAttr(xTrackData, "Id", "");
+      const trackId = getAttr(xTrackData, "Id", "");
       if (!trackId) {
         Log.Warning("Skipping track with missing Id attribute.");
         continue; // Skip tracks without an ID
@@ -494,14 +419,14 @@ export class AbletonProject {
 
       const xTrackDeviceChain = xTrackData.DeviceChain;
       const xTrackMixer = xTrackDeviceChain?.Mixer;
-      const trackName = this.getValue(
+      const trackName = getValue(
         xTrackData.Name,
         "EffectiveName",
         `Track ${trackId}` // Default name
       );
-      const trackColorIndex = parseInt(this.getValue(xTrackData, "Color", "0"));
+      const trackColorIndex = parseInt(getValue(xTrackData, "Color", "0"));
       const trackColor = colorlistOne[trackColorIndex] ?? [0.8, 0.8, 0.8]; // Default grey
-      const trackInsideGroup = this.getValue(xTrackData, "TrackGroupId", "-1"); // Check if track is grouped
+      const trackInsideGroup = getValue(xTrackData, "TrackGroupId", "-1"); // Check if track is grouped
 
       let fxLoc: string[] = []; // Location identifier for devices/automation
       let trackData: any = {}; // Data for cvpj.track_data
@@ -514,8 +439,8 @@ export class AbletonProject {
       const events = arrangerAutomation?.Events;
 
       // Get common track parameters
-      const trackVol = this.getParam(xTrackMixer, "Volume", "float", "0.85");
-      const trackPan = this.getParam(xTrackMixer, "Pan", "float", "0.0");
+      const trackVol = getParam(xTrackMixer, "Volume", "float", "0.85");
+      const trackPan = getParam(xTrackMixer, "Pan", "float", "0.0");
 
       // --- Process based on determined Track Type ---
       switch (trackType) {
@@ -558,19 +483,19 @@ export class AbletonProject {
 
             // Get clip properties
             const notePlacementPos = parseFloat(
-              this.getValue(xTrackMidiClip, "CurrentStart", "0")
+              getValue(xTrackMidiClip, "CurrentStart", "0")
             );
             const notePlacementEnd = parseFloat(
-              this.getValue(xTrackMidiClip, "CurrentEnd", "0")
+              getValue(xTrackMidiClip, "CurrentEnd", "0")
             );
-            const notePlacementName = this.getValue(xTrackMidiClip, "Name", "");
+            const notePlacementName = getValue(xTrackMidiClip, "Name", "");
             const notePlacementColorIndex = parseInt(
-              this.getValue(xTrackMidiClip, "Color", "0")
+              getValue(xTrackMidiClip, "Color", "0")
             );
             const notePlacementColor =
               colorlistOne[notePlacementColorIndex] ?? trackColor; // Fallback to track color
             const notePlacementMuted =
-              this.getValue(
+              getValue(
                 xTrackMidiClip,
                 "Disabled", // Note: C# uses "Disabled", TS used "Disabled" - verify XML source if issues
                 "false"
@@ -595,16 +520,16 @@ export class AbletonProject {
             const xTrackMidiClipLoop = xTrackMidiClip?.Loop;
             if (xTrackMidiClipLoop && typeof xTrackMidiClipLoop === "object") {
               const loopLStart = parseFloat(
-                this.getValue(xTrackMidiClipLoop, "LoopStart", "0")
+                getValue(xTrackMidiClipLoop, "LoopStart", "0")
               );
               const loopLEnd = parseFloat(
-                this.getValue(xTrackMidiClipLoop, "LoopEnd", "1") // Default loop end is 1 beat
+                getValue(xTrackMidiClipLoop, "LoopEnd", "1") // Default loop end is 1 beat
               );
               const loopStartRel = parseFloat(
-                this.getValue(xTrackMidiClipLoop, "StartRelative", "0")
+                getValue(xTrackMidiClipLoop, "StartRelative", "0")
               );
               const loopOn =
-                this.getValue(
+                getValue(
                   xTrackMidiClipLoop,
                   "LoopOn",
                   "false"
@@ -654,7 +579,7 @@ export class AbletonProject {
                 continue;
               // Get MIDI key for this track
               const midiKey = parseInt(
-                this.getValue(xTrackMidiClipKTKTs, "MidiKey", "60") // Default C4
+                getValue(xTrackMidiClipKTKTs, "MidiKey", "60") // Default C4
               );
               const abletonNoteKey = midiKey - 60;
 
@@ -675,28 +600,28 @@ export class AbletonProject {
 
                 // Get note attributes using getAttr
                 const noteTime = parseFloat(
-                  this.getAttr(xTrackMidiClipMNE, "Time", "0")
+                  getAttr(xTrackMidiClipMNE, "Time", "0")
                 );
                 const noteDuration = parseFloat(
-                  this.getAttr(xTrackMidiClipMNE, "Duration", "0")
+                  getAttr(xTrackMidiClipMNE, "Duration", "0")
                 );
                 const noteVelocity = parseFloat(
-                  this.getAttr(xTrackMidiClipMNE, "Velocity", "100") // Default velocity 100
+                  getAttr(xTrackMidiClipMNE, "Velocity", "100") // Default velocity 100
                 );
                 const noteOffVelocity = parseFloat(
-                  this.getAttr(xTrackMidiClipMNE, "OffVelocity", "64") // Default off velocity 64
+                  getAttr(xTrackMidiClipMNE, "OffVelocity", "64") // Default off velocity 64
                 );
                 const noteProbability = parseFloat(
-                  this.getAttr(xTrackMidiClipMNE, "Probability", "1") // Default probability 1
+                  getAttr(xTrackMidiClipMNE, "Probability", "1") // Default probability 1
                 );
                 const noteIsEnabled =
-                  this.getAttr(
+                  getAttr(
                     xTrackMidiClipMNE,
                     "IsEnabled",
                     "true"
                   ).toLowerCase() === "true";
                 const noteId = parseInt(
-                  this.getAttr(xTrackMidiClipMNE, "NoteId", "0") // Get NoteId attribute
+                  getAttr(xTrackMidiClipMNE, "NoteId", "0") // Get NoteId attribute
                 );
                 // Store note data if ID is valid
                 if (noteId > 0) {
@@ -728,10 +653,8 @@ export class AbletonProject {
 
             for (const xNoteNEvent of perNoteEvents) {
               if (!xNoteNEvent || typeof xNoteNEvent !== "object") continue;
-              const autoNoteId = parseInt(
-                this.getAttr(xNoteNEvent, "NoteId", "0")
-              );
-              const autoNoteCC = parseInt(this.getAttr(xNoteNEvent, "CC", "0"));
+              const autoNoteId = parseInt(getAttr(xNoteNEvent, "NoteId", "0"));
+              const autoNoteCC = parseInt(getAttr(xNoteNEvent, "CC", "0"));
               const note = notes.get(autoNoteId); // Find the corresponding note
 
               // Process pitch bend (CC == -2)
@@ -755,11 +678,9 @@ export class AbletonProject {
                   if (!abletonPoint || typeof abletonPoint !== "object")
                     continue;
                   const apPos = parseFloat(
-                    this.getAttr(abletonPoint, "TimeOffset", "0")
+                    getAttr(abletonPoint, "TimeOffset", "0")
                   );
-                  const apVal = parseFloat(
-                    this.getAttr(abletonPoint, "Value", "0")
-                  );
+                  const apVal = parseFloat(getAttr(abletonPoint, "Value", "0"));
                   note.notemod.auto.pitch.push({
                     position: apPos * 4, // Convert to beats
                     value: apVal / 170.0, // Normalize pitch bend value (specific to Ableton?)
@@ -803,6 +724,7 @@ export class AbletonProject {
           if (trackInsideGroup !== "-1") {
             trackData.group = `group_${trackInsideGroup}`;
           }
+          // add the audio track data to cvpj (disabled for now)
           // cvpj.track_data.set(audioTrackId, trackData); // use set to retain order, originally audioTrackId
           // cvpj.track_order.push(audioTrackId);
 
@@ -820,10 +742,10 @@ export class AbletonProject {
 
             // Only process non-frozen clips (heuristic based on C#)
             const freezeStart = parseFloat(
-              this.getValue(xAudioClip, "FreezeStart", "0")
+              getValue(xAudioClip, "FreezeStart", "0")
             );
             const freezeEnd = parseFloat(
-              this.getValue(xAudioClip, "FreezeEnd", "0")
+              getValue(xAudioClip, "FreezeEnd", "0")
             );
 
             if (freezeStart === 0 && freezeEnd === 0) {
@@ -831,7 +753,7 @@ export class AbletonProject {
               const fileRef = sampleRef?.FileRef;
               // Get relative path if available
               const relativePath = fileRef
-                ? this.getValue(fileRef, "RelativePath", "")
+                ? getValue(fileRef, "RelativePath", "")
                 : "";
               if (relativePath) {
                 uniqueAudioClipList.add(relativePath); // Add to set for uniqueness
@@ -860,6 +782,8 @@ export class AbletonProject {
             },
           };
           // Return tracks cannot be grouped in Ableton, so no group check needed
+
+          // add the return track data to cvpj (disabled for now)
           // cvpj.track_data.set(returnTrackId, trackData); // use set to retain order, originally returnTrackId
           // cvpj.track_order.push(returnTrackId);
 
@@ -889,6 +813,7 @@ export class AbletonProject {
             // Nested groups
             trackData.group = `group_${trackInsideGroup}`;
           }
+          // add the group track data to cvpj (disabled for now)
           // cvpj.track_data.set(groupTrackId, trackData); // use set to retain order, originally groupTrackId
           // cvpj.track_order.push(groupTrackId);
 
@@ -914,6 +839,7 @@ export class AbletonProject {
         //   if (trackInsideGroup !== "-1") {
         //     trackData.group = `group_${trackInsideGroup}`;
         //   }
+        //   // add the unknown track data to cvpj
         //   cvpj.track_data.set(unknownTrackId, trackData); // use set to retain order, originally unknownTrackId
         //   cvpj.track_order.push(unknownTrackId); // original unknownTrackId
 
@@ -957,6 +883,7 @@ export class AbletonProject {
             fxLoc, // Location identifier (e.g., ["track", "midi_123"])
             fileName,
             1, // Start at level 1 for track devices
+            abletonLiveDeviceContent,
             doVerbose
           );
         }
@@ -966,11 +893,6 @@ export class AbletonProject {
     // --- Final Steps ---
     this.inOutput(cvpj); // Process collected automation data
     this.compat(cvpj); // Apply compatibility fixes (loop/cut removal)
-
-    // --- Audio Clip Collection (Placeholder) ---
-    Log.Information("Audio clip collection skipped in this port.");
-    // if (doVerbose)
-    //   Log.Debug("Found unique audio clips:", Array.from(uniqueAudioClipList));
 
     Log.Information(
       "AbletonProject.handleAbletonLiveContent: Parsing completed."
@@ -983,7 +905,11 @@ export class AbletonProject {
       track_placements: Object.fromEntries(cvpj.track_placements.entries()),
     };
 
-    return jsonCompatibleCvpj; // Return the converted project data
+    return {
+      uniqueAudioClipList,
+      cvpj: jsonCompatibleCvpj,
+      abletonLiveDeviceContent,
+    } as AbletonLiveContent;
   }
 
   /** Processes automation envelopes within a track or master track */
@@ -1008,7 +934,7 @@ export class AbletonProject {
       const envAutoEvents = envAutomation?.Events;
 
       // Get the target ID for this envelope
-      const autoTargetIdStr = this.getValue(
+      const autoTargetIdStr = getValue(
         envEnvelopeTarget,
         "PointeeId", // The ID of the parameter being automated
         "-1"
@@ -1029,8 +955,8 @@ export class AbletonProject {
 
       for (const envAutoEvent of floatEvents) {
         if (!envAutoEvent || typeof envAutoEvent !== "object") continue;
-        const timeStr = this.getAttr(envAutoEvent, "Time", "0");
-        const valueStr = this.getAttr(envAutoEvent, "Value", "0");
+        const timeStr = getAttr(envAutoEvent, "Time", "0");
+        const valueStr = getAttr(envAutoEvent, "Value", "0");
         cvpjAutoPoints.push({
           position: Math.max(0, parseFloat(timeStr) * 4), // Convert to beats, ensure non-negative
           value: parseFloat(valueStr),
@@ -1047,8 +973,8 @@ export class AbletonProject {
 
       for (const envAutoEvent of boolEvents) {
         if (!envAutoEvent || typeof envAutoEvent !== "object") continue;
-        const timeStr = this.getAttr(envAutoEvent, "Time", "0");
-        const valueStr = this.getAttr(envAutoEvent, "Value", "false"); // Default false
+        const timeStr = getAttr(envAutoEvent, "Time", "0");
+        const valueStr = getAttr(envAutoEvent, "Value", "false"); // Default false
         cvpjAutoPoints.push({
           position: Math.max(0, parseFloat(timeStr) * 4),
           value: valueStr.toLowerCase() === "true" ? 1.0 : 0.0, // Convert bool to float
@@ -1181,7 +1107,7 @@ export class AbletonProject {
           const pluginDesc = xFoundElement?.PluginDesc;
           const vstPluginInfo = pluginDesc?.VstPluginInfo;
           const vstPlugName = vstPluginInfo
-            ? this.getValue(vstPluginInfo, "PlugName", "")
+            ? getValue(vstPluginInfo, "PlugName", "")
             : "";
 
           parameterPath = `${vstPlugName}`;
@@ -1218,6 +1144,7 @@ export class AbletonProject {
     fxLoc: string[], // Location identifier (e.g., ["track", "midi_123"])
     fileName: string, // Original filename for context
     level: number = 1, // Recursion level for groups
+    abletonLiveDeviceContent: AbletonLiveDeviceContent,
     doVerbose?: boolean
   ): void {
     // Path for MasterTrack: Ableton/LiveSet/MasterTrack/DeviceChain/DeviceChain/Devices/*
@@ -1279,19 +1206,15 @@ export class AbletonProject {
 
         internalDeviceCount++; // Increment for each actual device instance
 
-        const deviceId = this.getAttr(deviceElement, "Id", "0");
+        const deviceId = getAttr(deviceElement, "Id", "0");
         // this is set in .adv preset files
-        const userName = this.getValue(
-          deviceElement.UserName,
-          "EffectiveName",
-          ""
-        ); // Get UserName if present
+        const userName = getValue(deviceElement.UserName, "EffectiveName", ""); // Get UserName if present
 
         // check if it's on
         const onElement = deviceElement?.On;
         // Default to true if 'On' element is missing? Ableton default is On. C# defaults to false. Let's default to true.
         const isOn = onElement
-          ? this.getValue(onElement, "Manual", "true").toLowerCase() === "true"
+          ? getValue(onElement, "Manual", "true").toLowerCase() === "true"
           : true; // Default to true if 'On' element is missing
 
         if (!isOn) {
@@ -1324,74 +1247,77 @@ export class AbletonProject {
         );
 
         // --- Process Specific Device Types ---
-        // This TS version is simplified compared to C#, only handling a few types explicitly.
         switch (deviceType) {
           case "FilterEQ3": {
-            // read EQ
+            Log.Information(`Processing ${deviceType}`);
+
             const eq3 = new AbletonEq3(deviceElement);
             const outputFileNameBase = `${fileNameNoExtension} - ${trackName ?? "Master"} - (${level}-${internalDeviceCount}) - ${deviceType}`;
-            if (eq3.hasBeenModified()) {
-              // TODO: convert to Fabfilter Pro Q3 as well
-              Log.Information(
-                `Processing modified ${deviceType} Preset: ${outputFileNameBase}`
-              );
-              // Example: eq3.savePreset(outputDirectoryPath, outputFileNameBase);
-            } else {
-              Log.Information(
-                `Skipping unmodified ${deviceType}: ${outputFileNameBase}`
-              );
-            }
+            abletonLiveDeviceContent.types.push(eq3.constructor.name);
+            abletonLiveDeviceContent.suggestedFileName.push(outputFileNameBase);
+            abletonLiveDeviceContent.presets.push(eq3);
+
             break;
           }
           case "Eq8": {
-            // read EQ
+            Log.Information(`Processing ${deviceType}`);
+
             const eq8 = new AbletonEq8(deviceElement);
             const outputFileNameBase = `${fileNameNoExtension} - ${trackName ?? "Master"} - (${level}-${internalDeviceCount}) - ${deviceType}`;
-            if (eq8.hasBeenModified()) {
-              // Convert EQ8 to Steinberg Frequency
-              // convert to Fabfilter Pro Q3 as well
-              // debug
-              Log.Information(
-                `Processing modified ${deviceType} Preset: ${outputFileNameBase}`
-              );
-              // Example: eq8.savePreset(outputDirectoryPath, outputFileNameBase);
-              // Example: const steinbergFreq = eq8.toSteinbergFrequency();
-              // Example: steinbergFreq.write(Path.combine(outputDirectoryPath, "Frequency", ...));
-            } else {
-              Log.Information(
-                `Skipping unmodified ${deviceType}: ${outputFileNameBase}`
-              );
-            }
+            abletonLiveDeviceContent.types.push(eq8.constructor.name);
+            abletonLiveDeviceContent.suggestedFileName.push(outputFileNameBase);
+            abletonLiveDeviceContent.presets.push(eq8);
+
             break;
           }
           case "Compressor2": {
-            // Convert Compressor2 to Steinberg Compressor
-            Log.Information(
-              `Placeholder for Compressor2 processing: ${userName || deviceType}`
-            );
-            // TODO: Implement Compressor2 parsing and conversion
+            Log.Information(`Processing ${deviceType}`);
+
+            const compressor = new AbletonCompressor(deviceElement);
+            const outputFileNameBase = `${fileNameNoExtension} - ${trackName ?? "Master"} - (${level}-${internalDeviceCount}) - ${deviceType}`;
+            abletonLiveDeviceContent.types.push(compressor.constructor.name);
+            abletonLiveDeviceContent.suggestedFileName.push(outputFileNameBase);
+            abletonLiveDeviceContent.presets.push(compressor);
+
             break;
           }
           case "GlueCompressor": {
-            // Convert Glue compressor to Waves SSL Compressor
-            Log.Information(
-              `Placeholder for GlueCompressor processing: ${userName || deviceType}`
+            Log.Information(`Processing ${deviceType}`);
+
+            const glueCompressor = new AbletonGlueCompressor(deviceElement);
+            const outputFileNameBase = `${fileNameNoExtension} - ${trackName ?? "Master"} - (${level}-${internalDeviceCount}) - ${deviceType}`;
+            abletonLiveDeviceContent.types.push(
+              glueCompressor.constructor.name
             );
-            // TODO: Implement GlueCompressor parsing and conversion
+            abletonLiveDeviceContent.suggestedFileName.push(outputFileNameBase);
+            abletonLiveDeviceContent.presets.push(glueCompressor);
+
             break;
           }
           case "Limiter": {
-            Log.Information(
-              `Placeholder for Limiter processing: ${userName || deviceType}`
+            Log.Information(`Processing ${deviceType}`);
+
+            const abletonLimiter = new AbletonLimiter(deviceElement);
+            const outputFileNameBase = `${fileNameNoExtension} - ${trackName ?? "Master"} - (${level}-${internalDeviceCount}) - ${deviceType}`;
+            abletonLiveDeviceContent.types.push(
+              abletonLimiter.constructor.name
             );
-            // TODO: Implement Limiter parsing and conversion
+            abletonLiveDeviceContent.suggestedFileName.push(outputFileNameBase);
+            abletonLiveDeviceContent.presets.push(abletonLimiter);
+
             break;
           }
           case "AutoPan": {
-            Log.Information(
-              `Placeholder for AutoPan processing: ${userName || deviceType}`
+            Log.Information(`Processing ${deviceType}`);
+
+            const abletonAutoPan = new AbletonAutoPan(deviceElement);
+            const outputFileNameBase = `${fileNameNoExtension} - ${trackName ?? "Master"} - (${level}-${internalDeviceCount}) - ${deviceType}`;
+            abletonLiveDeviceContent.types.push(
+              abletonAutoPan.constructor.name
             );
-            // TODO: Implement AutoPan parsing and conversion
+            abletonLiveDeviceContent.suggestedFileName.push(outputFileNameBase);
+            abletonLiveDeviceContent.presets.push(abletonAutoPan);
+
             break;
           }
           case "PluginDevice": {
@@ -1400,12 +1326,12 @@ export class AbletonProject {
             const xPluginDesc = deviceElement?.PluginDesc;
             const xVstPluginInfo = xPluginDesc?.VstPluginInfo;
             const vstPlugName = xVstPluginInfo
-              ? this.getValue(xVstPluginInfo, "PlugName", "UnknownPlugin")
+              ? getValue(xVstPluginInfo, "PlugName", "UnknownPlugin")
               : "UnknownPlugin";
             const xPreset = xVstPluginInfo?.Preset;
             const xVstPreset = xPreset?.VstPreset;
             const vstPresetId = xVstPreset
-              ? this.getAttr(xVstPreset, "Id", "0")
+              ? getAttr(xVstPreset, "Id", "0")
               : "0";
 
             if (doVerbose)
@@ -1418,34 +1344,36 @@ export class AbletonProject {
             const vstPluginBufferBytes =
               getInnerValueAsByteArray(xVstPluginBuffer);
 
-            // check if this is a zlib file
-            // Serum presets are zlib compressed, but don't deflate
-            // if (vstPluginBufferBytes[0] == 0x78 && vstPluginBufferBytes[1] == 0x01) ...
-
             if (vstPluginBufferBytes.length > 0) {
               const fxpBytes = AbletonProject.getAsFXP(
                 vstPluginBufferBytes,
                 vstPlugName
               );
 
+              const outputFileNameBase = `${fileNameNoExtension} - ${trackName ?? "Master"} - (${level}-${internalDeviceCount}) - ${vstPlugName}`;
+
+              abletonLiveDeviceContent.types.push(vstPlugName);
+              abletonLiveDeviceContent.suggestedFileName.push(
+                outputFileNameBase
+              );
+
               if (fxpBytes) {
-                // TODO: Handle the returned fxpBytes (e.g., save to file, return in the main result)
-                const outputFileNameBase = `${fileNameNoExtension} - ${trackName ?? "Master"} - (${level}-${internalDeviceCount}) - ${vstPlugName}`;
                 Log.Information(
                   `Successfully converted VST Preset '${vstPlugName}' to FXP bytes. Handle bytes for: ${outputFileNameBase}`
                 );
-                // Example: saveBytesToFile(fxpBytes, outputDirectoryPath, `${outputFileNameBase}.fxp`);
+                abletonLiveDeviceContent.presets.push(fxpBytes);
               } else {
                 // getAsFXP logs an error if the plugin is not recognized
                 Log.Warning(
                   `FXP conversion failed or plugin not recognized for '${vstPlugName}'.`
                 );
-                // TODO: Optionally save the raw bytes or XML for unrecognized plugins
+                abletonLiveDeviceContent.presets.push([]);
               }
             } else {
               Log.Information(
                 `VST Plugin '${vstPlugName}' has empty preset buffer.`
               );
+              abletonLiveDeviceContent.presets.push([]);
             }
             break;
           }
@@ -1488,6 +1416,7 @@ export class AbletonProject {
                   fxLoc, // Keep the same track location context
                   fileName,
                   level + 1, // Increment level
+                  abletonLiveDeviceContent,
                   doVerbose
                 );
               } else {
@@ -1508,20 +1437,6 @@ export class AbletonProject {
             // TODO: Implement MidiPitcher parsing
             break;
           }
-          // Placeholders for devices handled in C# default case
-          case "MultibandDynamics":
-          case "AutoFilter":
-          case "Reverb":
-          case "Saturator":
-          case "Tuner":
-          case "StereoGain": {
-            Log.Information(
-              `Placeholder for ${deviceType} processing: ${userName || deviceType}`
-            );
-            // TODO: Implement parsing for these specific device types if needed
-            break;
-          }
-          // C# Handles these in default: MultibandDynamics, AutoFilter, Reverb, Saturator, Tuner, StereoGain
           default: {
             const outputFileNameBase = `${fileNameNoExtension} - ${trackName ?? "Master"} - (${level}-${internalDeviceCount}) - ${deviceType}`;
             if (userName) {
@@ -1538,33 +1453,44 @@ export class AbletonProject {
                   extractBeforeSpace(userName) // Use userName as plugin name heuristic
                 );
 
+                abletonLiveDeviceContent.types.push(deviceType);
+                abletonLiveDeviceContent.suggestedFileName.push(
+                  outputFileNameBase
+                );
+
                 if (fxpBytes) {
-                  // TODO: Handle the returned fxpBytes (e.g., save to file, return in the main result)
                   Log.Information(
                     `Successfully converted Device/Preset (from UserName): ${userName} (${deviceType}) to FXP bytes. Handle bytes for: ${outputFileNameBase}`
                   );
-                  // Example: saveBytesToFile(fxpBytes, outputDirectoryPath, `${outputFileNameBase}.fxp`);
+                  abletonLiveDeviceContent.presets.push(fxpBytes);
                 } else {
                   // getAsFXP logs an error if the plugin is not recognized
                   Log.Warning(
                     `FXP conversion failed or plugin not recognized for Device/Preset (from UserName): '${userName}' (${deviceType}).`
                   );
-                  // TODO: Optionally save the raw bytes or XML for unrecognized plugins
+                  abletonLiveDeviceContent.presets.push([]);
                 }
               } else {
                 Log.Information(
                   `Device/Preset (from UserName): '${userName}' (${deviceType}) has empty buffer.`
                 );
-                // TODO: Implement generic preset saving (e.g., saving the raw XML part) if needed
-                // Example: saveDeviceXml(deviceElement, outputDirectoryPath, outputFileNameBase);
+                abletonLiveDeviceContent.presets.push([]);
               }
             } else {
               // Handle other device types generically
               Log.Information(
                 `Processing Generic/Unhandled Device: ${deviceType} - Path: ${outputFileNameBase}`
               );
-              // TODO: Implement generic preset saving (e.g., saving the raw XML part) if needed
-              // Example: saveDeviceXml(deviceElement, outputDirectoryPath, outputFileNameBase);
+
+              abletonLiveDeviceContent.types.push(deviceType);
+              abletonLiveDeviceContent.suggestedFileName.push(
+                outputFileNameBase
+              );
+
+              const deviceElementAsString = toXmlString({
+                [deviceType]: deviceElement,
+              });
+              abletonLiveDeviceContent.presets.push(deviceElementAsString);
             }
             break;
           }

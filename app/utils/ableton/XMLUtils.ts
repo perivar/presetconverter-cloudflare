@@ -1,3 +1,50 @@
+import {
+  XMLBuilder,
+  XMLParser,
+  XMLValidator,
+  type ValidationError,
+} from "fast-xml-parser";
+
+const parser = new XMLParser({
+  ignoreAttributes: false,
+  attributeNamePrefix: "@_",
+  parseAttributeValue: true,
+});
+
+const builder = new XMLBuilder({
+  format: true,
+  ignoreAttributes: false,
+});
+
+/**
+ * Parses an XML string into a JavaScript object.
+ * @param xmlData - The raw XML string to parse.
+ * @returns Parsed JS object.
+ */
+export function parseXml(xmlData: string): any {
+  return parser.parse(xmlData);
+}
+
+/**
+ * Converts a JavaScript object back into a formatted XML string.
+ * @param obj - The JS object to convert.
+ * @returns XML string.
+ */
+export function toXmlString(obj: any): string {
+  return builder.build(obj);
+}
+
+/**
+ * Validates an XML string for well-formedness.
+ * @param xmlString - The raw XML string to validate.
+ * @returns `true` if valid, or a `ValidationError` object if invalid.
+ */
+export function validateXml(xmlString: string): true | ValidationError {
+  return XMLValidator.validate(xmlString, {
+    allowBooleanAttributes: true,
+  });
+}
+
 /**
  * Result of {@link splitPath}.
  */
@@ -177,4 +224,118 @@ export function getInnerValueAsByteArray(
   }
 
   return byteArray;
+}
+
+/**
+ * Helper to get an attribute value from a fast-xml-parser element.
+ *
+ * @param element The parsed XML element object.
+ * @param attrName The name of the attribute to retrieve (without the '@_ prefix').
+ * @param fallback The fallback value to return if the element or attribute is not found.
+ * @returns The attribute value as a string, or the fallback value if not found.
+ */
+export function getAttr(
+  element: any,
+  attrName: string,
+  fallback: string
+): string {
+  if (element && typeof element === "object") {
+    const attr = element[`@_${attrName}`];
+    // Check for null or undefined explicitly
+    if (attr !== undefined && attr !== null) {
+      return String(attr);
+    }
+  }
+  return fallback;
+}
+
+/**
+ * Helper to get the 'Value' attribute from a specific child element within the XML data.
+ *
+ * @param xmlData The parsed XML object.
+ * @param varName The name of the child element to look for.
+ * @param fallback The fallback value to return if the child element or 'Value' attribute is not found.
+ * @returns The value of the 'Value' attribute as a string, or the fallback value if not found.
+ */
+export function getValue(
+  xmlData: any,
+  varName: string,
+  fallback: string
+): string {
+  if (!xmlData) return fallback;
+  // fast-xml-parser structure: xmlData might contain the varName directly
+  const element = xmlData[varName];
+  // Pass the found element (or undefined) to getAttr
+  return getAttr(element, "Value", fallback);
+}
+
+/**
+ * Helper to get the 'Id' attribute from a specific child element within the XML data.
+ *
+ * @param xmlData The parsed XML object.
+ * @param varName The name of the child element to look for.
+ * @param fallback The fallback value to return if the child element or 'Id' attribute is not found.
+ * @returns The value of the 'Id' attribute as a string, or the fallback value if not found.
+ */
+export function getId(xmlData: any, varName: string, fallback: string): string {
+  if (!xmlData) return fallback;
+  const element = xmlData[varName];
+  return getAttr(element, "Id", fallback);
+}
+
+/**
+ * Converts a string value to a specified type based on the provided type string.
+ * Supports 'string', 'float', 'int', and 'bool'.
+ *
+ * @param valType The target type as a string ('string', 'float', 'int', 'bool').
+ * @param val The string value to convert.
+ * @returns The converted value, or the original string if the type is unsupported.
+ */
+export function getValueType(valType: string, val: string): any {
+  switch (valType) {
+    case "string":
+      return val;
+    case "float":
+      const floatVal = parseFloat(val);
+      return isNaN(floatVal) ? 0.0 : floatVal;
+    case "int":
+      const intVal = parseInt(val, 10);
+      return isNaN(intVal) ? 0 : intVal;
+    case "bool":
+      return val?.toLowerCase() === "true";
+    default:
+      // Log.Warning(`Unsupported value type: ${valType}. Returning string.`);
+      return val;
+  }
+}
+
+/**
+ * Gets a parameter value from the XML data, handling potential nested structures.
+ * It looks for a child element specified by `varName`, then retrieves its 'Manual' attribute's value,
+ * and finally converts this value to the specified `varType`.
+ *
+ * @param xmlData The parsed XML object.
+ * @param varName The name of the child element containing the parameter data.
+ * @param varType The target type for the parameter value ('string', 'float', 'int', 'bool').
+ * @param fallback The fallback value to return if the element or value is not found.
+ * @returns The parameter value converted to the specified type, or the fallback value converted to the target type if not found.
+ */
+export function getParam(
+  xmlData: any,
+  varName: string,
+  varType: string,
+  fallback: string
+): any {
+  // Find the specific child element
+  const xElement = xmlData ? xmlData[varName] : undefined;
+
+  if (xElement) {
+    // Get the 'Manual' value from the child element
+    const manualValue = getValue(xElement, "Manual", fallback);
+
+    return getValueType(varType, manualValue);
+  } else {
+    // If the element doesn't exist, return the fallback converted to the target type
+    return getValueType(varType, fallback);
+  }
 }
