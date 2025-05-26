@@ -1,38 +1,36 @@
-/**
- * FabfilterToSteinbergAdapter.ts
- * Converts FabFilter Pro-Q presets to Steinberg Frequency format
- */
-
 import {
   ProQChannelMode,
   ProQLPHPSlope,
   ProQShape,
   ProQStereoPlacement,
-} from "./FabfilterProQ";
+} from "../FabfilterProQ";
 import {
   ProQ2ChannelMode,
   ProQ2Shape,
   ProQ2Slope,
   ProQ2StereoPlacement,
-} from "./FabfilterProQ2";
-import { ProQ3Shape, ProQ3Slope, ProQ3StereoPlacement } from "./FabfilterProQ3";
-import { FabfilterProQBase } from "./FabfilterProQBase";
+} from "../FabfilterProQ2";
+import {
+  ProQ3Shape,
+  ProQ3Slope,
+  ProQ3StereoPlacement,
+} from "../FabfilterProQ3";
 import {
   BandMode1And8,
   BandMode2To7,
   ChannelMode,
   SteinbergFrequency,
-} from "./SteinbergFrequency";
+} from "../SteinbergFrequency";
 
-type Shape = ProQShape | ProQ2Shape | ProQ3Shape;
-type Slope = ProQLPHPSlope | ProQ2Slope | ProQ3Slope;
-type StereoPlacement =
+export type Shape = ProQShape | ProQ2Shape | ProQ3Shape;
+export type Slope = ProQLPHPSlope | ProQ2Slope | ProQ3Slope;
+export type StereoPlacement =
   | ProQStereoPlacement
   | ProQ2StereoPlacement
   | ProQ3StereoPlacement;
-type ChannelModeType = ProQChannelMode | ProQ2ChannelMode;
+export type ChannelModeType = ProQChannelMode | ProQ2ChannelMode;
 
-interface Band {
+export interface Band {
   Enabled: boolean;
   Shape: Shape;
   Frequency: number;
@@ -45,7 +43,7 @@ interface Band {
 }
 
 // Helper function to check if a shape is a low cut filter
-function isLowCut(shape: Shape): boolean {
+export function isLowCut(shape: Shape): boolean {
   return (
     shape === ProQShape.LowCut ||
     shape === ProQ2Shape.LowCut ||
@@ -54,7 +52,7 @@ function isLowCut(shape: Shape): boolean {
 }
 
 // Helper function to check if a shape is a high cut filter
-function isHighCut(shape: Shape): boolean {
+export function isHighCut(shape: Shape): boolean {
   return (
     shape === ProQShape.HighCut ||
     shape === ProQ2Shape.HighCut ||
@@ -63,7 +61,7 @@ function isHighCut(shape: Shape): boolean {
 }
 
 // Helper function to check if a shape is a peak-type filter (including bell, bandpass, and tilt shelf)
-function isPeakType(shape: Shape): boolean {
+export function isPeakType(shape: Shape): boolean {
   return (
     shape === ProQShape.Bell ||
     shape === ProQ2Shape.Bell ||
@@ -76,7 +74,7 @@ function isPeakType(shape: Shape): boolean {
 }
 
 // Helper function to check if a shape is a low shelf filter
-function isLowShelf(shape: Shape): boolean {
+export function isLowShelf(shape: Shape): boolean {
   return (
     shape === ProQShape.LowShelf ||
     shape === ProQ2Shape.LowShelf ||
@@ -85,7 +83,7 @@ function isLowShelf(shape: Shape): boolean {
 }
 
 // Helper function to check if a shape is a high shelf filter
-function isHighShelf(shape: Shape): boolean {
+export function isHighShelf(shape: Shape): boolean {
   return (
     shape === ProQShape.HighShelf ||
     shape === ProQ2Shape.HighShelf ||
@@ -94,7 +92,7 @@ function isHighShelf(shape: Shape): boolean {
 }
 
 // Helper function to check if a shape is a notch filter
-function isNotch(shape: Shape): boolean {
+export function isNotch(shape: Shape): boolean {
   return (
     shape === ProQShape.Notch ||
     shape === ProQ2Shape.Notch ||
@@ -103,7 +101,7 @@ function isNotch(shape: Shape): boolean {
 }
 
 // Helper function to get the appropriate cut slope mode
-function getCutSlope(slope: Slope): BandMode1And8 {
+export function getCutSlope(slope: Slope): BandMode1And8 {
   if (
     slope === ProQLPHPSlope.Slope6dB_oct ||
     slope === ProQ2Slope.Slope6dB_oct ||
@@ -146,59 +144,6 @@ function getCutSlope(slope: Slope): BandMode1And8 {
   return BandMode1And8.Cut48; // Default to 48dB/oct
 }
 
-export function toSteinbergFrequency(
-  eq: FabfilterProQBase
-): SteinbergFrequency {
-  const frequency = new SteinbergFrequency();
-
-  // Frequency only supports lowcut on the 1st band and highcut on the 8th band
-  const hasLowCutBand = eq.Bands.some(band => isLowCut((band as Band).Shape));
-  const hasHighCutBand = eq.Bands.some(band => isHighCut((band as Band).Shape));
-
-  // get remaining bands that are not lowcut or highcut and sort by frequency
-  const band2To7 = eq.Bands.filter(band => {
-    const shape = (band as Band).Shape;
-    return !isLowCut(shape) && !isHighCut(shape);
-  }).sort((a, b) => a.Frequency - b.Frequency);
-
-  if (hasLowCutBand) {
-    const lowCutBand = eq.Bands.filter(band =>
-      isLowCut((band as Band).Shape)
-    ).sort((a, b) => a.Frequency - b.Frequency)[0];
-
-    if (lowCutBand) {
-      setBand(lowCutBand as Band, 1, frequency);
-    }
-  }
-
-  if (hasHighCutBand) {
-    const highCutBand = eq.Bands.filter(band =>
-      isHighCut((band as Band).Shape)
-    ).sort((a, b) => b.Frequency - a.Frequency)[0];
-
-    if (highCutBand) {
-      setBand(highCutBand as Band, 8, frequency);
-    }
-  }
-
-  // rest of the bands (2-7)
-  const startIndex = hasLowCutBand ? 2 : 1;
-  const endIndex = hasHighCutBand ? 7 : 8;
-
-  for (
-    let bandNumber = startIndex, index = 0;
-    bandNumber <= endIndex && index < band2To7.length;
-    bandNumber++, index++
-  ) {
-    const band = band2To7[index];
-    if (band) {
-      setBand(band as Band, bandNumber, frequency);
-    }
-  }
-
-  return frequency;
-}
-
 function setBandParameter(
   frequency: SteinbergFrequency,
   bandNumber: number,
@@ -212,7 +157,7 @@ function setBandParameter(
   );
 }
 
-function setBand(
+export function setBand(
   band: Band,
   bandNumber: number,
   frequency: SteinbergFrequency

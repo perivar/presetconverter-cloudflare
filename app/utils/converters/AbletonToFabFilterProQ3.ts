@@ -1,3 +1,6 @@
+// converters/AbletonToFabfilterProQ3.ts
+
+import { AbletonEq8, BandMode, ChannelMode } from "../ableton/AbletonEq8";
 import {
   FabfilterProQ3,
   ProQ3Band,
@@ -5,20 +8,27 @@ import {
   ProQ3Slope,
   ProQ3StereoPlacement,
 } from "../FabfilterProQ3";
-import { AbletonEq8, BandMode, ChannelMode } from "./AbletonEq8";
+import { MultiFormatConverter } from "./MultiFormatConverter";
 
-export class AbletonToFabFilterAdapter {
-  static toFabfilterProQ3(eq: AbletonEq8): FabfilterProQ3 {
+const AbletonToFabfilterProQ3: MultiFormatConverter<
+  AbletonEq8,
+  FabfilterProQ3
+> = {
+  from: "AbletonEq8",
+  to: "FabfilterProQ3",
+  displayName: "FabFilter Pro-Q 3",
+
+  convertBase(preset: AbletonEq8) {
     const fabfilterProQ3 = new FabfilterProQ3();
     fabfilterProQ3.Bands = [];
 
-    if (eq.Mode !== ChannelMode.Stereo) {
+    if (preset.Mode !== ChannelMode.Stereo) {
       throw new Error(
-        `Only Stereo conversion is supported. ChannelMode was ${eq.Mode}!`
+        `Only Stereo conversion is supported. ChannelMode was ${preset.Mode}!`
       );
     }
 
-    for (const band of eq.Bands) {
+    for (const band of preset.Bands) {
       if (band.Parameter !== "ParameterA") continue;
 
       const proQ3Band: ProQ3Band = {
@@ -26,11 +36,11 @@ export class AbletonToFabFilterAdapter {
         Gain: band.Gain,
         Frequency: band.Freq,
         Q: band.Q,
-        DynamicRange: 0, // Added default dynamic range
-        DynamicThreshold: 1, // Added default dynamic threshold (1 = auto)
-        Slope: ProQ3Slope.Slope24dB_oct, // Default slope
+        DynamicRange: 0,
+        DynamicThreshold: 1,
+        Slope: ProQ3Slope.Slope24dB_oct,
         StereoPlacement: ProQ3StereoPlacement.Stereo,
-        Shape: ProQ3Shape.Bell, // Default shape, will be updated in switch
+        Shape: ProQ3Shape.Bell,
       };
 
       switch (band.Mode) {
@@ -63,17 +73,46 @@ export class AbletonToFabFilterAdapter {
           proQ3Band.Slope = ProQ3Slope.Slope48dB_oct;
           break;
         default:
-          // Handle unknown band modes if necessary, or throw an error
           console.warn(`Unknown BandMode: ${band.Mode}. Skipping band.`);
-          continue; // Skip this band if mode is unknown
+          continue;
       }
 
       fabfilterProQ3.Bands.push(proQ3Band);
     }
 
-    // Assuming AddDefaultUnknownParameters is not needed or handled differently in TS
-    // fabfilterProQ3.AddDefaultUnknownParameters();
-
+    fabfilterProQ3.addDefaultUnknownParameters();
     return fabfilterProQ3;
-  }
-}
+  },
+
+  outputFormats: [
+    {
+      formatId: "ffp",
+      extension: ".ffp",
+      displayName: "FabFilter FFP",
+      convert(preset: AbletonEq8) {
+        const result = AbletonToFabfilterProQ3.convertBase(preset);
+        return result.writeFFP();
+      },
+    },
+    {
+      formatId: "fxp",
+      extension: ".fxp",
+      displayName: "FXP Format",
+      convert(preset: AbletonEq8) {
+        const result = AbletonToFabfilterProQ3.convertBase(preset);
+        return result.writeFXP("AbletonToFabFilter");
+      },
+    },
+    {
+      formatId: "vstpreset",
+      extension: ".vstpreset",
+      displayName: "Steinberg VSTPreset",
+      convert(preset: AbletonEq8) {
+        const result = AbletonToFabfilterProQ3.convertBase(preset);
+        return result.write();
+      },
+    },
+  ],
+};
+
+export default AbletonToFabfilterProQ3;

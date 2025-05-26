@@ -1,3 +1,4 @@
+import { FabfilterToSteinbergFrequency } from "../converters/FabfilterToSteinbergFrequency";
 import {
   FabfilterProQ,
   ProQChannelMode,
@@ -18,7 +19,6 @@ import {
   ProQ3Slope,
   ProQ3StereoPlacement,
 } from "../FabfilterProQ3";
-import { toSteinbergFrequency } from "../FabfilterToSteinbergAdapter";
 import {
   BandMode1And8,
   BandMode2To7,
@@ -26,7 +26,7 @@ import {
   SteinbergFrequency,
 } from "../SteinbergFrequency";
 
-describe("FabfilterToSteinbergAdapter", () => {
+describe("FabfilterToSteinbergFrequency", () => {
   let frequency: SteinbergFrequency;
 
   beforeEach(() => {
@@ -59,7 +59,7 @@ describe("FabfilterToSteinbergAdapter", () => {
         },
       ];
 
-      const result = toSteinbergFrequency(proQ);
+      const result = FabfilterToSteinbergFrequency.convertBase(proQ);
 
       expect(result.getParameterValue("equalizerAbandon1")).toBe(1.0);
       expect(result.getParameterValue("equalizerAgain1")).toBe(2.5);
@@ -103,7 +103,7 @@ describe("FabfilterToSteinbergAdapter", () => {
         },
       ];
 
-      const result = toSteinbergFrequency(proQ2);
+      const result = FabfilterToSteinbergFrequency.convertBase(proQ2);
 
       expect(result.getParameterValue("equalizerAbandon1")).toBe(1.0);
       expect(result.getParameterValue("equalizerAfreq1")).toBe(100);
@@ -136,7 +136,7 @@ describe("FabfilterToSteinbergAdapter", () => {
         },
       ];
 
-      const result = toSteinbergFrequency(proQ3);
+      const result = FabfilterToSteinbergFrequency.convertBase(proQ3);
       expect(result.getParameterValue("equalizerAtype1")).toBe(
         BandMode1And8.Cut96
       );
@@ -167,7 +167,7 @@ describe("FabfilterToSteinbergAdapter", () => {
         },
       ];
 
-      const result = toSteinbergFrequency(proQ);
+      const result = FabfilterToSteinbergFrequency.convertBase(proQ);
 
       expect(result.getParameterValue("equalizerAon1")).toBe(1.0);
       expect(result.getParameterValue("equalizerAon1Ch2")).toBe(0.0);
@@ -207,7 +207,7 @@ describe("FabfilterToSteinbergAdapter", () => {
         },
       ];
 
-      const result = toSteinbergFrequency(proQ);
+      const result = FabfilterToSteinbergFrequency.convertBase(proQ);
 
       expect(result.getParameterValue("equalizerAbandon1")).toBe(0.0);
       expect(result.getParameterValue("equalizerAbandon2")).toBe(1.0);
@@ -269,7 +269,7 @@ describe("FabfilterToSteinbergAdapter", () => {
         },
       ];
 
-      const result = toSteinbergFrequency(proQ2);
+      const result = FabfilterToSteinbergFrequency.convertBase(proQ2);
 
       // Bands should be sorted by frequency:
       // 1. LowShelf (100 Hz)
@@ -329,7 +329,7 @@ describe("FabfilterToSteinbergAdapter", () => {
         },
       ];
 
-      const result = toSteinbergFrequency(proQ);
+      const result = FabfilterToSteinbergFrequency.convertBase(proQ);
 
       expect(result.getParameterValue("equalizerAfreq1")).toBe(1000);
       expect(result.getParameterValue("equalizerAfreq2")).toBe(2000);

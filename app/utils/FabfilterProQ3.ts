@@ -91,6 +91,22 @@ export class FabfilterProQ3 extends FabfilterProQBase {
     this.PlugInVendor = "FabFilter";
   }
 
+  public addDefaultUnknownParameters(): void {
+    // Note, even if a DAW adds all these default parameters when saving a FFP
+    // they does not seem to be needed when saving the FXP
+
+    // first 24 float parameters seems to normally be included
+    this.UnknownParameters = [
+      0.0, 1.0, 1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0, 1.0, -1.0, 1.0, 2.0,
+      2.0, 3.0, 0.0, 1.0, 1.0, 2.0, 0.0, 0.0,
+    ];
+
+    // the second 24 seems to be optional and always 0
+    for (let i = 0; i < 24; i++) {
+      this.UnknownParameters.push(0.0);
+    }
+  }
+
   public initFromParameters(parameters?: number[], isIEEE = true): void {
     if (parameters) {
       this.initFromParameterArray(parameters, isIEEE);

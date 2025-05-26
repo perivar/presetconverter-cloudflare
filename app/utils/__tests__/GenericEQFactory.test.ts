@@ -1,10 +1,11 @@
 import * as fs from "fs";
 import * as path from "path";
 
+import { FabFilterToGenericEQ } from "../converters/FabFilterToGenericEQ";
+import { SteinbergFrequencyToGenericEQ } from "../converters/SteinbergFrequencyToGenericEQ";
 import { FabfilterProQ } from "../FabfilterProQ";
 import { FabfilterProQ2 } from "../FabfilterProQ2";
 import { FabfilterProQ3 } from "../FabfilterProQ3";
-import { GenericEQFactory } from "../GenericEQFactory";
 import {
   GenericEQShape,
   GenericEQSlope,
@@ -27,7 +28,7 @@ describe("GenericEQFactory", () => {
       const proQ = new FabfilterProQ();
       proQ.readFFP(presetData);
 
-      const genericPreset = GenericEQFactory.fromFabFilterProQ(proQ);
+      const genericPreset = FabFilterToGenericEQ.convertBase(proQ);
 
       // --- Assertions for ProQ1 conversion ---
       // Note: ProQ1 FFP doesn't store name/vendor in a standard way the parser reads
@@ -101,7 +102,7 @@ describe("GenericEQFactory", () => {
       const proQ2 = new FabfilterProQ2();
       proQ2.readFFP(presetData);
 
-      const genericPreset = GenericEQFactory.fromFabFilterProQ(proQ2);
+      const genericPreset = FabFilterToGenericEQ.convertBase(proQ2);
 
       // --- Assertions for ProQ2 conversion ---
       expect(genericPreset.Name).toBe("FabFilter Pro-Q 2");
@@ -175,7 +176,7 @@ describe("GenericEQFactory", () => {
       const proQ3 = new FabfilterProQ3();
       proQ3.readFFP(presetData);
 
-      const genericPreset = GenericEQFactory.fromFabFilterProQ(proQ3);
+      const genericPreset = FabFilterToGenericEQ.convertBase(proQ3);
 
       // --- Assertions for ProQ3 conversion ---
       expect(genericPreset.Name).toBe("FabFilter Pro-Q 3");
@@ -266,7 +267,7 @@ describe("GenericEQFactory", () => {
       frequencyPreset.readParameters(); // Crucial step
 
       const genericPreset =
-        GenericEQFactory.fromSteinbergFrequency(frequencyPreset);
+        SteinbergFrequencyToGenericEQ.convertBase(frequencyPreset);
 
       // --- Assertions for Steinberg Frequency conversion ---
       expect(genericPreset.Name).toBe("Frequency");
@@ -320,7 +321,7 @@ describe("GenericEQFactory", () => {
       frequencyPreset.readParameters();
 
       const genericPreset =
-        GenericEQFactory.fromSteinbergFrequency(frequencyPreset);
+        SteinbergFrequencyToGenericEQ.convertBase(frequencyPreset);
 
       // --- Assertions ---
       expect(genericPreset.Name).toBe("Frequency");

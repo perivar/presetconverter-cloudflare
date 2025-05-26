@@ -4,13 +4,14 @@ import { useCallback, useState } from "react";
 import type { LoaderFunctionArgs, MetaFunction } from "@remix-run/cloudflare";
 import { json } from "@remix-run/react";
 import i18next from "~/i18n/i18n.server";
+import { FabFilterToGenericEQ } from "~/utils/converters/FabFilterToGenericEQ";
+import { GenericEQToSteinbergFrequency } from "~/utils/converters/GenericEQToSteinbergFrequency";
+import { SteinbergFrequencyToGenericEQ } from "~/utils/converters/SteinbergFrequencyToGenericEQ";
 import { FabfilterProQ } from "~/utils/FabfilterProQ";
 import { FabfilterProQ2 } from "~/utils/FabfilterProQ2";
 import { FabfilterProQ3 } from "~/utils/FabfilterProQ3";
 import { FabfilterProQBase } from "~/utils/FabfilterProQBase";
 import { FxChunkSet, FXP, FxProgramSet } from "~/utils/FXP";
-import { GenericEQFactory } from "~/utils/GenericEQFactory";
-import { eqPresetToSteinbergFrequency } from "~/utils/GenericEQToSteinbergAdapter";
 import { GenericEQBand, GenericEQPreset } from "~/utils/GenericEQTypes";
 import { SteinbergFrequency } from "~/utils/SteinbergFrequency";
 import { VstPresetFactory } from "~/utils/VstPresetFactory";
@@ -160,7 +161,7 @@ export default function Index() {
 
                 // convert to common eqpreset format
                 const eqPreset =
-                  GenericEQFactory.fromFabFilterProQ(fabfilterEQPreset);
+                  FabFilterToGenericEQ.convertBase(fabfilterEQPreset);
                 setParsedData(eqPreset);
 
                 setIsLoading(false);
@@ -177,19 +178,19 @@ export default function Index() {
             // Try reading with each version in sequence
             const proQ3 = new FabfilterProQ3();
             if (proQ3.readFFP(chunkData)) {
-              const eqPreset = GenericEQFactory.fromFabFilterProQ(proQ3);
+              const eqPreset = FabFilterToGenericEQ.convertBase(proQ3);
               setParsedData(eqPreset);
               setSourceFormat(proQ3.PlugInName);
             } else {
               const proQ2 = new FabfilterProQ2();
               if (proQ2.readFFP(chunkData)) {
-                const eqPreset = GenericEQFactory.fromFabFilterProQ(proQ2);
+                const eqPreset = FabFilterToGenericEQ.convertBase(proQ2);
                 setParsedData(eqPreset);
                 setSourceFormat(proQ2.PlugInName);
               } else {
                 const proQ1 = new FabfilterProQ();
                 if (proQ1.readFFP(chunkData)) {
-                  const eqPreset = GenericEQFactory.fromFabFilterProQ(proQ1);
+                  const eqPreset = FabFilterToGenericEQ.convertBase(proQ1);
                   setParsedData(eqPreset);
                   setSourceFormat(proQ1.PlugInName);
                 } else {
@@ -212,13 +213,13 @@ export default function Index() {
                   "FabfilterProQ[1|2|3] preset:",
                   vstPreset.toString()
                 );
-                const eqPreset = GenericEQFactory.fromFabFilterProQ(vstPreset);
+                const eqPreset = FabFilterToGenericEQ.convertBase(vstPreset);
                 setParsedData(eqPreset);
                 setSourceFormat(t(`${vstPreset.constructor.name}`));
               } else if (vstPreset && vstPreset instanceof SteinbergFrequency) {
                 console.log("SteinbergFrequency preset:", vstPreset.toString());
                 const eqPreset =
-                  GenericEQFactory.fromSteinbergFrequency(vstPreset);
+                  SteinbergFrequencyToGenericEQ.convertBase(vstPreset);
                 setParsedData(eqPreset);
                 setSourceFormat(t(`${vstPreset.constructor.name}`));
               } else if (vstPreset) {
@@ -255,7 +256,8 @@ export default function Index() {
 
       let convertedData: Uint8Array | undefined;
       if (targetFormat === "steinberg-frequency") {
-        const steinbergPreset = eqPresetToSteinbergFrequency(parsedData);
+        const steinbergPreset =
+          GenericEQToSteinbergFrequency.convertBase(parsedData);
         convertedData = await steinbergPreset.write();
       }
 

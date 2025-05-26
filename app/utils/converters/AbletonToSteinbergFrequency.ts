@@ -1,24 +1,32 @@
+import { AbletonEq8, BandMode, ChannelMode } from "../ableton/AbletonEq8";
 import {
   BandMode1And8,
   BandMode2To7,
   SteinbergFrequency,
 } from "../SteinbergFrequency";
-import { AbletonEq8, BandMode, ChannelMode } from "./AbletonEq8";
+import { MultiFormatConverter } from "./MultiFormatConverter";
 
-export class AbletonToSteinbergAdapter {
-  static toSteinbergFrequency(eq: AbletonEq8): SteinbergFrequency {
+export const AbletonToSteinbergFrequency: MultiFormatConverter<
+  AbletonEq8,
+  SteinbergFrequency
+> = {
+  from: "AbletonEq8",
+  to: "SteinbergFrequency",
+  displayName: "Steinberg Frequency",
+
+  convertBase(eq: AbletonEq8) {
     if (eq.Mode !== ChannelMode.Stereo) {
       throw new Error(
         `Only Stereo conversion is supported. ChannelMode was ${eq.Mode}!`
       );
     }
 
+    const frequency = new SteinbergFrequency();
+
     const setParamValue = (paramName: string, value: number) => {
       const param = frequency.Parameters.get(paramName);
       if (param) param.Value = value;
     };
-
-    const frequency = new SteinbergFrequency();
 
     const isBandMode1Or8 = (bandNumber: number) =>
       bandNumber === 1 || bandNumber === 8;
@@ -78,5 +86,17 @@ export class AbletonToSteinbergAdapter {
     }
 
     return frequency;
-  }
-}
+  },
+
+  outputFormats: [
+    {
+      formatId: "vstpreset",
+      extension: ".vstpreset",
+      displayName: "Steinberg VSTPreset",
+      convert(preset: AbletonEq8) {
+        const result = AbletonToSteinbergFrequency.convertBase(preset);
+        return result.write();
+      },
+    },
+  ],
+};

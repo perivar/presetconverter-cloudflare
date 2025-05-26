@@ -4,10 +4,10 @@ import {
   BandMode,
   ChannelMode,
 } from "../ableton/AbletonEq8";
-import { AbletonToSteinbergAdapter } from "../ableton/AbletonToSteinbergAdapter";
+import { AbletonToSteinbergFrequency } from "../converters/AbletonToSteinbergFrequency";
 import { BandMode1And8, BandMode2To7 } from "../SteinbergFrequency";
 
-describe("AbletonToSteinbergAdapter", () => {
+describe("AbletonToSteinbergFrequency", () => {
   it("should convert AbletonEq8 to SteinbergFrequency", () => {
     // Provide a dummy object for the constructor as it expects xElement
     const abletonEq8 = new AbletonEq8({});
@@ -43,7 +43,7 @@ describe("AbletonToSteinbergAdapter", () => {
     ];
 
     const steinbergFrequency =
-      AbletonToSteinbergAdapter.toSteinbergFrequency(abletonEq8);
+      AbletonToSteinbergFrequency.convertBase(abletonEq8);
 
     expect(steinbergFrequency).toBeDefined();
     // SteinbergFrequency has 8 bands, regardless of input bands
@@ -90,8 +90,8 @@ describe("AbletonToSteinbergAdapter", () => {
     const abletonEq8 = new AbletonEq8({});
     abletonEq8.Mode = ChannelMode.LeftRight; // Assuming LeftRight is a non-stereo mode
 
-    expect(() =>
-      AbletonToSteinbergAdapter.toSteinbergFrequency(abletonEq8)
-    ).toThrow("Only Stereo conversion is supported. ChannelMode was 1!"); // Assuming ChannelMode.LeftRight is 1
+    expect(() => AbletonToSteinbergFrequency.convertBase(abletonEq8)).toThrow(
+      "Only Stereo conversion is supported. ChannelMode was 1!"
+    ); // Assuming ChannelMode.LeftRight is 1
   });
 });
