@@ -21,8 +21,8 @@ const loadPresetFile = (filePath: string): Uint8Array => {
   return new Uint8Array(fileContent);
 };
 
-describe("GenericEQFactory", () => {
-  describe("fromFabFilterProQ", () => {
+describe("GenericEQ Converters", () => {
+  describe("FabFilterToGenericEQ", () => {
     test("should convert FabFilter Pro-Q 1 preset correctly", () => {
       const presetData = loadPresetFile("data/Fabfilter/Q1-Vocal.ffp");
       const proQ = new FabfilterProQ();
@@ -34,7 +34,7 @@ describe("GenericEQFactory", () => {
       // Note: ProQ1 FFP doesn't store name/vendor in a standard way the parser reads
       expect(genericPreset.Name).toBe("FabFilter Pro-Q");
       expect(genericPreset.Vendor).toBe("FabFilter");
-      expect(genericPreset.Version).toBe("1"); // Factory sets this default
+      expect(genericPreset.Version).toBe("1"); // Converter sets this default
 
       expect(genericPreset.Bands.length).toBe(24); // ProQ1 has 24 bands
 
@@ -48,7 +48,7 @@ describe("GenericEQFactory", () => {
           Gain: 1.08,
           Q: 1.0,
           Shape: GenericEQShape.Bell, // Shape 0
-          Slope: GenericEQSlope.Slope24dB_oct, // Default from factory if not Cut/Shelf
+          Slope: GenericEQSlope.Slope24dB_oct, // Default from converter if not Cut/Shelf
           StereoPlacement: GenericEQStereoPlacement.Stereo, // StereoPlacement 2
         })
       );
@@ -107,7 +107,7 @@ describe("GenericEQFactory", () => {
       // --- Assertions for ProQ2 conversion ---
       expect(genericPreset.Name).toBe("FabFilter Pro-Q 2");
       expect(genericPreset.Vendor).toBe("FabFilter");
-      expect(genericPreset.Version).toBe("1"); // Factory sets this default
+      expect(genericPreset.Version).toBe("1"); // Converter sets this default
 
       expect(genericPreset.Bands.length).toBe(24); // ProQ2 has 24 bands
 
@@ -181,7 +181,7 @@ describe("GenericEQFactory", () => {
       // --- Assertions for ProQ3 conversion ---
       expect(genericPreset.Name).toBe("FabFilter Pro-Q 3");
       expect(genericPreset.Vendor).toBe("FabFilter");
-      expect(genericPreset.Version).toBe("1"); // Factory sets this default
+      expect(genericPreset.Version).toBe("1"); // Converter sets this default
 
       expect(genericPreset.Bands.length).toBe(24); // ProQ3 has 24 bands
 
@@ -252,7 +252,7 @@ describe("GenericEQFactory", () => {
     });
   });
 
-  describe("fromSteinbergFrequency", () => {
+  describe("SteinbergFrequencyToGenericEQ", () => {
     test("should convert Steinberg Frequency preset 'Boost High Side' correctly", () => {
       const presetData = loadPresetFile(
         "data/Steinberg/Frequency/Boost High Side (Stereo).vstpreset"
@@ -272,7 +272,7 @@ describe("GenericEQFactory", () => {
       // --- Assertions for Steinberg Frequency conversion ---
       expect(genericPreset.Name).toBe("Frequency");
       expect(genericPreset.Vendor).toBe("Steinberg Media Technologies");
-      expect(genericPreset.Version).toBe("1"); // Factory sets this default
+      expect(genericPreset.Version).toBe("1"); // Converter sets this default
       expect(genericPreset.Bands.length).toBe(8); // Frequency has 8 bands
 
       // Values from Boost High Side (Stereo).vstpreset
