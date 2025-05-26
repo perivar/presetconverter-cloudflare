@@ -5,7 +5,7 @@ import {
   GenericEQShape,
   GenericEQSlope,
   GenericEQStereoPlacement,
-} from "../GenericEQTypes";
+} from "../GenericEQPreset";
 import {
   BandMode1And8,
   BandMode2To7,

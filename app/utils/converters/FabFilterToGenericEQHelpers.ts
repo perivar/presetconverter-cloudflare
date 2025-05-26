@@ -21,20 +21,20 @@ import {
   GenericEQShape,
   GenericEQSlope,
   GenericEQStereoPlacement,
-} from "../GenericEQTypes";
+} from "../GenericEQPreset";
 
 export type FabFilterBand = ProQBand | ProQ2Band | ProQ3Band;
 
 export function convertFabFilterBand(band: FabFilterBand): GenericEQBand {
-  const convertedBand: GenericEQBand = {
-    Enabled: band.Enabled,
-    Frequency: band.Frequency,
-    Gain: band.Gain,
-    Q: band.Q,
-    Shape: convertFabFilterShape(band),
-    Slope: convertFabFilterSlope(band),
-    StereoPlacement: convertFabFilterStereoPlacement(band),
-  };
+  const convertedBand = new GenericEQBand(
+    band.Enabled,
+    band.Frequency,
+    band.Gain,
+    band.Q,
+    convertFabFilterShape(band),
+    convertFabFilterSlope(band),
+    convertFabFilterStereoPlacement(band)
+  );
 
   // Handle ProQ3 specific properties
   if (isProQ3Band(band)) {

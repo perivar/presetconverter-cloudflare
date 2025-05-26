@@ -5,14 +5,13 @@ import type { LoaderFunctionArgs, MetaFunction } from "@remix-run/cloudflare";
 import { json } from "@remix-run/react";
 import i18next from "~/i18n/i18n.server";
 import { FabFilterToGenericEQ } from "~/utils/converters/FabFilterToGenericEQ";
-import { GenericEQToSteinbergFrequency } from "~/utils/converters/GenericEQToSteinbergFrequency";
 import { SteinbergFrequencyToGenericEQ } from "~/utils/converters/SteinbergFrequencyToGenericEQ";
 import { FabfilterProQ } from "~/utils/FabfilterProQ";
 import { FabfilterProQ2 } from "~/utils/FabfilterProQ2";
 import { FabfilterProQ3 } from "~/utils/FabfilterProQ3";
 import { FabfilterProQBase } from "~/utils/FabfilterProQBase";
 import { FxChunkSet, FXP, FxProgramSet } from "~/utils/FXP";
-import { GenericEQBand, GenericEQPreset } from "~/utils/GenericEQTypes";
+import { GenericEQBand, GenericEQPreset } from "~/utils/GenericEQPreset";
 import { SteinbergFrequency } from "~/utils/SteinbergFrequency";
 import { VstPresetFactory } from "~/utils/VstPresetFactory";
 import { useDropzone } from "react-dropzone";
@@ -25,15 +24,9 @@ import {
   CollapsibleContent,
   CollapsibleTrigger,
 } from "~/components/ui/collapsible";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "~/components/ui/select";
 import { EqualizerBandTable } from "~/components/EqualizerBandTable";
 import { EqualizerChart } from "~/components/EqualizerChart";
+import { TargetConversion } from "~/components/TargetConversion";
 
 type TargetFormat = "steinberg-frequency";
 
@@ -96,17 +89,6 @@ const readFxpAsFabfilterEQ = (data: Uint8Array): FxpPresetData => {
   };
 };
 
-const downloadBlob = (blob: Blob, fileName: string) => {
-  const url = window.URL.createObjectURL(blob);
-  const link = document.createElement("a");
-  link.href = url;
-  link.download = fileName;
-  document.body.appendChild(link);
-  link.click();
-  document.body.removeChild(link);
-  window.URL.revokeObjectURL(url);
-};
-
 export default function Index() {
   const { t } = useTranslation();
   const [error, setError] = useState<string | null>(null);
@@ -114,7 +96,6 @@ export default function Index() {
   const [droppedFile, setDroppedFile] = useState<File | null>(null);
   const [parsedData, setParsedData] = useState<GenericEQPreset | null>(null);
   const [sourceFormat, setSourceFormat] = useState<string | null>(null);
-  const [targetFormat, setTargetFormat] = useState<TargetFormat | null>(null);
   const [hoveredFrequency, setHoveredFrequency] = useState<number | null>(null);
 
   const onDrop = useCallback(
@@ -245,40 +226,6 @@ export default function Index() {
     },
     [t]
   );
-
-  const handleConvert = useCallback(async () => {
-    if (!parsedData || !targetFormat || !droppedFile) return;
-
-    try {
-      setIsLoading(true);
-      const extension = ".vstpreset";
-      const mimeType = "application/octet-stream";
-
-      let convertedData: Uint8Array | undefined;
-      if (targetFormat === "steinberg-frequency") {
-        const steinbergPreset =
-          GenericEQToSteinbergFrequency.convertBase(parsedData);
-        convertedData = await steinbergPreset.write();
-      }
-
-      if (!convertedData) {
-        setError(t("error.conversionFailed"));
-        return;
-      }
-
-      const blob = new Blob([convertedData], { type: mimeType });
-      const originalName = droppedFile.name.replace(/\.[^/.]+$/, "");
-      const fileName = `${originalName}${extension}`;
-
-      downloadBlob(blob, fileName);
-    } catch (err) {
-      console.error("Conversion error:", err);
-      const message = err instanceof Error ? err.message : String(err);
-      setError(t("error.conversionError", { message }));
-    } finally {
-      setIsLoading(false);
-    }
-  }, [parsedData, targetFormat, droppedFile, t]);
 
   const { getRootProps, getInputProps, isDragActive } = useDropzone({
     onDrop,
@@ -413,45 +360,11 @@ export default function Index() {
       )}
 
       {parsedData && (
-        <Card>
-          <CardHeader>
-            <CardTitle>{t("conversion.title")}</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-4">
-              <div className="flex flex-col space-y-2">
-                <label htmlFor="targetFormat" className="text-sm font-medium">
-                  {t("conversion.selectTarget")}
-                </label>
-                <Select
-                  value={targetFormat ?? undefined}
-                  onValueChange={value =>
-                    setTargetFormat(value as TargetFormat)
-                  }>
-                  <SelectTrigger id="targetFormat">
-                    <SelectValue
-                      placeholder={t("conversion.selectTargetPlaceholder")}
-                    />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="steinberg-frequency">
-                      Steinberg Frequency
-                    </SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-
-              <Button
-                onClick={handleConvert}
-                disabled={!targetFormat || isLoading}
-                className="w-full">
-                {isLoading
-                  ? t("conversion.converting")
-                  : t("conversion.convertButton")}
-              </Button>
-            </div>
-          </CardContent>
-        </Card>
+        <TargetConversion
+          parsedData={parsedData}
+          droppedFile={droppedFile}
+          sourceFormatId={sourceFormat || "unknown"}
+        />
       )}
     </div>
   );

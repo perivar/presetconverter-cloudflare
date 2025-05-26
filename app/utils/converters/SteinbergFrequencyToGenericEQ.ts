@@ -4,7 +4,7 @@ import {
   GenericEQShape,
   GenericEQSlope,
   GenericEQStereoPlacement,
-} from "../GenericEQTypes";
+} from "../GenericEQPreset";
 import {
   BandMode1And8,
   BandMode2To7,
@@ -112,12 +112,12 @@ export const SteinbergFrequencyToGenericEQ: MultiFormatConverter<
   displayName: "Generic EQ Preset",
 
   convertBase(preset: SteinbergFrequency) {
-    const result: GenericEQPreset = {
-      Name: preset.PlugInName || "Steinberg Frequency Preset",
-      Bands: [],
-      Version: "1", // Steinberg Frequency doesn't expose a version easily
-      Vendor: preset.PlugInVendor,
-    };
+    const result = new GenericEQPreset(
+      preset.PlugInName || "Steinberg Frequency Preset",
+      [], // Bands will be added later
+      "1", // Steinberg Frequency doesn't expose a version easily
+      preset.PlugInVendor
+    );
 
     if (!preset.bands || preset.bands.length === 0) {
       if (
@@ -171,17 +171,17 @@ export const SteinbergFrequencyToGenericEQ: MultiFormatConverter<
       }
 
       if (steinbergBand.ch1.enabled === 1.0) {
-        const convertedBandCh1: GenericEQBand = {
-          Enabled: isBandEnabled,
-          Frequency: steinbergBand.ch1.freq,
-          Gain: steinbergBand.ch1.gain,
-          Q: steinbergBand.ch1.q,
-          Shape: shapeCh1,
-          Slope: slopeCh1,
-          StereoPlacement: placementCh1,
-          DynamicRange: undefined,
-          DynamicThreshold: undefined,
-        };
+        const convertedBandCh1 = new GenericEQBand(
+          isBandEnabled,
+          steinbergBand.ch1.freq,
+          steinbergBand.ch1.gain,
+          steinbergBand.ch1.q,
+          shapeCh1,
+          slopeCh1,
+          placementCh1,
+          undefined, // DynamicRange
+          undefined // DynamicThreshold
+        );
         result.Bands.push(convertedBandCh1);
       }
 
@@ -202,17 +202,17 @@ export const SteinbergFrequencyToGenericEQ: MultiFormatConverter<
           placementCh2 = GenericEQStereoPlacement.Side;
         }
 
-        const convertedBandCh2: GenericEQBand = {
-          Enabled: isBandEnabled,
-          Frequency: steinbergBand.ch2.freq,
-          Gain: steinbergBand.ch2.gain,
-          Q: steinbergBand.ch2.q,
-          Shape: shapeCh2,
-          Slope: slopeCh2,
-          StereoPlacement: placementCh2,
-          DynamicRange: undefined,
-          DynamicThreshold: undefined,
-        };
+        const convertedBandCh2 = new GenericEQBand(
+          isBandEnabled,
+          steinbergBand.ch2.freq,
+          steinbergBand.ch2.gain,
+          steinbergBand.ch2.q,
+          shapeCh2,
+          slopeCh2,
+          placementCh2,
+          undefined, // DynamicRange
+          undefined // DynamicThreshold
+        );
         result.Bands.push(convertedBandCh2);
       }
     }
@@ -220,5 +220,15 @@ export const SteinbergFrequencyToGenericEQ: MultiFormatConverter<
     return result;
   },
 
-  outputFormats: [],
+  outputFormats: [
+    {
+      formatId: "txt",
+      extension: ".txt",
+      displayName: "Text Format",
+      convert(preset: SteinbergFrequency) {
+        const result = SteinbergFrequencyToGenericEQ.convertBase(preset);
+        return result.toString();
+      },
+    },
+  ],
 };

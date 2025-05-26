@@ -10,7 +10,7 @@ import {
   GenericEQShape,
   GenericEQSlope,
   GenericEQStereoPlacement,
-} from "../GenericEQTypes";
+} from "../GenericEQPreset";
 import { SteinbergFrequency } from "../SteinbergFrequency";
 import { VstPresetFactory } from "../VstPresetFactory";
 

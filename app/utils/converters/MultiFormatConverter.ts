@@ -2,18 +2,17 @@ export interface SupportsPresetFormats {
   writeFFP?: () => Uint8Array | undefined;
   writeFXP?: (presetName: string) => Uint8Array | undefined;
   write?: () => Uint8Array | undefined;
+  toString?: () => string | undefined;
 }
 
 export interface OutputFormat<From> {
   formatId: string;
   extension: string;
   displayName: string;
-  convert: (preset: From) => Uint8Array | undefined;
+  convert: (preset: From) => Uint8Array | string | undefined;
 }
 
-// TODO: Consider using a generic type for `To` that extends `SupportsPresetFormats`
-// export interface MultiFormatConverter<From, To extends SupportsPresetFormats> {
-export interface MultiFormatConverter<From, To> {
+export interface MultiFormatConverter<From, To extends SupportsPresetFormats> {
   from: string;
   to: string;
   displayName: string;

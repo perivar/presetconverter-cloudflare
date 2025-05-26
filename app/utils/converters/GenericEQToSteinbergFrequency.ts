@@ -1,4 +1,4 @@
-import { GenericEQPreset } from "../GenericEQTypes";
+import { GenericEQPreset } from "../GenericEQPreset";
 import { SteinbergFrequency } from "../SteinbergFrequency";
 import { isHighCut, isLowCut, setBand } from "./GenericEQToSteinbergHelpers";
 import { MultiFormatConverter } from "./MultiFormatConverter";

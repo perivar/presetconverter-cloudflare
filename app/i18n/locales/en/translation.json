@@ -4,7 +4,9 @@
     "converting": "Converting...",
     "selectTarget": "Select target format",
     "selectTargetPlaceholder": "Select a format",
-    "title": "Convert to another format"
+    "title": "Convert to another format",
+    "noAvailableConversions": "No available conversions",
+    "noSourcePreset": "No source preset found"
   },
   "convert": {
     "title": "Frontpage"
