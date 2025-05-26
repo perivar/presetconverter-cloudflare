@@ -26,10 +26,13 @@ import "@fontsource-variable/roboto-mono/wght.css";
 import "@fontsource-variable/roboto-slab/wght.css";
 import "./tailwind.css";
 
+import { useEffect } from "react";
 import { useTranslation } from "react-i18next";
 import { useChangeLanguage } from "remix-i18next/react";
 
 import i18next, { localeCookie } from "./i18n/i18n.server";
+import { allConverters } from "./utils/registry/allConverters";
+import { registerAllConverters } from "./utils/registry/converterRegistry";
 
 // dark mode
 // https://gist.github.com/keepforever/43c5cfa72cad8b1dad2f3982fe81b576?permalink_comment_id=5117253#gistcomment-5117253
@@ -126,6 +129,10 @@ function InnerLayout({
 export default function App() {
   const { locale } = useLoaderData<typeof loader>();
   useChangeLanguage(locale); // Change i18next language if locale changes
+
+  useEffect(() => {
+    registerAllConverters(allConverters); // Register converters once on the client
+  }, []);
 
   // Remix’s Outlet renders the matched route’s component, which will be wrapped by Layout.
   return <Outlet />;

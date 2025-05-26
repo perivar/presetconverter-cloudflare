@@ -11,6 +11,8 @@ export interface OutputFormat<From> {
   convert: (preset: From) => Uint8Array | undefined;
 }
 
+// TODO: Consider using a generic type for `To` that extends `SupportsPresetFormats`
+// export interface MultiFormatConverter<From, To extends SupportsPresetFormats> {
 export interface MultiFormatConverter<From, To> {
   from: string;
   to: string;
