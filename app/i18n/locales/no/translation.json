@@ -4,7 +4,9 @@
     "converting": "Konverterer...",
     "selectTarget": "Velg målformat",
     "selectTargetPlaceholder": "Velg et format",
-    "title": "Konverter til annet format"
+    "title": "Konverter til annet format",
+    "noAvailableConversions": "Ingen tilgjengelige konverteringer",
+    "noSourcePreset": "Ingen forhåndsinnstilling av kilder funnet"
   },
   "convert": {
     "title": "Forside"
@@ -14,7 +16,7 @@
     "dropHere": "Slipp filen her",
     "loading": "Laster...",
     "prompt": "Dra og slipp en preset fil her, eller klikk for å velge",
-    "supportedFormats": "Støttede formater: .ffp, .fxp, .vstpreset",
+    "supportedFormats": "Støttede formater: .ffp, .fxp, .vstpreset, .als",
     "title": "Last opp Preset"
   },
   "error": {
@@ -41,7 +43,8 @@
     "slope": "Stigning",
     "stereoPlacement": "Stereoplassering",
     "title": "Filinformasjon",
-    "type": "Type"
+    "type": "Type",
+    "detectedType": "Oppdaget type"
   },
   "help": {
     "title": "Hjelp"

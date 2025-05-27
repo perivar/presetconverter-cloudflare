@@ -16,7 +16,7 @@
     "dropHere": "Drop the file here",
     "loading": "Loading...",
     "prompt": "Drag and drop a preset file here, or click to select",
-    "supportedFormats": "Supported formats: .ffp, .fxp, .vstpreset",
+    "supportedFormats": "Supported formats: .ffp, .fxp, .vstpreset, .als",
     "title": "Upload Preset"
   },
   "error": {
@@ -43,7 +43,8 @@
     "slope": "Slope",
     "stereoPlacement": "Stereo Placement",
     "title": "File Information",
-    "type": "Type"
+    "type": "Type",
+    "detectedType": "Detected Type"
   },
   "help": {
     "title": "Help"

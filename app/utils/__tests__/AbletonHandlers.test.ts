@@ -23,7 +23,7 @@ afterAll(() => {
 });
 
 describe("AbletonHandlers", () => {
-  test("should handle Ableton Live Project files", () => {
+  test("should handle Ableton Live Project files", async () => {
     const fileName = "Bayze - Move On REMAKE.als";
     const filePath = path.join(__dirname, `data/Ableton/${fileName}`);
     const fileContent = fs.readFileSync(filePath);
@@ -33,7 +33,7 @@ describe("AbletonHandlers", () => {
     const doVerbose = true;
 
     // Call the function with the file data
-    const result = AbletonHandlers.HandleAbletonLiveProject(
+    const result = await AbletonHandlers.HandleAbletonLiveProject(
       uint8ArrayRead,
       fileName,
       doList,
@@ -84,7 +84,7 @@ describe("AbletonHandlers", () => {
     const doVerbose = true;
 
     // Call the function with the file data
-    const result = AbletonHandlers.HandleAbletonLiveProject(
+    const result = await AbletonHandlers.HandleAbletonLiveProject(
       uint8ArrayRead,
       fileName,
       doList,

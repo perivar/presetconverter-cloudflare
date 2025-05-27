@@ -4,6 +4,8 @@ import { useCallback, useState } from "react";
 import type { LoaderFunctionArgs, MetaFunction } from "@remix-run/cloudflare";
 import { json } from "@remix-run/react";
 import i18next from "~/i18n/i18n.server";
+import { AbletonHandlers } from "~/utils/ableton/AbletonHandlers";
+import { AbletonPresetFile } from "~/utils/ableton/AbletonPresetFile";
 import { FabFilterToGenericEQ } from "~/utils/converters/FabFilterToGenericEQ";
 import { SteinbergFrequencyToGenericEQ } from "~/utils/converters/SteinbergFrequencyToGenericEQ";
 import { FabFilterProQ } from "~/utils/preset/FabFilterProQ";
@@ -98,6 +100,9 @@ export default function Index() {
   const [parsedGenericData, setParsedGenericData] =
     useState<GenericEQPreset | null>(null);
   const [hoveredFrequency, setHoveredFrequency] = useState<number | null>(null);
+  const [abletonPresetFiles, setAbletonPresetFiles] = useState<
+    AbletonPresetFile[] | null
+  >(null);
 
   const onDrop = useCallback(
     (acceptedFiles: File[]) => {
@@ -106,6 +111,7 @@ export default function Index() {
       setSourceData(null);
       setParsedGenericData(null);
       setDroppedFile(null);
+      setAbletonPresetFiles(null); // Clear previous Ableton files
       setIsLoading(true);
 
       if (acceptedFiles.length === 0) {
@@ -125,6 +131,7 @@ export default function Index() {
       };
 
       reader.onload = async () => {
+        // Made function async
         try {
           const arrayBuffer = reader.result as ArrayBuffer;
           const data = new Uint8Array(arrayBuffer);
@@ -226,6 +233,31 @@ export default function Index() {
             } catch (_err) {
               setError(t("error.unsupportedFormat", { fileName: file.name }));
             }
+          } else if (ext === "als") {
+            try {
+              const result = await AbletonHandlers.HandleAbletonLiveProject(
+                // Added await
+                data,
+                file.name,
+                false, // doList
+                false // doVerbose
+              );
+
+              if (result?.devicePresetFiles) {
+                setAbletonPresetFiles(result.devicePresetFiles);
+                setSourceFormat("Ableton Live Project"); // Or a more specific format if needed
+              } else {
+                setError(t("error.unsupportedFormat", { fileName: file.name }));
+              }
+            } catch (err) {
+              console.error("Ableton parsing error:", err);
+              const message = err instanceof Error ? err.message : String(err);
+              setError(
+                t("error.parsingError", { fileName: file.name, message })
+              );
+            }
+          } else {
+            setError(t("error.unsupportedFormat", { fileName: file.name }));
           }
         } catch (err) {
           console.error("Parsing error:", err);
@@ -246,6 +278,7 @@ export default function Index() {
     accept: {
       "audio/fxp": [".fxp"],
       "application/octet-stream": [".ffp", ".vstpreset"],
+      "application/x-ableton-live": [".als"], // Added .als
     },
     multiple: false,
   });
@@ -374,10 +407,52 @@ export default function Index() {
         </Card>
       )}
 
+      {/* Display Ableton Preset Files */}
+      {abletonPresetFiles && abletonPresetFiles.length > 0 && (
+        <Card className="mb-8">
+          <CardHeader>
+            <CardTitle>Ableton Preset Files</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div>
+              {abletonPresetFiles.map((presetFile, index) => (
+                <div key={index} className="border-b py-2 last:border-0">
+                  <p>
+                    <strong>{t("fileInfo.fileName")}:</strong>{" "}
+                    {presetFile.filename}
+                  </p>
+                  <p>
+                    <strong>{t("fileInfo.detectedType")}:</strong>{" "}
+                    {presetFile.format}{" "}
+                  </p>
+                  <p>
+                    <strong>{t("fileInfo.detectedFormat")}:</strong>{" "}
+                    {presetFile.pluginName}
+                  </p>
+
+                  {/* Render TargetConversion for each preset file */}
+                  {/* Note: TargetConversion expects a 'sourceData' which is a Preset type.
+                       AbletonPresetFile might need conversion or adaptation.
+                       For now, passing the AbletonPresetFile object.
+                       The TargetConversion component might need updates to handle this.
+                  */}
+                  <TargetConversion
+                    sourceData={presetFile}
+                    originalFileName={presetFile?.filename || null}
+                    sourceFormatId={presetFile.pluginName || "unknown"}
+                  />
+                </div>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
       {parsedGenericData && (
         <TargetConversion
+          title={t("conversion.title")}
           sourceData={sourceData}
-          droppedFile={droppedFile}
+          originalFileName={droppedFile?.name || null}
           sourceFormatId={sourceFormat || "unknown"}
         />
       )}
