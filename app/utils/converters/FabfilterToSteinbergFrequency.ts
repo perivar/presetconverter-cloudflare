@@ -1,22 +1,22 @@
-import { FabfilterProQBase } from "../preset/FabfilterProQBase";
+import { FabFilterProQBase } from "../preset/FabFilterProQBase";
 import { SteinbergFrequency } from "../preset/SteinbergFrequency";
 import {
   Band,
   isHighCut,
   isLowCut,
   setBand,
-} from "./FabfilterToSteinbergHelpers";
+} from "./FabFilterToSteinbergHelpers";
 import { MultiFormatConverter } from "./MultiFormatConverter";
 
-export const FabfilterToSteinbergFrequency: MultiFormatConverter<
-  FabfilterProQBase,
+export const FabFilterToSteinbergFrequency: MultiFormatConverter<
+  FabFilterProQBase,
   SteinbergFrequency
 > = {
   from: "FabFilter Pro-Q",
   to: "SteinbergFrequency",
   displayName: "Steinberg Frequency",
 
-  convertBase(eq: FabfilterProQBase) {
+  convertBase(eq: FabFilterProQBase) {
     const frequency = new SteinbergFrequency();
 
     // Frequency only supports lowcut on the 1st band and highcut on the 8th band
@@ -74,8 +74,8 @@ export const FabfilterToSteinbergFrequency: MultiFormatConverter<
       formatId: "vstpreset",
       extension: ".vstpreset",
       displayName: "Steinberg VSTPreset",
-      convert(preset: FabfilterProQBase) {
-        const result = FabfilterToSteinbergFrequency.convertBase(preset);
+      convert(preset: FabFilterProQBase) {
+        const result = FabFilterToSteinbergFrequency.convertBase(preset);
         return result.write();
       },
     },

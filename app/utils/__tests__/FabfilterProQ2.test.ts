@@ -1,13 +1,13 @@
 import * as fs from "fs";
 import * as path from "path";
 
-import { FabfilterProQ2 } from "../preset/FabfilterProQ2";
+import { FabFilterProQ2 } from "../preset/FabFilterProQ2";
 import { expectUint8ArraysToBeEqual, toPlainObject } from "./helpers/testUtils";
 
 // set this to true to debug the outputs as objects
 const DO_DEBUG_OBJECT = false;
 
-test("FabfilterProQ2-readFFP-LCHC", () => {
+test("FabFilterProQ2-readFFP-LCHC", () => {
   const filePath = path.join(
     __dirname,
     "data/Fabfilter/Q2-LowCut 32Hz HighCut 8500Hz.ffp"
@@ -15,7 +15,7 @@ test("FabfilterProQ2-readFFP-LCHC", () => {
   const fileContent = fs.readFileSync(filePath);
   const uint8Array = new Uint8Array(fileContent);
 
-  const proQ = new FabfilterProQ2();
+  const proQ = new FabFilterProQ2();
   proQ.readFFP(uint8Array);
 
   if (DO_DEBUG_OBJECT) console.log(JSON.stringify(proQ, null, 2));
@@ -291,7 +291,7 @@ test("FabfilterProQ2-readFFP-LCHC", () => {
   );
 });
 
-test("FabfilterProQ2-readFFP-LCHC-object", () => {
+test("FabFilterProQ2-readFFP-LCHC-object", () => {
   const filePath = path.join(
     __dirname,
     "data/Fabfilter/Q2-LowCut 32Hz HighCut 8500Hz.ffp"
@@ -299,13 +299,13 @@ test("FabfilterProQ2-readFFP-LCHC-object", () => {
   const fileContent = fs.readFileSync(filePath);
   const uint8ArrayRead = new Uint8Array(fileContent);
 
-  const proQRead = new FabfilterProQ2();
+  const proQRead = new FabFilterProQ2();
   proQRead.readFFP(uint8ArrayRead);
   if (DO_DEBUG_OBJECT) console.log(JSON.stringify(proQRead, null, 2));
 
   const uint8ArrayWrite = proQRead.writeFFP();
   if (uint8ArrayWrite) {
-    const proQWrite = new FabfilterProQ2();
+    const proQWrite = new FabFilterProQ2();
     proQWrite.readFFP(uint8ArrayWrite);
     if (DO_DEBUG_OBJECT) console.log(JSON.stringify(proQWrite, null, 2));
 
@@ -313,7 +313,7 @@ test("FabfilterProQ2-readFFP-LCHC-object", () => {
   }
 });
 
-test("FabfilterProQ2-readFFP-LCHC-array", () => {
+test("FabFilterProQ2-readFFP-LCHC-array", () => {
   const filePath = path.join(
     __dirname,
     "data/Fabfilter/Q2-LowCut 32Hz HighCut 8500Hz.ffp"
@@ -321,7 +321,7 @@ test("FabfilterProQ2-readFFP-LCHC-array", () => {
   const fileContent = fs.readFileSync(filePath);
   const uint8ArrayRead = new Uint8Array(fileContent);
 
-  const proQRead = new FabfilterProQ2();
+  const proQRead = new FabFilterProQ2();
   proQRead.readFFP(uint8ArrayRead);
   if (DO_DEBUG_OBJECT) console.log(JSON.stringify(proQRead, null, 2));
 

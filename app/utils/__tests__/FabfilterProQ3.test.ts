@@ -1,7 +1,7 @@
 import * as fs from "fs";
 import * as path from "path";
 
-import { FabfilterProQ3 } from "../preset/FabfilterProQ3";
+import { FabFilterProQ3 } from "../preset/FabFilterProQ3";
 import { SteinbergVstPreset } from "../preset/SteinbergVstPreset";
 import { VstPresetFactory } from "../preset/VstPresetFactory";
 import { expectUint8ArraysToBeEqual, toPlainObject } from "./helpers/testUtils";
@@ -9,7 +9,7 @@ import { expectUint8ArraysToBeEqual, toPlainObject } from "./helpers/testUtils";
 // set this to true to debug the outputs as objects
 const DO_DEBUG_OBJECT = false;
 
-test("FabfilterProQ3-readFFP-HighBass", () => {
+test("FabFilterProQ3-readFFP-HighBass", () => {
   const filePath = path.join(
     __dirname,
     "data/Fabfilter/Q3-Fabfilter Pro-Q 3 High Bass.ffp"
@@ -17,7 +17,7 @@ test("FabfilterProQ3-readFFP-HighBass", () => {
   const fileContent = fs.readFileSync(filePath);
   const uint8Array = new Uint8Array(fileContent);
 
-  const proQ = new FabfilterProQ3();
+  const proQ = new FabFilterProQ3();
   proQ.readFFP(uint8Array);
 
   if (DO_DEBUG_OBJECT) console.log(JSON.stringify(proQ, null, 2));
@@ -299,7 +299,7 @@ test("FabfilterProQ3-readFFP-HighBass", () => {
   );
 });
 
-test("FabfilterProQ3-readFFP-HighBass-object", () => {
+test("FabFilterProQ3-readFFP-HighBass-object", () => {
   const filePath = path.join(
     __dirname,
     "data/Fabfilter/Q3-Fabfilter Pro-Q 3 High Bass.ffp"
@@ -307,13 +307,13 @@ test("FabfilterProQ3-readFFP-HighBass-object", () => {
   const fileContent = fs.readFileSync(filePath);
   const uint8ArrayRead = new Uint8Array(fileContent);
 
-  const proQRead = new FabfilterProQ3();
+  const proQRead = new FabFilterProQ3();
   proQRead.readFFP(uint8ArrayRead);
   if (DO_DEBUG_OBJECT) console.log(JSON.stringify(proQRead, null, 2));
 
   const uint8ArrayWrite = proQRead.writeFFP();
   if (uint8ArrayWrite) {
-    const proQWrite = new FabfilterProQ3();
+    const proQWrite = new FabFilterProQ3();
     proQWrite.readFFP(uint8ArrayWrite);
     if (DO_DEBUG_OBJECT) console.log(JSON.stringify(proQWrite, null, 2));
 
@@ -321,7 +321,7 @@ test("FabfilterProQ3-readFFP-HighBass-object", () => {
   }
 });
 
-test("FabfilterProQ3-readFFP-HighBass-array", () => {
+test("FabFilterProQ3-readFFP-HighBass-array", () => {
   const filePath = path.join(
     __dirname,
     "data/Fabfilter/Q3-Fabfilter Pro-Q 3 High Bass.ffp"
@@ -329,7 +329,7 @@ test("FabfilterProQ3-readFFP-HighBass-array", () => {
   const fileContent = fs.readFileSync(filePath);
   const uint8ArrayRead = new Uint8Array(fileContent);
 
-  const proQRead = new FabfilterProQ3();
+  const proQRead = new FabFilterProQ3();
   proQRead.readFFP(uint8ArrayRead);
   if (DO_DEBUG_OBJECT) console.log(JSON.stringify(proQRead, null, 2));
 
@@ -340,7 +340,7 @@ test("FabfilterProQ3-readFFP-HighBass-array", () => {
   }
 });
 
-test("FabfilterProQ3-readVstPreset-HighBass-array", () => {
+test("FabFilterProQ3-readVstPreset-HighBass-array", () => {
   const filePath = path.join(
     __dirname,
     "data/Fabfilter/Q3-Fabfilter Pro-Q 3 High Bass.vstpreset"
@@ -348,7 +348,7 @@ test("FabfilterProQ3-readVstPreset-HighBass-array", () => {
   const fileContent = fs.readFileSync(filePath);
   const uint8ArrayRead = new Uint8Array(fileContent);
 
-  // Get original preset (will be FabfilterProQ3 as a VST3 version)
+  // Get original preset (will be FabFilterProQ3 as a VST3 version)
   const originalPreset = VstPresetFactory.getVstPreset(uint8ArrayRead);
   if (!originalPreset) {
     throw new Error("Failed to read VST preset");
@@ -380,7 +380,7 @@ test("FabfilterProQ3-readVstPreset-HighBass-array", () => {
   }
 });
 
-test("FabfilterProQ3-readFFP-Zedd-array", () => {
+test("FabFilterProQ3-readFFP-Zedd-array", () => {
   const filePath = path.join(
     __dirname,
     "data/Fabfilter/Q3-Zedd Saw Chords.ffp"
@@ -388,7 +388,7 @@ test("FabfilterProQ3-readFFP-Zedd-array", () => {
   const fileContent = fs.readFileSync(filePath);
   const uint8ArrayRead = new Uint8Array(fileContent);
 
-  const proQRead = new FabfilterProQ3();
+  const proQRead = new FabFilterProQ3();
   proQRead.readFFP(uint8ArrayRead);
   if (DO_DEBUG_OBJECT) console.log(JSON.stringify(proQRead, null, 2));
 
@@ -399,7 +399,7 @@ test("FabfilterProQ3-readFFP-Zedd-array", () => {
   }
 });
 
-test("FabfilterProQ3-compare-FXP-FFP-HighBass", () => {
+test("FabFilterProQ3-compare-FXP-FFP-HighBass", () => {
   // Load and parse FXP
   const fxpPath = path.join(
     __dirname,
@@ -417,8 +417,8 @@ test("FabfilterProQ3-compare-FXP-FFP-HighBass", () => {
     );
   }
 
-  expect(fxpProQ).toBeInstanceOf(FabfilterProQ3); // Keep this check as we know the test file is Q3
-  expect(source).toBe("FabfilterProQ3");
+  expect(fxpProQ).toBeInstanceOf(FabFilterProQ3); // Keep this check as we know the test file is Q3
+  expect(source).toBe("FabFilterProQ3");
   if (DO_DEBUG_OBJECT)
     console.log(
       `FXP Bands (${fxpProQ.constructor.name}):`,
@@ -432,7 +432,7 @@ test("FabfilterProQ3-compare-FXP-FFP-HighBass", () => {
   );
   const ffpFileContent = fs.readFileSync(ffpPath);
   const ffpUint8Array = new Uint8Array(ffpFileContent);
-  const ffpProQ = new FabfilterProQ3();
+  const ffpProQ = new FabFilterProQ3();
   ffpProQ.readFFP(ffpUint8Array);
   if (DO_DEBUG_OBJECT)
     console.log("FFP Bands:", JSON.stringify(ffpProQ.Bands, null, 2));
@@ -441,7 +441,7 @@ test("FabfilterProQ3-compare-FXP-FFP-HighBass", () => {
   expect(toPlainObject(fxpProQ.Bands)).toEqual(toPlainObject(ffpProQ.Bands));
 });
 
-test("FabfilterProQ3-readVstPreset-Zedd-array", () => {
+test("FabFilterProQ3-readVstPreset-Zedd-array", () => {
   const filePath = path.join(
     __dirname,
     "data/Fabfilter/Q3-Zedd Saw Chords.vstpreset"

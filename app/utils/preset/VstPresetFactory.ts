@@ -1,7 +1,7 @@
-import { FabfilterProQ } from "./FabfilterProQ";
-import { FabfilterProQ2 } from "./FabfilterProQ2";
-import { FabfilterProQ3 } from "./FabfilterProQ3";
-import { FabfilterProQBase } from "./FabfilterProQBase"; // Added import
+import { FabFilterProQ } from "./FabFilterProQ";
+import { FabFilterProQ2 } from "./FabFilterProQ2";
+import { FabFilterProQ3 } from "./FabFilterProQ3";
+import { FabFilterProQBase } from "./FabFilterProQBase"; // Added import
 import { FXP } from "./FXP"; // Added import
 import { SteinbergFrequency } from "./SteinbergFrequency";
 import { SteinbergVstPreset } from "./SteinbergVstPreset";
@@ -39,15 +39,15 @@ export class VstPresetFactory {
       switch (vst3ClassID) {
         case VstClassIDs.FabFilterProQ:
         case VstClassIDs.FabFilterProQx64:
-          preset = new FabfilterProQ();
+          preset = new FabFilterProQ();
           break;
         case VstClassIDs.FabFilterProQ2:
         case VstClassIDs.FabFilterProQ2x64:
-          preset = new FabfilterProQ2();
+          preset = new FabFilterProQ2();
           break;
         case VstClassIDs.FabFilterProQ3:
-        case VstClassIDs.FabfilterProQ3VST3:
-          preset = new FabfilterProQ3();
+        case VstClassIDs.FabFilterProQ3VST3:
+          preset = new FabFilterProQ3();
           break;
         case VstClassIDs.SteinbergFrequency:
           preset = new SteinbergFrequency();
@@ -82,37 +82,37 @@ export class VstPresetFactory {
   }
 
   /**
-   * Reads an FXP file, determines the Fabfilter Pro-Q version,
+   * Reads an FXP file, determines the FabFilter Pro-Q version,
    * initializes the corresponding class, and returns it.
    * @param presetBytes - The Uint8Array content of the FXP file.
-   * @returns An initialized FabfilterProQBase instance or null if parsing fails or version is unknown.
+   * @returns An initialized FabFilterProQBase instance or null if parsing fails or version is unknown.
    */
   static getFabFilterProQPresetFromFXP(presetBytes: Uint8Array): {
-    preset: FabfilterProQBase | null;
+    preset: FabFilterProQBase | null;
     source: string | null;
   } {
     try {
       const fxp = new FXP(presetBytes);
-      let proQInstance: FabfilterProQBase | null = null;
+      let proQInstance: FabFilterProQBase | null = null;
       let source: string | null = null;
 
       // Instantiate correct class based on FxID
       switch (fxp.content?.FxID) {
         case "FPQr":
-          source = "FabfilterProQ";
-          proQInstance = new FabfilterProQ();
+          source = "FabFilterProQ";
+          proQInstance = new FabFilterProQ();
           break;
         case "FQ2p":
-          source = "FabfilterProQ2";
-          proQInstance = new FabfilterProQ2();
+          source = "FabFilterProQ2";
+          proQInstance = new FabFilterProQ2();
           break;
         case "FQ3p":
-          source = "FabfilterProQ3";
-          proQInstance = new FabfilterProQ3();
+          source = "FabFilterProQ3";
+          proQInstance = new FabFilterProQ3();
           break;
         default:
           console.error(
-            `Unknown or missing Fabfilter FxID: ${fxp.content?.FxID}`
+            `Unknown or missing FabFilter FxID: ${fxp.content?.FxID}`
           );
           return { preset: null, source: null }; // Unknown or missing FxID
       }

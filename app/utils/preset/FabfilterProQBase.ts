@@ -1,10 +1,10 @@
 import { BinaryFile, ByteOrder } from "../binary/BinaryFile";
-import { ProQShape } from "./FabfilterProQ";
-import { ProQ2Shape } from "./FabfilterProQ2";
-import { ProQ3Shape } from "./FabfilterProQ3";
+import { ProQShape } from "./FabFilterProQ";
+import { ProQ2Shape } from "./FabFilterProQ2";
+import { ProQ3Shape } from "./FabFilterProQ3";
 import { VstPreset } from "./VstPreset";
 
-export enum FabfilterProQShape {
+export enum FabFilterProQShape {
   Bell = 0,
   LowShelf = 1,
   LowCut = 2,
@@ -13,35 +13,35 @@ export enum FabfilterProQShape {
   Notch = 5,
 }
 
-export interface FabfilterProQBand {
+export interface FabFilterProQBand {
   Frequency: number;
   Gain: number;
   Q: number;
   Enabled: boolean;
-  Shape: FabfilterProQShape | ProQShape | ProQ2Shape | ProQ3Shape;
+  Shape: FabFilterProQShape | ProQShape | ProQ2Shape | ProQ3Shape;
 }
 
-// Fabfilter Q factor typically ranges from 0.025 to 40
+// FabFilter Q factor typically ranges from 0.025 to 40
 // 0.312098175
 const FABFILTER_Q_SCALING_FACTOR = 1 / Math.log10(40 / 0.025);
 
 /**
- * Base class for reading and writing Fabfilter Pro Q (1 or 2) Preset files.
+ * Base class for reading and writing FabFilter Pro Q (1 or 2) Preset files.
  */
-export abstract class FabfilterProQBase extends VstPreset {
+export abstract class FabFilterProQBase extends VstPreset {
   constructor() {
     super();
   }
 
-  abstract Bands: FabfilterProQBand[];
+  abstract Bands: FabFilterProQBand[];
 
-  // Abstract method for writing Fabfilter Pro Q preset files.
+  // Abstract method for writing FabFilter Pro Q preset files.
   abstract writeFFP(): Uint8Array | undefined;
 
-  // Abstract method for reading Fabfilter Pro Q preset files.
+  // Abstract method for reading FabFilter Pro Q preset files.
   abstract readFFP(data: Uint8Array, doReadHeader: boolean): boolean;
 
-  // Abstract method for reading Fabfilter Pro Q preset files using a BinaryFile.
+  // Abstract method for reading FabFilter Pro Q preset files using a BinaryFile.
   abstract readFFPInternal(bf: BinaryFile): boolean;
 
   // method for reading FFBS (FabFilter Binary State)
@@ -64,7 +64,7 @@ export abstract class FabfilterProQBase extends VstPreset {
   }
 
   /**
-   * Converts a float value between 0 and 1 to the Fabfilter float equivalent.
+   * Converts a float value between 0 and 1 to the FabFilter float equivalent.
    * @param value - The value to convert.
    * @returns Converted frequency float.
    */
@@ -78,7 +78,7 @@ export abstract class FabfilterProQBase extends VstPreset {
   // x = log(b) / log(a)
 
   /**
-   * Converts a frequency to the Fabfilter equivalent using logarithmic scaling.
+   * Converts a frequency to the FabFilter equivalent using logarithmic scaling.
    * @param value - The frequency to convert.
    * @returns The converted frequency.
    */
@@ -89,8 +89,8 @@ export abstract class FabfilterProQBase extends VstPreset {
   }
 
   /**
-   * Converts a Fabfilter frequency value back to the original frequency.
-   * @param value - The Fabfilter frequency value.
+   * Converts a FabFilter frequency value back to the original frequency.
+   * @param value - The FabFilter frequency value.
    * @returns The original frequency.
    */
   static freqConvertBack(value: number): number {
@@ -109,8 +109,8 @@ export abstract class FabfilterProQBase extends VstPreset {
   }
 
   /**
-   * Converts a Fabfilter Q factor value back to the original Q factor.
-   * @param value - The Fabfilter Q factor value.
+   * Converts a FabFilter Q factor value back to the original Q factor.
+   * @param value - The FabFilter Q factor value.
    * @returns The original Q factor.
    */
   static qConvertBack(value: number): number {

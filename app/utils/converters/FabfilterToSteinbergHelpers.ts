@@ -3,18 +3,18 @@ import {
   ProQLPHPSlope,
   ProQShape,
   ProQStereoPlacement,
-} from "../preset/FabfilterProQ";
+} from "../preset/FabFilterProQ";
 import {
   ProQ2ChannelMode,
   ProQ2Shape,
   ProQ2Slope,
   ProQ2StereoPlacement,
-} from "../preset/FabfilterProQ2";
+} from "../preset/FabFilterProQ2";
 import {
   ProQ3Shape,
   ProQ3Slope,
   ProQ3StereoPlacement,
-} from "../preset/FabfilterProQ3";
+} from "../preset/FabFilterProQ3";
 import {
   BandMode1And8,
   BandMode2To7,

@@ -1,21 +1,21 @@
-import AbletonToFabfilterProQ3 from "../converters/AbletonToFabFilterProQ3";
+import { AbletonToFabFilterProQ3 } from "../converters/AbletonToFabFilterProQ3";
 import { AbletonToSteinbergFrequency } from "../converters/AbletonToSteinbergFrequency";
 import { FabFilterToGenericEQ } from "../converters/FabFilterToGenericEQ";
-import { FabfilterToSteinbergFrequency } from "../converters/FabfilterToSteinbergFrequency";
+import { FabFilterToSteinbergFrequency } from "../converters/FabFilterToSteinbergFrequency";
 import { GenericEQToSteinbergFrequency } from "../converters/GenericEQToSteinbergFrequency";
-import REWToFabfilterProQ from "../converters/REWToFabfilterProQ";
-import REWToFabfilterProQ2 from "../converters/REWToFabfilterProQ2";
-import REWToFabfilterProQ3 from "../converters/REWToFabfilterProQ3";
+import { REWToFabFilterProQ } from "../converters/REWToFabFilterProQ";
+import { REWToFabFilterProQ2 } from "../converters/REWToFabFilterProQ2";
+import { REWToFabFilterProQ3 } from "../converters/REWToFabFilterProQ3";
 import { SteinbergFrequencyToGenericEQ } from "../converters/SteinbergFrequencyToGenericEQ";
 
 export const allConverters = [
-  AbletonToFabfilterProQ3,
+  AbletonToFabFilterProQ3,
   AbletonToSteinbergFrequency,
   FabFilterToGenericEQ,
-  FabfilterToSteinbergFrequency,
+  FabFilterToSteinbergFrequency,
   GenericEQToSteinbergFrequency,
   SteinbergFrequencyToGenericEQ,
-  REWToFabfilterProQ,
-  REWToFabfilterProQ2,
-  REWToFabfilterProQ3,
+  REWToFabFilterProQ,
+  REWToFabFilterProQ2,
+  REWToFabFilterProQ3,
 ];

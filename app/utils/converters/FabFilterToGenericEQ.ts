@@ -1,4 +1,4 @@
-import { FabfilterProQBase } from "../preset/FabfilterProQBase";
+import { FabFilterProQBase } from "../preset/FabFilterProQBase";
 import { GenericEQPreset } from "../preset/GenericEQPreset";
 import {
   convertFabFilterBand,
@@ -7,14 +7,14 @@ import {
 import { MultiFormatConverter } from "./MultiFormatConverter";
 
 export const FabFilterToGenericEQ: MultiFormatConverter<
-  FabfilterProQBase,
+  FabFilterProQBase,
   GenericEQPreset
 > = {
   from: "FabFilter Pro-Q",
   to: "GenericEQPreset",
   displayName: "Generic EQ Preset",
 
-  convertBase(preset: FabfilterProQBase) {
+  convertBase(preset: FabFilterProQBase) {
     const result = new GenericEQPreset(
       preset.PlugInName || "Unknown Preset",
       preset.Bands.map(band => convertFabFilterBand(band as FabFilterBand)),
@@ -30,7 +30,7 @@ export const FabFilterToGenericEQ: MultiFormatConverter<
       formatId: "txt",
       extension: ".txt",
       displayName: "Text Format",
-      convert(preset: FabfilterProQBase) {
+      convert(preset: FabFilterProQBase) {
         const result = FabFilterToGenericEQ.convertBase(preset);
         return result.toString();
       },

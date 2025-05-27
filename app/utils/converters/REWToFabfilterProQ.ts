@@ -1,21 +1,24 @@
 import {
-  FabfilterProQ,
+  FabFilterProQ,
   ProQBand,
   ProQLPHPSlope,
   ProQShape,
   ProQStereoPlacement,
-} from "../preset/FabfilterProQ";
-import { FabfilterProQBase } from "../preset/FabfilterProQBase";
+} from "../preset/FabFilterProQ";
+import { FabFilterProQBase } from "../preset/FabFilterProQBase";
 import { REWEQBand, REWEQFilters, REWEQFilterType } from "../preset/REWEQ";
 import { MultiFormatConverter } from "./MultiFormatConverter";
 
-const REWToFabfilterProQ: MultiFormatConverter<REWEQFilters, FabfilterProQ> = {
+export const REWToFabFilterProQ: MultiFormatConverter<
+  REWEQFilters,
+  FabFilterProQ
+> = {
   from: "REWEQFilters",
-  to: "FabfilterProQ",
+  to: "FabFilterProQ",
   displayName: "FabFilter Pro-Q",
 
   convertBase(filters: REWEQFilters) {
-    const preset = new FabfilterProQ();
+    const preset = new FabFilterProQ();
     preset.Version = 2;
     preset.Bands = [];
 
@@ -26,7 +29,7 @@ const REWToFabfilterProQ: MultiFormatConverter<REWEQFilters, FabfilterProQ> = {
       band.Q = filter.FilterQ;
       band.Enabled = filter.Enabled;
 
-      // Map REWEQ filter types to Fabfilter ProQ shapes
+      // Map REWEQ filter types to FabFilter ProQ shapes
       switch (filter.FilterType) {
         case REWEQFilterType.PK:
           band.Shape = ProQShape.Bell;
@@ -56,9 +59,9 @@ const REWToFabfilterProQ: MultiFormatConverter<REWEQFilters, FabfilterProQ> = {
     // Fill with empty bands up to a maximum of 24 bands
     for (let i = preset.Bands.length; i < 24; i++) {
       const band = new ProQBand();
-      band.Frequency = FabfilterProQBase.freqConvert(1000);
+      band.Frequency = FabFilterProQBase.freqConvert(1000);
       band.Gain = 0;
-      band.Q = FabfilterProQBase.qConvert(1);
+      band.Q = FabFilterProQBase.qConvert(1);
       band.Enabled = false;
       band.Shape = ProQShape.Bell;
       band.LPHPSlope = ProQLPHPSlope.Slope24dB_oct;
@@ -89,7 +92,7 @@ const REWToFabfilterProQ: MultiFormatConverter<REWEQFilters, FabfilterProQ> = {
       extension: ".ffp",
       displayName: "FabFilter FFP",
       convert(preset: REWEQFilters) {
-        const result = REWToFabfilterProQ.convertBase(preset);
+        const result = REWToFabFilterProQ.convertBase(preset);
         return result.writeFFP();
       },
     },
@@ -98,11 +101,9 @@ const REWToFabfilterProQ: MultiFormatConverter<REWEQFilters, FabfilterProQ> = {
       extension: ".vstpreset",
       displayName: "Steinberg VSTPreset",
       convert(preset: REWEQFilters) {
-        const result = REWToFabfilterProQ.convertBase(preset);
+        const result = REWToFabFilterProQ.convertBase(preset);
         return result.write();
       },
     },
   ],
 };
-
-export default REWToFabfilterProQ;

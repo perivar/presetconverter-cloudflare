@@ -3,9 +3,9 @@ import * as path from "path";
 
 import { FabFilterToGenericEQ } from "../converters/FabFilterToGenericEQ";
 import { SteinbergFrequencyToGenericEQ } from "../converters/SteinbergFrequencyToGenericEQ";
-import { FabfilterProQ } from "../preset/FabfilterProQ";
-import { FabfilterProQ2 } from "../preset/FabfilterProQ2";
-import { FabfilterProQ3 } from "../preset/FabfilterProQ3";
+import { FabFilterProQ } from "../preset/FabFilterProQ";
+import { FabFilterProQ2 } from "../preset/FabFilterProQ2";
+import { FabFilterProQ3 } from "../preset/FabFilterProQ3";
 import {
   GenericEQShape,
   GenericEQSlope,
@@ -25,7 +25,7 @@ describe("GenericEQ Converters", () => {
   describe("FabFilterToGenericEQ", () => {
     test("should convert FabFilter Pro-Q 1 preset correctly", () => {
       const presetData = loadPresetFile("data/Fabfilter/Q1-Vocal.ffp");
-      const proQ = new FabfilterProQ();
+      const proQ = new FabFilterProQ();
       proQ.readFFP(presetData);
 
       const genericPreset = FabFilterToGenericEQ.convertBase(proQ);
@@ -99,7 +99,7 @@ describe("GenericEQ Converters", () => {
 
     test("should convert FabFilter Pro-Q 2 preset correctly", () => {
       const presetData = loadPresetFile("data/Fabfilter/Q2-Vocal.ffp");
-      const proQ2 = new FabfilterProQ2();
+      const proQ2 = new FabFilterProQ2();
       proQ2.readFFP(presetData);
 
       const genericPreset = FabFilterToGenericEQ.convertBase(proQ2);
@@ -173,7 +173,7 @@ describe("GenericEQ Converters", () => {
       const presetData = loadPresetFile(
         "data/Fabfilter/Q3-Zedd Saw Chords.ffp"
       );
-      const proQ3 = new FabfilterProQ3();
+      const proQ3 = new FabFilterProQ3();
       proQ3.readFFP(presetData);
 
       const genericPreset = FabFilterToGenericEQ.convertBase(proQ3);

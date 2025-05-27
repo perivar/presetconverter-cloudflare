@@ -3,19 +3,19 @@ import {
   ProQLPHPSlope,
   ProQShape,
   ProQStereoPlacement,
-} from "../preset/FabfilterProQ";
+} from "../preset/FabFilterProQ";
 import {
   ProQ2Band,
   ProQ2Shape,
   ProQ2Slope,
   ProQ2StereoPlacement,
-} from "../preset/FabfilterProQ2";
+} from "../preset/FabFilterProQ2";
 import {
   ProQ3Band,
   ProQ3Shape,
   ProQ3Slope,
   ProQ3StereoPlacement,
-} from "../preset/FabfilterProQ3";
+} from "../preset/FabFilterProQ3";
 import {
   GenericEQBand,
   GenericEQShape,

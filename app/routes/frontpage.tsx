@@ -6,10 +6,10 @@ import { json } from "@remix-run/react";
 import i18next from "~/i18n/i18n.server";
 import { FabFilterToGenericEQ } from "~/utils/converters/FabFilterToGenericEQ";
 import { SteinbergFrequencyToGenericEQ } from "~/utils/converters/SteinbergFrequencyToGenericEQ";
-import { FabfilterProQ } from "~/utils/preset/FabfilterProQ";
-import { FabfilterProQ2 } from "~/utils/preset/FabfilterProQ2";
-import { FabfilterProQ3 } from "~/utils/preset/FabfilterProQ3";
-import { FabfilterProQBase } from "~/utils/preset/FabfilterProQBase";
+import { FabFilterProQ } from "~/utils/preset/FabFilterProQ";
+import { FabFilterProQ2 } from "~/utils/preset/FabFilterProQ2";
+import { FabFilterProQ3 } from "~/utils/preset/FabFilterProQ3";
+import { FabFilterProQBase } from "~/utils/preset/FabFilterProQBase";
 import { FxChunkSet, FXP, FxProgramSet } from "~/utils/preset/FXP";
 import { GenericEQBand, GenericEQPreset } from "~/utils/preset/GenericEQPreset";
 import { SteinbergFrequency } from "~/utils/preset/SteinbergFrequency";
@@ -49,15 +49,15 @@ export const meta: MetaFunction<typeof loader> = ({ data }) => {
 interface FxpPresetData {
   fxId: string | null;
   chunkData: Uint8Array | null;
-  fabfilterEQPreset: FabfilterProQBase | null;
+  fabfilterEQPreset: FabFilterProQBase | null;
   fabfilterEQSource: string | null;
 }
 
-const readFxpAsFabfilterEQ = (data: Uint8Array): FxpPresetData => {
+const readFxpAsFabFilterEQ = (data: Uint8Array): FxpPresetData => {
   const fxp = new FXP();
   fxp.readFile(data);
 
-  let fabfilterEQPreset: FabfilterProQBase | null = null;
+  let fabfilterEQPreset: FabFilterProQBase | null = null;
   let fabfilterEQSource: string | null = null;
   let fxId: string | null = null;
   let chunkData: Uint8Array | null = null;
@@ -135,7 +135,7 @@ export default function Index() {
                 chunkData: fxpChunkData,
                 fabfilterEQPreset,
                 fabfilterEQSource,
-              } = readFxpAsFabfilterEQ(data);
+              } = readFxpAsFabFilterEQ(data);
               if (fabfilterEQPreset) {
                 // Successfully parsed a Pro-Q preset
                 setSourceFormat(fabfilterEQSource);
@@ -157,19 +157,19 @@ export default function Index() {
 
             // If we get here, either it's an FFP file or FXP identification failed
             // Try reading with each version in sequence
-            const proQ3 = new FabfilterProQ3();
+            const proQ3 = new FabFilterProQ3();
             if (proQ3.readFFP(chunkData)) {
               const eqPreset = FabFilterToGenericEQ.convertBase(proQ3);
               setParsedData(eqPreset);
               setSourceFormat(proQ3.PlugInName);
             } else {
-              const proQ2 = new FabfilterProQ2();
+              const proQ2 = new FabFilterProQ2();
               if (proQ2.readFFP(chunkData)) {
                 const eqPreset = FabFilterToGenericEQ.convertBase(proQ2);
                 setParsedData(eqPreset);
                 setSourceFormat(proQ2.PlugInName);
               } else {
-                const proQ1 = new FabfilterProQ();
+                const proQ1 = new FabFilterProQ();
                 if (proQ1.readFFP(chunkData)) {
                   const eqPreset = FabFilterToGenericEQ.convertBase(proQ1);
                   setParsedData(eqPreset);
@@ -186,12 +186,12 @@ export default function Index() {
               const vstPreset = VstPresetFactory.getVstPreset(data);
               if (
                 vstPreset &&
-                (vstPreset instanceof FabfilterProQ ||
-                  vstPreset instanceof FabfilterProQ2 ||
-                  vstPreset instanceof FabfilterProQ3)
+                (vstPreset instanceof FabFilterProQ ||
+                  vstPreset instanceof FabFilterProQ2 ||
+                  vstPreset instanceof FabFilterProQ3)
               ) {
                 console.log(
-                  "FabfilterProQ[1|2|3] preset:",
+                  "FabFilterProQ[1|2|3] preset:",
                   vstPreset.toString()
                 );
                 const eqPreset = FabFilterToGenericEQ.convertBase(vstPreset);

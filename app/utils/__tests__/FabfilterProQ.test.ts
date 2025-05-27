@@ -1,15 +1,15 @@
 import * as fs from "fs";
 import * as path from "path";
 
-import { FabfilterProQ } from "../preset/FabfilterProQ";
-import { FabfilterProQBand } from "../preset/FabfilterProQBase";
+import { FabFilterProQ } from "../preset/FabFilterProQ";
+import { FabFilterProQBand } from "../preset/FabFilterProQBase";
 import { VstPresetFactory } from "../preset/VstPresetFactory";
 import { expectUint8ArraysToBeEqual, toPlainObject } from "./helpers/testUtils";
 
 // set this to true to debug the outputs as objects
 const DO_DEBUG_OBJECT = false;
 
-test("FabfilterProQ-readFFP-Generic6", () => {
+test("FabFilterProQ-readFFP-Generic6", () => {
   const filePath = path.join(
     __dirname,
     "data/Fabfilter/Q1-genelec eq filters 6 Generic max boost.ffp"
@@ -17,7 +17,7 @@ test("FabfilterProQ-readFFP-Generic6", () => {
   const fileContent = fs.readFileSync(filePath);
   const uint8Array = new Uint8Array(fileContent);
 
-  const proQ = new FabfilterProQ();
+  const proQ = new FabFilterProQ();
   proQ.readFFP(uint8Array);
 
   if (DO_DEBUG_OBJECT) console.log(JSON.stringify(proQ, null, 2));
@@ -282,7 +282,7 @@ test("FabfilterProQ-readFFP-Generic6", () => {
   );
 });
 
-test("FabfilterProQ-readFFP-Generic6-object", () => {
+test("FabFilterProQ-readFFP-Generic6-object", () => {
   const filePath = path.join(
     __dirname,
     "data/Fabfilter/Q1-genelec eq filters 6 Generic max boost.ffp"
@@ -290,13 +290,13 @@ test("FabfilterProQ-readFFP-Generic6-object", () => {
   const fileContent = fs.readFileSync(filePath);
   const uint8ArrayRead = new Uint8Array(fileContent);
 
-  const proQRead = new FabfilterProQ();
+  const proQRead = new FabFilterProQ();
   proQRead.readFFP(uint8ArrayRead);
   if (DO_DEBUG_OBJECT) console.log(JSON.stringify(proQRead, null, 2));
 
   const uint8ArrayWrite = proQRead.writeFFP();
   if (uint8ArrayWrite) {
-    const proQWrite = new FabfilterProQ();
+    const proQWrite = new FabFilterProQ();
     proQWrite.readFFP(uint8ArrayWrite);
     if (DO_DEBUG_OBJECT) console.log(JSON.stringify(proQWrite, null, 2));
 
@@ -304,7 +304,7 @@ test("FabfilterProQ-readFFP-Generic6-object", () => {
   }
 });
 
-test("FabfilterProQ-readFFP-Generic6-array", () => {
+test("FabFilterProQ-readFFP-Generic6-array", () => {
   const filePath = path.join(
     __dirname,
     "data/Fabfilter/Q1-genelec eq filters 6 Generic max boost.ffp"
@@ -312,7 +312,7 @@ test("FabfilterProQ-readFFP-Generic6-array", () => {
   const fileContent = fs.readFileSync(filePath);
   const uint8ArrayRead = new Uint8Array(fileContent);
 
-  const proQRead = new FabfilterProQ();
+  const proQRead = new FabFilterProQ();
   proQRead.readFFP(uint8ArrayRead);
   if (DO_DEBUG_OBJECT) console.log(JSON.stringify(proQRead, null, 2));
 
@@ -323,7 +323,7 @@ test("FabfilterProQ-readFFP-Generic6-array", () => {
   }
 });
 
-test("FabfilterProQ-compare-FXP-FFP-Generic", () => {
+test("FabFilterProQ-compare-FXP-FFP-Generic", () => {
   // Load and parse FXP
   const fxpPath = path.join(
     __dirname,
@@ -342,8 +342,8 @@ test("FabfilterProQ-compare-FXP-FFP-Generic", () => {
     );
   }
 
-  expect(fxpProQ).toBeInstanceOf(FabfilterProQ); // Check for Pro-Q 1
-  expect(source).toBe("FabfilterProQ");
+  expect(fxpProQ).toBeInstanceOf(FabFilterProQ); // Check for Pro-Q 1
+  expect(source).toBe("FabFilterProQ");
   if (DO_DEBUG_OBJECT)
     console.log(
       `FXP Bands (${fxpProQ.constructor.name}):`,
@@ -357,14 +357,14 @@ test("FabfilterProQ-compare-FXP-FFP-Generic", () => {
   );
   const ffpFileContent = fs.readFileSync(ffpPath);
   const ffpUint8Array = new Uint8Array(ffpFileContent);
-  const ffpProQ = new FabfilterProQ(); // Use Pro-Q 1 class
+  const ffpProQ = new FabFilterProQ(); // Use Pro-Q 1 class
   ffpProQ.readFFP(ffpUint8Array);
   if (DO_DEBUG_OBJECT)
     console.log("FFP Bands:", JSON.stringify(ffpProQ.Bands, null, 2));
 
   // Filter out bands with Q values between 4o and 50 since the resolution of the conversions breaks down between these values
-  // This is a workaround for the issue with the Fabfilter Pro Q plugin
-  const filterBands = (bands: FabfilterProQBand[]) =>
+  // This is a workaround for the issue with the FabFilter Pro Q plugin
+  const filterBands = (bands: FabFilterProQBand[]) =>
     bands.filter(band => band.Q < 40 || band.Q > 50);
 
   const filteredFxpBands = filterBands(fxpProQ.Bands);

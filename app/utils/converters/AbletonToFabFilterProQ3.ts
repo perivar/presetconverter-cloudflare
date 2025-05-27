@@ -1,25 +1,25 @@
-// converters/AbletonToFabfilterProQ3.ts
+// converters/AbletonToFabFilterProQ3.ts
 
 import { AbletonEq8, BandMode, ChannelMode } from "../ableton/AbletonEq8";
 import {
-  FabfilterProQ3,
+  FabFilterProQ3,
   ProQ3Band,
   ProQ3Shape,
   ProQ3Slope,
   ProQ3StereoPlacement,
-} from "../preset/FabfilterProQ3";
+} from "../preset/FabFilterProQ3";
 import { MultiFormatConverter } from "./MultiFormatConverter";
 
-const AbletonToFabfilterProQ3: MultiFormatConverter<
+export const AbletonToFabFilterProQ3: MultiFormatConverter<
   AbletonEq8,
-  FabfilterProQ3
+  FabFilterProQ3
 > = {
   from: "AbletonEq8",
-  to: "FabfilterProQ3",
+  to: "FabFilterProQ3",
   displayName: "FabFilter Pro-Q 3",
 
   convertBase(preset: AbletonEq8) {
-    const fabfilterProQ3 = new FabfilterProQ3();
+    const fabfilterProQ3 = new FabFilterProQ3();
     fabfilterProQ3.Bands = [];
 
     if (preset.Mode !== ChannelMode.Stereo) {
@@ -90,7 +90,7 @@ const AbletonToFabfilterProQ3: MultiFormatConverter<
       extension: ".ffp",
       displayName: "FabFilter FFP",
       convert(preset: AbletonEq8) {
-        const result = AbletonToFabfilterProQ3.convertBase(preset);
+        const result = AbletonToFabFilterProQ3.convertBase(preset);
         return result.writeFFP();
       },
     },
@@ -99,7 +99,7 @@ const AbletonToFabfilterProQ3: MultiFormatConverter<
       extension: ".fxp",
       displayName: "FXP Format",
       convert(preset: AbletonEq8) {
-        const result = AbletonToFabfilterProQ3.convertBase(preset);
+        const result = AbletonToFabFilterProQ3.convertBase(preset);
         return result.writeFXP("AbletonToFabFilter");
       },
     },
@@ -108,11 +108,9 @@ const AbletonToFabfilterProQ3: MultiFormatConverter<
       extension: ".vstpreset",
       displayName: "Steinberg VSTPreset",
       convert(preset: AbletonEq8) {
-        const result = AbletonToFabfilterProQ3.convertBase(preset);
+        const result = AbletonToFabFilterProQ3.convertBase(preset);
         return result.write();
       },
     },
   ],
 };
-
-export default AbletonToFabfilterProQ3;
