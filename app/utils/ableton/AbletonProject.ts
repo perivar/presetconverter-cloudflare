@@ -1,4 +1,4 @@
-import { FXP } from "../FXP";
+import { FXP } from "../preset/FXP";
 import {
   extractBeforeSpace,
   getFileNameWithoutExtension,

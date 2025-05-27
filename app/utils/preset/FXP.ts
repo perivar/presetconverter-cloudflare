@@ -1,6 +1,6 @@
 import { XMLBuilder, XMLParser } from "fast-xml-parser";
 
-import { BinaryFile, ByteOrder } from "./BinaryFile";
+import { BinaryFile, ByteOrder } from "../binary/BinaryFile";
 
 export interface FxContent {
   ChunkMagic: string; // 'CcnK'

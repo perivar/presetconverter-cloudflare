@@ -7,9 +7,9 @@ import {
   FrequencyPostParameters,
   FrequencySharedParameters,
   SteinbergFrequency,
-} from "../SteinbergFrequency";
-import { Parameter, ParameterType } from "../VstPreset"; // Correctly import Parameter types
-import { VstPresetFactory } from "../VstPresetFactory";
+} from "../preset/SteinbergFrequency";
+import { Parameter, ParameterType } from "../preset/VstPreset"; // Correctly import Parameter types
+import { VstPresetFactory } from "../preset/VstPresetFactory";
 
 // Import interfaces if needed for typing
 

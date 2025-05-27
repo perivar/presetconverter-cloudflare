@@ -3,16 +3,16 @@ import * as path from "path";
 
 import { FabFilterToGenericEQ } from "../converters/FabFilterToGenericEQ";
 import { SteinbergFrequencyToGenericEQ } from "../converters/SteinbergFrequencyToGenericEQ";
-import { FabfilterProQ } from "../FabfilterProQ";
-import { FabfilterProQ2 } from "../FabfilterProQ2";
-import { FabfilterProQ3 } from "../FabfilterProQ3";
+import { FabfilterProQ } from "../preset/FabfilterProQ";
+import { FabfilterProQ2 } from "../preset/FabfilterProQ2";
+import { FabfilterProQ3 } from "../preset/FabfilterProQ3";
 import {
   GenericEQShape,
   GenericEQSlope,
   GenericEQStereoPlacement,
-} from "../GenericEQPreset";
-import { SteinbergFrequency } from "../SteinbergFrequency";
-import { VstPresetFactory } from "../VstPresetFactory";
+} from "../preset/GenericEQPreset";
+import { SteinbergFrequency } from "../preset/SteinbergFrequency";
+import { VstPresetFactory } from "../preset/VstPresetFactory";
 
 // Helper function to load preset files
 const loadPresetFile = (filePath: string): Uint8Array => {

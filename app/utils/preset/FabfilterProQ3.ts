@@ -1,4 +1,4 @@
-import { BinaryFile, ByteOrder } from "./BinaryFile";
+import { BinaryFile, ByteOrder } from "../binary/BinaryFile";
 import { FabfilterProQBand, FabfilterProQBase } from "./FabfilterProQBase";
 import { FxChunkSet, FXP, FxProgram, FxProgramSet, FxSet } from "./FXP"; // Added FxSet, FxProgram
 import { VstClassIDs } from "./VstClassIDs";

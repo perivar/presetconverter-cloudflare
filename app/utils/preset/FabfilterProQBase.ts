@@ -1,4 +1,4 @@
-import { BinaryFile, ByteOrder } from "./BinaryFile";
+import { BinaryFile, ByteOrder } from "../binary/BinaryFile";
 import { ProQShape } from "./FabfilterProQ";
 import { ProQ2Shape } from "./FabfilterProQ2";
 import { ProQ3Shape } from "./FabfilterProQ3";

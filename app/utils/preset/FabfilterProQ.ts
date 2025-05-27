@@ -1,7 +1,7 @@
-import { BinaryFile, ByteOrder } from "./BinaryFile";
+import { BinaryFile, ByteOrder } from "../binary/BinaryFile";
+import { convertAndMaintainRatio, roundToNumber } from "../Math";
 import { FabfilterProQBand, FabfilterProQBase } from "./FabfilterProQBase";
 import { FxChunkSet, FxProgram, FxProgramSet, FxSet } from "./FXP";
-import { convertAndMaintainRatio, roundToNumber } from "./Math";
 import { VstClassIDs } from "./VstClassIDs";
 import { ParameterType } from "./VstPreset";
 

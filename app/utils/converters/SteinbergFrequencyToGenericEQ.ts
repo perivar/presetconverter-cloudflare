@@ -4,13 +4,13 @@ import {
   GenericEQShape,
   GenericEQSlope,
   GenericEQStereoPlacement,
-} from "../GenericEQPreset";
+} from "../preset/GenericEQPreset";
 import {
   BandMode1And8,
   BandMode2To7,
   ChannelMode,
   SteinbergFrequency,
-} from "../SteinbergFrequency";
+} from "../preset/SteinbergFrequency";
 import { MultiFormatConverter } from "./MultiFormatConverter";
 
 function convertSteinbergShapeAndSlope(

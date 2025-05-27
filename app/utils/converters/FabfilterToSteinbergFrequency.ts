@@ -1,5 +1,5 @@
-import { FabfilterProQBase } from "../FabfilterProQBase";
-import { SteinbergFrequency } from "../SteinbergFrequency";
+import { FabfilterProQBase } from "../preset/FabfilterProQBase";
+import { SteinbergFrequency } from "../preset/SteinbergFrequency";
 import {
   Band,
   isHighCut,

@@ -1,5 +1,5 @@
-import { FabfilterProQBase } from "../FabfilterProQBase";
-import { GenericEQPreset } from "../GenericEQPreset";
+import { FabfilterProQBase } from "../preset/FabfilterProQBase";
+import { GenericEQPreset } from "../preset/GenericEQPreset";
 import {
   convertFabFilterBand,
   FabFilterBand,

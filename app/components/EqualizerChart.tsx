@@ -3,8 +3,11 @@ import {
   GenericEQShape,
   GenericEQSlope,
   GenericEQStereoPlacement,
-} from "~/utils/GenericEQPreset";
-import type { GenericEQBand, GenericEQPreset } from "~/utils/GenericEQPreset";
+} from "~/utils/preset/GenericEQPreset";
+import type {
+  GenericEQBand,
+  GenericEQPreset,
+} from "~/utils/preset/GenericEQPreset";
 import {
   Area,
   CartesianGrid,

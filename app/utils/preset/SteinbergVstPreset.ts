@@ -1,6 +1,6 @@
 // SteinbergVstPreset.ts - Port of the C# SteinbergVstPreset class
 
-import { BinaryWriter } from "./BinaryWriter"; // Added import
+import { BinaryWriter } from "../binary/BinaryWriter";
 import { FXP } from "./FXP";
 import { Parameter, ParameterType, VstPreset } from "./VstPreset";
 

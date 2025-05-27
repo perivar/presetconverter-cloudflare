@@ -1,4 +1,4 @@
-import { BinaryFile, ByteOrder } from "./BinaryFile";
+import { BinaryFile, ByteOrder } from "../binary/BinaryFile";
 import { FXP, FxProgramSet } from "./FXP";
 import { REWEQFilters, REWEQFilterType } from "./REWEQ";
 

@@ -9,7 +9,7 @@ import {
   ProQ3Shape,
   ProQ3Slope,
   ProQ3StereoPlacement,
-} from "../FabfilterProQ3";
+} from "../preset/FabfilterProQ3";
 
 describe("AbletonToFabFilterProQ3", () => {
   it("should convert AbletonEq8 to FabfilterProQ3", () => {

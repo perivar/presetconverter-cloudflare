@@ -1,7 +1,7 @@
 import * as fs from "fs";
 import * as path from "path";
 
-import { FabfilterProQ2 } from "../FabfilterProQ2";
+import { FabfilterProQ2 } from "../preset/FabfilterProQ2";
 import { expectUint8ArraysToBeEqual, toPlainObject } from "./helpers/testUtils";
 
 // set this to true to debug the outputs as objects

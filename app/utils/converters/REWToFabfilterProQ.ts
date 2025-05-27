@@ -4,9 +4,9 @@ import {
   ProQLPHPSlope,
   ProQShape,
   ProQStereoPlacement,
-} from "../FabfilterProQ";
-import { FabfilterProQBase } from "../FabfilterProQBase";
-import { REWEQBand, REWEQFilters, REWEQFilterType } from "../REWEQ";
+} from "../preset/FabfilterProQ";
+import { FabfilterProQBase } from "../preset/FabfilterProQBase";
+import { REWEQBand, REWEQFilters, REWEQFilterType } from "../preset/REWEQ";
 import { MultiFormatConverter } from "./MultiFormatConverter";
 
 const REWToFabfilterProQ: MultiFormatConverter<REWEQFilters, FabfilterProQ> = {

@@ -1,10 +1,10 @@
 import { XMLParser } from "fast-xml-parser";
 
-import { BinaryFile, ByteOrder } from "./BinaryFile";
-import { BinaryReader } from "./BinaryReader";
+import { BinaryFile, ByteOrder } from "../binary/BinaryFile";
+import { BinaryReader } from "../binary/BinaryReader";
+import { toHexEditorString } from "../StringUtils";
 import { FXP } from "./FXP";
 import { Preset } from "./Preset";
-import { toHexEditorString } from "./StringUtils";
 import { VstClassIDs } from "./VstClassIDs";
 
 export enum ParameterType {

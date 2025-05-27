@@ -1,5 +1,5 @@
-import { GenericEQPreset } from "../GenericEQPreset";
-import { SteinbergFrequency } from "../SteinbergFrequency";
+import { GenericEQPreset } from "../preset/GenericEQPreset";
+import { SteinbergFrequency } from "../preset/SteinbergFrequency";
 import { isHighCut, isLowCut, setBand } from "./GenericEQToSteinbergHelpers";
 import { MultiFormatConverter } from "./MultiFormatConverter";
 

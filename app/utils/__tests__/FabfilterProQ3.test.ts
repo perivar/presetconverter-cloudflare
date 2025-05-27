@@ -1,9 +1,9 @@
 import * as fs from "fs";
 import * as path from "path";
 
-import { FabfilterProQ3 } from "../FabfilterProQ3";
-import { SteinbergVstPreset } from "../SteinbergVstPreset";
-import { VstPresetFactory } from "../VstPresetFactory";
+import { FabfilterProQ3 } from "../preset/FabfilterProQ3";
+import { SteinbergVstPreset } from "../preset/SteinbergVstPreset";
+import { VstPresetFactory } from "../preset/VstPresetFactory";
 import { expectUint8ArraysToBeEqual, toPlainObject } from "./helpers/testUtils";
 
 // set this to true to debug the outputs as objects

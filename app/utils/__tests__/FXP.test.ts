@@ -1,7 +1,7 @@
 import * as fs from "fs";
 import * as path from "path";
 
-import { FXP, FxProgram, FxProgramSet } from "../FXP"; // Import FxProgram type
+import { FXP, FxProgram, FxProgramSet } from "../preset/FXP"; // Import FxProgram type
 import { toPlainObject } from "./helpers/testUtils";
 
 // set this to true to debug the outputs as objects

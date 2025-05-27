@@ -3,7 +3,7 @@ import {
   BandMode1And8,
   BandMode2To7,
   SteinbergFrequency,
-} from "../SteinbergFrequency";
+} from "../preset/SteinbergFrequency";
 import { MultiFormatConverter } from "./MultiFormatConverter";
 
 export const AbletonToSteinbergFrequency: MultiFormatConverter<

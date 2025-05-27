@@ -7,7 +7,7 @@ import {
   ProQ3Shape,
   ProQ3Slope,
   ProQ3StereoPlacement,
-} from "../FabfilterProQ3";
+} from "../preset/FabfilterProQ3";
 import { MultiFormatConverter } from "./MultiFormatConverter";
 
 const AbletonToFabfilterProQ3: MultiFormatConverter<

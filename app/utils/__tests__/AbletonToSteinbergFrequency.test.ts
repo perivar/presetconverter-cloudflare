@@ -5,7 +5,7 @@ import {
   ChannelMode,
 } from "../ableton/AbletonEq8";
 import { AbletonToSteinbergFrequency } from "../converters/AbletonToSteinbergFrequency";
-import { BandMode1And8, BandMode2To7 } from "../SteinbergFrequency";
+import { BandMode1And8, BandMode2To7 } from "../preset/SteinbergFrequency";
 
 describe("AbletonToSteinbergFrequency", () => {
   it("should convert AbletonEq8 to SteinbergFrequency", () => {

@@ -5,26 +5,26 @@ import {
   ProQLPHPSlope,
   ProQShape,
   ProQStereoPlacement,
-} from "../FabfilterProQ";
+} from "../preset/FabfilterProQ";
 import {
   FabfilterProQ2,
   ProQ2ChannelMode,
   ProQ2Shape,
   ProQ2Slope,
   ProQ2StereoPlacement,
-} from "../FabfilterProQ2";
+} from "../preset/FabfilterProQ2";
 import {
   FabfilterProQ3,
   ProQ3Shape,
   ProQ3Slope,
   ProQ3StereoPlacement,
-} from "../FabfilterProQ3";
+} from "../preset/FabfilterProQ3";
 import {
   BandMode1And8,
   BandMode2To7,
   ChannelMode,
   SteinbergFrequency,
-} from "../SteinbergFrequency";
+} from "../preset/SteinbergFrequency";
 
 describe("FabfilterToSteinbergFrequency", () => {
   let frequency: SteinbergFrequency;

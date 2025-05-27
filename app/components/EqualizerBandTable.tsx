@@ -3,7 +3,7 @@ import {
   GenericEQShape,
   GenericEQSlope,
   GenericEQStereoPlacement,
-} from "~/utils/GenericEQPreset";
+} from "~/utils/preset/GenericEQPreset";
 import { CheckCircle2, XCircle } from "lucide-react";
 import { useTranslation } from "react-i18next";
 

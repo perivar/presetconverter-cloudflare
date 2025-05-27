@@ -2,7 +2,7 @@ import {
   getDecimalSeparator,
   parseFloatWithSeparator,
   roundToNumber,
-} from "./Math";
+} from "../Math";
 
 export enum REWEQFilterType {
   PK = 0, // PK for a peaking (parametric) filter
