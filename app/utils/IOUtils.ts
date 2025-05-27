@@ -1,4 +1,4 @@
-import { gunzipSync } from "node:zlib";
+import { gunzipSync } from "fflate";
 
 export class IOUtils {
   /**
@@ -8,19 +8,17 @@ export class IOUtils {
    */
   public static Decompress(gzip: Uint8Array): Uint8Array {
     // In Node.js environments, zlib.gunzipSync can be used for gzip decompression.
+    // import { gunzipSync } from "node:zlib";
     // If this code is intended for a browser or other environment without Node.js zlib,
-    // a different library (like pako) would be needed.
+    // a different library (like fflate) would be needed.
     try {
       // gunzipSync expects a Buffer or Uint8Array
       const decompressed = gunzipSync(gzip);
-      return new Uint8Array(decompressed); // Ensure Uint8Array return type
+      return decompressed;
     } catch (error) {
       console.error("Failed to decompress gzip data:", error);
       // Depending on requirements, you might throw the error or return an empty array/null
       throw new Error("Failed to decompress gzip data.");
     }
   }
-
-  // Add other utility methods here as needed in the future
-  // For now, only Decompress is ported as requested.
 }
