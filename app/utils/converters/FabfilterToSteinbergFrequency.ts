@@ -12,7 +12,7 @@ export const FabFilterToSteinbergFrequency: MultiFormatConverter<
   FabFilterProQBase,
   SteinbergFrequency
 > = {
-  from: "FabFilter Pro-Q",
+  from: "FabFilterProQBase", // this gets overridden during registration
   to: "SteinbergFrequency",
   displayName: "Steinberg Frequency",
 

@@ -1,9 +1,12 @@
 import { MultiFormatConverter } from "../converters/MultiFormatConverter";
 
 /**
- * Represents the registry structure mapping fromType -> toType -> converter.
+ * Represents the central registry for storing and retrieving converters.
+ * It is a nested structure where the first level keys are 'from' type names (strings),
+ * the second level keys are 'to' type names (strings), and the values are
+ * instances of `MultiFormatConverter`.
  */
-type Registry = Record<
+export type ConverterRegistry = Record<
   string, // from type name string
   Record<
     string, // to type name string
@@ -11,8 +14,23 @@ type Registry = Record<
   >
 >;
 
+/**
+ * Represents a registration entry for one or more source types
+ * that can be handled by a single converter instance.
+ */
+export type ConverterRegistration = {
+  /**
+   * An array of source type names (strings) that the converter can convert from.
+   */
+  fromTypes: string[];
+  /**
+   * The converter instance capable of performing the conversion.
+   */
+  converter: MultiFormatConverter<any, any>;
+};
+
 let isRegistered = false;
-const converterRegistry: Registry = {};
+const converterRegistry: ConverterRegistry = {};
 
 /**
  * Registers a single converter in the registry.
@@ -31,26 +49,36 @@ export function registerConverter(
 }
 
 /**
- * Registers a list of converters. Skips registration if already registered.
- * @param converters An array of converters to register.
+ * Registers a list of converters.
+ * Each registration can specify multiple `from` types for a single converter instance.
+ * This function ensures converters are registered only once.
+ * @param converters An array of ConverterRegistration objects.
  */
-export function registerAllConverters(
-  converters: MultiFormatConverter<any, any>[]
-) {
+export function registerAllConverters(converters: ConverterRegistration[]) {
   if (isRegistered) {
-    console.debug("Converters already registered, skipping.");
+    console.debug("Converters already registered. Skipping.");
     return;
   }
   isRegistered = true;
 
-  converters.forEach(registerConverter);
-  console.debug(`Registered ${converters.length} converters.`);
+  converters.forEach(({ fromTypes, converter }) => {
+    fromTypes.forEach(from => {
+      // Clone the converter with an overridden `from`
+      const clonedConverter: MultiFormatConverter<any, any> = {
+        ...converter,
+        from,
+      };
+      registerConverter(clonedConverter);
+    });
+  });
+
+  console.debug("All converters registered.");
 }
 
 /**
- * Gets all registered converters that convert from a specific type.
- * @param fromType The type name to get converters for.
- * @returns An array of converters that convert from the specified type, or an empty array if none are found.
+ * Retrieves all registered converters that can convert from a specified type.
+ * @param fromType The name of the source type (e.g., "AbletonEq8").
+ * @returns An array of MultiFormatConverter instances that convert from the specified type, or an empty array if no converters are found for the given `fromType`.
  */
 export function getConvertersForFromType(
   fromType: string
@@ -60,10 +88,10 @@ export function getConvertersForFromType(
 }
 
 /**
- * Gets a specific converter based on the from and to types.
- * @param fromType The type name to convert from.
- * @param toType The type name to convert to.
- * @returns The matching converter, or undefined if not found.
+ * Retrieves a specific converter based on the source and target types.
+ * @param fromType The name of the source type (e.g., "AbletonEq8").
+ * @param toType The name of the target type (e.g., "FabFilterProQ3").
+ * @returns The matching MultiFormatConverter instance, or `undefined` if no converter is found for the specified `fromType` and `toType` combination.
  */
 export function getConverter(
   fromType: string,

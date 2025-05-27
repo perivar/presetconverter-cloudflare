@@ -5,10 +5,8 @@ import { useTranslation } from "react-i18next";
 import { Button } from "~/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "~/components/ui/card";
 
-// or your i18n solution
-
 interface TargetConversionProps {
-  parsedData: any; // your parsed source preset data
+  sourceData: any; // your parsed source preset data
   droppedFile: File | null;
   sourceFormatId: string; // e.g. "AbletonEq8"
 }
@@ -25,7 +23,7 @@ const downloadBlob = (blob: Blob, fileName: string) => {
 };
 
 export function TargetConversion({
-  parsedData,
+  sourceData,
   droppedFile,
   sourceFormatId,
 }: TargetConversionProps) {
@@ -43,13 +41,13 @@ export function TargetConversion({
     const selectedConversion = conversions.find(
       conv => `${conv.to}-${conv.formatId}` === selectedConversionId
     );
-    if (!parsedData || !selectedConversion || !droppedFile) return;
+    if (!sourceData || !selectedConversion || !droppedFile) return;
 
     try {
       setIsLoading(true);
       setError(null);
 
-      const convertedData = selectedConversion.convert(parsedData);
+      const convertedData = selectedConversion.convert(sourceData);
 
       if (!convertedData) {
         setError(t("error.conversionFailed"));
@@ -73,9 +71,9 @@ export function TargetConversion({
     } finally {
       setIsLoading(false);
     }
-  }, [parsedData, selectedConversionId, droppedFile, t, conversions]);
+  }, [sourceData, selectedConversionId, droppedFile, t, conversions]);
 
-  if (!parsedData) {
+  if (!sourceData) {
     return <p>{t("conversion.noSourcePreset")}</p>;
   }
 

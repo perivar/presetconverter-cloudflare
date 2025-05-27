@@ -12,6 +12,7 @@ import { FabFilterProQ3 } from "~/utils/preset/FabFilterProQ3";
 import { FabFilterProQBase } from "~/utils/preset/FabFilterProQBase";
 import { FxChunkSet, FXP, FxProgramSet } from "~/utils/preset/FXP";
 import { GenericEQBand, GenericEQPreset } from "~/utils/preset/GenericEQPreset";
+import { Preset } from "~/utils/preset/Preset";
 import { SteinbergFrequency } from "~/utils/preset/SteinbergFrequency";
 import { VstPresetFactory } from "~/utils/preset/VstPresetFactory";
 import { useDropzone } from "react-dropzone";
@@ -27,8 +28,6 @@ import {
 import { EqualizerBandTable } from "~/components/EqualizerBandTable";
 import { EqualizerChart } from "~/components/EqualizerChart";
 import { TargetConversion } from "~/components/TargetConversion";
-
-type TargetFormat = "steinberg-frequency";
 
 export async function loader({ request }: LoaderFunctionArgs) {
   const t = await i18next.getFixedT(request);
@@ -94,15 +93,18 @@ export default function Index() {
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [droppedFile, setDroppedFile] = useState<File | null>(null);
-  const [parsedData, setParsedData] = useState<GenericEQPreset | null>(null);
   const [sourceFormat, setSourceFormat] = useState<string | null>(null);
+  const [sourceData, setSourceData] = useState<Preset | null>(null);
+  const [parsedGenericData, setParsedGenericData] =
+    useState<GenericEQPreset | null>(null);
   const [hoveredFrequency, setHoveredFrequency] = useState<number | null>(null);
 
   const onDrop = useCallback(
     (acceptedFiles: File[]) => {
       setError(null);
-      setParsedData(null);
       setSourceFormat(null);
+      setSourceData(null);
+      setParsedGenericData(null);
       setDroppedFile(null);
       setIsLoading(true);
 
@@ -131,19 +133,17 @@ export default function Index() {
           if (ext === "ffp" || ext === "fxp") {
             let chunkData = data;
             if (ext === "fxp") {
-              const {
-                chunkData: fxpChunkData,
-                fabfilterEQPreset,
-                fabfilterEQSource,
-              } = readFxpAsFabFilterEQ(data);
+              const { chunkData: fxpChunkData, fabfilterEQPreset } =
+                readFxpAsFabFilterEQ(data);
               if (fabfilterEQPreset) {
                 // Successfully parsed a Pro-Q preset
-                setSourceFormat(fabfilterEQSource);
+                setSourceFormat(fabfilterEQPreset.PlugInName);
+                setSourceData(fabfilterEQPreset);
 
                 // convert to common eqpreset format
                 const eqPreset =
                   FabFilterToGenericEQ.convertBase(fabfilterEQPreset);
-                setParsedData(eqPreset);
+                setParsedGenericData(eqPreset);
 
                 setIsLoading(false);
                 return;
@@ -159,21 +159,27 @@ export default function Index() {
             // Try reading with each version in sequence
             const proQ3 = new FabFilterProQ3();
             if (proQ3.readFFP(chunkData)) {
-              const eqPreset = FabFilterToGenericEQ.convertBase(proQ3);
-              setParsedData(eqPreset);
               setSourceFormat(proQ3.PlugInName);
+              setSourceData(proQ3);
+
+              const eqPreset = FabFilterToGenericEQ.convertBase(proQ3);
+              setParsedGenericData(eqPreset);
             } else {
               const proQ2 = new FabFilterProQ2();
               if (proQ2.readFFP(chunkData)) {
-                const eqPreset = FabFilterToGenericEQ.convertBase(proQ2);
-                setParsedData(eqPreset);
                 setSourceFormat(proQ2.PlugInName);
+                setSourceData(proQ2);
+
+                const eqPreset = FabFilterToGenericEQ.convertBase(proQ2);
+                setParsedGenericData(eqPreset);
               } else {
                 const proQ1 = new FabFilterProQ();
                 if (proQ1.readFFP(chunkData)) {
-                  const eqPreset = FabFilterToGenericEQ.convertBase(proQ1);
-                  setParsedData(eqPreset);
                   setSourceFormat(proQ1.PlugInName);
+                  setSourceData(proQ1);
+
+                  const eqPreset = FabFilterToGenericEQ.convertBase(proQ1);
+                  setParsedGenericData(eqPreset);
                 } else {
                   setError(
                     t("error.unsupportedFormat", { fileName: file.name })
@@ -184,6 +190,7 @@ export default function Index() {
           } else if (ext === "vstpreset") {
             try {
               const vstPreset = VstPresetFactory.getVstPreset(data);
+
               if (
                 vstPreset &&
                 (vstPreset instanceof FabFilterProQ ||
@@ -194,16 +201,23 @@ export default function Index() {
                   "FabFilterProQ[1|2|3] preset:",
                   vstPreset.toString()
                 );
+                setSourceFormat(vstPreset.PlugInName);
+                setSourceData(vstPreset);
+
                 const eqPreset = FabFilterToGenericEQ.convertBase(vstPreset);
-                setParsedData(eqPreset);
-                setSourceFormat(t(`${vstPreset.constructor.name}`));
+                setParsedGenericData(eqPreset);
               } else if (vstPreset && vstPreset instanceof SteinbergFrequency) {
+                setSourceFormat(`${vstPreset.constructor.name}`);
+                setSourceData(vstPreset);
+
                 console.log("SteinbergFrequency preset:", vstPreset.toString());
                 const eqPreset =
                   SteinbergFrequencyToGenericEQ.convertBase(vstPreset);
-                setParsedData(eqPreset);
-                setSourceFormat(t(`${vstPreset.constructor.name}`));
+                setParsedGenericData(eqPreset);
               } else if (vstPreset) {
+                setSourceFormat(`${vstPreset.constructor.name}`);
+                setSourceData(vstPreset);
+
                 // If vstPreset exists but is not a supported type
                 setError(
                   `Unsupported Vst3ClassID: ${vstPreset.Vst3ClassID} (${file.name})`
@@ -303,22 +317,23 @@ export default function Index() {
                 <strong>{t("fileInfo.detectedFormat")}:</strong> {sourceFormat}
               </p>
             )}
-            {parsedData && (
+            {parsedGenericData && (
               <p>
                 <strong>{t("fileInfo.bands")}:</strong>{" "}
                 {
-                  parsedData.Bands.filter((b: GenericEQBand) => b.Enabled)
-                    .length
+                  parsedGenericData.Bands.filter(
+                    (b: GenericEQBand) => b.Enabled
+                  ).length
                 }{" "}
                 enabled
               </p>
             )}
-            {parsedData && parsedData.Bands.length > 0 && (
+            {parsedGenericData && parsedGenericData.Bands.length > 0 && (
               <div>
                 <div className="mt-4">
                   {/* EQ Graph */}
                   <EqualizerChart
-                    preset={parsedData}
+                    preset={parsedGenericData}
                     onFrequencyHover={setHoveredFrequency}
                   />
                 </div>
@@ -347,7 +362,7 @@ export default function Index() {
                     </div>
                     <CollapsibleContent>
                       <EqualizerBandTable
-                        preset={parsedData}
+                        preset={parsedGenericData}
                         hoveredFrequency={hoveredFrequency}
                       />
                     </CollapsibleContent>
@@ -359,9 +374,9 @@ export default function Index() {
         </Card>
       )}
 
-      {parsedData && (
+      {parsedGenericData && (
         <TargetConversion
-          parsedData={parsedData}
+          sourceData={sourceData}
           droppedFile={droppedFile}
           sourceFormatId={sourceFormat || "unknown"}
         />

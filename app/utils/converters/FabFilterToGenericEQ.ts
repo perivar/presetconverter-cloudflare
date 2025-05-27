@@ -10,7 +10,7 @@ export const FabFilterToGenericEQ: MultiFormatConverter<
   FabFilterProQBase,
   GenericEQPreset
 > = {
-  from: "FabFilter Pro-Q",
+  from: "FabFilterProQBase", // this gets overridden during registration
   to: "GenericEQPreset",
   displayName: "Generic EQ Preset",
 
