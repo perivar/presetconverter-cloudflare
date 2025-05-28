@@ -1,6 +1,6 @@
 import { AbletonPlugin } from "./AbletonPlugin";
 
-export enum FilterSlope {
+export enum AbletonEq3FilterSlope {
   Slope24 = 0,
   Slope48 = 1,
 }
@@ -10,14 +10,14 @@ export class AbletonEq3Band {
   Freq: number;
   Gain: number; // Stored in dB
   IsOn: boolean;
-  Slope: FilterSlope;
+  Slope: AbletonEq3FilterSlope;
 
   constructor(
     number: number,
     freq: number,
     gain: number,
     isOn: boolean,
-    slope: FilterSlope
+    slope: AbletonEq3FilterSlope
   ) {
     this.Number = number;
     this.Freq = freq;
@@ -27,7 +27,7 @@ export class AbletonEq3Band {
   }
 
   toString(): string {
-    return `Band: ${this.Number + 1}, ${this.Freq.toFixed(2)} Hz, Gain: ${this.Gain.toFixed(2)} dB, Slope: ${FilterSlope[this.Slope]}, ${this.IsOn ? "On" : "Off"}`;
+    return `Band: ${this.Number + 1}, ${this.Freq.toFixed(2)} Hz, Gain: ${this.Gain.toFixed(2)} dB, Slope: ${AbletonEq3FilterSlope[this.Slope]}, ${this.IsOn ? "On" : "Off"}`;
   }
 }
 
@@ -105,7 +105,7 @@ export class AbletonEq3 implements AbletonPlugin {
     // Convert amplitude ratio to dB *during* parsing
     const gain = AbletonEq3.amplitudeRatio2Decibel(gainAmplitude);
     const isOn = String(onStr).toLowerCase() === "true"; // Ensure boolean conversion
-    const slope = parseInt(slopeStr, 10) as FilterSlope;
+    const slope = parseInt(slopeStr, 10) as AbletonEq3FilterSlope;
 
     // Validate parsed numbers
     if (isNaN(freq) || isNaN(gain) || isNaN(slope)) {

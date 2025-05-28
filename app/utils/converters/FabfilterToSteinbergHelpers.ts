@@ -16,9 +16,9 @@ import {
   ProQ3StereoPlacement,
 } from "../preset/FabFilterProQ3";
 import {
-  BandMode1And8,
-  BandMode2To7,
-  ChannelMode,
+  FrequencyBandMode1And8,
+  FrequencyBandMode2To7,
+  FrequencyChannelMode,
   SteinbergFrequency,
 } from "../preset/SteinbergFrequency";
 
@@ -101,34 +101,34 @@ export function isNotch(shape: Shape): boolean {
 }
 
 // Helper function to get the appropriate cut slope mode
-export function getCutSlope(slope: Slope): BandMode1And8 {
+export function getCutSlope(slope: Slope): FrequencyBandMode1And8 {
   if (
     slope === ProQLPHPSlope.Slope6dB_oct ||
     slope === ProQ2Slope.Slope6dB_oct ||
     slope === ProQ3Slope.Slope6dB_oct
   ) {
-    return BandMode1And8.Cut6;
+    return FrequencyBandMode1And8.Cut6;
   }
   if (
     slope === ProQLPHPSlope.Slope12dB_oct ||
     slope === ProQ2Slope.Slope12dB_oct ||
     slope === ProQ3Slope.Slope12dB_oct
   ) {
-    return BandMode1And8.Cut12;
+    return FrequencyBandMode1And8.Cut12;
   }
   if (
     slope === ProQLPHPSlope.Slope24dB_oct ||
     slope === ProQ2Slope.Slope24dB_oct ||
     slope === ProQ3Slope.Slope24dB_oct
   ) {
-    return BandMode1And8.Cut24;
+    return FrequencyBandMode1And8.Cut24;
   }
   if (
     slope === ProQLPHPSlope.Slope48dB_oct ||
     slope === ProQ2Slope.Slope48dB_oct ||
     slope === ProQ3Slope.Slope48dB_oct
   ) {
-    return BandMode1And8.Cut48;
+    return FrequencyBandMode1And8.Cut48;
   }
 
   // Handle steeper slopes from Pro-Q2/3
@@ -138,10 +138,10 @@ export function getCutSlope(slope: Slope): BandMode1And8 {
     slope === ProQ2Slope.Slope96dB_oct ||
     slope === ProQ3Slope.Slope96dB_oct
   ) {
-    return BandMode1And8.Cut96;
+    return FrequencyBandMode1And8.Cut96;
   }
 
-  return BandMode1And8.Cut48; // Default to 48dB/oct
+  return FrequencyBandMode1And8.Cut48; // Default to 48dB/oct
 }
 
 function setBandParameter(
@@ -203,11 +203,11 @@ export function setBand(
       "editchannel",
       isLeft
         ? isMidSide
-          ? ChannelMode.MidSideModeMid
-          : ChannelMode.LeftRightModeLeft
+          ? FrequencyChannelMode.MidSideModeMid
+          : FrequencyChannelMode.LeftRightModeLeft
         : isMidSide
-          ? ChannelMode.MidSideModeSide
-          : ChannelMode.LeftRightModeRight
+          ? FrequencyChannelMode.MidSideModeSide
+          : FrequencyChannelMode.LeftRightModeRight
     );
   }
 
@@ -232,13 +232,13 @@ function handleBand1And8Shape(
   frequency: SteinbergFrequency
 ): void {
   const type = isPeakType(shape)
-    ? BandMode1And8.Peak
+    ? FrequencyBandMode1And8.Peak
     : isLowShelf(shape)
-      ? BandMode1And8.LowShelf
+      ? FrequencyBandMode1And8.LowShelf
       : isHighShelf(shape)
-        ? BandMode1And8.HighShelf
+        ? FrequencyBandMode1And8.HighShelf
         : isNotch(shape)
-          ? BandMode1And8.Notch
+          ? FrequencyBandMode1And8.Notch
           : (isLowCut(shape) || isHighCut(shape)) && band.Slope
             ? getCutSlope(band.Slope)
             : null;
@@ -255,13 +255,13 @@ function handleBand2To7Shape(
   frequency: SteinbergFrequency
 ): void {
   const type = isPeakType(shape)
-    ? BandMode2To7.Peak
+    ? FrequencyBandMode2To7.Peak
     : isLowShelf(shape)
-      ? BandMode2To7.LowShelf
+      ? FrequencyBandMode2To7.LowShelf
       : isHighShelf(shape)
-        ? BandMode2To7.HighShelf
+        ? FrequencyBandMode2To7.HighShelf
         : isNotch(shape)
-          ? BandMode2To7.Notch
+          ? FrequencyBandMode2To7.Notch
           : null;
 
   if (type !== null) {

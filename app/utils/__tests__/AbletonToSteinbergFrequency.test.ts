@@ -1,17 +1,20 @@
 import {
   AbletonEq8,
   AbletonEq8Band,
-  BandMode,
-  ChannelMode,
+  AbletonEq8BandMode,
+  AbletonEq8ChannelMode,
 } from "../ableton/AbletonEq8";
 import { AbletonToSteinbergFrequency } from "../converters/AbletonToSteinbergFrequency";
-import { BandMode1And8, BandMode2To7 } from "../preset/SteinbergFrequency";
+import {
+  FrequencyBandMode1And8,
+  FrequencyBandMode2To7,
+} from "../preset/SteinbergFrequency";
 
 describe("AbletonToSteinbergFrequency", () => {
   it("should convert AbletonEq8 to SteinbergFrequency", () => {
     // Provide a dummy object for the constructor as it expects xElement
     const abletonEq8 = new AbletonEq8({});
-    abletonEq8.Mode = ChannelMode.Stereo;
+    abletonEq8.Mode = AbletonEq8ChannelMode.Stereo;
     abletonEq8.Bands = [
       {
         Number: 0, // Band 1
@@ -19,7 +22,7 @@ describe("AbletonToSteinbergFrequency", () => {
         Gain: 6.0,
         Freq: 50.0,
         Q: 0.71,
-        Mode: BandMode.LeftShelf, // LeftShelf maps to LowShelf for band 1
+        Mode: AbletonEq8BandMode.LeftShelf, // LeftShelf maps to LowShelf for band 1
         Parameter: "ParameterA",
       } as AbletonEq8Band,
       {
@@ -28,7 +31,7 @@ describe("AbletonToSteinbergFrequency", () => {
         Gain: -3.0,
         Freq: 2000.0,
         Q: 3.0,
-        Mode: BandMode.Bell, // Bell maps to Peak for bands 2-7
+        Mode: AbletonEq8BandMode.Bell, // Bell maps to Peak for bands 2-7
         Parameter: "ParameterA",
       } as AbletonEq8Band,
       {
@@ -37,7 +40,7 @@ describe("AbletonToSteinbergFrequency", () => {
         Gain: 0.0,
         Freq: 15000.0,
         Q: 1.0,
-        Mode: BandMode.HighCut48, // HighCut48 maps to Cut48 for band 8
+        Mode: AbletonEq8BandMode.HighCut48, // HighCut48 maps to Cut48 for band 8
         Parameter: "ParameterA",
       } as AbletonEq8Band,
     ];
@@ -59,7 +62,7 @@ describe("AbletonToSteinbergFrequency", () => {
     const band1Q = steinbergFrequency.Parameters.get("equalizerAq1");
     expect(band1Q?.Value).toBe(0.71);
     const band1Type = steinbergFrequency.Parameters.get("equalizerAtype1");
-    expect(band1Type?.Value).toBe(BandMode1And8.LowShelf);
+    expect(band1Type?.Value).toBe(FrequencyBandMode1And8.LowShelf);
 
     // Check Band 4 (Bell - should be Peak in Steinberg)
     const band4On = steinbergFrequency.Parameters.get("equalizerAbandon4");
@@ -71,7 +74,7 @@ describe("AbletonToSteinbergFrequency", () => {
     const band4Q = steinbergFrequency.Parameters.get("equalizerAq4");
     expect(band4Q?.Value).toBe(3.0);
     const band4Type = steinbergFrequency.Parameters.get("equalizerAtype4");
-    expect(band4Type?.Value).toBe(BandMode2To7.Peak);
+    expect(band4Type?.Value).toBe(FrequencyBandMode2To7.Peak);
 
     // Check Band 8 (HighCut48)
     const band8On = steinbergFrequency.Parameters.get("equalizerAbandon8");
@@ -83,12 +86,12 @@ describe("AbletonToSteinbergFrequency", () => {
     const band8Q = steinbergFrequency.Parameters.get("equalizerAq8");
     expect(band8Q?.Value).toBe(1.0);
     const band8Type = steinbergFrequency.Parameters.get("equalizerAtype8");
-    expect(band8Type?.Value).toBe(BandMode1And8.Cut48);
+    expect(band8Type?.Value).toBe(FrequencyBandMode1And8.Cut48);
   });
 
   it("should throw an error for non-stereo channel mode", () => {
     const abletonEq8 = new AbletonEq8({});
-    abletonEq8.Mode = ChannelMode.LeftRight; // Assuming LeftRight is a non-stereo mode
+    abletonEq8.Mode = AbletonEq8ChannelMode.LeftRight; // Assuming LeftRight is a non-stereo mode
 
     expect(() => AbletonToSteinbergFrequency.convertBase(abletonEq8)).toThrow(
       "Only Stereo conversion is supported. ChannelMode was 1!"

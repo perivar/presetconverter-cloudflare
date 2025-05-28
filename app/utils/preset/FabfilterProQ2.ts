@@ -1,6 +1,6 @@
 import { BinaryFile, ByteOrder } from "../binary/BinaryFile";
 import { convertAndMaintainRatio } from "../Math";
-import { FabFilterProQBand, FabFilterProQBase } from "./FabFilterProQBase";
+import { FabFilterProQBase, ProQBaseBand } from "./FabFilterProQBase";
 import { FxChunkSet, FxProgram, FxProgramSet, FxSet } from "./FXP"; // Added FxProgram, FxProgramSet, FxChunkSet
 
 import { VstClassIDs } from "./VstClassIDs";
@@ -40,7 +40,7 @@ export enum ProQ2ChannelMode {
   MidSide = 1,
 }
 
-export class ProQ2Band implements FabFilterProQBand {
+export class ProQ2Band implements ProQBaseBand {
   ChannelMode: ProQ2ChannelMode; // determine if band is in LS or MS mode
   Enabled: boolean;
   Frequency: number; // value range 10.0 -> 30000.0 Hz

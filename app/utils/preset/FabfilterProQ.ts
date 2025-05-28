@@ -1,6 +1,6 @@
 import { BinaryFile, ByteOrder } from "../binary/BinaryFile";
 import { convertAndMaintainRatio, roundToNumber } from "../Math";
-import { FabFilterProQBand, FabFilterProQBase } from "./FabFilterProQBase";
+import { FabFilterProQBase, ProQBaseBand } from "./FabFilterProQBase";
 import { FxChunkSet, FxProgram, FxProgramSet, FxSet } from "./FXP";
 import { VstClassIDs } from "./VstClassIDs";
 import { ParameterType } from "./VstPreset";
@@ -32,7 +32,7 @@ export enum ProQChannelMode {
   MidSide = 1,
 }
 
-export class ProQBand implements FabFilterProQBand {
+export class ProQBand implements ProQBaseBand {
   ChannelMode: ProQChannelMode;
   Frequency: number;
   Gain: number;

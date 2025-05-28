@@ -6,9 +6,9 @@ import {
   GenericEQStereoPlacement,
 } from "../preset/GenericEQPreset";
 import {
-  BandMode1And8,
-  BandMode2To7,
-  ChannelMode,
+  FrequencyBandMode1And8,
+  FrequencyBandMode2To7,
+  FrequencyChannelMode,
   SteinbergFrequency,
 } from "../preset/SteinbergFrequency";
 import { MultiFormatConverter } from "./MultiFormatConverter";
@@ -21,42 +21,42 @@ function convertSteinbergShapeAndSlope(
   let slope: GenericEQSlope = GenericEQSlope.Slope12dB_oct; // Default slope for shelves/cuts
 
   if (bandNum === 1 || bandNum === 8) {
-    const mode = type as BandMode1And8;
+    const mode = type as FrequencyBandMode1And8;
     const isLowCut = bandNum === 1; // Assume band 1 is Low Cut, band 8 is High Cut for Cut types
     switch (mode) {
-      case BandMode1And8.Cut6:
+      case FrequencyBandMode1And8.Cut6:
         shape = isLowCut ? GenericEQShape.LowCut : GenericEQShape.HighCut;
         slope = GenericEQSlope.Slope6dB_oct;
         break;
-      case BandMode1And8.Cut12:
+      case FrequencyBandMode1And8.Cut12:
         shape = isLowCut ? GenericEQShape.LowCut : GenericEQShape.HighCut;
         slope = GenericEQSlope.Slope12dB_oct;
         break;
-      case BandMode1And8.Cut24:
+      case FrequencyBandMode1And8.Cut24:
         shape = isLowCut ? GenericEQShape.LowCut : GenericEQShape.HighCut;
         slope = GenericEQSlope.Slope24dB_oct;
         break;
-      case BandMode1And8.Cut48:
+      case FrequencyBandMode1And8.Cut48:
         shape = isLowCut ? GenericEQShape.LowCut : GenericEQShape.HighCut;
         slope = GenericEQSlope.Slope48dB_oct;
         break;
-      case BandMode1And8.Cut96:
+      case FrequencyBandMode1And8.Cut96:
         shape = isLowCut ? GenericEQShape.LowCut : GenericEQShape.HighCut;
         slope = GenericEQSlope.Slope96dB_oct;
         break;
-      case BandMode1And8.LowShelf:
+      case FrequencyBandMode1And8.LowShelf:
         shape = GenericEQShape.LowShelf;
         // Slope might be implicitly 12dB/oct for Steinberg shelves? Use default.
         break;
-      case BandMode1And8.Peak:
+      case FrequencyBandMode1And8.Peak:
         shape = GenericEQShape.Bell;
         // Slope not applicable for Bell
         break;
-      case BandMode1And8.HighShelf:
+      case FrequencyBandMode1And8.HighShelf:
         shape = GenericEQShape.HighShelf;
         // Slope might be implicitly 12dB/oct. Use default.
         break;
-      case BandMode1And8.Notch:
+      case FrequencyBandMode1And8.Notch:
         shape = GenericEQShape.Notch;
         // Slope not applicable for Notch
         break;
@@ -66,18 +66,18 @@ function convertSteinbergShapeAndSlope(
     }
   } else {
     // Bands 2-7
-    const mode = type as BandMode2To7;
+    const mode = type as FrequencyBandMode2To7;
     switch (mode) {
-      case BandMode2To7.LowShelf:
+      case FrequencyBandMode2To7.LowShelf:
         shape = GenericEQShape.LowShelf;
         break;
-      case BandMode2To7.Peak:
+      case FrequencyBandMode2To7.Peak:
         shape = GenericEQShape.Bell;
         break;
-      case BandMode2To7.HighShelf:
+      case FrequencyBandMode2To7.HighShelf:
         shape = GenericEQShape.HighShelf;
         break;
-      case BandMode2To7.Notch:
+      case FrequencyBandMode2To7.Notch:
         shape = GenericEQShape.Notch;
         break;
       default:
@@ -144,7 +144,8 @@ export const SteinbergFrequencyToGenericEQ: MultiFormatConverter<
     for (let bandNum = 1; bandNum <= 8; bandNum++) {
       const steinbergBand = preset.bands[bandNum - 1];
 
-      const channelMode = steinbergBand.shared.editChannel as ChannelMode;
+      const channelMode = steinbergBand.shared
+        .editChannel as FrequencyChannelMode;
 
       const isBandEnabled = steinbergBand.shared.bandOn === 1.0;
 
@@ -159,13 +160,13 @@ export const SteinbergFrequencyToGenericEQ: MultiFormatConverter<
       let placementCh1 = GenericEQStereoPlacement.Stereo; // Default for StereoMode
 
       if (
-        channelMode === ChannelMode.LeftRightModeLeft ||
-        channelMode === ChannelMode.LeftRightModeRight
+        channelMode === FrequencyChannelMode.LeftRightModeLeft ||
+        channelMode === FrequencyChannelMode.LeftRightModeRight
       ) {
         placementCh1 = GenericEQStereoPlacement.Left;
       } else if (
-        channelMode === ChannelMode.MidSideModeMid ||
-        channelMode === ChannelMode.MidSideModeSide
+        channelMode === FrequencyChannelMode.MidSideModeMid ||
+        channelMode === FrequencyChannelMode.MidSideModeSide
       ) {
         placementCh1 = GenericEQStereoPlacement.Mid;
       }
@@ -187,7 +188,7 @@ export const SteinbergFrequencyToGenericEQ: MultiFormatConverter<
 
       // --- Process Channel 2 (Right / Side) ---
       if (
-        channelMode !== ChannelMode.StereoMode &&
+        channelMode !== FrequencyChannelMode.StereoMode &&
         steinbergBand.ch2.enabled === 1.0
       ) {
         const { shape: shapeCh2, slope: slopeCh2 } =
@@ -196,8 +197,8 @@ export const SteinbergFrequencyToGenericEQ: MultiFormatConverter<
         let placementCh2 = GenericEQStereoPlacement.Right; // Default for L/R mode
 
         if (
-          channelMode === ChannelMode.MidSideModeMid ||
-          channelMode === ChannelMode.MidSideModeSide
+          channelMode === FrequencyChannelMode.MidSideModeMid ||
+          channelMode === FrequencyChannelMode.MidSideModeSide
         ) {
           placementCh2 = GenericEQStereoPlacement.Side;
         }

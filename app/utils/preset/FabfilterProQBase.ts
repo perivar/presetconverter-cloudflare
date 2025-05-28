@@ -4,7 +4,7 @@ import { ProQ2Shape } from "./FabFilterProQ2";
 import { ProQ3Shape } from "./FabFilterProQ3";
 import { VstPreset } from "./VstPreset";
 
-export enum FabFilterProQShape {
+export enum ProQBaseShape {
   Bell = 0,
   LowShelf = 1,
   LowCut = 2,
@@ -13,12 +13,12 @@ export enum FabFilterProQShape {
   Notch = 5,
 }
 
-export interface FabFilterProQBand {
+export interface ProQBaseBand {
   Frequency: number;
   Gain: number;
   Q: number;
   Enabled: boolean;
-  Shape: FabFilterProQShape | ProQShape | ProQ2Shape | ProQ3Shape;
+  Shape: ProQBaseShape | ProQShape | ProQ2Shape | ProQ3Shape;
 }
 
 // FabFilter Q factor typically ranges from 0.025 to 40
@@ -26,14 +26,14 @@ export interface FabFilterProQBand {
 const FABFILTER_Q_SCALING_FACTOR = 1 / Math.log10(40 / 0.025);
 
 /**
- * Base class for reading and writing FabFilter Pro Q (1 or 2) Preset files.
+ * Base class for reading and writing FabFilter Pro Q (1, 2 or 3) Preset files.
  */
 export abstract class FabFilterProQBase extends VstPreset {
   constructor() {
     super();
   }
 
-  abstract Bands: FabFilterProQBand[];
+  abstract Bands: ProQBaseBand[];
 
   // Abstract method for writing FabFilter Pro Q preset files.
   abstract writeFFP(): Uint8Array | undefined;

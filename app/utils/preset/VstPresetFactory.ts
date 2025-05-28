@@ -1,8 +1,8 @@
 import { FabFilterProQ } from "./FabFilterProQ";
 import { FabFilterProQ2 } from "./FabFilterProQ2";
 import { FabFilterProQ3 } from "./FabFilterProQ3";
-import { FabFilterProQBase } from "./FabFilterProQBase"; // Added import
-import { FXP } from "./FXP"; // Added import
+import { FabFilterProQBase } from "./FabFilterProQBase";
+import { FXP } from "./FXP";
 import { SteinbergFrequency } from "./SteinbergFrequency";
 import { SteinbergVstPreset } from "./SteinbergVstPreset";
 import { VstClassIDs } from "./VstClassIDs";

@@ -20,9 +20,9 @@ import {
   ProQ3StereoPlacement,
 } from "../preset/FabFilterProQ3";
 import {
-  BandMode1And8,
-  BandMode2To7,
-  ChannelMode,
+  FrequencyBandMode1And8,
+  FrequencyBandMode2To7,
+  FrequencyChannelMode,
   SteinbergFrequency,
 } from "../preset/SteinbergFrequency";
 
@@ -66,7 +66,7 @@ describe("FabFilterToSteinbergFrequency", () => {
       expect(result.getParameterValue("equalizerAfreq1")).toBe(1000);
       expect(result.getParameterValue("equalizerAq1")).toBe(1.0);
       expect(result.getParameterValue("equalizerAtype1")).toBe(
-        BandMode1And8.Peak
+        FrequencyBandMode1And8.Peak
       );
 
       expect(result.getParameterValue("equalizerAbandon2")).toBe(1.0);
@@ -74,7 +74,7 @@ describe("FabFilterToSteinbergFrequency", () => {
       expect(result.getParameterValue("equalizerAfreq2")).toBe(3000);
       expect(result.getParameterValue("equalizerAq2")).toBe(2.0);
       expect(result.getParameterValue("equalizerAtype2")).toBe(
-        BandMode2To7.Peak
+        FrequencyBandMode2To7.Peak
       );
     });
 
@@ -109,14 +109,14 @@ describe("FabFilterToSteinbergFrequency", () => {
       expect(result.getParameterValue("equalizerAfreq1")).toBe(100);
       expect(result.getParameterValue("equalizerAq1")).toBe(0.7);
       expect(result.getParameterValue("equalizerAtype1")).toBe(
-        BandMode1And8.Cut24
+        FrequencyBandMode1And8.Cut24
       );
 
       expect(result.getParameterValue("equalizerAbandon8")).toBe(1.0);
       expect(result.getParameterValue("equalizerAfreq8")).toBe(10000);
       expect(result.getParameterValue("equalizerAq8")).toBe(0.7);
       expect(result.getParameterValue("equalizerAtype8")).toBe(
-        BandMode1And8.Cut12
+        FrequencyBandMode1And8.Cut12
       );
     });
 
@@ -138,7 +138,7 @@ describe("FabFilterToSteinbergFrequency", () => {
 
       const result = FabFilterToSteinbergFrequency.convertBase(proQ3);
       expect(result.getParameterValue("equalizerAtype1")).toBe(
-        BandMode1And8.Cut96
+        FrequencyBandMode1And8.Cut96
       );
     });
 
@@ -172,13 +172,13 @@ describe("FabFilterToSteinbergFrequency", () => {
       expect(result.getParameterValue("equalizerAon1")).toBe(1.0);
       expect(result.getParameterValue("equalizerAon1Ch2")).toBe(0.0);
       expect(result.getParameterValue("equalizerAeditchannel1")).toBe(
-        ChannelMode.MidSideModeMid
+        FrequencyChannelMode.MidSideModeMid
       );
 
       expect(result.getParameterValue("equalizerAon2")).toBe(0.0);
       expect(result.getParameterValue("equalizerAon2Ch2")).toBe(1.0);
       expect(result.getParameterValue("equalizerAeditchannel2")).toBe(
-        ChannelMode.MidSideModeSide
+        FrequencyChannelMode.MidSideModeSide
       );
     });
 
@@ -278,19 +278,19 @@ describe("FabFilterToSteinbergFrequency", () => {
       // 4. Notch (5000 Hz)
       // 5. HighShelf (10000 Hz)
       expect(result.getParameterValue("equalizerAtype1")).toBe(
-        BandMode1And8.LowShelf
+        FrequencyBandMode1And8.LowShelf
       );
       expect(result.getParameterValue("equalizerAtype2")).toBe(
-        BandMode2To7.Peak // TiltShelf maps to Peak
+        FrequencyBandMode2To7.Peak // TiltShelf maps to Peak
       );
       expect(result.getParameterValue("equalizerAtype3")).toBe(
-        BandMode2To7.Peak // BandPass maps to Peak
+        FrequencyBandMode2To7.Peak // BandPass maps to Peak
       );
       expect(result.getParameterValue("equalizerAtype4")).toBe(
-        BandMode2To7.Notch
+        FrequencyBandMode2To7.Notch
       );
       expect(result.getParameterValue("equalizerAtype5")).toBe(
-        BandMode2To7.HighShelf
+        FrequencyBandMode2To7.HighShelf
       );
     });
 

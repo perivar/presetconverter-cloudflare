@@ -1,5 +1,5 @@
 import { BinaryFile, ByteOrder } from "../binary/BinaryFile";
-import { FabFilterProQBand, FabFilterProQBase } from "./FabFilterProQBase";
+import { FabFilterProQBase, ProQBaseBand } from "./FabFilterProQBase";
 import { FxChunkSet, FXP, FxProgram, FxProgramSet, FxSet } from "./FXP"; // Added FxSet, FxProgram
 import { VstClassIDs } from "./VstClassIDs";
 import { ParameterType } from "./VstPreset";
@@ -37,7 +37,7 @@ export enum ProQ3StereoPlacement {
   Side = 4,
 }
 
-export class ProQ3Band implements FabFilterProQBand {
+export class ProQ3Band implements ProQBaseBand {
   Enabled: boolean;
   Frequency: number; // value range 10.0 -> 30000.0 Hz
   Gain: number; // + or - value in dB

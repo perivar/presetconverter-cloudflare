@@ -1,6 +1,6 @@
 import { AbletonPlugin } from "./AbletonPlugin";
 
-export enum BandMode {
+export enum AbletonEq8BandMode {
   LowCut48 = 0,
   LowCut12 = 1,
   LeftShelf = 2,
@@ -11,7 +11,7 @@ export enum BandMode {
   HighCut48 = 7,
 }
 
-export enum ChannelMode {
+export enum AbletonEq8ChannelMode {
   Stereo = 0, // Default
   LeftRight = 1,
   MidSide = 2,
@@ -21,7 +21,7 @@ export class AbletonEq8Band {
   Parameter: string; // Parameter A or B
   Number: number; // Band index (0-7)
   IsOn: boolean;
-  Mode: BandMode;
+  Mode: AbletonEq8BandMode;
   Freq: number;
   Gain: number; // Stored in dB
   Q: number;
@@ -30,7 +30,7 @@ export class AbletonEq8Band {
     parameter: string,
     number: number,
     isOn: boolean,
-    mode: BandMode,
+    mode: AbletonEq8BandMode,
     freq: number,
     gain: number,
     q: number
@@ -45,20 +45,22 @@ export class AbletonEq8Band {
   }
 
   toString(): string {
-    return `Band: ${this.Number + 1}, ${this.Freq.toFixed(2)} Hz, Gain: ${this.Gain.toFixed(2)} dB, Q: ${this.Q.toFixed(2)}, Mode: ${BandMode[this.Mode]}, ${this.IsOn ? "On" : "Off"}`;
+    return `Band: ${this.Number + 1}, ${this.Freq.toFixed(2)} Hz, Gain: ${this.Gain.toFixed(2)} dB, Q: ${this.Q.toFixed(2)}, Mode: ${AbletonEq8BandMode[this.Mode]}, ${this.IsOn ? "On" : "Off"}`;
   }
 }
 
 export class AbletonEq8 implements AbletonPlugin {
-  Mode: ChannelMode = ChannelMode.Stereo;
+  Mode: AbletonEq8ChannelMode = AbletonEq8ChannelMode.Stereo;
   Bands: AbletonEq8Band[] = [];
 
   constructor(xElement: any) {
     // Allow any for flexibility
     // Parse Channel Mode from <Mode Value="...">
     this.Mode =
-      (parseInt(xElement?.Mode?.["@_Value"] ?? "0", 10) as ChannelMode) ??
-      ChannelMode.Stereo;
+      (parseInt(
+        xElement?.Mode?.["@_Value"] ?? "0",
+        10
+      ) as AbletonEq8ChannelMode) ?? AbletonEq8ChannelMode.Stereo;
 
     // --- Parse Bands ---
     const bandElements: any[] = [];
@@ -130,7 +132,7 @@ export class AbletonEq8 implements AbletonPlugin {
     const qStr = param.Q?.Manual?.["@_Value"] ?? "1"; // Default Q is 1
 
     const isOn = String(isOnStr).toLowerCase() === "true";
-    const mode = parseInt(modeStr, 10) as BandMode;
+    const mode = parseInt(modeStr, 10) as AbletonEq8BandMode;
     const freq = parseFloat(freqStr);
     const gain = parseFloat(gainStr); // Gain is already in dB in EQ8 XML
     const q = parseFloat(qStr);
@@ -161,10 +163,10 @@ export class AbletonEq8 implements AbletonPlugin {
       // Check if an active band is a filter type (LowCut/HighCut)
       if (
         band.IsOn &&
-        (band.Mode === BandMode.LowCut48 ||
-          band.Mode === BandMode.LowCut12 ||
-          band.Mode === BandMode.HighCut12 ||
-          band.Mode === BandMode.HighCut48)
+        (band.Mode === AbletonEq8BandMode.LowCut48 ||
+          band.Mode === AbletonEq8BandMode.LowCut12 ||
+          band.Mode === AbletonEq8BandMode.HighCut12 ||
+          band.Mode === AbletonEq8BandMode.HighCut48)
       ) {
         // Filters are considered modifications even with 0 gain
         return true;

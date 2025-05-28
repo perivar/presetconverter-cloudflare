@@ -1,8 +1,8 @@
 import {
   AbletonEq8,
   AbletonEq8Band,
-  BandMode,
-  ChannelMode,
+  AbletonEq8BandMode,
+  AbletonEq8ChannelMode,
 } from "../ableton/AbletonEq8";
 import { AbletonToFabFilterProQ3 } from "../converters/AbletonToFabFilterProQ3";
 import {
@@ -14,7 +14,7 @@ import {
 describe("AbletonToFabFilterProQ3", () => {
   it("should convert AbletonEq8 to FabFilterProQ3", () => {
     const abletonEq8 = new AbletonEq8({}); // Provide a dummy object for the constructor
-    abletonEq8.Mode = ChannelMode.Stereo;
+    abletonEq8.Mode = AbletonEq8ChannelMode.Stereo;
     abletonEq8.Bands = [
       {
         Number: 0, // Band 1
@@ -22,7 +22,7 @@ describe("AbletonToFabFilterProQ3", () => {
         Gain: 3.0,
         Freq: 100.0,
         Q: 1.0,
-        Mode: BandMode.Bell,
+        Mode: AbletonEq8BandMode.Bell,
         Parameter: "ParameterA",
       } as AbletonEq8Band,
       {
@@ -31,7 +31,7 @@ describe("AbletonToFabFilterProQ3", () => {
         Gain: -6.0,
         Freq: 5000.0,
         Q: 2.5,
-        Mode: BandMode.HighCut12,
+        Mode: AbletonEq8BandMode.HighCut12,
         Parameter: "ParameterA",
       } as AbletonEq8Band,
     ];
@@ -66,7 +66,7 @@ describe("AbletonToFabFilterProQ3", () => {
 
   it("should throw an error for non-stereo channel mode", () => {
     const abletonEq8 = new AbletonEq8({}); // Provide a dummy object for the constructor
-    abletonEq8.Mode = ChannelMode.LeftRight; // Assuming LeftRight is a non-stereo mode
+    abletonEq8.Mode = AbletonEq8ChannelMode.LeftRight; // Assuming LeftRight is a non-stereo mode
 
     expect(() => AbletonToFabFilterProQ3.convertBase(abletonEq8)).toThrow(
       "Only Stereo conversion is supported. ChannelMode was 1!"

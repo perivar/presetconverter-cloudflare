@@ -1,6 +1,10 @@
 // converters/AbletonToFabFilterProQ3.ts
 
-import { AbletonEq8, BandMode, ChannelMode } from "../ableton/AbletonEq8";
+import {
+  AbletonEq8,
+  AbletonEq8BandMode,
+  AbletonEq8ChannelMode,
+} from "../ableton/AbletonEq8";
 import {
   FabFilterProQ3,
   ProQ3Band,
@@ -22,7 +26,7 @@ export const AbletonToFabFilterProQ3: MultiFormatConverter<
     const fabfilterProQ3 = new FabFilterProQ3();
     fabfilterProQ3.Bands = [];
 
-    if (preset.Mode !== ChannelMode.Stereo) {
+    if (preset.Mode !== AbletonEq8ChannelMode.Stereo) {
       throw new Error(
         `Only Stereo conversion is supported. ChannelMode was ${preset.Mode}!`
       );
@@ -44,31 +48,31 @@ export const AbletonToFabFilterProQ3: MultiFormatConverter<
       };
 
       switch (band.Mode) {
-        case BandMode.LowCut48:
+        case AbletonEq8BandMode.LowCut48:
           proQ3Band.Shape = ProQ3Shape.LowCut;
           proQ3Band.Slope = ProQ3Slope.Slope48dB_oct;
           break;
-        case BandMode.LowCut12:
+        case AbletonEq8BandMode.LowCut12:
           proQ3Band.Shape = ProQ3Shape.LowCut;
           proQ3Band.Slope = ProQ3Slope.Slope12dB_oct;
           break;
-        case BandMode.LeftShelf:
+        case AbletonEq8BandMode.LeftShelf:
           proQ3Band.Shape = ProQ3Shape.LowShelf;
           break;
-        case BandMode.Bell:
+        case AbletonEq8BandMode.Bell:
           proQ3Band.Shape = ProQ3Shape.Bell;
           break;
-        case BandMode.Notch:
+        case AbletonEq8BandMode.Notch:
           proQ3Band.Shape = ProQ3Shape.Notch;
           break;
-        case BandMode.RightShelf:
+        case AbletonEq8BandMode.RightShelf:
           proQ3Band.Shape = ProQ3Shape.HighShelf;
           break;
-        case BandMode.HighCut12:
+        case AbletonEq8BandMode.HighCut12:
           proQ3Band.Shape = ProQ3Shape.HighCut;
           proQ3Band.Slope = ProQ3Slope.Slope12dB_oct;
           break;
-        case BandMode.HighCut48:
+        case AbletonEq8BandMode.HighCut48:
           proQ3Band.Shape = ProQ3Shape.HighCut;
           proQ3Band.Slope = ProQ3Slope.Slope48dB_oct;
           break;

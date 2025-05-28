@@ -2,7 +2,7 @@ import * as fs from "fs";
 import * as path from "path";
 
 import { FabFilterProQ } from "../preset/FabFilterProQ";
-import { FabFilterProQBand } from "../preset/FabFilterProQBase";
+import { ProQBaseBand } from "../preset/FabFilterProQBase";
 import { VstPresetFactory } from "../preset/VstPresetFactory";
 import { expectUint8ArraysToBeEqual, toPlainObject } from "./helpers/testUtils";
 
@@ -364,7 +364,7 @@ test("FabFilterProQ-compare-FXP-FFP-Generic", () => {
 
   // Filter out bands with Q values between 4o and 50 since the resolution of the conversions breaks down between these values
   // This is a workaround for the issue with the FabFilter Pro Q plugin
-  const filterBands = (bands: FabFilterProQBand[]) =>
+  const filterBands = (bands: ProQBaseBand[]) =>
     bands.filter(band => band.Q < 40 || band.Q > 50);
 
   const filteredFxpBands = filterBands(fxpProQ.Bands);

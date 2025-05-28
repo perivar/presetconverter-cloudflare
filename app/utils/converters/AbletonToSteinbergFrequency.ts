@@ -1,7 +1,11 @@
-import { AbletonEq8, BandMode, ChannelMode } from "../ableton/AbletonEq8";
 import {
-  BandMode1And8,
-  BandMode2To7,
+  AbletonEq8,
+  AbletonEq8BandMode,
+  AbletonEq8ChannelMode,
+} from "../ableton/AbletonEq8";
+import {
+  FrequencyBandMode1And8,
+  FrequencyBandMode2To7,
   SteinbergFrequency,
 } from "../preset/SteinbergFrequency";
 import { MultiFormatConverter } from "./MultiFormatConverter";
@@ -15,7 +19,7 @@ export const AbletonToSteinbergFrequency: MultiFormatConverter<
   displayName: "Steinberg Frequency",
 
   convertBase(eq: AbletonEq8) {
-    if (eq.Mode !== ChannelMode.Stereo) {
+    if (eq.Mode !== AbletonEq8ChannelMode.Stereo) {
       throw new Error(
         `Only Stereo conversion is supported. ChannelMode was ${eq.Mode}!`
       );
@@ -48,37 +52,37 @@ export const AbletonToSteinbergFrequency: MultiFormatConverter<
       }
 
       switch (band.Mode) {
-        case BandMode.LowCut48:
-          paramAtype.Value = BandMode1And8.Cut48;
+        case AbletonEq8BandMode.LowCut48:
+          paramAtype.Value = FrequencyBandMode1And8.Cut48;
           break;
-        case BandMode.LowCut12:
-          paramAtype.Value = BandMode1And8.Cut12;
+        case AbletonEq8BandMode.LowCut12:
+          paramAtype.Value = FrequencyBandMode1And8.Cut12;
           break;
-        case BandMode.LeftShelf:
+        case AbletonEq8BandMode.LeftShelf:
           paramAtype.Value = isBandMode1Or8(bandNumber)
-            ? BandMode1And8.LowShelf
-            : BandMode2To7.LowShelf;
+            ? FrequencyBandMode1And8.LowShelf
+            : FrequencyBandMode2To7.LowShelf;
           break;
-        case BandMode.Bell:
+        case AbletonEq8BandMode.Bell:
           paramAtype.Value = isBandMode1Or8(bandNumber)
-            ? BandMode1And8.Peak
-            : BandMode2To7.Peak;
+            ? FrequencyBandMode1And8.Peak
+            : FrequencyBandMode2To7.Peak;
           break;
-        case BandMode.Notch:
+        case AbletonEq8BandMode.Notch:
           paramAtype.Value = isBandMode1Or8(bandNumber)
-            ? BandMode1And8.Notch
-            : BandMode2To7.Notch;
+            ? FrequencyBandMode1And8.Notch
+            : FrequencyBandMode2To7.Notch;
           break;
-        case BandMode.RightShelf:
+        case AbletonEq8BandMode.RightShelf:
           paramAtype.Value = isBandMode1Or8(bandNumber)
-            ? BandMode1And8.HighShelf
-            : BandMode2To7.HighShelf;
+            ? FrequencyBandMode1And8.HighShelf
+            : FrequencyBandMode2To7.HighShelf;
           break;
-        case BandMode.HighCut12:
-          paramAtype.Value = BandMode1And8.Cut12;
+        case AbletonEq8BandMode.HighCut12:
+          paramAtype.Value = FrequencyBandMode1And8.Cut12;
           break;
-        case BandMode.HighCut48:
-          paramAtype.Value = BandMode1And8.Cut48;
+        case AbletonEq8BandMode.HighCut48:
+          paramAtype.Value = FrequencyBandMode1And8.Cut48;
           break;
         default:
           throw new Error(`Unknown BandMode: ${band.Mode}`);

@@ -1,24 +1,24 @@
 import { AbletonPlugin } from "./AbletonPlugin";
 import { getParam } from "./XMLUtils";
 
-export enum LfoWaveformType {
+export enum AutoPanLfoWaveformType {
   Sine = 0,
   Triangle = 1,
   SawtoothDown = 2,
   Random = 3,
 }
 
-export enum LFORateType {
+export enum AutoPanLFORateType {
   Hertz = 0,
   TempoSync = 1,
 }
 
-export enum LFOStereoMode {
+export enum AutoPanLFOStereoMode {
   Phase = 0,
   Spin = 1,
 }
 
-export enum LFOBeatRate {
+export enum AutoPanLFOBeatRate {
   Rate_1_64 = 0,
   Rate_1_48 = 1,
   Rate_1_32 = 2,
@@ -44,11 +44,11 @@ export enum LFOBeatRate {
 }
 
 export class AbletonAutoPan implements AbletonPlugin {
-  public Type: LfoWaveformType;
+  public Type: AutoPanLfoWaveformType;
   public Frequency: number; // Hertz, Not used if TempoSync is TempoSync
-  public RateType: LFORateType;
-  public BeatRate: LFOBeatRate;
-  public StereoMode: LFOStereoMode;
+  public RateType: AutoPanLFORateType;
+  public BeatRate: AutoPanLFOBeatRate;
+  public StereoMode: AutoPanLFOStereoMode;
   public Spin: number; // Used if StereoMode is Spin
   public Phase: number; // Used if StereoMode is Phase
   public Offset: number;
@@ -61,26 +61,31 @@ export class AbletonAutoPan implements AbletonPlugin {
   public LfoShape: number; // 0,00 - 1,00 = 0 - 100%
 
   constructor(xElement: any) {
-    this.Type = getParam(xElement?.Lfo, "Type", "int", "0") as LfoWaveformType;
+    this.Type = getParam(
+      xElement?.Lfo,
+      "Type",
+      "int",
+      "0"
+    ) as AutoPanLfoWaveformType;
     this.Frequency = getParam(xElement?.Lfo, "Frequency", "float", "0");
     this.RateType = getParam(
       xElement?.Lfo,
       "RateType",
       "int",
       "0"
-    ) as LFORateType;
+    ) as AutoPanLFORateType;
     this.BeatRate = getParam(
       xElement?.Lfo,
       "BeatRate",
       "int",
       "0"
-    ) as LFOBeatRate;
+    ) as AutoPanLFOBeatRate;
     this.StereoMode = getParam(
       xElement?.Lfo,
       "StereoMode",
       "int",
       "0"
-    ) as LFOStereoMode;
+    ) as AutoPanLFOStereoMode;
     this.Spin = getParam(xElement?.Lfo, "Spin", "float", "0");
     this.Phase = getParam(xElement?.Lfo, "Phase", "float", "180");
     this.Offset = getParam(xElement?.Lfo, "Offset", "float", "0");
@@ -96,11 +101,11 @@ export class AbletonAutoPan implements AbletonPlugin {
   public hasBeenModified(): boolean {
     const ceilingTolerance = 0.0001; // Adjust the tolerance as needed
     return (
-      this.Type !== LfoWaveformType.Sine ||
+      this.Type !== AutoPanLfoWaveformType.Sine ||
       Math.abs(this.Frequency - 1.0) > ceilingTolerance ||
-      this.RateType !== LFORateType.Hertz ||
-      this.BeatRate !== LFOBeatRate.Rate_1_16 ||
-      this.StereoMode !== LFOStereoMode.Phase ||
+      this.RateType !== AutoPanLFORateType.Hertz ||
+      this.BeatRate !== AutoPanLFOBeatRate.Rate_1_16 ||
+      this.StereoMode !== AutoPanLFOStereoMode.Phase ||
       this.Spin !== 0.0 ||
       this.Phase !== 180 ||
       this.Offset !== 0 ||
@@ -115,11 +120,11 @@ export class AbletonAutoPan implements AbletonPlugin {
   }
 
   public toString(): string {
-    return `Type: ${LfoWaveformType[this.Type]}
+    return `Type: ${AutoPanLfoWaveformType[this.Type]}
 Frequency: ${this.Frequency.toFixed(2)} Hz
-RateType: ${LFORateType[this.RateType]}
-BeatRate: ${LFOBeatRate[this.BeatRate]}
-StereoMode: ${LFOStereoMode[this.StereoMode]}
+RateType: ${AutoPanLFORateType[this.RateType]}
+BeatRate: ${AutoPanLFOBeatRate[this.BeatRate]}
+StereoMode: ${AutoPanLFOStereoMode[this.StereoMode]}
 Spin: ${this.Spin.toFixed(2)} %
 Phase: ${this.Phase.toFixed(2)} °
 Offset: ${this.Offset.toFixed(2)} °

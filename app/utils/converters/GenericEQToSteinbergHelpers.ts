@@ -7,9 +7,9 @@ import {
   GenericEQStereoPlacement,
 } from "../preset/GenericEQPreset";
 import {
-  BandMode1And8,
-  BandMode2To7,
-  ChannelMode,
+  FrequencyBandMode1And8,
+  FrequencyBandMode2To7,
+  FrequencyChannelMode,
   SteinbergFrequency,
 } from "../preset/SteinbergFrequency";
 
@@ -41,26 +41,26 @@ export function isNotch(shape: GenericEQShape): boolean {
   return shape === GenericEQShape.Notch;
 }
 
-export function getCutSlope(slope: GenericEQSlope): BandMode1And8 {
+export function getCutSlope(slope: GenericEQSlope): FrequencyBandMode1And8 {
   switch (slope) {
     case GenericEQSlope.Slope6dB_oct:
-      return BandMode1And8.Cut6;
+      return FrequencyBandMode1And8.Cut6;
     case GenericEQSlope.Slope12dB_oct:
-      return BandMode1And8.Cut12;
+      return FrequencyBandMode1And8.Cut12;
     case GenericEQSlope.Slope18dB_oct:
     case GenericEQSlope.Slope24dB_oct:
-      return BandMode1And8.Cut24;
+      return FrequencyBandMode1And8.Cut24;
     case GenericEQSlope.Slope30dB_oct:
     case GenericEQSlope.Slope36dB_oct:
-      return BandMode1And8.Cut48;
+      return FrequencyBandMode1And8.Cut48;
     case GenericEQSlope.Slope48dB_oct:
-      return BandMode1And8.Cut48;
+      return FrequencyBandMode1And8.Cut48;
     case GenericEQSlope.Slope72dB_oct:
     case GenericEQSlope.Slope96dB_oct:
     case GenericEQSlope.SlopeBrickwall:
-      return BandMode1And8.Cut96;
+      return FrequencyBandMode1And8.Cut96;
     default:
-      return BandMode1And8.Cut48;
+      return FrequencyBandMode1And8.Cut48;
   }
 }
 
@@ -122,12 +122,12 @@ export function setBand(
       "",
       "editchannel",
       isLeft
-        ? ChannelMode.LeftRightModeLeft
+        ? FrequencyChannelMode.LeftRightModeLeft
         : isMid
-          ? ChannelMode.MidSideModeMid
+          ? FrequencyChannelMode.MidSideModeMid
           : band.StereoPlacement === GenericEQStereoPlacement.Side
-            ? ChannelMode.MidSideModeSide
-            : ChannelMode.LeftRightModeRight
+            ? FrequencyChannelMode.MidSideModeSide
+            : FrequencyChannelMode.LeftRightModeRight
     );
   }
 
@@ -139,28 +139,28 @@ export function setBand(
 
   if (bandNumber === 1 || bandNumber === 8) {
     const type = isPeakType(shape)
-      ? BandMode1And8.Peak
+      ? FrequencyBandMode1And8.Peak
       : isLowShelf(shape)
-        ? BandMode1And8.LowShelf
+        ? FrequencyBandMode1And8.LowShelf
         : isHighShelf(shape)
-          ? BandMode1And8.HighShelf
+          ? FrequencyBandMode1And8.HighShelf
           : isNotch(shape)
-            ? BandMode1And8.Notch
+            ? FrequencyBandMode1And8.Notch
             : isLowCut(shape) || isHighCut(shape)
               ? getCutSlope(band.Slope)
-              : BandMode1And8.Peak;
+              : FrequencyBandMode1And8.Peak;
 
     setBandParameter(frequency, bandNumber, channel, "type", type);
   } else {
     const type = isPeakType(shape)
-      ? BandMode2To7.Peak
+      ? FrequencyBandMode2To7.Peak
       : isLowShelf(shape)
-        ? BandMode2To7.LowShelf
+        ? FrequencyBandMode2To7.LowShelf
         : isHighShelf(shape)
-          ? BandMode2To7.HighShelf
+          ? FrequencyBandMode2To7.HighShelf
           : isNotch(shape)
-            ? BandMode2To7.Notch
-            : BandMode2To7.Peak;
+            ? FrequencyBandMode2To7.Notch
+            : FrequencyBandMode2To7.Peak;
 
     setBandParameter(frequency, bandNumber, channel, "type", type);
   }

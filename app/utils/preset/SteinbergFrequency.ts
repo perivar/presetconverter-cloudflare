@@ -3,7 +3,7 @@
 import { SteinbergVstPreset } from "./SteinbergVstPreset";
 import { VstClassIDs } from "./VstClassIDs";
 
-export enum BandMode1And8 {
+export enum FrequencyBandMode1And8 {
   Cut6 = 0.0,
   Cut12 = 1.0,
   Cut24 = 2.0,
@@ -15,14 +15,14 @@ export enum BandMode1And8 {
   Notch = 8.0,
 }
 
-export enum BandMode2To7 {
+export enum FrequencyBandMode2To7 {
   LowShelf = 0.0,
   Peak = 1.0,
   HighShelf = 2.0,
   Notch = 3.0,
 }
 
-export enum ChannelMode {
+export enum FrequencyChannelMode {
   LeftRightModeLeft = 0.0,
   LeftRightModeRight = 1.0,
   StereoMode = 2.0,
@@ -114,7 +114,9 @@ export class SteinbergFrequency extends SteinbergVstPreset {
     this.setNumberParameterWithIndex(
       `equalizerAtype${bandNum}`,
       132 + inc,
-      bandNum === 1 || bandNum === 8 ? BandMode1And8.Cut48 : BandMode2To7.Peak
+      bandNum === 1 || bandNum === 8
+        ? FrequencyBandMode1And8.Cut48
+        : FrequencyBandMode2To7.Peak
     );
     this.setNumberParameterWithIndex(`invert${bandNum}`, 1022 + inc, 0.0);
 
@@ -142,7 +144,9 @@ export class SteinbergFrequency extends SteinbergVstPreset {
     this.setNumberParameterWithIndex(
       `equalizerAtype${bandNum}Ch2`,
       292 + inc,
-      bandNum === 1 || bandNum === 8 ? BandMode1And8.Cut48 : BandMode2To7.Peak
+      bandNum === 1 || bandNum === 8
+        ? FrequencyBandMode1And8.Cut48
+        : FrequencyBandMode2To7.Peak
     );
 
     this.setNumberParameterWithIndex(`invert${bandNum}Ch2`, 1030 + inc, 0.0);
@@ -151,7 +155,7 @@ export class SteinbergFrequency extends SteinbergVstPreset {
     this.setNumberParameterWithIndex(
       `equalizerAeditchannel${bandNum}`,
       50 + inc,
-      ChannelMode.StereoMode
+      FrequencyChannelMode.StereoMode
     );
     this.setNumberParameterWithIndex(
       `equalizerAbandon${bandNum}`,
@@ -276,46 +280,46 @@ export class SteinbergFrequency extends SteinbergVstPreset {
 
     if (bandNum === 1 || bandNum === 8) {
       switch (typeParam) {
-        case BandMode1And8.Cut6:
+        case FrequencyBandMode1And8.Cut6:
           shape = "Cut6";
           break;
-        case BandMode1And8.Cut12:
+        case FrequencyBandMode1And8.Cut12:
           shape = "Cut12";
           break;
-        case BandMode1And8.Cut24:
+        case FrequencyBandMode1And8.Cut24:
           shape = "Cut24";
           break;
-        case BandMode1And8.Cut48:
+        case FrequencyBandMode1And8.Cut48:
           shape = "Cut48";
           break;
-        case BandMode1And8.Cut96:
+        case FrequencyBandMode1And8.Cut96:
           shape = "Cut96";
           break;
-        case BandMode1And8.LowShelf:
+        case FrequencyBandMode1And8.LowShelf:
           shape = "LowShelf";
           break;
-        case BandMode1And8.Peak:
+        case FrequencyBandMode1And8.Peak:
           shape = "Peak";
           break;
-        case BandMode1And8.HighShelf:
+        case FrequencyBandMode1And8.HighShelf:
           shape = "HighShelf";
           break;
-        case BandMode1And8.Notch:
+        case FrequencyBandMode1And8.Notch:
           shape = "Notch";
           break;
       }
     } else {
       switch (typeParam) {
-        case BandMode2To7.LowShelf:
+        case FrequencyBandMode2To7.LowShelf:
           shape = "LowShelf";
           break;
-        case BandMode2To7.Peak:
+        case FrequencyBandMode2To7.Peak:
           shape = "Peak";
           break;
-        case BandMode2To7.HighShelf:
+        case FrequencyBandMode2To7.HighShelf:
           shape = "HighShelf";
           break;
-        case BandMode2To7.Notch:
+        case FrequencyBandMode2To7.Notch:
           shape = "Notch";
           break;
       }
@@ -326,19 +330,19 @@ export class SteinbergFrequency extends SteinbergVstPreset {
       `equalizerAeditchannel${bandNum}`
     );
     switch (editChannelParam) {
-      case ChannelMode.LeftRightModeLeft:
+      case FrequencyChannelMode.LeftRightModeLeft:
         stereoPlacement = "LR: Left";
         break;
-      case ChannelMode.LeftRightModeRight:
+      case FrequencyChannelMode.LeftRightModeRight:
         stereoPlacement = "LR: Right";
         break;
-      case ChannelMode.StereoMode:
+      case FrequencyChannelMode.StereoMode:
         stereoPlacement = "Stereo";
         break;
-      case ChannelMode.MidSideModeMid:
+      case FrequencyChannelMode.MidSideModeMid:
         stereoPlacement = "MS: Mid";
         break;
-      case ChannelMode.MidSideModeSide:
+      case FrequencyChannelMode.MidSideModeSide:
         stereoPlacement = "MS: Side";
         break;
     }
