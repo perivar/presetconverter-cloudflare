@@ -21,7 +21,7 @@ export function plotAutomationEvents(
     x: xs,
     y: ys,
     marker: {
-      size: 8,
+      size: 5,
     },
     line: {
       width: 1,

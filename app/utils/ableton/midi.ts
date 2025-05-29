@@ -157,11 +157,7 @@ const ABLETON_TICK_MULTIPLIER = TICKS_PER_BEAT / (4 * 4); // = 30; Ticks per Abl
  * Uses the 'midi-file' library format.
  * @returns A MidiData object or null.
  */
-export function convertToMidi(
-  cvpj: any,
-  fileName: string,
-  doOutputDebugFile: boolean = false
-): MidiData | null {
+export function convertToMidi(cvpj: any, fileName: string): MidiData | null {
   Log.Information(`Starting MIDI conversion for notes: ${fileName}`);
 
   if (!cvpj?.parameters?.bpm?.value) {
@@ -335,11 +331,6 @@ export function convertToMidi(
   const midiData: MidiData = { header, tracks };
 
   Log.Information("MIDI conversion for notes completed.");
-
-  if (doOutputDebugFile) {
-    const logString = logMidiDataToString(midiData); // Use the new logger
-    Log.Debug("MIDI Log:\n" + logString);
-  }
 
   return midiData;
 }

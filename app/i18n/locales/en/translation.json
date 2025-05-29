@@ -1,12 +1,31 @@
 {
+  "ableton": {
+    "automation": {
+      "description": "Ableton Automation as Midi and Plots",
+      "midiFiles": "Ableton Automation Midi Files",
+      "midiLogs": "Ableton Automation Midi Logs",
+      "noMidiFiles": "No Ableton Automation Midi Files Found",
+      "noMidiLogs": "No Ableton Automation Midi Logs Found",
+      "noPlots": "No Ableton Automation Plots Found",
+      "plots": "Ableton Automation Plots",
+      "title": "Ableton Automation"
+    },
+    "devicePresets": {
+      "description": "Show all ableton device preset files",
+      "title": "Ableton Device Preset Files"
+    },
+    "midiFile": {
+      "title": "Ableton Midi File"
+    }
+  },
   "conversion": {
     "convertButton": "Convert",
     "converting": "Converting...",
+    "noAvailableConversions": "No available conversions",
+    "noSourcePreset": "No source preset found",
     "selectTarget": "Select target format",
     "selectTargetPlaceholder": "Select a format",
-    "title": "Convert to another format",
-    "noAvailableConversions": "No available conversions",
-    "noSourcePreset": "No source preset found"
+    "title": "Convert to another format"
   },
   "convert": {
     "title": "Frontpage"
@@ -33,6 +52,7 @@
     "bandDetails": "Band Details",
     "bands": "Bands",
     "detectedFormat": "Detected Format",
+    "detectedType": "Detected Type",
     "disabled": "Disabled",
     "enabled": "Enabled",
     "fileName": "File Name",
@@ -43,8 +63,7 @@
     "slope": "Slope",
     "stereoPlacement": "Stereo Placement",
     "title": "File Information",
-    "type": "Type",
-    "detectedType": "Detected Type"
+    "type": "Type"
   },
   "help": {
     "title": "Help"

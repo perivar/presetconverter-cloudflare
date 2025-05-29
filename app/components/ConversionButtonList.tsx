@@ -1,3 +1,5 @@
+import { downloadBlob } from "~/utils/downloadBlob";
+import { getFileNameWithoutExtension } from "~/utils/StringUtils";
 import { useTranslation } from "react-i18next";
 
 import { Button } from "~/components/ui/button";
@@ -11,17 +13,6 @@ interface ConversionButtonListProps {
   error: string | null;
   setError: (error: string | null) => void;
 }
-
-const downloadBlob = (blob: Blob, fileName: string) => {
-  const url = window.URL.createObjectURL(blob);
-  const link = document.createElement("a");
-  link.href = url;
-  link.download = fileName;
-  document.body.appendChild(link);
-  link.click();
-  document.body.removeChild(link);
-  window.URL.revokeObjectURL(url);
-};
 
 export function ConversionButtonList({
   conversions,
@@ -72,7 +63,8 @@ export function ConversionButtonList({
                 const mimeType = "application/octet-stream";
 
                 const blob = new Blob([convertedData], { type: mimeType });
-                const originalName = originalFileName.replace(/\.[^/.]+$/, "");
+                const originalName =
+                  getFileNameWithoutExtension(originalFileName);
                 const fileName = `${originalName}${extension}`;
 
                 downloadBlob(blob, fileName);

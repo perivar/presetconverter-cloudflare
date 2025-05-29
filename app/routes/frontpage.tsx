@@ -7,8 +7,15 @@ import i18next from "~/i18n/i18n.server";
 import { AbletonDevicePreset } from "~/utils/ableton/AbletonDevicePreset";
 import { unwrapAbletonDevicePreset } from "~/utils/ableton/AbletonDevicePresetUnwrapper"; // Import the unwrapper
 import { AbletonHandlers } from "~/utils/ableton/AbletonHandlers";
+import {
+  AutomationConversionResult,
+  convertAutomationToMidi,
+  convertToMidi,
+  logMidiDataToString,
+} from "~/utils/ableton/Midi";
 import { FabFilterToGenericEQ } from "~/utils/converters/FabFilterToGenericEQ";
 import { SteinbergFrequencyToGenericEQ } from "~/utils/converters/SteinbergFrequencyToGenericEQ";
+import { downloadBlob } from "~/utils/downloadBlob";
 import { FabFilterProQ } from "~/utils/preset/FabFilterProQ";
 import { FabFilterProQ2 } from "~/utils/preset/FabFilterProQ2";
 import { FabFilterProQ3 } from "~/utils/preset/FabFilterProQ3";
@@ -19,6 +26,9 @@ import { GenericEQBand, GenericEQPreset } from "~/utils/preset/GenericEQPreset";
 import { Preset } from "~/utils/preset/Preset";
 import { SteinbergFrequency } from "~/utils/preset/SteinbergFrequency";
 import { VstPresetFactory } from "~/utils/preset/VstPresetFactory";
+import { getFileNameWithoutExtension } from "~/utils/StringUtils";
+import * as midiFile from "midi-file";
+import { MidiData } from "midi-file";
 import { useDropzone } from "react-dropzone";
 import { useTranslation } from "react-i18next";
 
@@ -31,6 +41,7 @@ import {
 } from "~/components/ui/collapsible";
 import { EqualizerBandTable } from "~/components/EqualizerBandTable";
 import { EqualizerChart } from "~/components/EqualizerChart";
+import PlotlyClientOnly from "~/components/PlotlyClientOnly";
 import { TargetConversion } from "~/components/TargetConversion";
 
 export async function loader({ request }: LoaderFunctionArgs) {
@@ -104,6 +115,11 @@ export default function Index() {
   const [abletonDevicePresets, setAbletonDevicePresets] = useState<
     AbletonDevicePreset[] | null
   >(null);
+  const [abletonMidiFile, setAbletonMidiFile] = useState<MidiData | null>(null);
+  const [
+    abletonAutomationConversionResult,
+    setAbletonAutomationConversionResult,
+  ] = useState<AutomationConversionResult | null>(null);
 
   const onDrop = useCallback(
     (acceptedFiles: File[]) => {
@@ -113,6 +129,8 @@ export default function Index() {
       setParsedGenericData(null);
       setDroppedFile(null);
       setAbletonDevicePresets(null);
+      setAbletonMidiFile(null);
+      setAbletonAutomationConversionResult(null);
       setIsLoading(true);
 
       if (acceptedFiles.length === 0) {
@@ -244,6 +262,24 @@ export default function Index() {
               } else {
                 setError(t("error.unsupportedFormat", { fileName: file.name }));
               }
+
+              if (result?.cvpj) {
+                // if we have a cvpj, store the midi file in the state
+                const midiData = convertToMidi(result.cvpj, "midi");
+                setAbletonMidiFile(midiData);
+
+                // if we have a cvpj, convert automation to midi and plots
+                const automationConversionResult = convertAutomationToMidi(
+                  result.cvpj,
+                  "automation",
+                  true // add log and plots
+                );
+                setAbletonAutomationConversionResult(
+                  automationConversionResult
+                );
+              } else {
+                setError(t("error.unsupportedFormat", { fileName: file.name }));
+              }
             } catch (err) {
               console.error("Ableton parsing error:", err);
               const message = err instanceof Error ? err.message : String(err);
@@ -294,9 +330,9 @@ export default function Index() {
 
   return (
     <div className="container mx-auto min-h-screen px-4 py-12 sm:px-6 lg:px-8">
-      <h1 className="mb-8 text-center text-3xl font-bold">{t("title")}</h1>
+      <h1 className="mb-4 text-center text-3xl font-bold">{t("title")}</h1>
 
-      <Card className="mb-8">
+      <Card className="mb-4">
         <CardHeader>
           <CardTitle>{t("dropzone.title")}</CardTitle>
         </CardHeader>
@@ -329,7 +365,7 @@ export default function Index() {
       </Card>
 
       {droppedFile && (
-        <Card className="mb-8">
+        <Card className="mb-4">
           <CardHeader>
             <CardTitle>{t("fileInfo.title")}</CardTitle>
           </CardHeader>
@@ -402,42 +438,340 @@ export default function Index() {
         </Card>
       )}
 
-      {/* Display Ableton Preset Files */}
+      {/* Display Ableton Device Preset Files */}
       {abletonDevicePresets && abletonDevicePresets.length > 0 && (
-        <Card className="mb-8">
+        <Card className="mb-4">
           <CardHeader>
-            <CardTitle>Ableton Preset Files</CardTitle>
+            <CardTitle>{t("ableton.devicePresets.title")}</CardTitle>
           </CardHeader>
           <CardContent>
-            <div>
-              {abletonDevicePresets.map((presetFile, index) => {
-                const { sourceData: unwrappedSourceData, sourceFormatId } =
-                  unwrapAbletonDevicePreset(presetFile);
+            <Collapsible defaultOpen={false}>
+              <div className="flex items-center justify-between">
+                <strong>{t("ableton.devicePresets.description")}</strong>
+                <CollapsibleTrigger asChild>
+                  <Button variant="ghost" size="sm" className="w-9 p-0">
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      width="24"
+                      height="24"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth="2"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      className="size-4">
+                      <path d="m6 9 6 6 6-6" />
+                    </svg>
+                    <span className="sr-only">Toggle</span>
+                  </Button>
+                </CollapsibleTrigger>
+              </div>
+              <CollapsibleContent>
+                <div>
+                  {abletonDevicePresets.map((presetFile, index) => {
+                    const { sourceData: unwrappedSourceData, sourceFormatId } =
+                      unwrapAbletonDevicePreset(presetFile);
 
-                return (
-                  <div key={index} className="border-b py-2 last:border-0">
-                    <p>
-                      <strong>{t("fileInfo.fileName")}:</strong>{" "}
-                      {presetFile.filename}
-                    </p>
-                    <p>
-                      <strong>{t("fileInfo.detectedType")}:</strong>{" "}
-                      {presetFile.format}{" "}
-                    </p>
-                    <p>
-                      <strong>{t("fileInfo.detectedFormat")}:</strong>{" "}
-                      {sourceFormatId}
-                    </p>
+                    return (
+                      <div key={index} className="border-b py-2 last:border-0">
+                        <p>
+                          <strong>{t("fileInfo.fileName")}:</strong>{" "}
+                          {presetFile.filename}
+                        </p>
+                        <p>
+                          <strong>{t("fileInfo.detectedType")}:</strong>{" "}
+                          {presetFile.format}{" "}
+                        </p>
+                        <p>
+                          <strong>{t("fileInfo.detectedFormat")}:</strong>{" "}
+                          {sourceFormatId}
+                        </p>
 
-                    <TargetConversion
-                      sourceData={unwrappedSourceData}
-                      originalFileName={presetFile?.filename || null}
-                      sourceFormatId={sourceFormatId}
-                    />
-                  </div>
-                );
-              })}
-            </div>
+                        <TargetConversion
+                          sourceData={unwrappedSourceData}
+                          originalFileName={presetFile?.filename || null}
+                          sourceFormatId={sourceFormatId}
+                        />
+                      </div>
+                    );
+                  })}
+                </div>
+              </CollapsibleContent>
+            </Collapsible>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Display Ableton MIDI File */}
+      {abletonMidiFile &&
+        (() => {
+          const fileNameNoExtension = getFileNameWithoutExtension(
+            droppedFile?.name ?? "ableton-midi"
+          );
+          const midiFileName = `${fileNameNoExtension}.mid`;
+          const midiLogFileName = `${fileNameNoExtension}.txt`;
+
+          return (
+            <Card className="mb-4">
+              <CardHeader>
+                <CardTitle>{t("ableton.midiFile.title")}</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="mt-1 flex flex-wrap gap-2">
+                  <Button
+                    onClick={async () => {
+                      if (!midiFileName) return;
+
+                      try {
+                        setIsLoading(true);
+                        setError(null);
+
+                        const midiDataArray =
+                          midiFile.writeMidi(abletonMidiFile);
+                        const midiDataUint8Array = new Uint8Array(
+                          midiDataArray
+                        );
+                        if (!midiDataUint8Array) {
+                          setError(t("error.conversionFailed"));
+                          return;
+                        }
+
+                        const mimeType = "application/octet-stream";
+                        const blob = new Blob([midiDataUint8Array], {
+                          type: mimeType,
+                        });
+
+                        downloadBlob(blob, midiFileName);
+                      } catch (err) {
+                        console.error("Conversion error:", err);
+                        const message =
+                          err instanceof Error ? err.message : String(err);
+                        setError(t("error.conversionError", { message }));
+                      } finally {
+                        setIsLoading(false);
+                      }
+                    }}
+                    disabled={isLoading}
+                    size="sm"
+                    variant="secondary">
+                    {midiFileName}
+                  </Button>
+                  <Button
+                    onClick={async () => {
+                      if (!midiLogFileName) return;
+
+                      try {
+                        setIsLoading(true);
+                        setError(null);
+
+                        const midiLogString =
+                          logMidiDataToString(abletonMidiFile);
+
+                        if (!midiLogString) {
+                          setError(t("error.conversionFailed"));
+                          return;
+                        }
+
+                        const mimeType = "text/plain";
+                        const blob = new Blob([midiLogString], {
+                          type: mimeType,
+                        });
+
+                        downloadBlob(blob, midiLogFileName);
+                      } catch (err) {
+                        console.error("Conversion error:", err);
+                        const message =
+                          err instanceof Error ? err.message : String(err);
+                        setError(t("error.conversionError", { message }));
+                      } finally {
+                        setIsLoading(false);
+                      }
+                    }}
+                    disabled={isLoading}
+                    size="sm"
+                    variant="secondary">
+                    {midiLogFileName}
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+          );
+        })()}
+
+      {/* Display Ableton Automation Conversion Result */}
+      {abletonAutomationConversionResult && (
+        <Card className="mb-4">
+          <CardHeader>
+            <CardTitle>{t("ableton.automation.title")}</CardTitle>
+          </CardHeader>
+          <CardContent>
+            {abletonAutomationConversionResult?.midiDataArray &&
+            abletonAutomationConversionResult.midiDataArray.length > 0 ? (
+              <div className="mb-5">
+                <strong>{t("ableton.automation.midiFiles")}:</strong>
+                <div className="mt-1 flex flex-wrap gap-2">
+                  {abletonAutomationConversionResult.midiDataArray.map(
+                    (automationMidi, index) => {
+                      if (automationMidi) {
+                        const suggestedFileName =
+                          automationMidi.suggestedFileName;
+                        const fileNameNoExtension = getFileNameWithoutExtension(
+                          suggestedFileName ?? "ableton-automation"
+                        );
+                        const midiFileName = `${fileNameNoExtension}.mid`;
+                        const midiData = automationMidi.midiData;
+
+                        return (
+                          <Button
+                            key={index}
+                            onClick={async () => {
+                              if (!suggestedFileName) return;
+
+                              try {
+                                setIsLoading(true);
+                                setError(null);
+
+                                const midiDataArray =
+                                  midiFile.writeMidi(midiData);
+                                const midiDataUint8Array = new Uint8Array(
+                                  midiDataArray
+                                );
+                                if (!midiDataUint8Array) {
+                                  setError(t("error.conversionFailed"));
+                                  return;
+                                }
+
+                                const mimeType = "application/octet-stream";
+                                const blob = new Blob([midiDataUint8Array], {
+                                  type: mimeType,
+                                });
+
+                                downloadBlob(blob, midiFileName);
+                              } catch (err) {
+                                console.error("Conversion error:", err);
+                                const message =
+                                  err instanceof Error
+                                    ? err.message
+                                    : String(err);
+                                setError(
+                                  t("error.conversionError", { message })
+                                );
+                              } finally {
+                                setIsLoading(false);
+                              }
+                            }}
+                            disabled={isLoading}
+                            size="sm"
+                            variant="secondary">
+                            {midiFileName}
+                          </Button>
+                        );
+                      }
+                    }
+                  )}
+                </div>
+              </div>
+            ) : (
+              <p>{t("ableton.automation.noMidiFiles")}</p>
+            )}
+
+            {abletonAutomationConversionResult?.midiLogArray &&
+            abletonAutomationConversionResult.midiLogArray.length > 0 ? (
+              <div className="mb-5">
+                <strong>{t("ableton.automation.midiLogs")}:</strong>
+                <div className="mt-1 flex flex-wrap gap-2">
+                  {abletonAutomationConversionResult.midiLogArray.map(
+                    (automationMidiLog, index) => {
+                      if (automationMidiLog) {
+                        const suggestedFileName =
+                          automationMidiLog.suggestedFileName;
+                        const fileNameNoExtension = getFileNameWithoutExtension(
+                          suggestedFileName ?? "ableton-automation"
+                        );
+                        const midiLogFileName = `${fileNameNoExtension}.txt`;
+                        const midiLogString = automationMidiLog.logString;
+
+                        return (
+                          <Button
+                            key={index}
+                            onClick={async () => {
+                              if (!suggestedFileName) return;
+
+                              try {
+                                setIsLoading(true);
+                                setError(null);
+
+                                if (!midiLogString) {
+                                  setError(t("error.conversionFailed"));
+                                  return;
+                                }
+
+                                const mimeType = "text/plain";
+                                const blob = new Blob([midiLogString], {
+                                  type: mimeType,
+                                });
+
+                                downloadBlob(blob, midiLogFileName);
+                              } catch (err) {
+                                console.error("Conversion error:", err);
+                                const message =
+                                  err instanceof Error
+                                    ? err.message
+                                    : String(err);
+                                setError(
+                                  t("error.conversionError", { message })
+                                );
+                              } finally {
+                                setIsLoading(false);
+                              }
+                            }}
+                            disabled={isLoading}
+                            size="sm"
+                            variant="secondary">
+                            {midiLogFileName}
+                          </Button>
+                        );
+                      }
+                    }
+                  )}
+                </div>
+              </div>
+            ) : (
+              <p>{t("ableton.automation.noMidiLogs")}</p>
+            )}
+
+            {abletonAutomationConversionResult?.automationPlotArray &&
+            abletonAutomationConversionResult.automationPlotArray.length > 0 ? (
+              <div>
+                <strong>{t("ableton.automation.plots")}:</strong>
+                <ul>
+                  {abletonAutomationConversionResult.automationPlotArray.map(
+                    (automationPlot, index) => {
+                      if (automationPlot) {
+                        const plot = automationPlot.plot;
+                        const suggestedFileName =
+                          automationPlot.suggestedFileName;
+                        const fig = JSON.parse(plot);
+                        return (
+                          <li key={index}>
+                            <div>{suggestedFileName}</div>
+                            <div>
+                              <PlotlyClientOnly
+                                data={fig.data}
+                                layout={fig.layout}
+                              />
+                            </div>
+                          </li>
+                        );
+                      }
+                    }
+                  )}
+                </ul>
+              </div>
+            ) : (
+              <p>{t("ableton.automation.noPlots")}</p>
+            )}
           </CardContent>
         </Card>
       )}

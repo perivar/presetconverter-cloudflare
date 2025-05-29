@@ -1,12 +1,31 @@
 {
+  "ableton": {
+    "automation": {
+      "description": "Ableton automatisering som midi og plott",
+      "midiFiles": "Ableton Automation Midi-filer",
+      "midiLogs": "Ableton Automation Midi-logger",
+      "noMidiFiles": "Ingen Ableton Automation Midi-filer funnet",
+      "noMidiLogs": "Ingen Ableton Automation Midi-logger funnet",
+      "noPlots": "Ingen Ableton Automation plotter funnet",
+      "plots": "Ableton Automation plotter",
+      "title": "Ableton Automation"
+    },
+    "devicePresets": {
+      "description": "Vis alle Ableton Device preset-filer",
+      "title": "Ableton Device Preset-filer"
+    },
+    "midiFile": {
+      "title": "Ableton Midi-fil"
+    }
+  },
   "conversion": {
     "convertButton": "Konverter",
     "converting": "Konverterer...",
+    "noAvailableConversions": "Ingen tilgjengelige konverteringer",
+    "noSourcePreset": "Ingen forhåndsinnstilling av kilder funnet",
     "selectTarget": "Velg målformat",
     "selectTargetPlaceholder": "Velg et format",
-    "title": "Konverter til annet format",
-    "noAvailableConversions": "Ingen tilgjengelige konverteringer",
-    "noSourcePreset": "Ingen forhåndsinnstilling av kilder funnet"
+    "title": "Konverter til annet format"
   },
   "convert": {
     "title": "Forside"
@@ -33,6 +52,7 @@
     "bandDetails": "Bånddetaljer",
     "bands": "Bånd",
     "detectedFormat": "Oppdaget Format",
+    "detectedType": "Oppdaget type",
     "disabled": "Deaktivert",
     "enabled": "Aktivert",
     "fileName": "Filnavn",
@@ -43,8 +63,7 @@
     "slope": "Stigning",
     "stereoPlacement": "Stereoplassering",
     "title": "Filinformasjon",
-    "type": "Type",
-    "detectedType": "Oppdaget type"
+    "type": "Type"
   },
   "help": {
     "title": "Hjelp"
