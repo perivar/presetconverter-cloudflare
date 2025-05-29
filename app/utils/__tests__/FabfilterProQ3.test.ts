@@ -2,6 +2,8 @@ import * as fs from "fs";
 import * as path from "path";
 
 import { FabFilterProQ3 } from "../preset/FabFilterProQ3";
+import { FabFilterProQBase } from "../preset/FabFilterProQBase";
+import { FXPPresetFactory } from "../preset/FXPPresetFactory";
 import { SteinbergVstPreset } from "../preset/SteinbergVstPreset";
 import { VstPresetFactory } from "../preset/VstPresetFactory";
 import { expectUint8ArraysToBeEqual, toPlainObject } from "./helpers/testUtils";
@@ -408,12 +410,12 @@ test("FabFilterProQ3-compare-FXP-FFP-HighBass", () => {
   const fxpFileContent = fs.readFileSync(fxpPath);
   const fxpUint8Array = new Uint8Array(fxpFileContent);
   const { preset: fxpProQ, source } =
-    VstPresetFactory.getFabFilterProQPresetFromFXP(fxpUint8Array);
+    FXPPresetFactory.getPresetFromFXP(fxpUint8Array);
 
   // Add a check to ensure fxpProQ is not null before proceeding
   if (!fxpProQ) {
     throw new Error(
-      "Failed to read or initialize FXP using VstPresetFactory.getFabFilterProQPresetFromFXP"
+      "Failed to read or initialize FXP using FXPPresetFactory.getPresetFromFXP"
     );
   }
 
@@ -422,7 +424,7 @@ test("FabFilterProQ3-compare-FXP-FFP-HighBass", () => {
   if (DO_DEBUG_OBJECT)
     console.log(
       `FXP Bands (${fxpProQ.constructor.name}):`,
-      JSON.stringify(fxpProQ.Bands, null, 2)
+      JSON.stringify((fxpProQ as FabFilterProQBase).Bands, null, 2)
     );
 
   // Load and parse FFP
@@ -438,7 +440,9 @@ test("FabFilterProQ3-compare-FXP-FFP-HighBass", () => {
     console.log("FFP Bands:", JSON.stringify(ffpProQ.Bands, null, 2));
 
   // Compare Bands
-  expect(toPlainObject(fxpProQ.Bands)).toEqual(toPlainObject(ffpProQ.Bands));
+  expect(toPlainObject((fxpProQ as FabFilterProQBase).Bands)).toEqual(
+    toPlainObject(ffpProQ.Bands)
+  );
 });
 
 test("FabFilterProQ3-readVstPreset-Zedd-array", () => {

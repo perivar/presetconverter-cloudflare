@@ -2,8 +2,8 @@ import * as fs from "fs";
 import * as path from "path";
 
 import { FabFilterProQ } from "../preset/FabFilterProQ";
-import { ProQBaseBand } from "../preset/FabFilterProQBase";
-import { VstPresetFactory } from "../preset/VstPresetFactory";
+import { FabFilterProQBase, ProQBaseBand } from "../preset/FabFilterProQBase";
+import { FXPPresetFactory } from "../preset/FXPPresetFactory";
 import { expectUint8ArraysToBeEqual, toPlainObject } from "./helpers/testUtils";
 
 // set this to true to debug the outputs as objects
@@ -333,21 +333,21 @@ test("FabFilterProQ-compare-FXP-FFP-Generic", () => {
   const fxpUint8Array = new Uint8Array(fxpFileContent);
 
   const { preset: fxpProQ, source } =
-    VstPresetFactory.getFabFilterProQPresetFromFXP(fxpUint8Array);
+    FXPPresetFactory.getPresetFromFXP(fxpUint8Array);
 
   // Add a check to ensure fxpProQ is not null before proceeding
   if (!fxpProQ) {
     throw new Error(
-      "Failed to read or initialize FXP using VstPresetFactory.getFabFilterProQPresetFromFXP"
+      "Failed to read or initialize FXP using FXPPresetFactory.getPresetFromFXP"
     );
   }
 
-  expect(fxpProQ).toBeInstanceOf(FabFilterProQ); // Check for Pro-Q 1
+  expect(fxpProQ).toBeInstanceOf(FabFilterProQBase); // Check for FabFilterProQBase
   expect(source).toBe("FabFilterProQ");
   if (DO_DEBUG_OBJECT)
     console.log(
       `FXP Bands (${fxpProQ.constructor.name}):`,
-      JSON.stringify(fxpProQ.Bands, null, 2)
+      JSON.stringify((fxpProQ as FabFilterProQBase).Bands, null, 2)
     );
 
   // Load and parse FFP
@@ -367,7 +367,7 @@ test("FabFilterProQ-compare-FXP-FFP-Generic", () => {
   const filterBands = (bands: ProQBaseBand[]) =>
     bands.filter(band => band.Q < 40 || band.Q > 50);
 
-  const filteredFxpBands = filterBands(fxpProQ.Bands);
+  const filteredFxpBands = filterBands((fxpProQ as FabFilterProQBase).Bands);
   const filteredFfpBands = filterBands(ffpProQ.Bands);
 
   // Compare filtered Bands

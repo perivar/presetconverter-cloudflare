@@ -4,8 +4,9 @@ import { useCallback, useState } from "react";
 import type { LoaderFunctionArgs, MetaFunction } from "@remix-run/cloudflare";
 import { json } from "@remix-run/react";
 import i18next from "~/i18n/i18n.server";
+import { AbletonDevicePreset } from "~/utils/ableton/AbletonDevicePreset";
+import { unwrapAbletonDevicePreset } from "~/utils/ableton/AbletonDevicePresetUnwrapper"; // Import the unwrapper
 import { AbletonHandlers } from "~/utils/ableton/AbletonHandlers";
-import { AbletonPresetFile } from "~/utils/ableton/AbletonPresetFile";
 import { FabFilterToGenericEQ } from "~/utils/converters/FabFilterToGenericEQ";
 import { SteinbergFrequencyToGenericEQ } from "~/utils/converters/SteinbergFrequencyToGenericEQ";
 import { FabFilterProQ } from "~/utils/preset/FabFilterProQ";
@@ -13,6 +14,7 @@ import { FabFilterProQ2 } from "~/utils/preset/FabFilterProQ2";
 import { FabFilterProQ3 } from "~/utils/preset/FabFilterProQ3";
 import { FabFilterProQBase } from "~/utils/preset/FabFilterProQBase";
 import { FxChunkSet, FXP, FxProgramSet } from "~/utils/preset/FXP";
+import { FXPPresetFactory } from "~/utils/preset/FXPPresetFactory";
 import { GenericEQBand, GenericEQPreset } from "~/utils/preset/GenericEQPreset";
 import { Preset } from "~/utils/preset/Preset";
 import { SteinbergFrequency } from "~/utils/preset/SteinbergFrequency";
@@ -65,9 +67,8 @@ const readFxpAsFabFilterEQ = (data: Uint8Array): FxpPresetData => {
 
   // First try to parse as a Pro-Q preset using VstPresetFactory
   if (fxp.content?.FxID) {
-    const { preset, source } =
-      VstPresetFactory.getFabFilterProQPresetFromFXP(data);
-    fabfilterEQPreset = preset;
+    const { preset, source } = FXPPresetFactory.getPresetFromFXP(data);
+    fabfilterEQPreset = preset as FabFilterProQBase | null; // Cast back to FabFilterProQBase for existing logic
     fabfilterEQSource = source;
     fxId = fxp.content.FxID;
   }
@@ -100,8 +101,8 @@ export default function Index() {
   const [parsedGenericData, setParsedGenericData] =
     useState<GenericEQPreset | null>(null);
   const [hoveredFrequency, setHoveredFrequency] = useState<number | null>(null);
-  const [abletonPresetFiles, setAbletonPresetFiles] = useState<
-    AbletonPresetFile[] | null
+  const [abletonDevicePresets, setAbletonDevicePresets] = useState<
+    AbletonDevicePreset[] | null
   >(null);
 
   const onDrop = useCallback(
@@ -111,7 +112,7 @@ export default function Index() {
       setSourceData(null);
       setParsedGenericData(null);
       setDroppedFile(null);
-      setAbletonPresetFiles(null); // Clear previous Ableton files
+      setAbletonDevicePresets(null);
       setIsLoading(true);
 
       if (acceptedFiles.length === 0) {
@@ -131,7 +132,6 @@ export default function Index() {
       };
 
       reader.onload = async () => {
-        // Made function async
         try {
           const arrayBuffer = reader.result as ArrayBuffer;
           const data = new Uint8Array(arrayBuffer);
@@ -198,12 +198,7 @@ export default function Index() {
             try {
               const vstPreset = VstPresetFactory.getVstPreset(data);
 
-              if (
-                vstPreset &&
-                (vstPreset instanceof FabFilterProQ ||
-                  vstPreset instanceof FabFilterProQ2 ||
-                  vstPreset instanceof FabFilterProQ3)
-              ) {
+              if (vstPreset && vstPreset instanceof FabFilterProQBase) {
                 console.log(
                   "FabFilterProQ[1|2|3] preset:",
                   vstPreset.toString()
@@ -244,7 +239,7 @@ export default function Index() {
               );
 
               if (result?.devicePresetFiles) {
-                setAbletonPresetFiles(result.devicePresetFiles);
+                setAbletonDevicePresets(result.devicePresetFiles);
                 setSourceFormat("Ableton Live Project"); // Or a more specific format if needed
               } else {
                 setError(t("error.unsupportedFormat", { fileName: file.name }));
@@ -278,7 +273,7 @@ export default function Index() {
     accept: {
       "audio/fxp": [".fxp"],
       "application/octet-stream": [".ffp", ".vstpreset"],
-      "application/x-ableton-live": [".als"], // Added .als
+      "application/x-ableton-live": [".als"],
     },
     multiple: false,
   });
@@ -408,41 +403,40 @@ export default function Index() {
       )}
 
       {/* Display Ableton Preset Files */}
-      {abletonPresetFiles && abletonPresetFiles.length > 0 && (
+      {abletonDevicePresets && abletonDevicePresets.length > 0 && (
         <Card className="mb-8">
           <CardHeader>
             <CardTitle>Ableton Preset Files</CardTitle>
           </CardHeader>
           <CardContent>
             <div>
-              {abletonPresetFiles.map((presetFile, index) => (
-                <div key={index} className="border-b py-2 last:border-0">
-                  <p>
-                    <strong>{t("fileInfo.fileName")}:</strong>{" "}
-                    {presetFile.filename}
-                  </p>
-                  <p>
-                    <strong>{t("fileInfo.detectedType")}:</strong>{" "}
-                    {presetFile.format}{" "}
-                  </p>
-                  <p>
-                    <strong>{t("fileInfo.detectedFormat")}:</strong>{" "}
-                    {presetFile.pluginName}
-                  </p>
+              {abletonDevicePresets.map((presetFile, index) => {
+                const { sourceData: unwrappedSourceData, sourceFormatId } =
+                  unwrapAbletonDevicePreset(presetFile);
 
-                  {/* Render TargetConversion for each preset file */}
-                  {/* Note: TargetConversion expects a 'sourceData' which is a Preset type.
-                       AbletonPresetFile might need conversion or adaptation.
-                       For now, passing the AbletonPresetFile object.
-                       The TargetConversion component might need updates to handle this.
-                  */}
-                  <TargetConversion
-                    sourceData={presetFile}
-                    originalFileName={presetFile?.filename || null}
-                    sourceFormatId={presetFile.pluginName || "unknown"}
-                  />
-                </div>
-              ))}
+                return (
+                  <div key={index} className="border-b py-2 last:border-0">
+                    <p>
+                      <strong>{t("fileInfo.fileName")}:</strong>{" "}
+                      {presetFile.filename}
+                    </p>
+                    <p>
+                      <strong>{t("fileInfo.detectedType")}:</strong>{" "}
+                      {presetFile.format}{" "}
+                    </p>
+                    <p>
+                      <strong>{t("fileInfo.detectedFormat")}:</strong>{" "}
+                      {sourceFormatId}
+                    </p>
+
+                    <TargetConversion
+                      sourceData={unwrappedSourceData}
+                      originalFileName={presetFile?.filename || null}
+                      sourceFormatId={sourceFormatId}
+                    />
+                  </div>
+                );
+              })}
             </div>
           </CardContent>
         </Card>

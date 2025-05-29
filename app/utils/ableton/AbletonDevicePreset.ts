@@ -1,23 +1,30 @@
-type PresetFormat = "text" | "xml" | "fxp" | "vstpreset" | "unknown";
+import { AbletonPlugin } from "./AbletonPlugin";
 
-export class AbletonPresetFile {
+export type PresetFormat = "xml" | "fxp" | "vstpreset" | "plugin" | "unknown";
+
+export class AbletonDevicePreset {
   readonly filename: string; // Suggested filename without extension
   readonly format: PresetFormat; // Format of the preset
-  readonly content: Uint8Array | string; // Raw content
+  readonly content: Uint8Array | string | AbletonPlugin; // Raw content or plugin instance
+  readonly originalXML?: string; // Optional: Original XML
   readonly pluginName?: string; // Optional: name of the plugin that created this preset
 
   constructor(options: {
     filename: string;
     format: PresetFormat;
-    content: Uint8Array | string;
+    content: Uint8Array | string | AbletonPlugin;
+    originalXML?: string;
     pluginName?: string;
   }) {
-    const { filename, format, content, pluginName } = options;
+    const { filename, format, content, originalXML, pluginName } = options;
 
     if (
-      (AbletonPresetFile.isBinaryFormat(format) &&
+      (AbletonDevicePreset.isBinaryFormat(format) &&
         !(content instanceof Uint8Array)) ||
-      (AbletonPresetFile.isStringFormat(format) && typeof content !== "string")
+      (AbletonDevicePreset.isStringFormat(format) &&
+        typeof content !== "string") ||
+      (AbletonDevicePreset.isPluginFormat(format) &&
+        !(content instanceof AbletonPlugin)) // Added check for 'plugin' format using helper
     ) {
       throw new Error(`Content type mismatch for format '${format}'`);
     }
@@ -25,6 +32,7 @@ export class AbletonPresetFile {
     this.filename = filename;
     this.format = format;
     this.content = content;
+    this.originalXML = originalXML;
     this.pluginName = pluginName;
   }
 
@@ -33,7 +41,11 @@ export class AbletonPresetFile {
   }
 
   static isStringFormat(format: PresetFormat): boolean {
-    return format === "text" || format === "xml";
+    return format === "xml";
+  }
+
+  static isPluginFormat(format: PresetFormat): boolean {
+    return format === "plugin";
   }
 
   getBinaryContent(): Uint8Array {
@@ -46,50 +58,33 @@ export class AbletonPresetFile {
     throw new Error(`Preset content is not string (format: ${this.format})`);
   }
 
+  getPluginContent(): AbletonPlugin {
+    if (this.content instanceof AbletonPlugin) return this.content;
+    throw new Error(
+      `Preset content is not an AbletonPlugin instance (format: ${this.format})`
+    );
+  }
+
+  getOriginalXmlContent(): string | undefined {
+    if (this.originalXML) return this.originalXML;
+  }
+
   getSuggestedExtension(): string {
     switch (this.format) {
       case "fxp":
         return "fxp";
       case "xml":
         return "xml";
-      case "text":
-        return "txt";
       case "vstpreset":
         return "vstpreset";
       case "unknown":
         return "dat";
+      case "plugin":
+        return "adv"; // ableton device preset
     }
   }
 
   getFullFilename(): string {
     return `${this.filename}.${this.getSuggestedExtension()}`;
-  }
-
-  toJSON(): Record<string, any> {
-    return {
-      filename: this.filename,
-      format: this.format,
-      content:
-        this.content instanceof Uint8Array
-          ? Array.from(this.content)
-          : this.content,
-      pluginName: this.pluginName,
-    };
-  }
-
-  static fromJSON(data: {
-    filename: string;
-    format: PresetFormat;
-    content: number[] | string;
-    pluginName?: string;
-  }): AbletonPresetFile {
-    return new AbletonPresetFile({
-      filename: data.filename,
-      format: data.format,
-      content: AbletonPresetFile.isBinaryFormat(data.format)
-        ? new Uint8Array(data.content as number[])
-        : (data.content as string),
-      pluginName: data.pluginName,
-    });
   }
 }

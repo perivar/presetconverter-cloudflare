@@ -2,7 +2,7 @@ import { AbletonPlugin } from "./AbletonPlugin";
 import { Log } from "./Log"; // Assuming Log is needed
 import { getParam } from "./XMLUtils";
 
-export class AbletonCompressor implements AbletonPlugin {
+export class AbletonCompressor extends AbletonPlugin {
   public static readonly MaxFloatMinusEpsilon: number = 340282326356119260000000000000000000000; // Use number for float
 
   public Threshold: number;
@@ -20,6 +20,8 @@ export class AbletonCompressor implements AbletonPlugin {
   public LookAhead: number;
 
   constructor(xElement: any) {
+    super();
+
     this.Threshold = getParam(xElement, "Threshold", "float", "0");
     this.Ratio = getParam(xElement, "Ratio", "float", "0");
     if (this.Ratio === AbletonCompressor.MaxFloatMinusEpsilon) {

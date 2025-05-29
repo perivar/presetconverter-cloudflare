@@ -7,7 +7,7 @@ export enum LimiterLookaheadMS {
   Lookahead6ms = 2,
 }
 
-export class AbletonLimiter implements AbletonPlugin {
+export class AbletonLimiter extends AbletonPlugin {
   public Gain: number;
   public Ceiling: number;
   public Release: number;
@@ -16,6 +16,8 @@ export class AbletonLimiter implements AbletonPlugin {
   public Lookahead: LimiterLookaheadMS;
 
   constructor(xElement: any) {
+    super();
+
     this.Gain = getParam(xElement, "Gain", "float", "0");
     this.Ceiling = getParam(xElement, "Ceiling", "float", "0");
     this.Release = getParam(xElement, "Release", "float", "300");

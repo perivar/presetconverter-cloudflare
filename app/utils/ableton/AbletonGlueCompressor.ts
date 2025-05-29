@@ -27,7 +27,7 @@ export enum GlueCompressorRatioType {
   Ratio_10_1,
 }
 
-export class AbletonGlueCompressor implements AbletonPlugin {
+export class AbletonGlueCompressor extends AbletonPlugin {
   public Threshold: number;
   public Range: number;
   public Makeup: number;
@@ -38,6 +38,8 @@ export class AbletonGlueCompressor implements AbletonPlugin {
   public PeakClipIn: boolean;
 
   constructor(xElement: any) {
+    super();
+
     this.Threshold = getParam(xElement, "Threshold", "float", "0");
     this.Range = getParam(xElement, "Range", "float", "0");
     this.Makeup = getParam(xElement, "Makeup", "float", "0");

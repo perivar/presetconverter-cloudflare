@@ -49,12 +49,13 @@ export class AbletonEq8Band {
   }
 }
 
-export class AbletonEq8 implements AbletonPlugin {
+export class AbletonEq8 extends AbletonPlugin {
   Mode: AbletonEq8ChannelMode = AbletonEq8ChannelMode.Stereo;
   Bands: AbletonEq8Band[] = [];
 
   constructor(xElement: any) {
-    // Allow any for flexibility
+    super();
+
     // Parse Channel Mode from <Mode Value="...">
     this.Mode =
       (parseInt(

@@ -3,6 +3,8 @@ import { AbletonToSteinbergFrequency } from "../converters/AbletonToSteinbergFre
 import { FabFilterToGenericEQ } from "../converters/FabFilterToGenericEQ";
 import { FabFilterToSteinbergFrequency } from "../converters/FabFilterToSteinbergFrequency";
 import { GenericEQToSteinbergFrequency } from "../converters/GenericEQToSteinbergFrequency";
+import { GenericFXPConverter } from "../converters/GenericFXPConverter"; // Import GenericFXPConverter
+import { GenericXMLConverter } from "../converters/GenericXMLConverter";
 import { REWToFabFilterProQ } from "../converters/REWToFabFilterProQ";
 import { REWToFabFilterProQ2 } from "../converters/REWToFabFilterProQ2";
 import { REWToFabFilterProQ3 } from "../converters/REWToFabFilterProQ3";
@@ -28,4 +30,6 @@ export const allConverters: ConverterRegistration[] = [
   { fromTypes: ["REWText"], converter: REWToFabFilterProQ },
   { fromTypes: ["REWText"], converter: REWToFabFilterProQ2 },
   { fromTypes: ["REWText"], converter: REWToFabFilterProQ3 },
+  { fromTypes: ["GenericFXP"], converter: GenericFXPConverter },
+  { fromTypes: ["GenericXML"], converter: GenericXMLConverter },
 ];

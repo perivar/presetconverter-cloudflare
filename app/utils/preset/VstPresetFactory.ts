@@ -1,8 +1,6 @@
 import { FabFilterProQ } from "./FabFilterProQ";
 import { FabFilterProQ2 } from "./FabFilterProQ2";
 import { FabFilterProQ3 } from "./FabFilterProQ3";
-import { FabFilterProQBase } from "./FabFilterProQBase";
-import { FXP } from "./FXP";
 import { SteinbergFrequency } from "./SteinbergFrequency";
 import { SteinbergVstPreset } from "./SteinbergVstPreset";
 import { VstClassIDs } from "./VstClassIDs";
@@ -78,61 +76,6 @@ export class VstPresetFactory {
         }. Error: ${error}`
       );
       return null;
-    }
-  }
-
-  /**
-   * Reads an FXP file, determines the FabFilter Pro-Q version,
-   * initializes the corresponding class, and returns it.
-   * @param presetBytes - The Uint8Array content of the FXP file.
-   * @returns An initialized FabFilterProQBase instance or null if parsing fails or version is unknown.
-   */
-  static getFabFilterProQPresetFromFXP(presetBytes: Uint8Array): {
-    preset: FabFilterProQBase | null;
-    source: string | null;
-  } {
-    try {
-      const fxp = new FXP(presetBytes);
-      let proQInstance: FabFilterProQBase | null = null;
-      let source: string | null = null;
-
-      // Instantiate correct class based on FxID
-      switch (fxp.content?.FxID) {
-        case "FPQr":
-          source = "FabFilterProQ";
-          proQInstance = new FabFilterProQ();
-          break;
-        case "FQ2p":
-          source = "FabFilterProQ2";
-          proQInstance = new FabFilterProQ2();
-          break;
-        case "FQ3p":
-          source = "FabFilterProQ3";
-          proQInstance = new FabFilterProQ3();
-          break;
-        default:
-          console.error(
-            `Unknown or missing FabFilter FxID: ${fxp.content?.FxID}`
-          );
-          return { preset: null, source: null }; // Unknown or missing FxID
-      }
-
-      // Check if fxp.content exists before accessing parameters
-      if (!fxp.content) {
-        console.error("Failed to parse FXP content.");
-        return { preset: null, source: null };
-      }
-
-      // Add the fxp object to the proQInstance object
-      proQInstance.FXP = fxp;
-
-      // Initialize from FXP parameters. The concrete implementations will use the attached FXP object.
-      proQInstance.initFromParameters();
-
-      return { preset: proQInstance, source: source };
-    } catch (error) {
-      console.error("Error reading or processing FXP file:", error);
-      return { preset: null, source: null }; // Error during FXP parsing or processing
     }
   }
 }

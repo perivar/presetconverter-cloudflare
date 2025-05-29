@@ -31,7 +31,7 @@ export class AbletonEq3Band {
   }
 }
 
-export class AbletonEq3 implements AbletonPlugin {
+export class AbletonEq3 extends AbletonPlugin {
   Bands: AbletonEq3Band[] = [];
 
   // --- Static Conversion Methods (Unchanged) ---
@@ -46,7 +46,8 @@ export class AbletonEq3 implements AbletonPlugin {
   // --- End Static Conversion Methods ---
 
   constructor(xElement: any) {
-    // Allow any for flexibility with parser output
+    super();
+
     // Directly parse bands using the simplified method
     const bandLow = this.parseBand(
       xElement,

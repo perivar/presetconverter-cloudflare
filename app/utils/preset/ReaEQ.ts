@@ -1,5 +1,6 @@
 import { BinaryFile, ByteOrder } from "../binary/BinaryFile";
 import { FXP, FxProgramSet } from "./FXP";
+import { Preset } from "./Preset";
 import { REWEQFilters, REWEQFilterType } from "./REWEQ";
 
 export enum ReaEQFilterType {
@@ -45,8 +46,13 @@ export class ReaEQBand {
 /**
  * Function for converting a REW filter set to a ReaEQ preset.
  */
-export class ReaEQ {
+export class ReaEQ implements Preset {
   Bands: ReaEQBand[] = [];
+
+  public write(): Uint8Array | undefined {
+    const fxp = this.Convert2FXP();
+    return fxp.writeFile();
+  }
 
   public Convert2FXP(): FXP {
     const fxp = new FXP();
@@ -92,7 +98,7 @@ export class ReaEQ {
     return fxp;
   }
 
-  public ReadFXP(data: Uint8Array): boolean {
+  public read(data: Uint8Array): boolean {
     try {
       const fxp = new FXP(data);
       if (!fxp.content || !(fxp.content instanceof FxProgramSet)) {

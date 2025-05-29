@@ -43,7 +43,7 @@ export enum AutoPanLFOBeatRate {
   Rate_8 = 21,
 }
 
-export class AbletonAutoPan implements AbletonPlugin {
+export class AbletonAutoPan extends AbletonPlugin {
   public Type: AutoPanLfoWaveformType;
   public Frequency: number; // Hertz, Not used if TempoSync is TempoSync
   public RateType: AutoPanLFORateType;
@@ -61,6 +61,8 @@ export class AbletonAutoPan implements AbletonPlugin {
   public LfoShape: number; // 0,00 - 1,00 = 0 - 100%
 
   constructor(xElement: any) {
+    super();
+
     this.Type = getParam(
       xElement?.Lfo,
       "Type",

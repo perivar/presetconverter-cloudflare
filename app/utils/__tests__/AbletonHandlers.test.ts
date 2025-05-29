@@ -3,8 +3,8 @@ import * as path from "path";
 import * as midiFile from "midi-file";
 
 import { puppeteerPlotlyToSVG } from "../../../jest.setup";
+import { AbletonDevicePreset } from "../ableton/AbletonDevicePreset";
 import { AbletonHandlers } from "../ableton/AbletonHandlers";
-import { AbletonPresetFile } from "../ableton/AbletonPresetFile";
 import { convertAutomationToMidi } from "../ableton/Midi";
 import { toPlainObject } from "./helpers/testUtils";
 
@@ -60,14 +60,23 @@ describe("AbletonHandlers", () => {
         const format = presetFile.format;
         const tempFilePath = path.join(targetDir, `${filename}.${extension}`);
 
-        if (AbletonPresetFile.isBinaryFormat(format)) {
+        const originalXmlContent = presetFile.getOriginalXmlContent();
+        if (originalXmlContent) {
+          const tempOriginalXmlFilePath = path.join(
+            targetDir,
+            `${filename}.xml`
+          );
+          fs.writeFileSync(tempOriginalXmlFilePath, originalXmlContent);
+        }
+
+        if (AbletonDevicePreset.isBinaryFormat(format)) {
           fs.writeFileSync(tempFilePath, presetFile.getBinaryContent());
-        } else if (AbletonPresetFile.isStringFormat(format)) {
+        } else if (AbletonDevicePreset.isStringFormat(format)) {
           fs.writeFileSync(tempFilePath, presetFile.getStringContent());
-        } else {
+        } else if (AbletonDevicePreset.isPluginFormat(format)) {
           fs.writeFileSync(
             tempFilePath,
-            JSON.stringify(presetFile.toJSON(), null, 2)
+            JSON.stringify(presetFile.getPluginContent(), null, 2)
           );
         }
       });
