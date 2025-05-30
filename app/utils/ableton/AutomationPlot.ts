@@ -31,9 +31,10 @@ export function plotAutomationEvents(
   /* ── layout ───────────────────────────────────────────────── */
   const layout = {
     title,
-    xaxis: { range: [0, Math.max(...xs)] },
+    // Ensure consistent x-axis range and tick width across multiple graphs
+    xaxis: { range: [0, 120000], dtick: 10000 },
     yaxis: { range: [0, 127] },
-    width: Math.max(xs.length * 30, 3840), // disable guessing width, using autosize instead
+    width: Math.max(xs.length * 30, 3840),
     height: 480,
     autosize: false,
   } as Partial<Layout>;
