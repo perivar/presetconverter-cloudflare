@@ -157,7 +157,7 @@ const ABLETON_TICK_MULTIPLIER = TICKS_PER_BEAT / (4 * 4); // = 30; Ticks per Abl
  * Uses the 'midi-file' library format.
  * @returns A MidiData object or null.
  */
-export function convertToMidi(cvpj: any, fileName: string): MidiData | null {
+export function convertToMidi(cvpj: any, fileName?: string): MidiData | null {
   Log.Information(`Starting MIDI conversion for notes: ${fileName}`);
 
   if (!cvpj?.parameters?.bpm?.value) {
@@ -192,17 +192,32 @@ export function convertToMidi(cvpj: any, fileName: string): MidiData | null {
       denominator: 4,
       metronome: 24,
       thirtyseconds: 8,
-    },
+    } as MidiTimeSignatureEvent,
     {
       deltaTime: 0,
       meta: true,
       type: "setTempo",
       microsecondsPerBeat: microsecondsPerBeat,
-    },
-    // Sequence/Track Name for the file itself? Optional.
-    // { deltaTime: 0, meta: true, type:  "trackName", text: fileName },
-    { deltaTime: 0, meta: true, type: "endOfTrack" },
+    } as MidiSetTempoEvent,
   ];
+
+  // Sequence/Track Name for the file itself? Optional.
+  if (fileName) {
+    metaTrack.push({
+      deltaTime: 0,
+      meta: true,
+      type: "trackName",
+      text: fileName,
+    } as MidiTrackNameEvent);
+  }
+
+  // Always add End of Track meta event
+  metaTrack.push({
+    deltaTime: 0,
+    meta: true,
+    type: "endOfTrack",
+  } as MidiEndOfTrackEvent);
+
   tracks.push(metaTrack);
 
   const midiChannelManager = new MidiChannelManager();

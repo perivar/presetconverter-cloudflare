@@ -46,13 +46,13 @@ export class FXPPresetFactory {
           break;
         // Add cases for other FXP-supported classes here
         default:
-          console.error(`Unknown or missing FxID: ${fxp.content?.FxID}`);
+          console.warn(`Unknown or missing FxID: ${fxp.content?.FxID}`);
           return { preset: null, source: null }; // Unknown or missing FxID
       }
 
       // Check if fxp.content exists before accessing parameters
       if (!fxp.content) {
-        console.error("Failed to parse FXP content.");
+        console.warn("Failed to parse FXP content.");
         return { preset: null, source: null };
       }
 
