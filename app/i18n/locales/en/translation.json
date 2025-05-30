@@ -34,9 +34,9 @@
   "dropzone": {
     "dropHere": "Drop the file here",
     "loading": "Loading...",
-    "prompt": "Drag and drop a preset file here, or click to select",
+    "prompt": "Drag and drop a daw project file or a preset file here, or click to select",
     "supportedFormats": "Supported formats: .ffp, .fxp, .vstpreset, .als",
-    "title": "Upload Preset"
+    "title": "Upload DAW project or preset"
   },
   "error": {
     "conversionError": "Error during conversion: {{message}}",
