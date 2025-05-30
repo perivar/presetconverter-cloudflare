@@ -28,7 +28,7 @@ export class AbletonHandlers {
         fileData[1] === 0x8b
       ) {
         Log.Debug("Detected gzip compression. Decompressing...");
-        decompressedBytes = await IOUtils.Decompress(fileData); // Added await
+        decompressedBytes = await IOUtils.Decompress(fileData);
       } else {
         Log.Debug("No gzip compression detected.");
       }

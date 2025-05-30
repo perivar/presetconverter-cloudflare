@@ -121,10 +121,12 @@ describe("convertToMidi", () => {
 
     // Check meta track
     const metaTrack = midiData?.tracks[0];
-    expect(metaTrack?.length).toBe(3); // Time Signature, Set Tempo, End Of Track
+    expect(metaTrack?.length).toBe(4); // Time Signature, Set Tempo, TrackNameEvent, End Of Track
     expect(metaTrack?.[0].type).toBe("timeSignature");
     expect(metaTrack?.[1].type).toBe("setTempo");
     expect((metaTrack?.[1] as any).microsecondsPerBeat).toBe(500000); // 60,000,000 / 120
+    expect(metaTrack?.[2].type).toBe("trackName");
+    expect((metaTrack?.[2] as any).text).toBe("test_notes");
 
     // Check track 1 (Piano)
     const track1 = midiData?.tracks[1];

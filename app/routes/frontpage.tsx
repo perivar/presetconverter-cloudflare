@@ -247,7 +247,6 @@ export default function Index() {
           } else if (ext === "als") {
             try {
               const result = await AbletonHandlers.HandleAbletonLiveProject(
-                // Added await
                 data,
                 file.name,
                 false, // doList
