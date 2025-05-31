@@ -45,10 +45,14 @@ export function expectUint8ArraysToBeEqual(
   expected: Uint8Array,
   context = 16
 ): void {
+  const ANSI_GREEN = "\x1b[32m";
+  const ANSI_RED = "\x1b[31m";
+  const ANSI_RESET = "\x1b[0m";
+
   try {
     expect(received).toEqual(expected);
-  } catch (error) {
-    // Find the first differing index
+  } catch (originalError: any) {
+    // --- Find first differing index ---
     let diffIndex = -1;
     const len = Math.min(expected.length, received.length);
     for (let i = 0; i < len; i++) {
@@ -57,38 +61,49 @@ export function expectUint8ArraysToBeEqual(
         break;
       }
     }
-    // If no difference found yet, but lengths differ, the difference is at the end
     if (diffIndex === -1 && expected.length !== received.length) {
       diffIndex = len;
     }
 
-    if (diffIndex !== -1) {
-      const start = Math.max(0, diffIndex - context);
-      const endExpected = Math.min(expected.length, diffIndex + context);
-      const endReceived = Math.min(received.length, diffIndex + context);
+    const start = Math.max(0, diffIndex - context);
+    const endExpected = Math.min(expected.length, diffIndex + context);
+    const endReceived = Math.min(received.length, diffIndex + context);
 
-      const sliceExpected = expected.slice(start, endExpected);
-      const sliceReceived = received.slice(start, endReceived);
+    const sliceExpected = expected.slice(start, endExpected);
+    const sliceReceived = received.slice(start, endReceived);
 
-      const formattedExpected = toHexAndAsciiString(
-        sliceExpected,
-        false,
-        diffIndex - start
-      );
-      const formattedReceived = toHexAndAsciiString(
-        sliceReceived,
-        false,
-        diffIndex - start
-      );
+    const formattedExpected = toHexAndAsciiString(
+      sliceExpected,
+      false,
+      diffIndex - start
+    );
+    const formattedReceived = toHexAndAsciiString(
+      sliceReceived,
+      false,
+      diffIndex - start
+    );
 
-      // Log the hex and ASCII diff to stderr for better visibility in test runners
-      console.error(
-        `\nDiff around index ${diffIndex} (offset ${start}):\n` +
-          `Expected:\n${formattedExpected}\n` +
-          `Received:\n${formattedReceived}\n`
-      );
+    // --- Extract Jest error prefix ---
+    const fullMessage = String(originalError.message || "");
+    const lines = fullMessage.split("\n");
+
+    // Include lines up to and including the line that starts with "+ Received"
+    const errorPrefixLines: string[] = [];
+    for (const line of lines) {
+      errorPrefixLines.push(line);
+      if (line.trim().startsWith(`${ANSI_RED}+ Received`)) break;
     }
-    // Re-throw the original Jest error to ensure the test fails correctly
-    throw error;
+    const errorPrefix = errorPrefixLines.join("\n");
+
+    // --- Compose enhanced diff message ---
+    const diffMessage =
+      `${errorPrefix}\n` +
+      `\n${ANSI_GREEN}Expected (hex+ascii):${ANSI_RESET}\n${ANSI_GREEN}${formattedExpected}${ANSI_RESET}\n` +
+      `${ANSI_RED}Received (hex+ascii):${ANSI_RESET}\n${ANSI_RED}${formattedReceived}${ANSI_RESET}\n`;
+
+    // console.error(diffMessage); // colored output in terminal
+
+    // Throw new error with merged Jest + custom diff
+    throw new Error(diffMessage);
   }
 }

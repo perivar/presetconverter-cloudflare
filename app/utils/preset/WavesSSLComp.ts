@@ -332,7 +332,9 @@ export class WavesSSLComp extends WavesPreset {
     writer.writeString("XPst");
     writer.writeBytes(xmlContentBytes);
 
-    writer.writeString("Ref\0"); // C# writes "Ref\0" as 4 bytes
+    // TODO: is this different for a vstpreset and a xps preset?
+    // writer.writeString("Ref\0"); // The c# version writes these 4 bytes
+    writer.writeBytes(new Uint8Array([0xa0, 0x84, 0x00, 0x00]));
 
     writer.writeBytes(xmlPostContentBytes);
 

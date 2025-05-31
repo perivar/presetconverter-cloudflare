@@ -1002,12 +1002,12 @@ export abstract class VstPreset implements Preset {
         // rewind 4 bytes (seek to comp data start pos)
         reader.seek(reader.getPosition() - 4);
 
+        const unknown1 = BinaryFile.readUInt32(reader, ByteOrder.BigEndian);
         const unknown2 = BinaryFile.readUInt32(reader, ByteOrder.BigEndian);
         const unknown3 = BinaryFile.readUInt32(reader, ByteOrder.BigEndian);
-        const unknown4 = BinaryFile.readUInt32(reader, ByteOrder.BigEndian);
 
         console.debug(
-          `Unknown vars within the Waves Preset: ${unknown2}, ${unknown3}, ${unknown4}`
+          `Unknown vars within Waves Preset: ${unknown1}, ${unknown2}, ${unknown3}`
         );
 
         const presetType = reader.readString(4);
@@ -1065,7 +1065,7 @@ export abstract class VstPreset implements Preset {
         }
 
         // TODO: This does not seem to work for Cubase 13 ?
-        // const unknown2 = BinaryFile.readUInt32(reader, ByteOrder.LittleEndian);
+        // const unknown = BinaryFile.readUInt32(reader, ByteOrder.LittleEndian);
 
         // while (reader.getPosition() !== this.CompDataEndPosition)
         // {
