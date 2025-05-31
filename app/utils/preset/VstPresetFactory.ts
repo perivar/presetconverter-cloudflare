@@ -1,10 +1,15 @@
 import { FabFilterProQ } from "./FabFilterProQ";
 import { FabFilterProQ2 } from "./FabFilterProQ2";
 import { FabFilterProQ3 } from "./FabFilterProQ3";
+import { SSLNativeChannel } from "./SSLNativeChannel";
+import { SteinbergCompressor } from "./SteinbergCompressor";
 import { SteinbergFrequency } from "./SteinbergFrequency";
 import { SteinbergVstPreset } from "./SteinbergVstPreset";
 import { VstClassIDs } from "./VstClassIDs";
 import { VstPreset } from "./VstPreset";
+import { WavesPreset } from "./WavesPreset";
+import { WavesSSLChannel } from "./WavesSSLChannel";
+import { WavesSSLComp } from "./WavesSSLComp";
 
 /**
  * A helper class to get a VstPreset object
@@ -50,6 +55,12 @@ export class VstPresetFactory {
         case VstClassIDs.SteinbergFrequency:
           preset = new SteinbergFrequency();
           break;
+        case VstClassIDs.SSLNativeChannel2:
+          preset = new SSLNativeChannel();
+          break;
+        case VstClassIDs.SteinbergCompressor:
+          preset = new SteinbergCompressor();
+          break;
         default:
           preset = new SteinbergVstPreset();
           break;
@@ -57,6 +68,48 @@ export class VstPresetFactory {
 
       preset.Vst3ClassID = vst3ClassID;
       preset.read(presetBytes);
+
+      // Handle Waves presets after initial read
+      if (
+        preset.Vst3ClassID === VstClassIDs.WavesSSLChannelStereo ||
+        preset.Vst3ClassID === VstClassIDs.WavesSSLCompStereo
+      ) {
+        const xmlContent = preset.Parameters.get("XmlContent")?.Value as
+          | string
+          | undefined;
+        if (xmlContent) {
+          let wavesPreset: WavesSSLChannel | WavesSSLComp | undefined;
+          if (preset.Vst3ClassID === VstClassIDs.WavesSSLChannelStereo) {
+            const channelPresetList = WavesPreset.parseXml<WavesSSLChannel>(
+              xmlContent,
+              WavesSSLChannel
+            );
+            wavesPreset =
+              channelPresetList.length > 0 ? channelPresetList[0] : undefined;
+          } else if (preset.Vst3ClassID === VstClassIDs.WavesSSLCompStereo) {
+            const compPresetList = WavesPreset.parseXml<WavesSSLComp>(
+              xmlContent,
+              WavesSSLComp
+            );
+            wavesPreset =
+              compPresetList.length > 0 ? compPresetList[0] : undefined;
+          }
+
+          if (wavesPreset) {
+            // Copy common properties from the initially created preset
+            wavesPreset.Vst3ClassID = preset.Vst3ClassID;
+            wavesPreset.CompDataStartPos = preset.CompDataStartPos;
+            wavesPreset.CompDataChunkSize = preset.CompDataChunkSize;
+            wavesPreset.ContDataStartPos = preset.ContDataStartPos;
+            wavesPreset.ContDataChunkSize = preset.ContDataChunkSize;
+            wavesPreset.InfoXmlStartPos = preset.InfoXmlStartPos;
+            wavesPreset.Parameters = preset.Parameters; // Keep the parameters map
+            wavesPreset.FXP = preset.FXP; // Keep FXP if it exists
+
+            preset = wavesPreset; // Reassign preset to the Waves-specific instance
+          }
+        }
+      }
 
       // Set position/size properties
       preset.CompDataStartPos = 0;

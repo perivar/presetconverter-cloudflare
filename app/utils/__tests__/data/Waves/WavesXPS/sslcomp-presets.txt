@@ -1,0 +1,247 @@
+PresetName: Full reset
+
+Compression:
+	Threshold: 0 dB
+	Make-up Gain: 0 dB
+	Attack: 0 ms
+	Release: 0 s
+	Ratio: Ratio_2_1
+	Rate-S (Autofade duration): 0 s
+	In: False
+	Analog: False
+	Fade: Off
+
+
+
+-------------------------------------------------------
+PresetName: PA Default
+
+Compression:
+	Threshold: 6 dB
+	Make-up Gain: 0 dB
+	Attack: 1 ms
+	Release: 1,2 s
+	Ratio: Ratio_4_1
+	Rate-S (Autofade duration): 1 s
+	In: True
+	Analog: False
+	Fade: Off
+
+
+
+-------------------------------------------------------
+PresetName: Parameters reset
+
+Compression:
+	Threshold: 15 dB
+	Make-up Gain: 0 dB
+	Attack: 1 ms
+	Release: 0,6 s
+	Ratio: Ratio_2_1
+	Rate-S (Autofade duration): 1 s
+	In: True
+	Analog: True
+	Fade: Off
+
+
+
+-------------------------------------------------------
+PresetName: Pumping
+
+Compression:
+	Threshold: -12 dB
+	Make-up Gain: 10,6 dB
+	Attack: 30 ms
+	Release: 0,1 s
+	Ratio: Ratio_10_1
+	Rate-S (Autofade duration): 1 s
+	In: True
+	Analog: True
+	Fade: Off
+
+
+
+-------------------------------------------------------
+PresetName: Mastering
+
+Compression:
+	Threshold: 8 dB
+	Make-up Gain: 3 dB
+	Attack: 3 ms
+	Release: Auto
+	Ratio: Ratio_4_1
+	Rate-S (Autofade duration): 1 s
+	In: True
+	Analog: True
+	Fade: Off
+
+
+
+-------------------------------------------------------
+PresetName: OH Amb
+
+Compression:
+	Threshold: -2 dB
+	Make-up Gain: 9 dB
+	Attack: 0,1 ms
+	Release: 0,3 s
+	Ratio: Ratio_4_1
+	Rate-S (Autofade duration): 1 s
+	In: True
+	Analog: True
+	Fade: Off
+
+
+
+-------------------------------------------------------
+PresetName: Punch
+
+Compression:
+	Threshold: -8,8 dB
+	Make-up Gain: 3 dB
+	Attack: 30 ms
+	Release: 0,1 s
+	Ratio: Ratio_2_1
+	Rate-S (Autofade duration): 1 s
+	In: True
+	Analog: True
+	Fade: Off
+
+
+
+-------------------------------------------------------
+PresetName: CLA ST finalizer
+Group: Chris Lord Alge
+
+Compression:
+	Threshold: 6 dB
+	Make-up Gain: 0 dB
+	Attack: 10 ms
+	Release: Auto
+	Ratio: Ratio_4_1
+	Rate-S (Autofade duration): 1 s
+	In: True
+	Analog: True
+	Fade: Off
+
+
+
+-------------------------------------------------------
+PresetName: SSL_Center_Classic_Compressor
+Group: Dave Aron
+
+Compression:
+	Threshold: 13,5 dB
+	Make-up Gain: 3 dB
+	Attack: 30 ms
+	Release: 0,1 s
+	Ratio: Ratio_2_1
+	Rate-S (Autofade duration): 1 s
+	In: True
+	Analog: True
+	Fade: Off
+
+
+
+-------------------------------------------------------
+PresetName: Pensado ONE
+Group: Dave Pensado
+
+Compression:
+	Threshold: 13,5 dB
+	Make-up Gain: 1,5 dB
+	Attack: 30 ms
+	Release: 0,1 s
+	Ratio: Ratio_2_1
+	Rate-S (Autofade duration): 1 s
+	In: True
+	Analog: True
+	Fade: Off
+
+
+
+-------------------------------------------------------
+PresetName: Pensado Snare
+Group: Dave Pensado
+
+Compression:
+	Threshold: -8 dB
+	Make-up Gain: 12,6 dB
+	Attack: 30 ms
+	Release: 1,2 s
+	Ratio: Ratio_2_1
+	Rate-S (Autofade duration): 1 s
+	In: True
+	Analog: True
+	Fade: Off
+
+
+
+-------------------------------------------------------
+PresetName: Lillywhite Mix Buss
+Group: Steve Lillywhite
+
+Compression:
+	Threshold: 12,4 dB
+	Make-up Gain: 3 dB
+	Attack: 3 ms
+	Release: 0,1 s
+	Ratio: Ratio_4_1
+	Rate-S (Autofade duration): 1 s
+	In: True
+	Analog: True
+	Fade: Off
+
+
+
+-------------------------------------------------------
+PresetName: Lillywhite Piano
+Group: Steve Lillywhite
+
+Compression:
+	Threshold: 3,9 dB
+	Make-up Gain: 1,6 dB
+	Attack: 0,3 ms
+	Release: 0,3 s
+	Ratio: Ratio_10_1
+	Rate-S (Autofade duration): 1 s
+	In: True
+	Analog: True
+	Fade: Off
+
+
+
+-------------------------------------------------------
+PresetName: Russo Tuff Stereo Buss
+Group: Thom Russo
+
+Compression:
+	Threshold: 10,1 dB
+	Make-up Gain: 0,3 dB
+	Attack: 30 ms
+	Release: 0,6 s
+	Ratio: Ratio_2_1
+	Rate-S (Autofade duration): 1 s
+	In: True
+	Analog: True
+	Fade: Off
+
+
+
+-------------------------------------------------------
+PresetName: Nevo Vocal Chain 4th
+
+Compression:
+	Threshold: 0 dB
+	Make-up Gain: 7 dB
+	Attack: 3 ms
+	Release: 0,6 s
+	Ratio: Ratio_2_1
+	Rate-S (Autofade duration): 1 s
+	In: True
+	Analog: False
+	Fade: Off
+
+
+
+-------------------------------------------------------

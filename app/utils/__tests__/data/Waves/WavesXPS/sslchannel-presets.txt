@@ -1,0 +1,4433 @@
+PresetName: Full Reset
+
+Routing Diagram: DYN -> FLTR -> EQ (default)
+
+Low and High Pass Filters:
+	HP Frequency (18 dB/octave): 0 Hz (16 - 350 Hz)
+	LP Frequency (12 dB/octave): 30 KHz (22 - 3 KHz)
+	Filter Split (Filters before Dynamics): False
+
+Compression:
+	Threshold: 10 dB
+	Ratio: 1
+	Fast Attack: False (Fast=1 ms otherwise Auto-Sense)
+	Release: 0,1 s
+
+Expander/Gate:
+	Threshold: -30 dB
+	Range: 0 dB
+	Gate: False
+	Fast Attack: False (Fast=1 ms otherwise Auto-Sense)
+	Release: 4 s
+
+Dynamics To:
+	Bypass: False
+	Channel Out (Dynamics after EQ): False
+
+EQ Section:
+	LF Type Bell: False
+	LF Gain: 0 dB
+	LF Frequency: 50 Hz
+	LMF Gain: 0 dB
+	LMF Frequency: 0,5 KHz
+	LMF Q: 2,5
+	HMF Gain: 0 dB
+	HMF Frequency: 3,5 KHz
+	HMF Q: 1,5
+	HF Type Bell: False
+	HF Gain: 0 dB
+	HF Frequency: 8 KHz
+	To Bypass: False
+	To Dynamics Side-Chain: False
+
+Master Section:
+	Gain: 0 dB
+	Analog: True
+	VU Show Output: False
+	Phase Reverse: False
+	Input Trim : 0 dB
+
+
+-------------------------------------------------------
+PresetName: PA Default
+
+Routing Diagram: FLTR -> EQ -> DYN
+
+Low and High Pass Filters:
+	HP Frequency (18 dB/octave): 0 Hz (16 - 350 Hz)
+	LP Frequency (12 dB/octave): 30 KHz (22 - 3 KHz)
+	Filter Split (Filters before Dynamics): False
+
+Compression:
+	Threshold: 0 dB
+	Ratio: 2
+	Fast Attack: False (Fast=1 ms otherwise Auto-Sense)
+	Release: 0,4 s
+
+Expander/Gate:
+	Threshold: -30 dB
+	Range: 0 dB
+	Gate: True
+	Fast Attack: False (Fast=1 ms otherwise Auto-Sense)
+	Release: 0,2 s
+
+Dynamics To:
+	Bypass: False
+	Channel Out (Dynamics after EQ): True
+
+EQ Section:
+	LF Type Bell: True
+	LF Gain: 0 dB
+	LF Frequency: 60 Hz
+	LMF Gain: 0 dB
+	LMF Frequency: 0,5 KHz
+	LMF Q: 2,5
+	HMF Gain: 0 dB
+	HMF Frequency: 3,5 KHz
+	HMF Q: 1,5
+	HF Type Bell: False
+	HF Gain: 0 dB
+	HF Frequency: 8 KHz
+	To Bypass: False
+	To Dynamics Side-Chain: False
+
+Master Section:
+	Gain: 0 dB
+	Analog: False
+	VU Show Output: True
+	Phase Reverse: False
+	Input Trim : 0 dB
+
+
+-------------------------------------------------------
+PresetName: Kick Drum
+
+Routing Diagram: DYN -> FLTR -> EQ (default)
+
+Low and High Pass Filters:
+	HP Frequency (18 dB/octave): 0 Hz (16 - 350 Hz)
+	LP Frequency (12 dB/octave): 30 KHz (22 - 3 KHz)
+	Filter Split (Filters before Dynamics): False
+
+Compression:
+	Threshold: -13,6 dB
+	Ratio: 5,4
+	Fast Attack: False (Fast=1 ms otherwise Auto-Sense)
+	Release: 0,22 s
+
+Expander/Gate:
+	Threshold: 4,2 dB
+	Range: 40 dB
+	Gate: False
+	Fast Attack: True (Fast=1 ms otherwise Auto-Sense)
+	Release: 0,87 s
+
+Dynamics To:
+	Bypass: False
+	Channel Out (Dynamics after EQ): False
+
+EQ Section:
+	LF Type Bell: False
+	LF Gain: 5,4 dB
+	LF Frequency: 58 Hz
+	LMF Gain: -4,4 dB
+	LMF Frequency: 0,27 KHz
+	LMF Q: 2,5
+	HMF Gain: 6,9 dB
+	HMF Frequency: 3,7 KHz
+	HMF Q: 1,5
+	HF Type Bell: False
+	HF Gain: 9,3 dB
+	HF Frequency: 5,9 KHz
+	To Bypass: False
+	To Dynamics Side-Chain: False
+
+Master Section:
+	Gain: 0 dB
+	Analog: True
+	VU Show Output: False
+	Phase Reverse: False
+	Input Trim : 0 dB
+
+
+-------------------------------------------------------
+PresetName: Snare Drum
+
+Routing Diagram: DYN -> FLTR -> EQ (default)
+
+Low and High Pass Filters:
+	HP Frequency (18 dB/octave): 0 Hz (16 - 350 Hz)
+	LP Frequency (12 dB/octave): 30 KHz (22 - 3 KHz)
+	Filter Split (Filters before Dynamics): False
+
+Compression:
+	Threshold: -12,9 dB
+	Ratio: 10
+	Fast Attack: False (Fast=1 ms otherwise Auto-Sense)
+	Release: 0,36 s
+
+Expander/Gate:
+	Threshold: 4,5 dB
+	Range: 40 dB
+	Gate: True
+	Fast Attack: True (Fast=1 ms otherwise Auto-Sense)
+	Release: 0,87 s
+
+Dynamics To:
+	Bypass: False
+	Channel Out (Dynamics after EQ): False
+
+EQ Section:
+	LF Type Bell: True
+	LF Gain: 5,8 dB
+	LF Frequency: 163 Hz
+	LMF Gain: 5,9 dB
+	LMF Frequency: 0,97 KHz
+	LMF Q: 1,2
+	HMF Gain: 6 dB
+	HMF Frequency: 4,4 KHz
+	HMF Q: 1,5
+	HF Type Bell: False
+	HF Gain: 8,3 dB
+	HF Frequency: 8,57 KHz
+	To Bypass: False
+	To Dynamics Side-Chain: False
+
+Master Section:
+	Gain: 0 dB
+	Analog: True
+	VU Show Output: False
+	Phase Reverse: False
+	Input Trim : 0 dB
+
+
+-------------------------------------------------------
+PresetName: Hi Hat
+
+Routing Diagram: DYN -> FLTR -> EQ (default)
+
+Low and High Pass Filters:
+	HP Frequency (18 dB/octave): 162 Hz (16 - 350 Hz)
+	LP Frequency (12 dB/octave): 30 KHz (22 - 3 KHz)
+	Filter Split (Filters before Dynamics): False
+
+Compression:
+	Threshold: 1,5 dB
+	Ratio: 10
+	Fast Attack: True (Fast=1 ms otherwise Auto-Sense)
+	Release: 0,36 s
+
+Expander/Gate:
+	Threshold: -30 dB
+	Range: 40 dB
+	Gate: False
+	Fast Attack: True (Fast=1 ms otherwise Auto-Sense)
+	Release: 0,87 s
+
+Dynamics To:
+	Bypass: False
+	Channel Out (Dynamics after EQ): False
+
+EQ Section:
+	LF Type Bell: False
+	LF Gain: 0 dB
+	LF Frequency: 60 Hz
+	LMF Gain: -9 dB
+	LMF Frequency: 0,77 KHz
+	LMF Q: 1,2
+	HMF Gain: -0,2 dB
+	HMF Frequency: 4,4 KHz
+	HMF Q: 1,5
+	HF Type Bell: True
+	HF Gain: 6,8 dB
+	HF Frequency: 10,32 KHz
+	To Bypass: False
+	To Dynamics Side-Chain: False
+
+Master Section:
+	Gain: 0 dB
+	Analog: True
+	VU Show Output: False
+	Phase Reverse: False
+	Input Trim : 0 dB
+
+
+-------------------------------------------------------
+PresetName: Rack Tom
+
+Routing Diagram: DYN -> FLTR -> EQ (default)
+
+Low and High Pass Filters:
+	HP Frequency (18 dB/octave): 162 Hz (16 - 350 Hz)
+	LP Frequency (12 dB/octave): 30 KHz (22 - 3 KHz)
+	Filter Split (Filters before Dynamics): False
+
+Compression:
+	Threshold: 1,5 dB
+	Ratio: 10
+	Fast Attack: False (Fast=1 ms otherwise Auto-Sense)
+	Release: 0,9 s
+
+Expander/Gate:
+	Threshold: 5,5 dB
+	Range: 40 dB
+	Gate: True
+	Fast Attack: True (Fast=1 ms otherwise Auto-Sense)
+	Release: 4 s
+
+Dynamics To:
+	Bypass: False
+	Channel Out (Dynamics after EQ): False
+
+EQ Section:
+	LF Type Bell: True
+	LF Gain: 4,6 dB
+	LF Frequency: 163 Hz
+	LMF Gain: -11,9 dB
+	LMF Frequency: 0,67 KHz
+	LMF Q: 1,7
+	HMF Gain: 5,9 dB
+	HMF Frequency: 4,07 KHz
+	HMF Q: 1,5
+	HF Type Bell: True
+	HF Gain: 1,6 dB
+	HF Frequency: 10,32 KHz
+	To Bypass: False
+	To Dynamics Side-Chain: False
+
+Master Section:
+	Gain: 0 dB
+	Analog: True
+	VU Show Output: False
+	Phase Reverse: False
+	Input Trim : 0 dB
+
+
+-------------------------------------------------------
+PresetName: Floor Tom
+
+Routing Diagram: DYN -> FLTR -> EQ (default)
+
+Low and High Pass Filters:
+	HP Frequency (18 dB/octave): 0 Hz (16 - 350 Hz)
+	LP Frequency (12 dB/octave): 30 KHz (22 - 3 KHz)
+	Filter Split (Filters before Dynamics): False
+
+Compression:
+	Threshold: -3,9 dB
+	Ratio: 10
+	Fast Attack: False (Fast=1 ms otherwise Auto-Sense)
+	Release: 0,9 s
+
+Expander/Gate:
+	Threshold: 5,5 dB
+	Range: 40 dB
+	Gate: True
+	Fast Attack: True (Fast=1 ms otherwise Auto-Sense)
+	Release: 4 s
+
+Dynamics To:
+	Bypass: False
+	Channel Out (Dynamics after EQ): False
+
+EQ Section:
+	LF Type Bell: False
+	LF Gain: 7,8 dB
+	LF Frequency: 122 Hz
+	LMF Gain: -6,6 dB
+	LMF Frequency: 0,93 KHz
+	LMF Q: 1,7
+	HMF Gain: 5,9 dB
+	HMF Frequency: 4,07 KHz
+	HMF Q: 1,5
+	HF Type Bell: True
+	HF Gain: 1,6 dB
+	HF Frequency: 10,32 KHz
+	To Bypass: False
+	To Dynamics Side-Chain: False
+
+Master Section:
+	Gain: 0 dB
+	Analog: True
+	VU Show Output: False
+	Phase Reverse: False
+	Input Trim : 0 dB
+
+
+-------------------------------------------------------
+PresetName: OverHeads
+
+Routing Diagram: FLTR -> EQ -> DYN
+
+Low and High Pass Filters:
+	HP Frequency (18 dB/octave): 309 Hz (16 - 350 Hz)
+	LP Frequency (12 dB/octave): 30 KHz (22 - 3 KHz)
+	Filter Split (Filters before Dynamics): False
+
+Compression:
+	Threshold: -4,3 dB
+	Ratio: 42
+	Fast Attack: True (Fast=1 ms otherwise Auto-Sense)
+	Release: 0,19 s
+
+Expander/Gate:
+	Threshold: -30 dB
+	Range: 0 dB
+	Gate: False
+	Fast Attack: True (Fast=1 ms otherwise Auto-Sense)
+	Release: 0,2 s
+
+Dynamics To:
+	Bypass: False
+	Channel Out (Dynamics after EQ): True
+
+EQ Section:
+	LF Type Bell: True
+	LF Gain: 7,3 dB
+	LF Frequency: 348 Hz
+	LMF Gain: -3,2 dB
+	LMF Frequency: 1,56 KHz
+	LMF Q: 2,5
+	HMF Gain: 3,1 dB
+	HMF Frequency: 5,39 KHz
+	HMF Q: 1,5
+	HF Type Bell: False
+	HF Gain: 7,1 dB
+	HF Frequency: 14,82 KHz
+	To Bypass: False
+	To Dynamics Side-Chain: False
+
+Master Section:
+	Gain: 0 dB
+	Analog: True
+	VU Show Output: True
+	Phase Reverse: False
+	Input Trim : 0 dB
+
+
+-------------------------------------------------------
+PresetName: Room
+
+Routing Diagram: DYN -> FLTR -> EQ (default)
+
+Low and High Pass Filters:
+	HP Frequency (18 dB/octave): 42 Hz (16 - 350 Hz)
+	LP Frequency (12 dB/octave): 30 KHz (22 - 3 KHz)
+	Filter Split (Filters before Dynamics): False
+
+Compression:
+	Threshold: -13,9 dB
+	Ratio: 42
+	Fast Attack: True (Fast=1 ms otherwise Auto-Sense)
+	Release: 0,19 s
+
+Expander/Gate:
+	Threshold: -30 dB
+	Range: 0 dB
+	Gate: False
+	Fast Attack: True (Fast=1 ms otherwise Auto-Sense)
+	Release: 0,2 s
+
+Dynamics To:
+	Bypass: False
+	Channel Out (Dynamics after EQ): False
+
+EQ Section:
+	LF Type Bell: True
+	LF Gain: 7,3 dB
+	LF Frequency: 348 Hz
+	LMF Gain: 8 dB
+	LMF Frequency: 1,83 KHz
+	LMF Q: 0,75
+	HMF Gain: 3,1 dB
+	HMF Frequency: 5,39 KHz
+	HMF Q: 1,5
+	HF Type Bell: False
+	HF Gain: 0 dB
+	HF Frequency: 8 KHz
+	To Bypass: False
+	To Dynamics Side-Chain: False
+
+Master Section:
+	Gain: 0 dB
+	Analog: True
+	VU Show Output: True
+	Phase Reverse: False
+	Input Trim : 0 dB
+
+
+-------------------------------------------------------
+PresetName: Bass
+
+Routing Diagram: DYN -> FLTR -> EQ (default)
+
+Low and High Pass Filters:
+	HP Frequency (18 dB/octave): 0 Hz (16 - 350 Hz)
+	LP Frequency (12 dB/octave): 30 KHz (22 - 3 KHz)
+	Filter Split (Filters before Dynamics): False
+
+Compression:
+	Threshold: 0 dB
+	Ratio: 5,7
+	Fast Attack: True (Fast=1 ms otherwise Auto-Sense)
+	Release: 0,73 s
+
+Expander/Gate:
+	Threshold: 5 dB
+	Range: 0 dB
+	Gate: False
+	Fast Attack: True (Fast=1 ms otherwise Auto-Sense)
+	Release: 0,1 s
+
+Dynamics To:
+	Bypass: False
+	Channel Out (Dynamics after EQ): False
+
+EQ Section:
+	LF Type Bell: True
+	LF Gain: 0 dB
+	LF Frequency: 348 Hz
+	LMF Gain: 0 dB
+	LMF Frequency: 1,83 KHz
+	LMF Q: 2,5
+	HMF Gain: 0 dB
+	HMF Frequency: 5,39 KHz
+	HMF Q: 1,5
+	HF Type Bell: False
+	HF Gain: 0 dB
+	HF Frequency: 8 KHz
+	To Bypass: False
+	To Dynamics Side-Chain: False
+
+Master Section:
+	Gain: 0 dB
+	Analog: True
+	VU Show Output: True
+	Phase Reverse: False
+	Input Trim : 0 dB
+
+
+-------------------------------------------------------
+PresetName: Lead Vox
+
+Routing Diagram: DYN -> FLTR -> EQ (default)
+
+Low and High Pass Filters:
+	HP Frequency (18 dB/octave): 115 Hz (16 - 350 Hz)
+	LP Frequency (12 dB/octave): 30 KHz (22 - 3 KHz)
+	Filter Split (Filters before Dynamics): False
+
+Compression:
+	Threshold: -6,7 dB
+	Ratio: 8
+	Fast Attack: False (Fast=1 ms otherwise Auto-Sense)
+	Release: 0,4 s
+
+Expander/Gate:
+	Threshold: -10,2 dB
+	Range: 40 dB
+	Gate: False
+	Fast Attack: False (Fast=1 ms otherwise Auto-Sense)
+	Release: 4 s
+
+Dynamics To:
+	Bypass: False
+	Channel Out (Dynamics after EQ): False
+
+EQ Section:
+	LF Type Bell: True
+	LF Gain: 2,2 dB
+	LF Frequency: 357 Hz
+	LMF Gain: 5,2 dB
+	LMF Frequency: 1,36 KHz
+	LMF Q: 1,48
+	HMF Gain: 4,3 dB
+	HMF Frequency: 3,87 KHz
+	HMF Q: 1,5
+	HF Type Bell: False
+	HF Gain: 6,5 dB
+	HF Frequency: 12,56 KHz
+	To Bypass: False
+	To Dynamics Side-Chain: False
+
+Master Section:
+	Gain: 0 dB
+	Analog: True
+	VU Show Output: True
+	Phase Reverse: False
+	Input Trim : 0 dB
+
+
+-------------------------------------------------------
+PresetName: Backing Vox
+
+Routing Diagram: DYN -> FLTR -> EQ (default)
+
+Low and High Pass Filters:
+	HP Frequency (18 dB/octave): 115 Hz (16 - 350 Hz)
+	LP Frequency (12 dB/octave): 30 KHz (22 - 3 KHz)
+	Filter Split (Filters before Dynamics): False
+
+Compression:
+	Threshold: -6,7 dB
+	Ratio: 8
+	Fast Attack: True (Fast=1 ms otherwise Auto-Sense)
+	Release: 0,4 s
+
+Expander/Gate:
+	Threshold: -10,2 dB
+	Range: 40 dB
+	Gate: False
+	Fast Attack: False (Fast=1 ms otherwise Auto-Sense)
+	Release: 4 s
+
+Dynamics To:
+	Bypass: False
+	Channel Out (Dynamics after EQ): False
+
+EQ Section:
+	LF Type Bell: False
+	LF Gain: 0 dB
+	LF Frequency: 357 Hz
+	LMF Gain: 2,5 dB
+	LMF Frequency: 0,85 KHz
+	LMF Q: 1,48
+	HMF Gain: -1,4 dB
+	HMF Frequency: 1,46 KHz
+	HMF Q: 1,5
+	HF Type Bell: True
+	HF Gain: 4,4 dB
+	HF Frequency: 13,87 KHz
+	To Bypass: False
+	To Dynamics Side-Chain: False
+
+Master Section:
+	Gain: 0 dB
+	Analog: True
+	VU Show Output: True
+	Phase Reverse: False
+	Input Trim : 0 dB
+
+
+-------------------------------------------------------
+PresetName: Acc Gtr
+
+Routing Diagram: DYN -> FLTR -> EQ (default)
+
+Low and High Pass Filters:
+	HP Frequency (18 dB/octave): 102 Hz (16 - 350 Hz)
+	LP Frequency (12 dB/octave): 30 KHz (22 - 3 KHz)
+	Filter Split (Filters before Dynamics): False
+
+Compression:
+	Threshold: -6,7 dB
+	Ratio: 8
+	Fast Attack: True (Fast=1 ms otherwise Auto-Sense)
+	Release: 0,4 s
+
+Expander/Gate:
+	Threshold: -30 dB
+	Range: 0 dB
+	Gate: False
+	Fast Attack: False (Fast=1 ms otherwise Auto-Sense)
+	Release: 0,2 s
+
+Dynamics To:
+	Bypass: False
+	Channel Out (Dynamics after EQ): False
+
+EQ Section:
+	LF Type Bell: True
+	LF Gain: 0 dB
+	LF Frequency: 112 Hz
+	LMF Gain: -3,3 dB
+	LMF Frequency: 0,24 KHz
+	LMF Q: 2,5
+	HMF Gain: 2,3 dB
+	HMF Frequency: 3,56 KHz
+	HMF Q: 1,5
+	HF Type Bell: False
+	HF Gain: 5,8 dB
+	HF Frequency: 10,19 KHz
+	To Bypass: False
+	To Dynamics Side-Chain: False
+
+Master Section:
+	Gain: 0 dB
+	Analog: True
+	VU Show Output: True
+	Phase Reverse: False
+	Input Trim : 0 dB
+
+
+-------------------------------------------------------
+PresetName: Classical Guitar
+
+Routing Diagram: DYN -> FLTR -> EQ (default)
+
+Low and High Pass Filters:
+	HP Frequency (18 dB/octave): 102 Hz (16 - 350 Hz)
+	LP Frequency (12 dB/octave): 30 KHz (22 - 3 KHz)
+	Filter Split (Filters before Dynamics): False
+
+Compression:
+	Threshold: -5,3 dB
+	Ratio: 3,4
+	Fast Attack: True (Fast=1 ms otherwise Auto-Sense)
+	Release: 0,69 s
+
+Expander/Gate:
+	Threshold: -30 dB
+	Range: 0 dB
+	Gate: False
+	Fast Attack: False (Fast=1 ms otherwise Auto-Sense)
+	Release: 0,2 s
+
+Dynamics To:
+	Bypass: False
+	Channel Out (Dynamics after EQ): False
+
+EQ Section:
+	LF Type Bell: True
+	LF Gain: 0 dB
+	LF Frequency: 112 Hz
+	LMF Gain: -1,2 dB
+	LMF Frequency: 0,24 KHz
+	LMF Q: 2,5
+	HMF Gain: 2,3 dB
+	HMF Frequency: 1,67 KHz
+	HMF Q: 1,5
+	HF Type Bell: False
+	HF Gain: 4,2 dB
+	HF Frequency: 10,19 KHz
+	To Bypass: False
+	To Dynamics Side-Chain: False
+
+Master Section:
+	Gain: 0 dB
+	Analog: True
+	VU Show Output: True
+	Phase Reverse: False
+	Input Trim : 0 dB
+
+
+-------------------------------------------------------
+PresetName: Guitar
+
+Routing Diagram: FLTR -> EQ -> DYN
+
+Low and High Pass Filters:
+	HP Frequency (18 dB/octave): 66 Hz (16 - 350 Hz)
+	LP Frequency (12 dB/octave): 30 KHz (22 - 3 KHz)
+	Filter Split (Filters before Dynamics): False
+
+Compression:
+	Threshold: -8,9 dB
+	Ratio: 5,7
+	Fast Attack: True (Fast=1 ms otherwise Auto-Sense)
+	Release: 0,73 s
+
+Expander/Gate:
+	Threshold: 4,9 dB
+	Range: 0 dB
+	Gate: False
+	Fast Attack: True (Fast=1 ms otherwise Auto-Sense)
+	Release: 0,87 s
+
+Dynamics To:
+	Bypass: False
+	Channel Out (Dynamics after EQ): True
+
+EQ Section:
+	LF Type Bell: True
+	LF Gain: 1,4 dB
+	LF Frequency: 161 Hz
+	LMF Gain: 5,3 dB
+	LMF Frequency: 1,4 KHz
+	LMF Q: 1,04
+	HMF Gain: 5,6 dB
+	HMF Frequency: 1,32 KHz
+	HMF Q: 0,26
+	HF Type Bell: False
+	HF Gain: 0 dB
+	HF Frequency: 10,19 KHz
+	To Bypass: False
+	To Dynamics Side-Chain: False
+
+Master Section:
+	Gain: 0 dB
+	Analog: True
+	VU Show Output: True
+	Phase Reverse: False
+	Input Trim : 0 dB
+
+
+-------------------------------------------------------
+PresetName: Rhythm Guitar
+
+Routing Diagram: FLTR -> EQ -> DYN
+
+Low and High Pass Filters:
+	HP Frequency (18 dB/octave): 92 Hz (16 - 350 Hz)
+	LP Frequency (12 dB/octave): 4,5 KHz (22 - 3 KHz)
+	Filter Split (Filters before Dynamics): False
+
+Compression:
+	Threshold: -4,5 dB
+	Ratio: 5,7
+	Fast Attack: False (Fast=1 ms otherwise Auto-Sense)
+	Release: 0,22 s
+
+Expander/Gate:
+	Threshold: 4,9 dB
+	Range: 0 dB
+	Gate: False
+	Fast Attack: True (Fast=1 ms otherwise Auto-Sense)
+	Release: 0,87 s
+
+Dynamics To:
+	Bypass: False
+	Channel Out (Dynamics after EQ): True
+
+EQ Section:
+	LF Type Bell: False
+	LF Gain: -2,7 dB
+	LF Frequency: 161 Hz
+	LMF Gain: 2,9 dB
+	LMF Frequency: 2,04 KHz
+	LMF Q: 1,15
+	HMF Gain: 7,3 dB
+	HMF Frequency: 4,31 KHz
+	HMF Q: 1,99
+	HF Type Bell: False
+	HF Gain: 7,3 dB
+	HF Frequency: 9,6 KHz
+	To Bypass: False
+	To Dynamics Side-Chain: False
+
+Master Section:
+	Gain: 0 dB
+	Analog: True
+	VU Show Output: True
+	Phase Reverse: False
+	Input Trim : 0 dB
+
+
+-------------------------------------------------------
+PresetName: Violin
+
+Routing Diagram: DYN -> FLTR -> EQ (default)
+
+Low and High Pass Filters:
+	HP Frequency (18 dB/octave): 115 Hz (16 - 350 Hz)
+	LP Frequency (12 dB/octave): 30 KHz (22 - 3 KHz)
+	Filter Split (Filters before Dynamics): False
+
+Compression:
+	Threshold: -4,8 dB
+	Ratio: 5,3
+	Fast Attack: True (Fast=1 ms otherwise Auto-Sense)
+	Release: 0,4 s
+
+Expander/Gate:
+	Threshold: -10,2 dB
+	Range: 40 dB
+	Gate: False
+	Fast Attack: False (Fast=1 ms otherwise Auto-Sense)
+	Release: 4 s
+
+Dynamics To:
+	Bypass: False
+	Channel Out (Dynamics after EQ): False
+
+EQ Section:
+	LF Type Bell: False
+	LF Gain: 0 dB
+	LF Frequency: 163 Hz
+	LMF Gain: 6,7 dB
+	LMF Frequency: 0,59 KHz
+	LMF Q: 1,48
+	HMF Gain: 1,9 dB
+	HMF Frequency: 3,87 KHz
+	HMF Q: 1,5
+	HF Type Bell: False
+	HF Gain: 6,3 dB
+	HF Frequency: 12,56 KHz
+	To Bypass: False
+	To Dynamics Side-Chain: False
+
+Master Section:
+	Gain: 0 dB
+	Analog: True
+	VU Show Output: False
+	Phase Reverse: False
+	Input Trim : 0 dB
+
+
+-------------------------------------------------------
+PresetName: Strings
+
+Routing Diagram: DYN -> FLTR -> EQ (default)
+
+Low and High Pass Filters:
+	HP Frequency (18 dB/octave): 68 Hz (16 - 350 Hz)
+	LP Frequency (12 dB/octave): 30 KHz (22 - 3 KHz)
+	Filter Split (Filters before Dynamics): False
+
+Compression:
+	Threshold: -6,7 dB
+	Ratio: 2,8
+	Fast Attack: False (Fast=1 ms otherwise Auto-Sense)
+	Release: 1,17 s
+
+Expander/Gate:
+	Threshold: -30 dB
+	Range: 0 dB
+	Gate: False
+	Fast Attack: False (Fast=1 ms otherwise Auto-Sense)
+	Release: 4 s
+
+Dynamics To:
+	Bypass: False
+	Channel Out (Dynamics after EQ): False
+
+EQ Section:
+	LF Type Bell: False
+	LF Gain: 2,9 dB
+	LF Frequency: 177 Hz
+	LMF Gain: 1,3 dB
+	LMF Frequency: 0,94 KHz
+	LMF Q: 1,66
+	HMF Gain: 2,4 dB
+	HMF Frequency: 6,14 KHz
+	HMF Q: 1,25
+	HF Type Bell: False
+	HF Gain: 6,9 dB
+	HF Frequency: 14,02 KHz
+	To Bypass: False
+	To Dynamics Side-Chain: False
+
+Master Section:
+	Gain: 0 dB
+	Analog: True
+	VU Show Output: False
+	Phase Reverse: False
+	Input Trim : 0 dB
+
+
+-------------------------------------------------------
+PresetName: Piano
+
+Routing Diagram: DYN -> FLTR -> EQ (default)
+
+Low and High Pass Filters:
+	HP Frequency (18 dB/octave): 44 Hz (16 - 350 Hz)
+	LP Frequency (12 dB/octave): 13,1 KHz (22 - 3 KHz)
+	Filter Split (Filters before Dynamics): False
+
+Compression:
+	Threshold: -5,3 dB
+	Ratio: 3,5
+	Fast Attack: False (Fast=1 ms otherwise Auto-Sense)
+	Release: 0,69 s
+
+Expander/Gate:
+	Threshold: -30 dB
+	Range: 0 dB
+	Gate: False
+	Fast Attack: False (Fast=1 ms otherwise Auto-Sense)
+	Release: 4 s
+
+Dynamics To:
+	Bypass: False
+	Channel Out (Dynamics after EQ): False
+
+EQ Section:
+	LF Type Bell: True
+	LF Gain: 0 dB
+	LF Frequency: 231 Hz
+	LMF Gain: 5,9 dB
+	LMF Frequency: 0,94 KHz
+	LMF Q: 1,66
+	HMF Gain: 4 dB
+	HMF Frequency: 1,78 KHz
+	HMF Q: 1,5
+	HF Type Bell: False
+	HF Gain: 4,2 dB
+	HF Frequency: 10,19 KHz
+	To Bypass: False
+	To Dynamics Side-Chain: False
+
+Master Section:
+	Gain: 0 dB
+	Analog: True
+	VU Show Output: False
+	Phase Reverse: False
+	Input Trim : 0 dB
+
+
+-------------------------------------------------------
+PresetName: CLA Acoustic1
+Group: Chris Lord Alge 
+
+Routing Diagram: FLTR -> EQ -> DYN
+
+Low and High Pass Filters:
+	HP Frequency (18 dB/octave): 70 Hz (16 - 350 Hz)
+	LP Frequency (12 dB/octave): 30 KHz (22 - 3 KHz)
+	Filter Split (Filters before Dynamics): False
+
+Compression:
+	Threshold: 0 dB
+	Ratio: 3
+	Fast Attack: True (Fast=1 ms otherwise Auto-Sense)
+	Release: 0,15 s
+
+Expander/Gate:
+	Threshold: -30 dB
+	Range: 40 dB
+	Gate: True
+	Fast Attack: True (Fast=1 ms otherwise Auto-Sense)
+	Release: 4 s
+
+Dynamics To:
+	Bypass: False
+	Channel Out (Dynamics after EQ): True
+
+EQ Section:
+	LF Type Bell: False
+	LF Gain: 3 dB
+	LF Frequency: 450 Hz
+	LMF Gain: 0 dB
+	LMF Frequency: 2,5 KHz
+	LMF Q: 1,5
+	HMF Gain: 3 dB
+	HMF Frequency: 4,5 KHz
+	HMF Q: 1,5
+	HF Type Bell: True
+	HF Gain: 9 dB
+	HF Frequency: 1,5 KHz
+	To Bypass: False
+	To Dynamics Side-Chain: False
+
+Master Section:
+	Gain: 0 dB
+	Analog: True
+	VU Show Output: True
+	Phase Reverse: False
+	Input Trim : 0 dB
+
+
+-------------------------------------------------------
+PresetName: CLA Acoustic2
+Group: Chris Lord Alge 
+
+Routing Diagram: FLTR -> EQ -> DYN
+
+Low and High Pass Filters:
+	HP Frequency (18 dB/octave): 70 Hz (16 - 350 Hz)
+	LP Frequency (12 dB/octave): 30 KHz (22 - 3 KHz)
+	Filter Split (Filters before Dynamics): False
+
+Compression:
+	Threshold: -5 dB
+	Ratio: 4
+	Fast Attack: True (Fast=1 ms otherwise Auto-Sense)
+	Release: 0,2 s
+
+Expander/Gate:
+	Threshold: -30 dB
+	Range: 40 dB
+	Gate: True
+	Fast Attack: True (Fast=1 ms otherwise Auto-Sense)
+	Release: 4 s
+
+Dynamics To:
+	Bypass: False
+	Channel Out (Dynamics after EQ): True
+
+EQ Section:
+	LF Type Bell: True
+	LF Gain: -3 dB
+	LF Frequency: 50 Hz
+	LMF Gain: 3 dB
+	LMF Frequency: 2,5 KHz
+	LMF Q: 1,5
+	HMF Gain: 0 dB
+	HMF Frequency: 1 KHz
+	HMF Q: 2
+	HF Type Bell: False
+	HF Gain: 9 dB
+	HF Frequency: 8 KHz
+	To Bypass: False
+	To Dynamics Side-Chain: False
+
+Master Section:
+	Gain: 0 dB
+	Analog: True
+	VU Show Output: True
+	Phase Reverse: False
+	Input Trim : 0 dB
+
+
+-------------------------------------------------------
+PresetName: CLA Bass
+Group: Chris Lord Alge 
+
+Routing Diagram: FLTR -> EQ -> DYN
+
+Low and High Pass Filters:
+	HP Frequency (18 dB/octave): 0 Hz (16 - 350 Hz)
+	LP Frequency (12 dB/octave): 4 KHz (22 - 3 KHz)
+	Filter Split (Filters before Dynamics): False
+
+Compression:
+	Threshold: -5 dB
+	Ratio: 4
+	Fast Attack: True (Fast=1 ms otherwise Auto-Sense)
+	Release: 0,2 s
+
+Expander/Gate:
+	Threshold: -30 dB
+	Range: 40 dB
+	Gate: True
+	Fast Attack: True (Fast=1 ms otherwise Auto-Sense)
+	Release: 4 s
+
+Dynamics To:
+	Bypass: False
+	Channel Out (Dynamics after EQ): True
+
+EQ Section:
+	LF Type Bell: True
+	LF Gain: 9 dB
+	LF Frequency: 50 Hz
+	LMF Gain: 0 dB
+	LMF Frequency: 2,5 KHz
+	LMF Q: 1,5
+	HMF Gain: 6 dB
+	HMF Frequency: 1 KHz
+	HMF Q: 2
+	HF Type Bell: False
+	HF Gain: 9 dB
+	HF Frequency: 2 KHz
+	To Bypass: False
+	To Dynamics Side-Chain: False
+
+Master Section:
+	Gain: 0 dB
+	Analog: True
+	VU Show Output: True
+	Phase Reverse: False
+	Input Trim : 0 dB
+
+
+-------------------------------------------------------
+PresetName: CLA Clean GTR
+Group: Chris Lord Alge 
+
+Routing Diagram: FLTR -> EQ -> DYN
+
+Low and High Pass Filters:
+	HP Frequency (18 dB/octave): 20 Hz (16 - 350 Hz)
+	LP Frequency (12 dB/octave): 12 KHz (22 - 3 KHz)
+	Filter Split (Filters before Dynamics): False
+
+Compression:
+	Threshold: -3 dB
+	Ratio: 5
+	Fast Attack: True (Fast=1 ms otherwise Auto-Sense)
+	Release: 0,25 s
+
+Expander/Gate:
+	Threshold: -15 dB
+	Range: 40 dB
+	Gate: True
+	Fast Attack: True (Fast=1 ms otherwise Auto-Sense)
+	Release: 1 s
+
+Dynamics To:
+	Bypass: False
+	Channel Out (Dynamics after EQ): True
+
+EQ Section:
+	LF Type Bell: False
+	LF Gain: 0 dB
+	LF Frequency: 50 Hz
+	LMF Gain: 0 dB
+	LMF Frequency: 2,5 KHz
+	LMF Q: 1,5
+	HMF Gain: 3 dB
+	HMF Frequency: 3,5 KHz
+	HMF Q: 1,5
+	HF Type Bell: True
+	HF Gain: 9 dB
+	HF Frequency: 5 KHz
+	To Bypass: False
+	To Dynamics Side-Chain: False
+
+Master Section:
+	Gain: 0 dB
+	Analog: True
+	VU Show Output: True
+	Phase Reverse: False
+	Input Trim : 0 dB
+
+
+-------------------------------------------------------
+PresetName: CLA Filter Vox
+Group: Chris Lord Alge 
+
+Routing Diagram: FLTR -> EQ -> DYN
+
+Low and High Pass Filters:
+	HP Frequency (18 dB/octave): 350 Hz (16 - 350 Hz)
+	LP Frequency (12 dB/octave): 3 KHz (22 - 3 KHz)
+	Filter Split (Filters before Dynamics): False
+
+Compression:
+	Threshold: 0 dB
+	Ratio: 100
+	Fast Attack: True (Fast=1 ms otherwise Auto-Sense)
+	Release: 0,1 s
+
+Expander/Gate:
+	Threshold: 0 dB
+	Range: 40 dB
+	Gate: False
+	Fast Attack: True (Fast=1 ms otherwise Auto-Sense)
+	Release: 0,3 s
+
+Dynamics To:
+	Bypass: False
+	Channel Out (Dynamics after EQ): True
+
+EQ Section:
+	LF Type Bell: False
+	LF Gain: -15 dB
+	LF Frequency: 273 Hz
+	LMF Gain: 9 dB
+	LMF Frequency: 2,5 KHz
+	LMF Q: 2,5
+	HMF Gain: 0 dB
+	HMF Frequency: 3,5 KHz
+	HMF Q: 1,5
+	HF Type Bell: True
+	HF Gain: 9 dB
+	HF Frequency: 1,5 KHz
+	To Bypass: False
+	To Dynamics Side-Chain: False
+
+Master Section:
+	Gain: 0 dB
+	Analog: True
+	VU Show Output: True
+	Phase Reverse: False
+	Input Trim : 0 dB
+
+
+-------------------------------------------------------
+PresetName: CLA Heavy GTR
+Group: Chris Lord Alge 
+
+Routing Diagram: FLTR -> EQ -> DYN
+
+Low and High Pass Filters:
+	HP Frequency (18 dB/octave): 30 Hz (16 - 350 Hz)
+	LP Frequency (12 dB/octave): 30 KHz (22 - 3 KHz)
+	Filter Split (Filters before Dynamics): False
+
+Compression:
+	Threshold: 0 dB
+	Ratio: 3
+	Fast Attack: True (Fast=1 ms otherwise Auto-Sense)
+	Release: 0,1 s
+
+Expander/Gate:
+	Threshold: -30 dB
+	Range: 40 dB
+	Gate: True
+	Fast Attack: True (Fast=1 ms otherwise Auto-Sense)
+	Release: 4 s
+
+Dynamics To:
+	Bypass: False
+	Channel Out (Dynamics after EQ): True
+
+EQ Section:
+	LF Type Bell: True
+	LF Gain: 0 dB
+	LF Frequency: 50 Hz
+	LMF Gain: 0 dB
+	LMF Frequency: 2,5 KHz
+	LMF Q: 1,5
+	HMF Gain: 0 dB
+	HMF Frequency: 3,5 KHz
+	HMF Q: 1,5
+	HF Type Bell: False
+	HF Gain: 12 dB
+	HF Frequency: 8 KHz
+	To Bypass: False
+	To Dynamics Side-Chain: False
+
+Master Section:
+	Gain: 0 dB
+	Analog: True
+	VU Show Output: True
+	Phase Reverse: False
+	Input Trim : 0 dB
+
+
+-------------------------------------------------------
+PresetName: CLA HH
+Group: Chris Lord Alge 
+
+Routing Diagram: FLTR -> EQ -> DYN
+
+Low and High Pass Filters:
+	HP Frequency (18 dB/octave): 120 Hz (16 - 350 Hz)
+	LP Frequency (12 dB/octave): 30 KHz (22 - 3 KHz)
+	Filter Split (Filters before Dynamics): False
+
+Compression:
+	Threshold: -20 dB
+	Ratio: 3
+	Fast Attack: False (Fast=1 ms otherwise Auto-Sense)
+	Release: 0,1 s
+
+Expander/Gate:
+	Threshold: -30 dB
+	Range: 40 dB
+	Gate: True
+	Fast Attack: True (Fast=1 ms otherwise Auto-Sense)
+	Release: 4 s
+
+Dynamics To:
+	Bypass: False
+	Channel Out (Dynamics after EQ): True
+
+EQ Section:
+	LF Type Bell: False
+	LF Gain: -9 dB
+	LF Frequency: 100 Hz
+	LMF Gain: 0 dB
+	LMF Frequency: 2,5 KHz
+	LMF Q: 1,5
+	HMF Gain: 0 dB
+	HMF Frequency: 3,5 KHz
+	HMF Q: 1,5
+	HF Type Bell: True
+	HF Gain: 6 dB
+	HF Frequency: 5 KHz
+	To Bypass: False
+	To Dynamics Side-Chain: False
+
+Master Section:
+	Gain: 0 dB
+	Analog: True
+	VU Show Output: True
+	Phase Reverse: False
+	Input Trim : 0 dB
+
+
+-------------------------------------------------------
+PresetName: CLA Kick1
+Group: Chris Lord Alge 
+
+Routing Diagram: FLTR -> EQ -> DYN
+
+Low and High Pass Filters:
+	HP Frequency (18 dB/octave): 0 Hz (16 - 350 Hz)
+	LP Frequency (12 dB/octave): 30 KHz (22 - 3 KHz)
+	Filter Split (Filters before Dynamics): False
+
+Compression:
+	Threshold: -20 dB
+	Ratio: 2,9
+	Fast Attack: False (Fast=1 ms otherwise Auto-Sense)
+	Release: 0,1 s
+
+Expander/Gate:
+	Threshold: -30 dB
+	Range: 40 dB
+	Gate: True
+	Fast Attack: True (Fast=1 ms otherwise Auto-Sense)
+	Release: 4 s
+
+Dynamics To:
+	Bypass: False
+	Channel Out (Dynamics after EQ): True
+
+EQ Section:
+	LF Type Bell: True
+	LF Gain: 9 dB
+	LF Frequency: 50 Hz
+	LMF Gain: -15 dB
+	LMF Frequency: 0,8 KHz
+	LMF Q: 3,5
+	HMF Gain: 0 dB
+	HMF Frequency: 4,5 KHz
+	HMF Q: 1,5
+	HF Type Bell: False
+	HF Gain: 15 dB
+	HF Frequency: 8 KHz
+	To Bypass: False
+	To Dynamics Side-Chain: False
+
+Master Section:
+	Gain: -6,1 dB
+	Analog: True
+	VU Show Output: True
+	Phase Reverse: False
+	Input Trim : 0 dB
+
+
+-------------------------------------------------------
+PresetName: CLA Kick2
+Group: Chris Lord Alge 
+
+Routing Diagram: FLTR -> EQ -> DYN
+
+Low and High Pass Filters:
+	HP Frequency (18 dB/octave): 0 Hz (16 - 350 Hz)
+	LP Frequency (12 dB/octave): 8 KHz (22 - 3 KHz)
+	Filter Split (Filters before Dynamics): False
+
+Compression:
+	Threshold: -20 dB
+	Ratio: 2
+	Fast Attack: False (Fast=1 ms otherwise Auto-Sense)
+	Release: 0,1 s
+
+Expander/Gate:
+	Threshold: -30 dB
+	Range: 40 dB
+	Gate: True
+	Fast Attack: True (Fast=1 ms otherwise Auto-Sense)
+	Release: 4 s
+
+Dynamics To:
+	Bypass: False
+	Channel Out (Dynamics after EQ): True
+
+EQ Section:
+	LF Type Bell: True
+	LF Gain: 6 dB
+	LF Frequency: 50 Hz
+	LMF Gain: -15 dB
+	LMF Frequency: 0,8 KHz
+	LMF Q: 3,5
+	HMF Gain: 0 dB
+	HMF Frequency: 3,5 KHz
+	HMF Q: 1,5
+	HF Type Bell: True
+	HF Gain: 9 dB
+	HF Frequency: 1,5 KHz
+	To Bypass: False
+	To Dynamics Side-Chain: False
+
+Master Section:
+	Gain: -6,1 dB
+	Analog: True
+	VU Show Output: True
+	Phase Reverse: False
+	Input Trim : 0 dB
+
+
+-------------------------------------------------------
+PresetName: CLA Mono Room
+Group: Chris Lord Alge 
+
+Routing Diagram: FLTR -> EQ -> DYN
+
+Low and High Pass Filters:
+	HP Frequency (18 dB/octave): 0 Hz (16 - 350 Hz)
+	LP Frequency (12 dB/octave): 30 KHz (22 - 3 KHz)
+	Filter Split (Filters before Dynamics): False
+
+Compression:
+	Threshold: -5 dB
+	Ratio: 5
+	Fast Attack: True (Fast=1 ms otherwise Auto-Sense)
+	Release: 0,5 s
+
+Expander/Gate:
+	Threshold: -30 dB
+	Range: 40 dB
+	Gate: True
+	Fast Attack: True (Fast=1 ms otherwise Auto-Sense)
+	Release: 4 s
+
+Dynamics To:
+	Bypass: False
+	Channel Out (Dynamics after EQ): True
+
+EQ Section:
+	LF Type Bell: True
+	LF Gain: 9 dB
+	LF Frequency: 60 Hz
+	LMF Gain: 0 dB
+	LMF Frequency: 2,5 KHz
+	LMF Q: 1,5
+	HMF Gain: 9 dB
+	HMF Frequency: 4,5 KHz
+	HMF Q: 0,1
+	HF Type Bell: True
+	HF Gain: 0 dB
+	HF Frequency: 5 KHz
+	To Bypass: False
+	To Dynamics Side-Chain: False
+
+Master Section:
+	Gain: 0 dB
+	Analog: True
+	VU Show Output: True
+	Phase Reverse: False
+	Input Trim : 0 dB
+
+
+-------------------------------------------------------
+PresetName: CLA OH
+Group: Chris Lord Alge 
+
+Routing Diagram: FLTR -> EQ -> DYN
+
+Low and High Pass Filters:
+	HP Frequency (18 dB/octave): 50 Hz (16 - 350 Hz)
+	LP Frequency (12 dB/octave): 30 KHz (22 - 3 KHz)
+	Filter Split (Filters before Dynamics): False
+
+Compression:
+	Threshold: 0 dB
+	Ratio: 2
+	Fast Attack: True (Fast=1 ms otherwise Auto-Sense)
+	Release: 0,1 s
+
+Expander/Gate:
+	Threshold: -30 dB
+	Range: 40 dB
+	Gate: True
+	Fast Attack: True (Fast=1 ms otherwise Auto-Sense)
+	Release: 4 s
+
+Dynamics To:
+	Bypass: False
+	Channel Out (Dynamics after EQ): True
+
+EQ Section:
+	LF Type Bell: False
+	LF Gain: 3 dB
+	LF Frequency: 100 Hz
+	LMF Gain: 3 dB
+	LMF Frequency: 2,5 KHz
+	LMF Q: 1,5
+	HMF Gain: 0 dB
+	HMF Frequency: 4,5 KHz
+	HMF Q: 1,5
+	HF Type Bell: False
+	HF Gain: 6 dB
+	HF Frequency: 8 KHz
+	To Bypass: False
+	To Dynamics Side-Chain: False
+
+Master Section:
+	Gain: 0 dB
+	Analog: True
+	VU Show Output: True
+	Phase Reverse: False
+	Input Trim : 0 dB
+
+
+-------------------------------------------------------
+PresetName: CLA OH2
+Group: Chris Lord Alge 
+
+Routing Diagram: FLTR -> EQ -> DYN
+
+Low and High Pass Filters:
+	HP Frequency (18 dB/octave): 50 Hz (16 - 350 Hz)
+	LP Frequency (12 dB/octave): 30 KHz (22 - 3 KHz)
+	Filter Split (Filters before Dynamics): False
+
+Compression:
+	Threshold: 0 dB
+	Ratio: 3
+	Fast Attack: True (Fast=1 ms otherwise Auto-Sense)
+	Release: 0,1 s
+
+Expander/Gate:
+	Threshold: -30 dB
+	Range: 40 dB
+	Gate: True
+	Fast Attack: True (Fast=1 ms otherwise Auto-Sense)
+	Release: 4 s
+
+Dynamics To:
+	Bypass: False
+	Channel Out (Dynamics after EQ): True
+
+EQ Section:
+	LF Type Bell: False
+	LF Gain: 3 dB
+	LF Frequency: 450 Hz
+	LMF Gain: 0 dB
+	LMF Frequency: 2,5 KHz
+	LMF Q: 1,5
+	HMF Gain: 0 dB
+	HMF Frequency: 4,5 KHz
+	HMF Q: 1,5
+	HF Type Bell: False
+	HF Gain: 9 dB
+	HF Frequency: 8 KHz
+	To Bypass: False
+	To Dynamics Side-Chain: False
+
+Master Section:
+	Gain: 0 dB
+	Analog: True
+	VU Show Output: True
+	Phase Reverse: False
+	Input Trim : 0 dB
+
+
+-------------------------------------------------------
+PresetName: CLA Ride
+Group: Chris Lord Alge 
+
+Routing Diagram: FLTR -> EQ -> DYN
+
+Low and High Pass Filters:
+	HP Frequency (18 dB/octave): 100 Hz (16 - 350 Hz)
+	LP Frequency (12 dB/octave): 30 KHz (22 - 3 KHz)
+	Filter Split (Filters before Dynamics): False
+
+Compression:
+	Threshold: -20 dB
+	Ratio: 2
+	Fast Attack: True (Fast=1 ms otherwise Auto-Sense)
+	Release: 0,1 s
+
+Expander/Gate:
+	Threshold: -30 dB
+	Range: 40 dB
+	Gate: True
+	Fast Attack: True (Fast=1 ms otherwise Auto-Sense)
+	Release: 4 s
+
+Dynamics To:
+	Bypass: False
+	Channel Out (Dynamics after EQ): True
+
+EQ Section:
+	LF Type Bell: False
+	LF Gain: 0 dB
+	LF Frequency: 100 Hz
+	LMF Gain: 3 dB
+	LMF Frequency: 2,5 KHz
+	LMF Q: 2,5
+	HMF Gain: 0 dB
+	HMF Frequency: 4,5 KHz
+	HMF Q: 1,5
+	HF Type Bell: True
+	HF Gain: 9 dB
+	HF Frequency: 8 KHz
+	To Bypass: False
+	To Dynamics Side-Chain: False
+
+Master Section:
+	Gain: 0 dB
+	Analog: True
+	VU Show Output: True
+	Phase Reverse: False
+	Input Trim : 0 dB
+
+
+-------------------------------------------------------
+PresetName: CLA Rock Vox
+Group: Chris Lord Alge 
+
+Routing Diagram: FLTR -> EQ -> DYN
+
+Low and High Pass Filters:
+	HP Frequency (18 dB/octave): 70 Hz (16 - 350 Hz)
+	LP Frequency (12 dB/octave): 30 KHz (22 - 3 KHz)
+	Filter Split (Filters before Dynamics): False
+
+Compression:
+	Threshold: 0 dB
+	Ratio: 5
+	Fast Attack: True (Fast=1 ms otherwise Auto-Sense)
+	Release: 0,1 s
+
+Expander/Gate:
+	Threshold: -20 dB
+	Range: 40 dB
+	Gate: True
+	Fast Attack: True (Fast=1 ms otherwise Auto-Sense)
+	Release: 4 s
+
+Dynamics To:
+	Bypass: False
+	Channel Out (Dynamics after EQ): True
+
+EQ Section:
+	LF Type Bell: False
+	LF Gain: -6 dB
+	LF Frequency: 100 Hz
+	LMF Gain: 6 dB
+	LMF Frequency: 2,5 KHz
+	LMF Q: 1,5
+	HMF Gain: 6 dB
+	HMF Frequency: 4 KHz
+	HMF Q: 2
+	HF Type Bell: False
+	HF Gain: 9 dB
+	HF Frequency: 8 KHz
+	To Bypass: False
+	To Dynamics Side-Chain: False
+
+Master Section:
+	Gain: 0 dB
+	Analog: True
+	VU Show Output: True
+	Phase Reverse: False
+	Input Trim : 0 dB
+
+
+-------------------------------------------------------
+PresetName: CLA Room1
+Group: Chris Lord Alge 
+
+Routing Diagram: FLTR -> EQ -> DYN
+
+Low and High Pass Filters:
+	HP Frequency (18 dB/octave): 0 Hz (16 - 350 Hz)
+	LP Frequency (12 dB/octave): 30 KHz (22 - 3 KHz)
+	Filter Split (Filters before Dynamics): False
+
+Compression:
+	Threshold: 0 dB
+	Ratio: 3
+	Fast Attack: True (Fast=1 ms otherwise Auto-Sense)
+	Release: 0,2 s
+
+Expander/Gate:
+	Threshold: -30 dB
+	Range: 40 dB
+	Gate: True
+	Fast Attack: True (Fast=1 ms otherwise Auto-Sense)
+	Release: 4 s
+
+Dynamics To:
+	Bypass: False
+	Channel Out (Dynamics after EQ): True
+
+EQ Section:
+	LF Type Bell: False
+	LF Gain: 6 dB
+	LF Frequency: 100 Hz
+	LMF Gain: 3 dB
+	LMF Frequency: 2,5 KHz
+	LMF Q: 1,5
+	HMF Gain: 0 dB
+	HMF Frequency: 4 KHz
+	HMF Q: 2
+	HF Type Bell: False
+	HF Gain: 12 dB
+	HF Frequency: 8 KHz
+	To Bypass: False
+	To Dynamics Side-Chain: False
+
+Master Section:
+	Gain: 0 dB
+	Analog: True
+	VU Show Output: True
+	Phase Reverse: False
+	Input Trim : 0 dB
+
+
+-------------------------------------------------------
+PresetName: CLA Room2
+Group: Chris Lord Alge 
+
+Routing Diagram: FLTR -> EQ -> DYN
+
+Low and High Pass Filters:
+	HP Frequency (18 dB/octave): 20 Hz (16 - 350 Hz)
+	LP Frequency (12 dB/octave): 30 KHz (22 - 3 KHz)
+	Filter Split (Filters before Dynamics): False
+
+Compression:
+	Threshold: -5 dB
+	Ratio: 5
+	Fast Attack: True (Fast=1 ms otherwise Auto-Sense)
+	Release: 0,1 s
+
+Expander/Gate:
+	Threshold: -12 dB
+	Range: 40 dB
+	Gate: True
+	Fast Attack: True (Fast=1 ms otherwise Auto-Sense)
+	Release: 1 s
+
+Dynamics To:
+	Bypass: False
+	Channel Out (Dynamics after EQ): True
+
+EQ Section:
+	LF Type Bell: True
+	LF Gain: 9 dB
+	LF Frequency: 100 Hz
+	LMF Gain: 0 dB
+	LMF Frequency: 2,5 KHz
+	LMF Q: 1,5
+	HMF Gain: 3 dB
+	HMF Frequency: 1,5 KHz
+	HMF Q: 0,1
+	HF Type Bell: False
+	HF Gain: 6 dB
+	HF Frequency: 6 KHz
+	To Bypass: False
+	To Dynamics Side-Chain: False
+
+Master Section:
+	Gain: 0 dB
+	Analog: True
+	VU Show Output: True
+	Phase Reverse: False
+	Input Trim : 0 dB
+
+
+-------------------------------------------------------
+PresetName: CLA Room3
+Group: Chris Lord Alge 
+
+Routing Diagram: FLTR -> EQ -> DYN
+
+Low and High Pass Filters:
+	HP Frequency (18 dB/octave): 20 Hz (16 - 350 Hz)
+	LP Frequency (12 dB/octave): 30 KHz (22 - 3 KHz)
+	Filter Split (Filters before Dynamics): False
+
+Compression:
+	Threshold: 0 dB
+	Ratio: 8
+	Fast Attack: True (Fast=1 ms otherwise Auto-Sense)
+	Release: 0,15 s
+
+Expander/Gate:
+	Threshold: -12 dB
+	Range: 40 dB
+	Gate: True
+	Fast Attack: True (Fast=1 ms otherwise Auto-Sense)
+	Release: 1 s
+
+Dynamics To:
+	Bypass: False
+	Channel Out (Dynamics after EQ): True
+
+EQ Section:
+	LF Type Bell: True
+	LF Gain: 9 dB
+	LF Frequency: 100 Hz
+	LMF Gain: 0 dB
+	LMF Frequency: 2,5 KHz
+	LMF Q: 1,5
+	HMF Gain: 3 dB
+	HMF Frequency: 7 KHz
+	HMF Q: 2,5
+	HF Type Bell: True
+	HF Gain: 9 dB
+	HF Frequency: 1,5 KHz
+	To Bypass: False
+	To Dynamics Side-Chain: False
+
+Master Section:
+	Gain: 0 dB
+	Analog: True
+	VU Show Output: True
+	Phase Reverse: False
+	Input Trim : 0 dB
+
+
+-------------------------------------------------------
+PresetName: CLA SNR1
+Group: Chris Lord Alge 
+
+Routing Diagram: FLTR -> EQ -> DYN
+
+Low and High Pass Filters:
+	HP Frequency (18 dB/octave): 70 Hz (16 - 350 Hz)
+	LP Frequency (12 dB/octave): 30 KHz (22 - 3 KHz)
+	Filter Split (Filters before Dynamics): False
+
+Compression:
+	Threshold: -10 dB
+	Ratio: 2
+	Fast Attack: False (Fast=1 ms otherwise Auto-Sense)
+	Release: 0,1 s
+
+Expander/Gate:
+	Threshold: -20 dB
+	Range: 40 dB
+	Gate: True
+	Fast Attack: True (Fast=1 ms otherwise Auto-Sense)
+	Release: 1 s
+
+Dynamics To:
+	Bypass: False
+	Channel Out (Dynamics after EQ): True
+
+EQ Section:
+	LF Type Bell: True
+	LF Gain: 6 dB
+	LF Frequency: 125 Hz
+	LMF Gain: 3 dB
+	LMF Frequency: 2,5 KHz
+	LMF Q: 1,5
+	HMF Gain: 3 dB
+	HMF Frequency: 3 KHz
+	HMF Q: 1,5
+	HF Type Bell: True
+	HF Gain: 6 dB
+	HF Frequency: 5 KHz
+	To Bypass: False
+	To Dynamics Side-Chain: False
+
+Master Section:
+	Gain: 0 dB
+	Analog: True
+	VU Show Output: True
+	Phase Reverse: False
+	Input Trim : 0 dB
+
+
+-------------------------------------------------------
+PresetName: CLA SNR2
+Group: Chris Lord Alge 
+
+Routing Diagram: FLTR -> EQ -> DYN
+
+Low and High Pass Filters:
+	HP Frequency (18 dB/octave): 70 Hz (16 - 350 Hz)
+	LP Frequency (12 dB/octave): 30 KHz (22 - 3 KHz)
+	Filter Split (Filters before Dynamics): False
+
+Compression:
+	Threshold: 0 dB
+	Ratio: 3
+	Fast Attack: True (Fast=1 ms otherwise Auto-Sense)
+	Release: 0,1 s
+
+Expander/Gate:
+	Threshold: -20 dB
+	Range: 40 dB
+	Gate: True
+	Fast Attack: True (Fast=1 ms otherwise Auto-Sense)
+	Release: 1 s
+
+Dynamics To:
+	Bypass: False
+	Channel Out (Dynamics after EQ): True
+
+EQ Section:
+	LF Type Bell: True
+	LF Gain: 6 dB
+	LF Frequency: 125 Hz
+	LMF Gain: 9 dB
+	LMF Frequency: 2,5 KHz
+	LMF Q: 1,5
+	HMF Gain: 3 dB
+	HMF Frequency: 3 KHz
+	HMF Q: 1,5
+	HF Type Bell: True
+	HF Gain: 9 dB
+	HF Frequency: 5 KHz
+	To Bypass: False
+	To Dynamics Side-Chain: False
+
+Master Section:
+	Gain: 0 dB
+	Analog: True
+	VU Show Output: True
+	Phase Reverse: False
+	Input Trim : 0 dB
+
+
+-------------------------------------------------------
+PresetName: CLA SNR Bottom
+Group: Chris Lord Alge 
+
+Routing Diagram: FLTR -> EQ -> DYN
+
+Low and High Pass Filters:
+	HP Frequency (18 dB/octave): 50 Hz (16 - 350 Hz)
+	LP Frequency (12 dB/octave): 30 KHz (22 - 3 KHz)
+	Filter Split (Filters before Dynamics): False
+
+Compression:
+	Threshold: -6 dB
+	Ratio: 10
+	Fast Attack: True (Fast=1 ms otherwise Auto-Sense)
+	Release: 0,1 s
+
+Expander/Gate:
+	Threshold: -10 dB
+	Range: 40 dB
+	Gate: True
+	Fast Attack: True (Fast=1 ms otherwise Auto-Sense)
+	Release: 0,4 s
+
+Dynamics To:
+	Bypass: False
+	Channel Out (Dynamics after EQ): True
+
+EQ Section:
+	LF Type Bell: True
+	LF Gain: 6 dB
+	LF Frequency: 200 Hz
+	LMF Gain: 0 dB
+	LMF Frequency: 2,5 KHz
+	LMF Q: 1,5
+	HMF Gain: 0 dB
+	HMF Frequency: 3 KHz
+	HMF Q: 1,5
+	HF Type Bell: True
+	HF Gain: 15 dB
+	HF Frequency: 5 KHz
+	To Bypass: False
+	To Dynamics Side-Chain: False
+
+Master Section:
+	Gain: 0 dB
+	Analog: True
+	VU Show Output: True
+	Phase Reverse: False
+	Input Trim : 0 dB
+
+
+-------------------------------------------------------
+PresetName: CLA SNR Deep
+Group: Chris Lord Alge 
+
+Routing Diagram: FLTR -> EQ -> DYN
+
+Low and High Pass Filters:
+	HP Frequency (18 dB/octave): 0 Hz (16 - 350 Hz)
+	LP Frequency (12 dB/octave): 30 KHz (22 - 3 KHz)
+	Filter Split (Filters before Dynamics): False
+
+Compression:
+	Threshold: -20 dB
+	Ratio: 3
+	Fast Attack: False (Fast=1 ms otherwise Auto-Sense)
+	Release: 0,1 s
+
+Expander/Gate:
+	Threshold: -20 dB
+	Range: 40 dB
+	Gate: True
+	Fast Attack: True (Fast=1 ms otherwise Auto-Sense)
+	Release: 1 s
+
+Dynamics To:
+	Bypass: False
+	Channel Out (Dynamics after EQ): True
+
+EQ Section:
+	LF Type Bell: True
+	LF Gain: 9 dB
+	LF Frequency: 200 Hz
+	LMF Gain: 3 dB
+	LMF Frequency: 2,5 KHz
+	LMF Q: 1,5
+	HMF Gain: 3 dB
+	HMF Frequency: 3 KHz
+	HMF Q: 1,5
+	HF Type Bell: False
+	HF Gain: 9 dB
+	HF Frequency: 8 KHz
+	To Bypass: False
+	To Dynamics Side-Chain: False
+
+Master Section:
+	Gain: 0 dB
+	Analog: True
+	VU Show Output: True
+	Phase Reverse: False
+	Input Trim : 0 dB
+
+
+-------------------------------------------------------
+PresetName: CLA Tom L
+Group: Chris Lord Alge 
+
+Routing Diagram: FLTR -> EQ -> DYN
+
+Low and High Pass Filters:
+	HP Frequency (18 dB/octave): 0 Hz (16 - 350 Hz)
+	LP Frequency (12 dB/octave): 30 KHz (22 - 3 KHz)
+	Filter Split (Filters before Dynamics): False
+
+Compression:
+	Threshold: 0 dB
+	Ratio: 3
+	Fast Attack: True (Fast=1 ms otherwise Auto-Sense)
+	Release: 0,1 s
+
+Expander/Gate:
+	Threshold: -30 dB
+	Range: 40 dB
+	Gate: True
+	Fast Attack: True (Fast=1 ms otherwise Auto-Sense)
+	Release: 4 s
+
+Dynamics To:
+	Bypass: False
+	Channel Out (Dynamics after EQ): True
+
+EQ Section:
+	LF Type Bell: True
+	LF Gain: 6 dB
+	LF Frequency: 75 Hz
+	LMF Gain: -15 dB
+	LMF Frequency: 0,8 KHz
+	LMF Q: 3,5
+	HMF Gain: 0 dB
+	HMF Frequency: 3,5 KHz
+	HMF Q: 1,5
+	HF Type Bell: False
+	HF Gain: 9 dB
+	HF Frequency: 6 KHz
+	To Bypass: False
+	To Dynamics Side-Chain: False
+
+Master Section:
+	Gain: 0 dB
+	Analog: True
+	VU Show Output: True
+	Phase Reverse: False
+	Input Trim : 0 dB
+
+
+-------------------------------------------------------
+PresetName: CLA Tom R
+Group: Chris Lord Alge 
+
+Routing Diagram: FLTR -> EQ -> DYN
+
+Low and High Pass Filters:
+	HP Frequency (18 dB/octave): 0 Hz (16 - 350 Hz)
+	LP Frequency (12 dB/octave): 30 KHz (22 - 3 KHz)
+	Filter Split (Filters before Dynamics): False
+
+Compression:
+	Threshold: 0 dB
+	Ratio: 3
+	Fast Attack: True (Fast=1 ms otherwise Auto-Sense)
+	Release: 0,1 s
+
+Expander/Gate:
+	Threshold: -30 dB
+	Range: 40 dB
+	Gate: True
+	Fast Attack: True (Fast=1 ms otherwise Auto-Sense)
+	Release: 4 s
+
+Dynamics To:
+	Bypass: False
+	Channel Out (Dynamics after EQ): True
+
+EQ Section:
+	LF Type Bell: True
+	LF Gain: 6 dB
+	LF Frequency: 150 Hz
+	LMF Gain: -15 dB
+	LMF Frequency: 0,8 KHz
+	LMF Q: 3,5
+	HMF Gain: 0 dB
+	HMF Frequency: 3,5 KHz
+	HMF Q: 1,5
+	HF Type Bell: False
+	HF Gain: 9 dB
+	HF Frequency: 6 KHz
+	To Bypass: False
+	To Dynamics Side-Chain: False
+
+Master Section:
+	Gain: 0 dB
+	Analog: True
+	VU Show Output: True
+	Phase Reverse: False
+	Input Trim : 0 dB
+
+
+-------------------------------------------------------
+PresetName: Kick Drum
+
+Routing Diagram: FLTR -> EQ -> DYN
+
+Low and High Pass Filters:
+	HP Frequency (18 dB/octave): 0 Hz (16 - 350 Hz)
+	LP Frequency (12 dB/octave): 30 KHz (22 - 3 KHz)
+	Filter Split (Filters before Dynamics): False
+
+Compression:
+	Threshold: 0 dB
+	Ratio: 3
+	Fast Attack: True (Fast=1 ms otherwise Auto-Sense)
+	Release: 0,1 s
+
+Expander/Gate:
+	Threshold: -30 dB
+	Range: 40 dB
+	Gate: True
+	Fast Attack: True (Fast=1 ms otherwise Auto-Sense)
+	Release: 4 s
+
+Dynamics To:
+	Bypass: False
+	Channel Out (Dynamics after EQ): True
+
+EQ Section:
+	LF Type Bell: True
+	LF Gain: 6 dB
+	LF Frequency: 150 Hz
+	LMF Gain: -15 dB
+	LMF Frequency: 0,8 KHz
+	LMF Q: 3,5
+	HMF Gain: 0 dB
+	HMF Frequency: 3,5 KHz
+	HMF Q: 1,5
+	HF Type Bell: False
+	HF Gain: 9 dB
+	HF Frequency: 6 KHz
+	To Bypass: False
+	To Dynamics Side-Chain: False
+
+Master Section:
+	Gain: 0 dB
+	Analog: True
+	VU Show Output: True
+	Phase Reverse: False
+	Input Trim : 0 dB
+
+
+-------------------------------------------------------
+PresetName: Snare Drum
+
+Routing Diagram: FLTR -> EQ -> DYN
+
+Low and High Pass Filters:
+	HP Frequency (18 dB/octave): 0 Hz (16 - 350 Hz)
+	LP Frequency (12 dB/octave): 30 KHz (22 - 3 KHz)
+	Filter Split (Filters before Dynamics): False
+
+Compression:
+	Threshold: 0 dB
+	Ratio: 3
+	Fast Attack: True (Fast=1 ms otherwise Auto-Sense)
+	Release: 0,1 s
+
+Expander/Gate:
+	Threshold: -30 dB
+	Range: 40 dB
+	Gate: True
+	Fast Attack: True (Fast=1 ms otherwise Auto-Sense)
+	Release: 4 s
+
+Dynamics To:
+	Bypass: False
+	Channel Out (Dynamics after EQ): True
+
+EQ Section:
+	LF Type Bell: True
+	LF Gain: 6 dB
+	LF Frequency: 150 Hz
+	LMF Gain: -15 dB
+	LMF Frequency: 0,8 KHz
+	LMF Q: 3,5
+	HMF Gain: 0 dB
+	HMF Frequency: 3,5 KHz
+	HMF Q: 1,5
+	HF Type Bell: False
+	HF Gain: 9 dB
+	HF Frequency: 6 KHz
+	To Bypass: False
+	To Dynamics Side-Chain: False
+
+Master Section:
+	Gain: 0 dB
+	Analog: True
+	VU Show Output: True
+	Phase Reverse: False
+	Input Trim : 0 dB
+
+
+-------------------------------------------------------
+PresetName: Hi Hat
+
+Routing Diagram: FLTR -> EQ -> DYN
+
+Low and High Pass Filters:
+	HP Frequency (18 dB/octave): 0 Hz (16 - 350 Hz)
+	LP Frequency (12 dB/octave): 30 KHz (22 - 3 KHz)
+	Filter Split (Filters before Dynamics): False
+
+Compression:
+	Threshold: 0 dB
+	Ratio: 3
+	Fast Attack: True (Fast=1 ms otherwise Auto-Sense)
+	Release: 0,1 s
+
+Expander/Gate:
+	Threshold: -30 dB
+	Range: 40 dB
+	Gate: True
+	Fast Attack: True (Fast=1 ms otherwise Auto-Sense)
+	Release: 4 s
+
+Dynamics To:
+	Bypass: False
+	Channel Out (Dynamics after EQ): True
+
+EQ Section:
+	LF Type Bell: True
+	LF Gain: 6 dB
+	LF Frequency: 150 Hz
+	LMF Gain: -15 dB
+	LMF Frequency: 0,8 KHz
+	LMF Q: 3,5
+	HMF Gain: 0 dB
+	HMF Frequency: 3,5 KHz
+	HMF Q: 1,5
+	HF Type Bell: False
+	HF Gain: 9 dB
+	HF Frequency: 6 KHz
+	To Bypass: False
+	To Dynamics Side-Chain: False
+
+Master Section:
+	Gain: 0 dB
+	Analog: True
+	VU Show Output: True
+	Phase Reverse: False
+	Input Trim : 0 dB
+
+
+-------------------------------------------------------
+PresetName: Rack Tom
+
+Routing Diagram: FLTR -> EQ -> DYN
+
+Low and High Pass Filters:
+	HP Frequency (18 dB/octave): 0 Hz (16 - 350 Hz)
+	LP Frequency (12 dB/octave): 30 KHz (22 - 3 KHz)
+	Filter Split (Filters before Dynamics): False
+
+Compression:
+	Threshold: 0 dB
+	Ratio: 3
+	Fast Attack: True (Fast=1 ms otherwise Auto-Sense)
+	Release: 0,1 s
+
+Expander/Gate:
+	Threshold: -30 dB
+	Range: 40 dB
+	Gate: True
+	Fast Attack: True (Fast=1 ms otherwise Auto-Sense)
+	Release: 4 s
+
+Dynamics To:
+	Bypass: False
+	Channel Out (Dynamics after EQ): True
+
+EQ Section:
+	LF Type Bell: True
+	LF Gain: 6 dB
+	LF Frequency: 150 Hz
+	LMF Gain: -15 dB
+	LMF Frequency: 0,8 KHz
+	LMF Q: 3,5
+	HMF Gain: 0 dB
+	HMF Frequency: 3,5 KHz
+	HMF Q: 1,5
+	HF Type Bell: False
+	HF Gain: 9 dB
+	HF Frequency: 6 KHz
+	To Bypass: False
+	To Dynamics Side-Chain: False
+
+Master Section:
+	Gain: 0 dB
+	Analog: True
+	VU Show Output: True
+	Phase Reverse: False
+	Input Trim : 0 dB
+
+
+-------------------------------------------------------
+PresetName: Floor Tom
+
+Routing Diagram: FLTR -> EQ -> DYN
+
+Low and High Pass Filters:
+	HP Frequency (18 dB/octave): 0 Hz (16 - 350 Hz)
+	LP Frequency (12 dB/octave): 30 KHz (22 - 3 KHz)
+	Filter Split (Filters before Dynamics): False
+
+Compression:
+	Threshold: 0 dB
+	Ratio: 3
+	Fast Attack: True (Fast=1 ms otherwise Auto-Sense)
+	Release: 0,1 s
+
+Expander/Gate:
+	Threshold: -30 dB
+	Range: 40 dB
+	Gate: True
+	Fast Attack: True (Fast=1 ms otherwise Auto-Sense)
+	Release: 4 s
+
+Dynamics To:
+	Bypass: False
+	Channel Out (Dynamics after EQ): True
+
+EQ Section:
+	LF Type Bell: True
+	LF Gain: 6 dB
+	LF Frequency: 150 Hz
+	LMF Gain: -15 dB
+	LMF Frequency: 0,8 KHz
+	LMF Q: 3,5
+	HMF Gain: 0 dB
+	HMF Frequency: 3,5 KHz
+	HMF Q: 1,5
+	HF Type Bell: False
+	HF Gain: 9 dB
+	HF Frequency: 6 KHz
+	To Bypass: False
+	To Dynamics Side-Chain: False
+
+Master Section:
+	Gain: 0 dB
+	Analog: True
+	VU Show Output: True
+	Phase Reverse: False
+	Input Trim : 0 dB
+
+
+-------------------------------------------------------
+PresetName: OverHeads
+
+Routing Diagram: FLTR -> EQ -> DYN
+
+Low and High Pass Filters:
+	HP Frequency (18 dB/octave): 0 Hz (16 - 350 Hz)
+	LP Frequency (12 dB/octave): 30 KHz (22 - 3 KHz)
+	Filter Split (Filters before Dynamics): False
+
+Compression:
+	Threshold: 0 dB
+	Ratio: 3
+	Fast Attack: True (Fast=1 ms otherwise Auto-Sense)
+	Release: 0,1 s
+
+Expander/Gate:
+	Threshold: -30 dB
+	Range: 40 dB
+	Gate: True
+	Fast Attack: True (Fast=1 ms otherwise Auto-Sense)
+	Release: 4 s
+
+Dynamics To:
+	Bypass: False
+	Channel Out (Dynamics after EQ): True
+
+EQ Section:
+	LF Type Bell: True
+	LF Gain: 6 dB
+	LF Frequency: 150 Hz
+	LMF Gain: -15 dB
+	LMF Frequency: 0,8 KHz
+	LMF Q: 3,5
+	HMF Gain: 0 dB
+	HMF Frequency: 3,5 KHz
+	HMF Q: 1,5
+	HF Type Bell: False
+	HF Gain: 9 dB
+	HF Frequency: 6 KHz
+	To Bypass: False
+	To Dynamics Side-Chain: False
+
+Master Section:
+	Gain: 0 dB
+	Analog: True
+	VU Show Output: True
+	Phase Reverse: False
+	Input Trim : 0 dB
+
+
+-------------------------------------------------------
+PresetName: Room
+
+Routing Diagram: FLTR -> EQ -> DYN
+
+Low and High Pass Filters:
+	HP Frequency (18 dB/octave): 0 Hz (16 - 350 Hz)
+	LP Frequency (12 dB/octave): 30 KHz (22 - 3 KHz)
+	Filter Split (Filters before Dynamics): False
+
+Compression:
+	Threshold: 0 dB
+	Ratio: 3
+	Fast Attack: True (Fast=1 ms otherwise Auto-Sense)
+	Release: 0,1 s
+
+Expander/Gate:
+	Threshold: -30 dB
+	Range: 40 dB
+	Gate: True
+	Fast Attack: True (Fast=1 ms otherwise Auto-Sense)
+	Release: 4 s
+
+Dynamics To:
+	Bypass: False
+	Channel Out (Dynamics after EQ): True
+
+EQ Section:
+	LF Type Bell: True
+	LF Gain: 6 dB
+	LF Frequency: 150 Hz
+	LMF Gain: -15 dB
+	LMF Frequency: 0,8 KHz
+	LMF Q: 3,5
+	HMF Gain: 0 dB
+	HMF Frequency: 3,5 KHz
+	HMF Q: 1,5
+	HF Type Bell: False
+	HF Gain: 9 dB
+	HF Frequency: 6 KHz
+	To Bypass: False
+	To Dynamics Side-Chain: False
+
+Master Section:
+	Gain: 0 dB
+	Analog: True
+	VU Show Output: True
+	Phase Reverse: False
+	Input Trim : 0 dB
+
+
+-------------------------------------------------------
+PresetName: Bass
+
+Routing Diagram: FLTR -> EQ -> DYN
+
+Low and High Pass Filters:
+	HP Frequency (18 dB/octave): 0 Hz (16 - 350 Hz)
+	LP Frequency (12 dB/octave): 30 KHz (22 - 3 KHz)
+	Filter Split (Filters before Dynamics): False
+
+Compression:
+	Threshold: 0 dB
+	Ratio: 3
+	Fast Attack: True (Fast=1 ms otherwise Auto-Sense)
+	Release: 0,1 s
+
+Expander/Gate:
+	Threshold: -30 dB
+	Range: 40 dB
+	Gate: True
+	Fast Attack: True (Fast=1 ms otherwise Auto-Sense)
+	Release: 4 s
+
+Dynamics To:
+	Bypass: False
+	Channel Out (Dynamics after EQ): True
+
+EQ Section:
+	LF Type Bell: True
+	LF Gain: 6 dB
+	LF Frequency: 150 Hz
+	LMF Gain: -15 dB
+	LMF Frequency: 0,8 KHz
+	LMF Q: 3,5
+	HMF Gain: 0 dB
+	HMF Frequency: 3,5 KHz
+	HMF Q: 1,5
+	HF Type Bell: False
+	HF Gain: 9 dB
+	HF Frequency: 6 KHz
+	To Bypass: False
+	To Dynamics Side-Chain: False
+
+Master Section:
+	Gain: 0 dB
+	Analog: True
+	VU Show Output: True
+	Phase Reverse: False
+	Input Trim : 0 dB
+
+
+-------------------------------------------------------
+PresetName: Lead Vox
+
+Routing Diagram: FLTR -> EQ -> DYN
+
+Low and High Pass Filters:
+	HP Frequency (18 dB/octave): 0 Hz (16 - 350 Hz)
+	LP Frequency (12 dB/octave): 30 KHz (22 - 3 KHz)
+	Filter Split (Filters before Dynamics): False
+
+Compression:
+	Threshold: 0 dB
+	Ratio: 3
+	Fast Attack: True (Fast=1 ms otherwise Auto-Sense)
+	Release: 0,1 s
+
+Expander/Gate:
+	Threshold: -30 dB
+	Range: 40 dB
+	Gate: True
+	Fast Attack: True (Fast=1 ms otherwise Auto-Sense)
+	Release: 4 s
+
+Dynamics To:
+	Bypass: False
+	Channel Out (Dynamics after EQ): True
+
+EQ Section:
+	LF Type Bell: True
+	LF Gain: 6 dB
+	LF Frequency: 150 Hz
+	LMF Gain: -15 dB
+	LMF Frequency: 0,8 KHz
+	LMF Q: 3,5
+	HMF Gain: 0 dB
+	HMF Frequency: 3,5 KHz
+	HMF Q: 1,5
+	HF Type Bell: False
+	HF Gain: 9 dB
+	HF Frequency: 6 KHz
+	To Bypass: False
+	To Dynamics Side-Chain: False
+
+Master Section:
+	Gain: 0 dB
+	Analog: True
+	VU Show Output: True
+	Phase Reverse: False
+	Input Trim : 0 dB
+
+
+-------------------------------------------------------
+PresetName: Backing Vox
+
+Routing Diagram: FLTR -> EQ -> DYN
+
+Low and High Pass Filters:
+	HP Frequency (18 dB/octave): 0 Hz (16 - 350 Hz)
+	LP Frequency (12 dB/octave): 30 KHz (22 - 3 KHz)
+	Filter Split (Filters before Dynamics): False
+
+Compression:
+	Threshold: 0 dB
+	Ratio: 3
+	Fast Attack: True (Fast=1 ms otherwise Auto-Sense)
+	Release: 0,1 s
+
+Expander/Gate:
+	Threshold: -30 dB
+	Range: 40 dB
+	Gate: True
+	Fast Attack: True (Fast=1 ms otherwise Auto-Sense)
+	Release: 4 s
+
+Dynamics To:
+	Bypass: False
+	Channel Out (Dynamics after EQ): True
+
+EQ Section:
+	LF Type Bell: True
+	LF Gain: 6 dB
+	LF Frequency: 150 Hz
+	LMF Gain: -15 dB
+	LMF Frequency: 0,8 KHz
+	LMF Q: 3,5
+	HMF Gain: 0 dB
+	HMF Frequency: 3,5 KHz
+	HMF Q: 1,5
+	HF Type Bell: False
+	HF Gain: 9 dB
+	HF Frequency: 6 KHz
+	To Bypass: False
+	To Dynamics Side-Chain: False
+
+Master Section:
+	Gain: 0 dB
+	Analog: True
+	VU Show Output: True
+	Phase Reverse: False
+	Input Trim : 0 dB
+
+
+-------------------------------------------------------
+PresetName: Acc Gtr
+
+Routing Diagram: FLTR -> EQ -> DYN
+
+Low and High Pass Filters:
+	HP Frequency (18 dB/octave): 0 Hz (16 - 350 Hz)
+	LP Frequency (12 dB/octave): 30 KHz (22 - 3 KHz)
+	Filter Split (Filters before Dynamics): False
+
+Compression:
+	Threshold: 0 dB
+	Ratio: 3
+	Fast Attack: True (Fast=1 ms otherwise Auto-Sense)
+	Release: 0,1 s
+
+Expander/Gate:
+	Threshold: -30 dB
+	Range: 40 dB
+	Gate: True
+	Fast Attack: True (Fast=1 ms otherwise Auto-Sense)
+	Release: 4 s
+
+Dynamics To:
+	Bypass: False
+	Channel Out (Dynamics after EQ): True
+
+EQ Section:
+	LF Type Bell: True
+	LF Gain: 6 dB
+	LF Frequency: 150 Hz
+	LMF Gain: -15 dB
+	LMF Frequency: 0,8 KHz
+	LMF Q: 3,5
+	HMF Gain: 0 dB
+	HMF Frequency: 3,5 KHz
+	HMF Q: 1,5
+	HF Type Bell: False
+	HF Gain: 9 dB
+	HF Frequency: 6 KHz
+	To Bypass: False
+	To Dynamics Side-Chain: False
+
+Master Section:
+	Gain: 0 dB
+	Analog: True
+	VU Show Output: True
+	Phase Reverse: False
+	Input Trim : 0 dB
+
+
+-------------------------------------------------------
+PresetName: Guitar
+
+Routing Diagram: FLTR -> EQ -> DYN
+
+Low and High Pass Filters:
+	HP Frequency (18 dB/octave): 0 Hz (16 - 350 Hz)
+	LP Frequency (12 dB/octave): 30 KHz (22 - 3 KHz)
+	Filter Split (Filters before Dynamics): False
+
+Compression:
+	Threshold: 0 dB
+	Ratio: 3
+	Fast Attack: True (Fast=1 ms otherwise Auto-Sense)
+	Release: 0,1 s
+
+Expander/Gate:
+	Threshold: -30 dB
+	Range: 40 dB
+	Gate: True
+	Fast Attack: True (Fast=1 ms otherwise Auto-Sense)
+	Release: 4 s
+
+Dynamics To:
+	Bypass: False
+	Channel Out (Dynamics after EQ): True
+
+EQ Section:
+	LF Type Bell: True
+	LF Gain: 6 dB
+	LF Frequency: 150 Hz
+	LMF Gain: -15 dB
+	LMF Frequency: 0,8 KHz
+	LMF Q: 3,5
+	HMF Gain: 0 dB
+	HMF Frequency: 3,5 KHz
+	HMF Q: 1,5
+	HF Type Bell: False
+	HF Gain: 9 dB
+	HF Frequency: 6 KHz
+	To Bypass: False
+	To Dynamics Side-Chain: False
+
+Master Section:
+	Gain: 0 dB
+	Analog: True
+	VU Show Output: True
+	Phase Reverse: False
+	Input Trim : 0 dB
+
+
+-------------------------------------------------------
+PresetName: Rhythm Guitar
+
+Routing Diagram: FLTR -> EQ -> DYN
+
+Low and High Pass Filters:
+	HP Frequency (18 dB/octave): 0 Hz (16 - 350 Hz)
+	LP Frequency (12 dB/octave): 30 KHz (22 - 3 KHz)
+	Filter Split (Filters before Dynamics): False
+
+Compression:
+	Threshold: 0 dB
+	Ratio: 3
+	Fast Attack: True (Fast=1 ms otherwise Auto-Sense)
+	Release: 0,1 s
+
+Expander/Gate:
+	Threshold: -30 dB
+	Range: 40 dB
+	Gate: True
+	Fast Attack: True (Fast=1 ms otherwise Auto-Sense)
+	Release: 4 s
+
+Dynamics To:
+	Bypass: False
+	Channel Out (Dynamics after EQ): True
+
+EQ Section:
+	LF Type Bell: True
+	LF Gain: 6 dB
+	LF Frequency: 150 Hz
+	LMF Gain: -15 dB
+	LMF Frequency: 0,8 KHz
+	LMF Q: 3,5
+	HMF Gain: 0 dB
+	HMF Frequency: 3,5 KHz
+	HMF Q: 1,5
+	HF Type Bell: False
+	HF Gain: 9 dB
+	HF Frequency: 6 KHz
+	To Bypass: False
+	To Dynamics Side-Chain: False
+
+Master Section:
+	Gain: 0 dB
+	Analog: True
+	VU Show Output: True
+	Phase Reverse: False
+	Input Trim : 0 dB
+
+
+-------------------------------------------------------
+PresetName: Piano
+
+Routing Diagram: FLTR -> EQ -> DYN
+
+Low and High Pass Filters:
+	HP Frequency (18 dB/octave): 0 Hz (16 - 350 Hz)
+	LP Frequency (12 dB/octave): 30 KHz (22 - 3 KHz)
+	Filter Split (Filters before Dynamics): False
+
+Compression:
+	Threshold: 0 dB
+	Ratio: 3
+	Fast Attack: True (Fast=1 ms otherwise Auto-Sense)
+	Release: 0,1 s
+
+Expander/Gate:
+	Threshold: -30 dB
+	Range: 40 dB
+	Gate: True
+	Fast Attack: True (Fast=1 ms otherwise Auto-Sense)
+	Release: 4 s
+
+Dynamics To:
+	Bypass: False
+	Channel Out (Dynamics after EQ): True
+
+EQ Section:
+	LF Type Bell: True
+	LF Gain: 6 dB
+	LF Frequency: 150 Hz
+	LMF Gain: -15 dB
+	LMF Frequency: 0,8 KHz
+	LMF Q: 3,5
+	HMF Gain: 0 dB
+	HMF Frequency: 3,5 KHz
+	HMF Q: 1,5
+	HF Type Bell: False
+	HF Gain: 9 dB
+	HF Frequency: 6 KHz
+	To Bypass: False
+	To Dynamics Side-Chain: False
+
+Master Section:
+	Gain: 0 dB
+	Analog: True
+	VU Show Output: True
+	Phase Reverse: False
+	Input Trim : 0 dB
+
+
+-------------------------------------------------------
+PresetName: Classical Guitar
+
+Routing Diagram: FLTR -> EQ -> DYN
+
+Low and High Pass Filters:
+	HP Frequency (18 dB/octave): 0 Hz (16 - 350 Hz)
+	LP Frequency (12 dB/octave): 30 KHz (22 - 3 KHz)
+	Filter Split (Filters before Dynamics): False
+
+Compression:
+	Threshold: 0 dB
+	Ratio: 3
+	Fast Attack: True (Fast=1 ms otherwise Auto-Sense)
+	Release: 0,1 s
+
+Expander/Gate:
+	Threshold: -30 dB
+	Range: 40 dB
+	Gate: True
+	Fast Attack: True (Fast=1 ms otherwise Auto-Sense)
+	Release: 4 s
+
+Dynamics To:
+	Bypass: False
+	Channel Out (Dynamics after EQ): True
+
+EQ Section:
+	LF Type Bell: True
+	LF Gain: 6 dB
+	LF Frequency: 150 Hz
+	LMF Gain: -15 dB
+	LMF Frequency: 0,8 KHz
+	LMF Q: 3,5
+	HMF Gain: 0 dB
+	HMF Frequency: 3,5 KHz
+	HMF Q: 1,5
+	HF Type Bell: False
+	HF Gain: 9 dB
+	HF Frequency: 6 KHz
+	To Bypass: False
+	To Dynamics Side-Chain: False
+
+Master Section:
+	Gain: 0 dB
+	Analog: True
+	VU Show Output: True
+	Phase Reverse: False
+	Input Trim : 0 dB
+
+
+-------------------------------------------------------
+PresetName: Strings
+
+Routing Diagram: FLTR -> EQ -> DYN
+
+Low and High Pass Filters:
+	HP Frequency (18 dB/octave): 0 Hz (16 - 350 Hz)
+	LP Frequency (12 dB/octave): 30 KHz (22 - 3 KHz)
+	Filter Split (Filters before Dynamics): False
+
+Compression:
+	Threshold: 0 dB
+	Ratio: 3
+	Fast Attack: True (Fast=1 ms otherwise Auto-Sense)
+	Release: 0,1 s
+
+Expander/Gate:
+	Threshold: -30 dB
+	Range: 40 dB
+	Gate: True
+	Fast Attack: True (Fast=1 ms otherwise Auto-Sense)
+	Release: 4 s
+
+Dynamics To:
+	Bypass: False
+	Channel Out (Dynamics after EQ): True
+
+EQ Section:
+	LF Type Bell: True
+	LF Gain: 6 dB
+	LF Frequency: 150 Hz
+	LMF Gain: -15 dB
+	LMF Frequency: 0,8 KHz
+	LMF Q: 3,5
+	HMF Gain: 0 dB
+	HMF Frequency: 3,5 KHz
+	HMF Q: 1,5
+	HF Type Bell: False
+	HF Gain: 9 dB
+	HF Frequency: 6 KHz
+	To Bypass: False
+	To Dynamics Side-Chain: False
+
+Master Section:
+	Gain: 0 dB
+	Analog: True
+	VU Show Output: True
+	Phase Reverse: False
+	Input Trim : 0 dB
+
+
+-------------------------------------------------------
+PresetName: Violin
+
+Routing Diagram: FLTR -> EQ -> DYN
+
+Low and High Pass Filters:
+	HP Frequency (18 dB/octave): 0 Hz (16 - 350 Hz)
+	LP Frequency (12 dB/octave): 30 KHz (22 - 3 KHz)
+	Filter Split (Filters before Dynamics): False
+
+Compression:
+	Threshold: 0 dB
+	Ratio: 3
+	Fast Attack: True (Fast=1 ms otherwise Auto-Sense)
+	Release: 0,1 s
+
+Expander/Gate:
+	Threshold: -30 dB
+	Range: 40 dB
+	Gate: True
+	Fast Attack: True (Fast=1 ms otherwise Auto-Sense)
+	Release: 4 s
+
+Dynamics To:
+	Bypass: False
+	Channel Out (Dynamics after EQ): True
+
+EQ Section:
+	LF Type Bell: True
+	LF Gain: 6 dB
+	LF Frequency: 150 Hz
+	LMF Gain: -15 dB
+	LMF Frequency: 0,8 KHz
+	LMF Q: 3,5
+	HMF Gain: 0 dB
+	HMF Frequency: 3,5 KHz
+	HMF Q: 1,5
+	HF Type Bell: False
+	HF Gain: 9 dB
+	HF Frequency: 6 KHz
+	To Bypass: False
+	To Dynamics Side-Chain: False
+
+Master Section:
+	Gain: 0 dB
+	Analog: True
+	VU Show Output: True
+	Phase Reverse: False
+	Input Trim : 0 dB
+
+
+-------------------------------------------------------
+PresetName: CLA Kick 3
+Group: Chris Lord Alge 
+
+Routing Diagram: DYN -> FLTR -> EQ (default)
+
+Low and High Pass Filters:
+	HP Frequency (18 dB/octave): 0 Hz (16 - 350 Hz)
+	LP Frequency (12 dB/octave): 30 KHz (22 - 3 KHz)
+	Filter Split (Filters before Dynamics): False
+
+Compression:
+	Threshold: -18 dB
+	Ratio: 3
+	Fast Attack: False (Fast=1 ms otherwise Auto-Sense)
+	Release: 0,11 s
+
+Expander/Gate:
+	Threshold: -30 dB
+	Range: 40 dB
+	Gate: True
+	Fast Attack: True (Fast=1 ms otherwise Auto-Sense)
+	Release: 4 s
+
+Dynamics To:
+	Bypass: False
+	Channel Out (Dynamics after EQ): False
+
+EQ Section:
+	LF Type Bell: False
+	LF Gain: 6 dB
+	LF Frequency: 50 Hz
+	LMF Gain: -15 dB
+	LMF Frequency: 0,5 KHz
+	LMF Q: 3,5
+	HMF Gain: 6 dB
+	HMF Frequency: 0,8 KHz
+	HMF Q: 2,5
+	HF Type Bell: False
+	HF Gain: 9 dB
+	HF Frequency: 8 KHz
+	To Bypass: False
+	To Dynamics Side-Chain: False
+
+Master Section:
+	Gain: 0 dB
+	Analog: True
+	VU Show Output: True
+	Phase Reverse: False
+	Input Trim : -6 dB
+
+
+-------------------------------------------------------
+PresetName: CLA SNR 3
+Group: Chris Lord Alge 
+
+Routing Diagram: FLTR -> EQ -> DYN
+
+Low and High Pass Filters:
+	HP Frequency (18 dB/octave): 70 Hz (16 - 350 Hz)
+	LP Frequency (12 dB/octave): 30 KHz (22 - 3 KHz)
+	Filter Split (Filters before Dynamics): False
+
+Compression:
+	Threshold: -5 dB
+	Ratio: 3
+	Fast Attack: False (Fast=1 ms otherwise Auto-Sense)
+	Release: 0,11 s
+
+Expander/Gate:
+	Threshold: -30 dB
+	Range: 40 dB
+	Gate: True
+	Fast Attack: True (Fast=1 ms otherwise Auto-Sense)
+	Release: 4 s
+
+Dynamics To:
+	Bypass: False
+	Channel Out (Dynamics after EQ): True
+
+EQ Section:
+	LF Type Bell: True
+	LF Gain: 9 dB
+	LF Frequency: 150 Hz
+	LMF Gain: 3 dB
+	LMF Frequency: 1 KHz
+	LMF Q: 1,5
+	HMF Gain: 3 dB
+	HMF Frequency: 3 KHz
+	HMF Q: 1,5
+	HF Type Bell: False
+	HF Gain: 9 dB
+	HF Frequency: 6 KHz
+	To Bypass: False
+	To Dynamics Side-Chain: False
+
+Master Section:
+	Gain: 0 dB
+	Analog: True
+	VU Show Output: True
+	Phase Reverse: False
+	Input Trim : -8,5 dB
+
+
+-------------------------------------------------------
+PresetName: CLA Toms 2
+Group: Chris Lord Alge 
+
+Routing Diagram: FLTR -> EQ -> DYN
+
+Low and High Pass Filters:
+	HP Frequency (18 dB/octave): 0 Hz (16 - 350 Hz)
+	LP Frequency (12 dB/octave): 8 KHz (22 - 3 KHz)
+	Filter Split (Filters before Dynamics): False
+
+Compression:
+	Threshold: 2 dB
+	Ratio: 2
+	Fast Attack: False (Fast=1 ms otherwise Auto-Sense)
+	Release: 0,11 s
+
+Expander/Gate:
+	Threshold: -20 dB
+	Range: 40 dB
+	Gate: True
+	Fast Attack: True (Fast=1 ms otherwise Auto-Sense)
+	Release: 4 s
+
+Dynamics To:
+	Bypass: False
+	Channel Out (Dynamics after EQ): True
+
+EQ Section:
+	LF Type Bell: True
+	LF Gain: 3 dB
+	LF Frequency: 80 Hz
+	LMF Gain: -6 dB
+	LMF Frequency: 0,5 KHz
+	LMF Q: 3,5
+	HMF Gain: 0 dB
+	HMF Frequency: 3 KHz
+	HMF Q: 1,5
+	HF Type Bell: True
+	HF Gain: 3 dB
+	HF Frequency: 5 KHz
+	To Bypass: False
+	To Dynamics Side-Chain: False
+
+Master Section:
+	Gain: 0 dB
+	Analog: True
+	VU Show Output: True
+	Phase Reverse: False
+	Input Trim : 0 dB
+
+
+-------------------------------------------------------
+PresetName: CLA OverHeads 3
+Group: Chris Lord Alge 
+
+Routing Diagram: FLTR -> EQ -> DYN
+
+Low and High Pass Filters:
+	HP Frequency (18 dB/octave): 0 Hz (16 - 350 Hz)
+	LP Frequency (12 dB/octave): 30 KHz (22 - 3 KHz)
+	Filter Split (Filters before Dynamics): False
+
+Compression:
+	Threshold: 4 dB
+	Ratio: 2
+	Fast Attack: True (Fast=1 ms otherwise Auto-Sense)
+	Release: 0,11 s
+
+Expander/Gate:
+	Threshold: -30 dB
+	Range: 40 dB
+	Gate: False
+	Fast Attack: True (Fast=1 ms otherwise Auto-Sense)
+	Release: 4 s
+
+Dynamics To:
+	Bypass: False
+	Channel Out (Dynamics after EQ): True
+
+EQ Section:
+	LF Type Bell: False
+	LF Gain: 3 dB
+	LF Frequency: 80 Hz
+	LMF Gain: 0 dB
+	LMF Frequency: 0,5 KHz
+	LMF Q: 1,5
+	HMF Gain: 3 dB
+	HMF Frequency: 3 KHz
+	HMF Q: 0,1
+	HF Type Bell: False
+	HF Gain: 3 dB
+	HF Frequency: 8 KHz
+	To Bypass: False
+	To Dynamics Side-Chain: False
+
+Master Section:
+	Gain: 0 dB
+	Analog: True
+	VU Show Output: True
+	Phase Reverse: False
+	Input Trim : -3 dB
+
+
+-------------------------------------------------------
+PresetName: CLA 251 Room
+Group: Chris Lord Alge 
+
+Routing Diagram: FLTR -> EQ -> DYN
+
+Low and High Pass Filters:
+	HP Frequency (18 dB/octave): 0 Hz (16 - 350 Hz)
+	LP Frequency (12 dB/octave): 30 KHz (22 - 3 KHz)
+	Filter Split (Filters before Dynamics): False
+
+Compression:
+	Threshold: 10 dB
+	Ratio: 8
+	Fast Attack: True (Fast=1 ms otherwise Auto-Sense)
+	Release: 0,11 s
+
+Expander/Gate:
+	Threshold: -30 dB
+	Range: 40 dB
+	Gate: True
+	Fast Attack: True (Fast=1 ms otherwise Auto-Sense)
+	Release: 4 s
+
+Dynamics To:
+	Bypass: False
+	Channel Out (Dynamics after EQ): True
+
+EQ Section:
+	LF Type Bell: True
+	LF Gain: 9 dB
+	LF Frequency: 50 Hz
+	LMF Gain: 6 dB
+	LMF Frequency: 1 KHz
+	LMF Q: 1,5
+	HMF Gain: 3 dB
+	HMF Frequency: 1,5 KHz
+	HMF Q: 1,5
+	HF Type Bell: False
+	HF Gain: 9 dB
+	HF Frequency: 1,5 KHz
+	To Bypass: False
+	To Dynamics Side-Chain: False
+
+Master Section:
+	Gain: 0 dB
+	Analog: True
+	VU Show Output: True
+	Phase Reverse: False
+	Input Trim : 0 dB
+
+
+-------------------------------------------------------
+PresetName: CLA M50 Room
+Group: Chris Lord Alge 
+
+Routing Diagram: FLTR -> EQ -> DYN
+
+Low and High Pass Filters:
+	HP Frequency (18 dB/octave): 0 Hz (16 - 350 Hz)
+	LP Frequency (12 dB/octave): 30 KHz (22 - 3 KHz)
+	Filter Split (Filters before Dynamics): False
+
+Compression:
+	Threshold: 4 dB
+	Ratio: 4
+	Fast Attack: False (Fast=1 ms otherwise Auto-Sense)
+	Release: 0,11 s
+
+Expander/Gate:
+	Threshold: -20 dB
+	Range: 40 dB
+	Gate: True
+	Fast Attack: True (Fast=1 ms otherwise Auto-Sense)
+	Release: 4 s
+
+Dynamics To:
+	Bypass: False
+	Channel Out (Dynamics after EQ): True
+
+EQ Section:
+	LF Type Bell: False
+	LF Gain: -3 dB
+	LF Frequency: 50 Hz
+	LMF Gain: 0 dB
+	LMF Frequency: 0,5 KHz
+	LMF Q: 1,5
+	HMF Gain: 6 dB
+	HMF Frequency: 1,5 KHz
+	HMF Q: 1,25
+	HF Type Bell: False
+	HF Gain: 3 dB
+	HF Frequency: 8 KHz
+	To Bypass: False
+	To Dynamics Side-Chain: False
+
+Master Section:
+	Gain: 0 dB
+	Analog: True
+	VU Show Output: True
+	Phase Reverse: False
+	Input Trim : 0 dB
+
+
+-------------------------------------------------------
+PresetName: CLA VintageRibbon Room
+Group: Chris Lord Alge 
+
+Routing Diagram: FLTR -> EQ -> DYN
+
+Low and High Pass Filters:
+	HP Frequency (18 dB/octave): 50 Hz (16 - 350 Hz)
+	LP Frequency (12 dB/octave): 30 KHz (22 - 3 KHz)
+	Filter Split (Filters before Dynamics): False
+
+Compression:
+	Threshold: 3 dB
+	Ratio: 5
+	Fast Attack: False (Fast=1 ms otherwise Auto-Sense)
+	Release: 0,11 s
+
+Expander/Gate:
+	Threshold: -20 dB
+	Range: 40 dB
+	Gate: True
+	Fast Attack: True (Fast=1 ms otherwise Auto-Sense)
+	Release: 4 s
+
+Dynamics To:
+	Bypass: False
+	Channel Out (Dynamics after EQ): True
+
+EQ Section:
+	LF Type Bell: True
+	LF Gain: 3 dB
+	LF Frequency: 75 Hz
+	LMF Gain: 3 dB
+	LMF Frequency: 2,5 KHz
+	LMF Q: 1,5
+	HMF Gain: 3 dB
+	HMF Frequency: 6 KHz
+	HMF Q: 0,1
+	HF Type Bell: False
+	HF Gain: 3 dB
+	HF Frequency: 2 KHz
+	To Bypass: False
+	To Dynamics Side-Chain: False
+
+Master Section:
+	Gain: 0 dB
+	Analog: True
+	VU Show Output: True
+	Phase Reverse: False
+	Input Trim : -5 dB
+
+
+-------------------------------------------------------
+PresetName: CLA ModernRibbon Room
+Group: Chris Lord Alge 
+
+Routing Diagram: FLTR -> EQ -> DYN
+
+Low and High Pass Filters:
+	HP Frequency (18 dB/octave): 0 Hz (16 - 350 Hz)
+	LP Frequency (12 dB/octave): 30 KHz (22 - 3 KHz)
+	Filter Split (Filters before Dynamics): False
+
+Compression:
+	Threshold: -1,5 dB
+	Ratio: 2
+	Fast Attack: False (Fast=1 ms otherwise Auto-Sense)
+	Release: 0,11 s
+
+Expander/Gate:
+	Threshold: -20 dB
+	Range: 40 dB
+	Gate: True
+	Fast Attack: True (Fast=1 ms otherwise Auto-Sense)
+	Release: 4 s
+
+Dynamics To:
+	Bypass: False
+	Channel Out (Dynamics after EQ): True
+
+EQ Section:
+	LF Type Bell: False
+	LF Gain: 6 dB
+	LF Frequency: 100 Hz
+	LMF Gain: 0 dB
+	LMF Frequency: 0,5 KHz
+	LMF Q: 1,5
+	HMF Gain: 0 dB
+	HMF Frequency: 3 KHz
+	HMF Q: 1,5
+	HF Type Bell: False
+	HF Gain: 6 dB
+	HF Frequency: 1,5 KHz
+	To Bypass: False
+	To Dynamics Side-Chain: False
+
+Master Section:
+	Gain: 0 dB
+	Analog: True
+	VU Show Output: True
+	Phase Reverse: False
+	Input Trim : -3 dB
+
+
+-------------------------------------------------------
+PresetName: CLA Lead Vox
+Group: Chris Lord Alge 
+
+Routing Diagram: FLTR -> EQ -> DYN
+
+Low and High Pass Filters:
+	HP Frequency (18 dB/octave): 70 Hz (16 - 350 Hz)
+	LP Frequency (12 dB/octave): 30 KHz (22 - 3 KHz)
+	Filter Split (Filters before Dynamics): False
+
+Compression:
+	Threshold: 10 dB
+	Ratio: 3
+	Fast Attack: True (Fast=1 ms otherwise Auto-Sense)
+	Release: 0,4 s
+
+Expander/Gate:
+	Threshold: -30 dB
+	Range: 40 dB
+	Gate: True
+	Fast Attack: False (Fast=1 ms otherwise Auto-Sense)
+	Release: 4 s
+
+Dynamics To:
+	Bypass: False
+	Channel Out (Dynamics after EQ): True
+
+EQ Section:
+	LF Type Bell: False
+	LF Gain: -6 dB
+	LF Frequency: 50 Hz
+	LMF Gain: 3 dB
+	LMF Frequency: 2,5 KHz
+	LMF Q: 1,5
+	HMF Gain: 3 dB
+	HMF Frequency: 1,5 KHz
+	HMF Q: 1,5
+	HF Type Bell: False
+	HF Gain: -3 dB
+	HF Frequency: 12 KHz
+	To Bypass: False
+	To Dynamics Side-Chain: False
+
+Master Section:
+	Gain: 0 dB
+	Analog: True
+	VU Show Output: True
+	Phase Reverse: False
+	Input Trim : 0 dB
+
+
+-------------------------------------------------------
+PresetName: CLA Filter Vox 2
+Group: Chris Lord Alge 
+
+Routing Diagram: FLTR -> EQ -> DYN
+
+Low and High Pass Filters:
+	HP Frequency (18 dB/octave): 350 Hz (16 - 350 Hz)
+	LP Frequency (12 dB/octave): 3 KHz (22 - 3 KHz)
+	Filter Split (Filters before Dynamics): False
+
+Compression:
+	Threshold: -5 dB
+	Ratio: 3
+	Fast Attack: True (Fast=1 ms otherwise Auto-Sense)
+	Release: 0,15 s
+
+Expander/Gate:
+	Threshold: -30 dB
+	Range: 40 dB
+	Gate: True
+	Fast Attack: False (Fast=1 ms otherwise Auto-Sense)
+	Release: 0,4 s
+
+Dynamics To:
+	Bypass: False
+	Channel Out (Dynamics after EQ): True
+
+EQ Section:
+	LF Type Bell: False
+	LF Gain: -9 dB
+	LF Frequency: 100 Hz
+	LMF Gain: 6 dB
+	LMF Frequency: 2,5 KHz
+	LMF Q: 2
+	HMF Gain: 6 dB
+	HMF Frequency: 1,5 KHz
+	HMF Q: 2
+	HF Type Bell: False
+	HF Gain: 0 dB
+	HF Frequency: 12 KHz
+	To Bypass: False
+	To Dynamics Side-Chain: False
+
+Master Section:
+	Gain: 0 dB
+	Analog: True
+	VU Show Output: True
+	Phase Reverse: False
+	Input Trim : 0 dB
+
+
+-------------------------------------------------------
+PresetName: CLA GD Amp Bass
+Group: Chris Lord Alge 
+
+Routing Diagram: DYN -> FLTR -> EQ (default)
+
+Low and High Pass Filters:
+	HP Frequency (18 dB/octave): 0 Hz (16 - 350 Hz)
+	LP Frequency (12 dB/octave): 8 KHz (22 - 3 KHz)
+	Filter Split (Filters before Dynamics): False
+
+Compression:
+	Threshold: -10 dB
+	Ratio: 4
+	Fast Attack: False (Fast=1 ms otherwise Auto-Sense)
+	Release: 0,1 s
+
+Expander/Gate:
+	Threshold: -30 dB
+	Range: 40 dB
+	Gate: True
+	Fast Attack: False (Fast=1 ms otherwise Auto-Sense)
+	Release: 0,44 s
+
+Dynamics To:
+	Bypass: False
+	Channel Out (Dynamics after EQ): False
+
+EQ Section:
+	LF Type Bell: True
+	LF Gain: 6 dB
+	LF Frequency: 100 Hz
+	LMF Gain: 2 dB
+	LMF Frequency: 0,8 KHz
+	LMF Q: 1,25
+	HMF Gain: 0 dB
+	HMF Frequency: 3,5 KHz
+	HMF Q: 1,5
+	HF Type Bell: True
+	HF Gain: 6 dB
+	HF Frequency: 2 KHz
+	To Bypass: False
+	To Dynamics Side-Chain: False
+
+Master Section:
+	Gain: 0 dB
+	Analog: True
+	VU Show Output: True
+	Phase Reverse: False
+	Input Trim : -9 dB
+
+
+-------------------------------------------------------
+PresetName: CLA DI Bass
+Group: Chris Lord Alge 
+
+Routing Diagram: DYN -> FLTR -> EQ (default)
+
+Low and High Pass Filters:
+	HP Frequency (18 dB/octave): 0 Hz (16 - 350 Hz)
+	LP Frequency (12 dB/octave): 8 KHz (22 - 3 KHz)
+	Filter Split (Filters before Dynamics): False
+
+Compression:
+	Threshold: -10 dB
+	Ratio: 4
+	Fast Attack: False (Fast=1 ms otherwise Auto-Sense)
+	Release: 0,1 s
+
+Expander/Gate:
+	Threshold: -30 dB
+	Range: 40 dB
+	Gate: True
+	Fast Attack: False (Fast=1 ms otherwise Auto-Sense)
+	Release: 0,44 s
+
+Dynamics To:
+	Bypass: False
+	Channel Out (Dynamics after EQ): False
+
+EQ Section:
+	LF Type Bell: False
+	LF Gain: 3 dB
+	LF Frequency: 75 Hz
+	LMF Gain: 0 dB
+	LMF Frequency: 0,5 KHz
+	LMF Q: 2,5
+	HMF Gain: 0 dB
+	HMF Frequency: 3,5 KHz
+	HMF Q: 1,5
+	HF Type Bell: True
+	HF Gain: 9 dB
+	HF Frequency: 3 KHz
+	To Bypass: False
+	To Dynamics Side-Chain: False
+
+Master Section:
+	Gain: 0 dB
+	Analog: True
+	VU Show Output: True
+	Phase Reverse: False
+	Input Trim : -9 dB
+
+
+-------------------------------------------------------
+PresetName: CLA Gtr Amp1
+Group: Chris Lord Alge 
+
+Routing Diagram: FLTR -> EQ -> DYN
+
+Low and High Pass Filters:
+	HP Frequency (18 dB/octave): 0 Hz (16 - 350 Hz)
+	LP Frequency (12 dB/octave): 30 KHz (22 - 3 KHz)
+	Filter Split (Filters before Dynamics): False
+
+Compression:
+	Threshold: 10 dB
+	Ratio: 1
+	Fast Attack: False (Fast=1 ms otherwise Auto-Sense)
+	Release: 0,1 s
+
+Expander/Gate:
+	Threshold: -30 dB
+	Range: 40 dB
+	Gate: True
+	Fast Attack: True (Fast=1 ms otherwise Auto-Sense)
+	Release: 4 s
+
+Dynamics To:
+	Bypass: False
+	Channel Out (Dynamics after EQ): True
+
+EQ Section:
+	LF Type Bell: False
+	LF Gain: 3 dB
+	LF Frequency: 100 Hz
+	LMF Gain: 0 dB
+	LMF Frequency: 0,5 KHz
+	LMF Q: 2,5
+	HMF Gain: 0 dB
+	HMF Frequency: 3,5 KHz
+	HMF Q: 1,5
+	HF Type Bell: False
+	HF Gain: 6 dB
+	HF Frequency: 5 KHz
+	To Bypass: False
+	To Dynamics Side-Chain: False
+
+Master Section:
+	Gain: 0 dB
+	Analog: True
+	VU Show Output: True
+	Phase Reverse: False
+	Input Trim : 0 dB
+
+
+-------------------------------------------------------
+PresetName: CLA Gtr Amp2
+Group: Chris Lord Alge 
+
+Routing Diagram: FLTR -> EQ -> DYN
+
+Low and High Pass Filters:
+	HP Frequency (18 dB/octave): 50 Hz (16 - 350 Hz)
+	LP Frequency (12 dB/octave): 30 KHz (22 - 3 KHz)
+	Filter Split (Filters before Dynamics): False
+
+Compression:
+	Threshold: 8 dB
+	Ratio: 5
+	Fast Attack: False (Fast=1 ms otherwise Auto-Sense)
+	Release: 0,15 s
+
+Expander/Gate:
+	Threshold: -30 dB
+	Range: 40 dB
+	Gate: True
+	Fast Attack: True (Fast=1 ms otherwise Auto-Sense)
+	Release: 4 s
+
+Dynamics To:
+	Bypass: False
+	Channel Out (Dynamics after EQ): True
+
+EQ Section:
+	LF Type Bell: False
+	LF Gain: 0 dB
+	LF Frequency: 100 Hz
+	LMF Gain: 0 dB
+	LMF Frequency: 1 KHz
+	LMF Q: 1,5
+	HMF Gain: 0 dB
+	HMF Frequency: 3,5 KHz
+	HMF Q: 1,5
+	HF Type Bell: False
+	HF Gain: 9 dB
+	HF Frequency: 8 KHz
+	To Bypass: False
+	To Dynamics Side-Chain: False
+
+Master Section:
+	Gain: 0 dB
+	Analog: True
+	VU Show Output: True
+	Phase Reverse: False
+	Input Trim : -6 dB
+
+
+-------------------------------------------------------
+PresetName: CLA Gtr Amp3
+Group: Chris Lord Alge 
+
+Routing Diagram: FLTR -> EQ -> DYN
+
+Low and High Pass Filters:
+	HP Frequency (18 dB/octave): 50 Hz (16 - 350 Hz)
+	LP Frequency (12 dB/octave): 10 KHz (22 - 3 KHz)
+	Filter Split (Filters before Dynamics): False
+
+Compression:
+	Threshold: 2 dB
+	Ratio: 2
+	Fast Attack: False (Fast=1 ms otherwise Auto-Sense)
+	Release: 0,1 s
+
+Expander/Gate:
+	Threshold: -30 dB
+	Range: 40 dB
+	Gate: True
+	Fast Attack: True (Fast=1 ms otherwise Auto-Sense)
+	Release: 4 s
+
+Dynamics To:
+	Bypass: False
+	Channel Out (Dynamics after EQ): True
+
+EQ Section:
+	LF Type Bell: True
+	LF Gain: 3 dB
+	LF Frequency: 100 Hz
+	LMF Gain: 0 dB
+	LMF Frequency: 1 KHz
+	LMF Q: 1,5
+	HMF Gain: 3 dB
+	HMF Frequency: 7 KHz
+	HMF Q: 2
+	HF Type Bell: False
+	HF Gain: 6 dB
+	HF Frequency: 1,5 KHz
+	To Bypass: False
+	To Dynamics Side-Chain: False
+
+Master Section:
+	Gain: 0 dB
+	Analog: True
+	VU Show Output: True
+	Phase Reverse: False
+	Input Trim : -3 dB
+
+
+-------------------------------------------------------
+PresetName: Hedges Great Girl Vox
+Group: Mike Hedges 
+
+Routing Diagram: DYN -> FLTR -> EQ (default)
+
+Low and High Pass Filters:
+	HP Frequency (18 dB/octave): 115 Hz (16 - 350 Hz)
+	LP Frequency (12 dB/octave): 30 KHz (22 - 3 KHz)
+	Filter Split (Filters before Dynamics): False
+
+Compression:
+	Threshold: -6,7 dB
+	Ratio: 3,2
+	Fast Attack: False (Fast=1 ms otherwise Auto-Sense)
+	Release: 0,4 s
+
+Expander/Gate:
+	Threshold: -13,9 dB
+	Range: 30,1 dB
+	Gate: False
+	Fast Attack: False (Fast=1 ms otherwise Auto-Sense)
+	Release: 2,11 s
+
+Dynamics To:
+	Bypass: False
+	Channel Out (Dynamics after EQ): False
+
+EQ Section:
+	LF Type Bell: True
+	LF Gain: 0,1 dB
+	LF Frequency: 357 Hz
+	LMF Gain: 5,2 dB
+	LMF Frequency: 1,36 KHz
+	LMF Q: 1,48
+	HMF Gain: 4,3 dB
+	HMF Frequency: 3,87 KHz
+	HMF Q: 1,5
+	HF Type Bell: False
+	HF Gain: 8,6 dB
+	HF Frequency: 12,56 KHz
+	To Bypass: False
+	To Dynamics Side-Chain: False
+
+Master Section:
+	Gain: 0 dB
+	Analog: True
+	VU Show Output: True
+	Phase Reverse: False
+	Input Trim : -3,5 dB
+
+
+-------------------------------------------------------
+PresetName: Hedges String Chunk
+Group: Mike Hedges 
+
+Routing Diagram: DYN -> FLTR -> EQ (default)
+
+Low and High Pass Filters:
+	HP Frequency (18 dB/octave): 34 Hz (16 - 350 Hz)
+	LP Frequency (12 dB/octave): 30 KHz (22 - 3 KHz)
+	Filter Split (Filters before Dynamics): False
+
+Compression:
+	Threshold: 10 dB
+	Ratio: 1,9
+	Fast Attack: False (Fast=1 ms otherwise Auto-Sense)
+	Release: 1,17 s
+
+Expander/Gate:
+	Threshold: -30 dB
+	Range: 0 dB
+	Gate: False
+	Fast Attack: False (Fast=1 ms otherwise Auto-Sense)
+	Release: 4 s
+
+Dynamics To:
+	Bypass: False
+	Channel Out (Dynamics after EQ): False
+
+EQ Section:
+	LF Type Bell: True
+	LF Gain: 9,4 dB
+	LF Frequency: 170 Hz
+	LMF Gain: 7,4 dB
+	LMF Frequency: 0,75 KHz
+	LMF Q: 0,67
+	HMF Gain: 2,4 dB
+	HMF Frequency: 6,14 KHz
+	HMF Q: 1,25
+	HF Type Bell: False
+	HF Gain: 3 dB
+	HF Frequency: 14,02 KHz
+	To Bypass: False
+	To Dynamics Side-Chain: False
+
+Master Section:
+	Gain: 0 dB
+	Analog: True
+	VU Show Output: False
+	Phase Reverse: False
+	Input Trim : -2,2 dB
+
+
+-------------------------------------------------------
+PresetName: Hedges String Group
+Group: Mike Hedges 
+
+Routing Diagram: DYN -> FLTR -> EQ (default)
+
+Low and High Pass Filters:
+	HP Frequency (18 dB/octave): 34 Hz (16 - 350 Hz)
+	LP Frequency (12 dB/octave): 30 KHz (22 - 3 KHz)
+	Filter Split (Filters before Dynamics): False
+
+Compression:
+	Threshold: 10 dB
+	Ratio: 1,9
+	Fast Attack: False (Fast=1 ms otherwise Auto-Sense)
+	Release: 1,17 s
+
+Expander/Gate:
+	Threshold: -30 dB
+	Range: 0 dB
+	Gate: False
+	Fast Attack: False (Fast=1 ms otherwise Auto-Sense)
+	Release: 4 s
+
+Dynamics To:
+	Bypass: False
+	Channel Out (Dynamics after EQ): False
+
+EQ Section:
+	LF Type Bell: True
+	LF Gain: 9,4 dB
+	LF Frequency: 170 Hz
+	LMF Gain: 7,4 dB
+	LMF Frequency: 0,75 KHz
+	LMF Q: 0,67
+	HMF Gain: 2,4 dB
+	HMF Frequency: 6,14 KHz
+	HMF Q: 1,25
+	HF Type Bell: False
+	HF Gain: 3 dB
+	HF Frequency: 14,02 KHz
+	To Bypass: False
+	To Dynamics Side-Chain: False
+
+Master Section:
+	Gain: 0 dB
+	Analog: True
+	VU Show Output: False
+	Phase Reverse: False
+	Input Trim : 0 dB
+
+
+-------------------------------------------------------
+PresetName: Lillywhite Ac Gtr
+Group: Steve Lillywhite 
+
+Routing Diagram: DYN -> FLTR -> EQ (default)
+
+Low and High Pass Filters:
+	HP Frequency (18 dB/octave): 70 Hz (16 - 350 Hz)
+	LP Frequency (12 dB/octave): 30 KHz (22 - 3 KHz)
+	Filter Split (Filters before Dynamics): False
+
+Compression:
+	Threshold: 0,9 dB
+	Ratio: 2
+	Fast Attack: True (Fast=1 ms otherwise Auto-Sense)
+	Release: 0,15 s
+
+Expander/Gate:
+	Threshold: -30 dB
+	Range: 0 dB
+	Gate: False
+	Fast Attack: False (Fast=1 ms otherwise Auto-Sense)
+	Release: 0,2 s
+
+Dynamics To:
+	Bypass: False
+	Channel Out (Dynamics after EQ): False
+
+EQ Section:
+	LF Type Bell: False
+	LF Gain: -0,3 dB
+	LF Frequency: 199 Hz
+	LMF Gain: -2 dB
+	LMF Frequency: 0,43 KHz
+	LMF Q: 2,02
+	HMF Gain: 3,7 dB
+	HMF Frequency: 5,29 KHz
+	HMF Q: 1,6
+	HF Type Bell: True
+	HF Gain: 2,3 dB
+	HF Frequency: 14,32 KHz
+	To Bypass: False
+	To Dynamics Side-Chain: False
+
+Master Section:
+	Gain: 0 dB
+	Analog: True
+	VU Show Output: True
+	Phase Reverse: False
+	Input Trim : 0 dB
+
+
+-------------------------------------------------------
+PresetName: Lillywhite Elec Gtr
+Group: Steve Lillywhite 
+
+Routing Diagram: DYN -> FLTR -> EQ (default)
+
+Low and High Pass Filters:
+	HP Frequency (18 dB/octave): 21 Hz (16 - 350 Hz)
+	LP Frequency (12 dB/octave): 30 KHz (22 - 3 KHz)
+	Filter Split (Filters before Dynamics): False
+
+Compression:
+	Threshold: -10,6 dB
+	Ratio: 1,9
+	Fast Attack: True (Fast=1 ms otherwise Auto-Sense)
+	Release: 0,15 s
+
+Expander/Gate:
+	Threshold: -30 dB
+	Range: 0 dB
+	Gate: False
+	Fast Attack: False (Fast=1 ms otherwise Auto-Sense)
+	Release: 0,2 s
+
+Dynamics To:
+	Bypass: False
+	Channel Out (Dynamics after EQ): False
+
+EQ Section:
+	LF Type Bell: False
+	LF Gain: -2,1 dB
+	LF Frequency: 182 Hz
+	LMF Gain: 3,1 dB
+	LMF Frequency: 1,29 KHz
+	LMF Q: 2,5
+	HMF Gain: 4 dB
+	HMF Frequency: 2,61 KHz
+	HMF Q: 1,33
+	HF Type Bell: False
+	HF Gain: 0 dB
+	HF Frequency: 7,78 KHz
+	To Bypass: False
+	To Dynamics Side-Chain: False
+
+Master Section:
+	Gain: 0 dB
+	Analog: True
+	VU Show Output: True
+	Phase Reverse: False
+	Input Trim : 0 dB
+
+
+-------------------------------------------------------
+PresetName: Lillywhite Kick Drum - Inside
+Group: Steve Lillywhite 
+
+Routing Diagram: DYN -> FLTR -> EQ (default)
+
+Low and High Pass Filters:
+	HP Frequency (18 dB/octave): 28 Hz (16 - 350 Hz)
+	LP Frequency (12 dB/octave): 30 KHz (22 - 3 KHz)
+	Filter Split (Filters before Dynamics): False
+
+Compression:
+	Threshold: -11,2 dB
+	Ratio: 3,5
+	Fast Attack: False (Fast=1 ms otherwise Auto-Sense)
+	Release: 0,19 s
+
+Expander/Gate:
+	Threshold: -19,8 dB
+	Range: 23,6 dB
+	Gate: False
+	Fast Attack: True (Fast=1 ms otherwise Auto-Sense)
+	Release: 0,21 s
+
+Dynamics To:
+	Bypass: False
+	Channel Out (Dynamics after EQ): False
+
+EQ Section:
+	LF Type Bell: False
+	LF Gain: 7 dB
+	LF Frequency: 93 Hz
+	LMF Gain: -8,7 dB
+	LMF Frequency: 0,76 KHz
+	LMF Q: 3,39
+	HMF Gain: -5,1 dB
+	HMF Frequency: 1,23 KHz
+	HMF Q: 2,2
+	HF Type Bell: False
+	HF Gain: 0 dB
+	HF Frequency: 8 KHz
+	To Bypass: False
+	To Dynamics Side-Chain: False
+
+Master Section:
+	Gain: 0 dB
+	Analog: True
+	VU Show Output: True
+	Phase Reverse: False
+	Input Trim : 0 dB
+
+
+-------------------------------------------------------
+PresetName: Lillywhite Snare Top
+Group: Steve Lillywhite 
+
+Routing Diagram: DYN -> FLTR -> EQ (default)
+
+Low and High Pass Filters:
+	HP Frequency (18 dB/octave): 18 Hz (16 - 350 Hz)
+	LP Frequency (12 dB/octave): 30 KHz (22 - 3 KHz)
+	Filter Split (Filters before Dynamics): False
+
+Compression:
+	Threshold: -13,7 dB
+	Ratio: 4,9
+	Fast Attack: False (Fast=1 ms otherwise Auto-Sense)
+	Release: 0,15 s
+
+Expander/Gate:
+	Threshold: -4,9 dB
+	Range: 20,9 dB
+	Gate: False
+	Fast Attack: True (Fast=1 ms otherwise Auto-Sense)
+	Release: 0,34 s
+
+Dynamics To:
+	Bypass: False
+	Channel Out (Dynamics after EQ): False
+
+EQ Section:
+	LF Type Bell: False
+	LF Gain: 0 dB
+	LF Frequency: 60 Hz
+	LMF Gain: 7,9 dB
+	LMF Frequency: 0,2 KHz
+	LMF Q: 2,5
+	HMF Gain: 5,6 dB
+	HMF Frequency: 1,24 KHz
+	HMF Q: 1,5
+	HF Type Bell: False
+	HF Gain: 3,8 dB
+	HF Frequency: 6,4 KHz
+	To Bypass: False
+	To Dynamics Side-Chain: False
+
+Master Section:
+	Gain: 0 dB
+	Analog: True
+	VU Show Output: True
+	Phase Reverse: False
+	Input Trim : 0 dB
+
+
+-------------------------------------------------------
+PresetName: Russo Lead Solo Violin
+Group: Thom Russo 
+
+Routing Diagram: DYN -> FLTR -> EQ (default)
+
+Low and High Pass Filters:
+	HP Frequency (18 dB/octave): 0 Hz (16 - 350 Hz)
+	LP Frequency (12 dB/octave): 30 KHz (22 - 3 KHz)
+	Filter Split (Filters before Dynamics): False
+
+Compression:
+	Threshold: -5,7 dB
+	Ratio: 3,8
+	Fast Attack: False (Fast=1 ms otherwise Auto-Sense)
+	Release: 0,2 s
+
+Expander/Gate:
+	Threshold: -21,9 dB
+	Range: 24,1 dB
+	Gate: False
+	Fast Attack: False (Fast=1 ms otherwise Auto-Sense)
+	Release: 1,6 s
+
+Dynamics To:
+	Bypass: False
+	Channel Out (Dynamics after EQ): False
+
+EQ Section:
+	LF Type Bell: False
+	LF Gain: 1,3 dB
+	LF Frequency: 175 Hz
+	LMF Gain: -0,4 dB
+	LMF Frequency: 0,52 KHz
+	LMF Q: 2,5
+	HMF Gain: -1 dB
+	HMF Frequency: 3,77 KHz
+	HMF Q: 1,5
+	HF Type Bell: False
+	HF Gain: 2,1 dB
+	HF Frequency: 11,76 KHz
+	To Bypass: False
+	To Dynamics Side-Chain: False
+
+Master Section:
+	Gain: 0 dB
+	Analog: True
+	VU Show Output: True
+	Phase Reverse: False
+	Input Trim : 0 dB
+
+
+-------------------------------------------------------
+PresetName: Parker Power Drum Room
+Group: Todd Parker 
+
+Routing Diagram: DYN -> FLTR -> EQ (default)
+
+Low and High Pass Filters:
+	HP Frequency (18 dB/octave): 0 Hz (16 - 350 Hz)
+	LP Frequency (12 dB/octave): 10,5 KHz (22 - 3 KHz)
+	Filter Split (Filters before Dynamics): False
+
+Compression:
+	Threshold: -20 dB
+	Ratio: 8,9
+	Fast Attack: True (Fast=1 ms otherwise Auto-Sense)
+	Release: 0,3 s
+
+Expander/Gate:
+	Threshold: -30 dB
+	Range: 0 dB
+	Gate: False
+	Fast Attack: False (Fast=1 ms otherwise Auto-Sense)
+	Release: 0,2 s
+
+Dynamics To:
+	Bypass: False
+	Channel Out (Dynamics after EQ): False
+
+EQ Section:
+	LF Type Bell: False
+	LF Gain: 0 dB
+	LF Frequency: 60 Hz
+	LMF Gain: 0 dB
+	LMF Frequency: 0,5 KHz
+	LMF Q: 3,5
+	HMF Gain: 0 dB
+	HMF Frequency: 3,5 KHz
+	HMF Q: 1,5
+	HF Type Bell: False
+	HF Gain: 0 dB
+	HF Frequency: 8 KHz
+	To Bypass: True
+	To Dynamics Side-Chain: False
+
+Master Section:
+	Gain: 6 dB
+	Analog: True
+	VU Show Output: True
+	Phase Reverse: False
+	Input Trim : 0 dB
+
+
+-------------------------------------------------------
+PresetName: MixCoach - Instant Awesome Vocal
+
+Routing Diagram: FLTR -> EQ -> DYN
+
+Low and High Pass Filters:
+	HP Frequency (18 dB/octave): 105 Hz (16 - 350 Hz)
+	LP Frequency (12 dB/octave): 30 KHz (22 - 3 KHz)
+	Filter Split (Filters before Dynamics): True
+
+Compression:
+	Threshold: -20 dB
+	Ratio: 1,9
+	Fast Attack: False (Fast=1 ms otherwise Auto-Sense)
+	Release: 0,4 s
+
+Expander/Gate:
+	Threshold: -30 dB
+	Range: 0 dB
+	Gate: False
+	Fast Attack: False (Fast=1 ms otherwise Auto-Sense)
+	Release: 0,2 s
+
+Dynamics To:
+	Bypass: False
+	Channel Out (Dynamics after EQ): True
+
+EQ Section:
+	LF Type Bell: False
+	LF Gain: 0 dB
+	LF Frequency: 60 Hz
+	LMF Gain: 0 dB
+	LMF Frequency: 0,5 KHz
+	LMF Q: 2,5
+	HMF Gain: 0 dB
+	HMF Frequency: 3,5 KHz
+	HMF Q: 1,5
+	HF Type Bell: False
+	HF Gain: 0 dB
+	HF Frequency: 8 KHz
+	To Bypass: False
+	To Dynamics Side-Chain: False
+
+Master Section:
+	Gain: 0 dB
+	Analog: True
+	VU Show Output: True
+	Phase Reverse: False
+	Input Trim : 0 dB
+
+
+-------------------------------------------------------
+PresetName: Default
+
+Routing Diagram: DYN -> FLTR -> EQ (default)
+
+Low and High Pass Filters:
+	HP Frequency (18 dB/octave): 0 Hz (16 - 350 Hz)
+	LP Frequency (12 dB/octave): 30 KHz (22 - 3 KHz)
+	Filter Split (Filters before Dynamics): False
+
+Compression:
+	Threshold: 0 dB
+	Ratio: 1
+	Fast Attack: False (Fast=1 ms otherwise Auto-Sense)
+	Release: 0,4 s
+
+Expander/Gate:
+	Threshold: -30 dB
+	Range: 0 dB
+	Gate: False
+	Fast Attack: False (Fast=1 ms otherwise Auto-Sense)
+	Release: 0,2 s
+
+Dynamics To:
+	Bypass: False
+	Channel Out (Dynamics after EQ): False
+
+EQ Section:
+	LF Type Bell: False
+	LF Gain: 0 dB
+	LF Frequency: 60 Hz
+	LMF Gain: 0 dB
+	LMF Frequency: 0,5 KHz
+	LMF Q: 2,5
+	HMF Gain: 0 dB
+	HMF Frequency: 3,5 KHz
+	HMF Q: 1,5
+	HF Type Bell: False
+	HF Gain: 0 dB
+	HF Frequency: 8 KHz
+	To Bypass: False
+	To Dynamics Side-Chain: False
+
+Master Section:
+	Gain: 0 dB
+	Analog: True
+	VU Show Output: True
+	Phase Reverse: False
+	Input Trim : 0 dB
+
+
+-------------------------------------------------------
+PresetName: Phil Tan Female Vocal (Rihanna - Diam)
+
+Routing Diagram: FLTR -> DYN -> EQ
+
+Low and High Pass Filters:
+	HP Frequency (18 dB/octave): 79 Hz (16 - 350 Hz)
+	LP Frequency (12 dB/octave): 30 KHz (22 - 3 KHz)
+	Filter Split (Filters before Dynamics): True
+
+Compression:
+	Threshold: -0,5 dB
+	Ratio: 2,8
+	Fast Attack: True (Fast=1 ms otherwise Auto-Sense)
+	Release: 0,27 s
+
+Expander/Gate:
+	Threshold: -30 dB
+	Range: 0 dB
+	Gate: False
+	Fast Attack: False (Fast=1 ms otherwise Auto-Sense)
+	Release: 0,2 s
+
+Dynamics To:
+	Bypass: False
+	Channel Out (Dynamics after EQ): False
+
+EQ Section:
+	LF Type Bell: False
+	LF Gain: 0 dB
+	LF Frequency: 52 Hz
+	LMF Gain: 2,4 dB
+	LMF Frequency: 1,8 KHz
+	LMF Q: 1,15
+	HMF Gain: 1,4 dB
+	HMF Frequency: 5,52 KHz
+	HMF Q: 0,86
+	HF Type Bell: False
+	HF Gain: 1,2 dB
+	HF Frequency: 9,28 KHz
+	To Bypass: False
+	To Dynamics Side-Chain: False
+
+Master Section:
+	Gain: 0 dB
+	Analog: True
+	VU Show Output: True
+	Phase Reverse: False
+	Input Trim : 0 dB
+
+
+-------------------------------------------------------

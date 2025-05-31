@@ -448,7 +448,7 @@ export class FXP {
       const chunkAsString = new TextDecoder("utf-8").decode(chunkData);
       const parser = new XMLParser({
         ignoreAttributes: false,
-        attributeNamePrefix: "",
+        attributeNamePrefix: "@_",
         parseAttributeValue: true,
       });
 

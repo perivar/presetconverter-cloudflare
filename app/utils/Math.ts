@@ -80,3 +80,48 @@ export function convertAndMaintainRatio(
   const scaledValue = (value - fromMin) / fromRange;
   return toMin + scaledValue * toRange;
 }
+
+/**
+ * Formats a number with high precision or as an integer string if it has no decimal part.
+ *
+ * @param n - The number to format.
+ * @param precision - The number of significant digits to preserve. Defaults to 20.
+ * @returns A string representation of the number, formatted with the specified precision
+ *          if it has a fractional part, or as an integer if it's whole.
+ *
+ * @example
+ * formatNumberWithPrecision(1.23456789);             // "1.2345678900000000000"
+ * formatNumberWithPrecision(1.23456789, 10);         // "1.234567890"
+ * formatNumberWithPrecision(-20);                    // "-20"
+ * formatNumberWithPrecision(0.000000000123, 25);     // "1.2300000000000000000000e-10"
+ */
+/**
+ * Formats a number with high precision, or as an integer or clean decimal string
+ * if it doesn't require full precision. For example, 0.5 stays "0.5" instead of
+ * "0.50000000000000000000".
+ *
+ * @param n - The number to format.
+ * @param precision - Number of significant digits to preserve. Defaults to 20.
+ * @returns A string representation of the number, preserving either exact or full precision.
+ */
+export function formatNumberWithPrecision(
+  n: number,
+  precision: number = 20
+): string {
+  if (Number.isInteger(n)) {
+    return n.toString();
+  }
+
+  // Use toPrecision to keep full significant digits
+  const precise = n.toPrecision(precision);
+
+  // If precise representation parses back exactly, trim unnecessary zeros
+  if (Number(precise) === n) {
+    return precise
+      .replace(/(\.\d*?[1-9])0+$/g, "$1") // Trim trailing zeros after decimal
+      .replace(/\.0+$/, ""); // Trim ".0" if that's all that remains
+  }
+
+  // Otherwise, return full precision
+  return precise;
+}

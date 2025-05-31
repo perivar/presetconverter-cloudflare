@@ -59,7 +59,7 @@ export class SteinbergVstPreset extends VstPreset {
     );
   }
 
-  private initCompChunkData(): void {
+  protected initCompChunkData(): void {
     const writer = new BinaryWriter(true); // Little Endian
 
     for (const parameter of this.Parameters.values()) {
@@ -115,9 +115,7 @@ export class SteinbergVstPreset extends VstPreset {
       }
     }
 
-    const compDataBytes = new Uint8Array(writer.getBuffer());
-
-    // Add the newly generated component data
-    this.CompChunkData = compDataBytes;
+    const buffer = writer.getBuffer();
+    this.CompChunkData = buffer ? new Uint8Array(buffer) : new Uint8Array();
   }
 }

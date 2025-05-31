@@ -1,3 +1,5 @@
+import { toHexAndAsciiString } from "../../StringUtils";
+
 export function toPlainObject(obj: unknown): unknown {
   return JSON.parse(JSON.stringify(obj));
 }
@@ -68,18 +70,22 @@ export function expectUint8ArraysToBeEqual(
       const sliceExpected = expected.slice(start, endExpected);
       const sliceReceived = received.slice(start, endReceived);
 
-      const hexExpected = Array.from(sliceExpected)
-        .map(b => b.toString(16).padStart(2, "0"))
-        .join(" ");
-      const hexReceived = Array.from(sliceReceived)
-        .map(b => b.toString(16).padStart(2, "0"))
-        .join(" ");
+      const formattedExpected = toHexAndAsciiString(
+        sliceExpected,
+        false,
+        diffIndex - start
+      );
+      const formattedReceived = toHexAndAsciiString(
+        sliceReceived,
+        false,
+        diffIndex - start
+      );
 
-      // Log the hex diff to stderr for better visibility in test runners
+      // Log the hex and ASCII diff to stderr for better visibility in test runners
       console.error(
-        `\nHex diff around index ${diffIndex} (offset ${start}):\n` +
-          `Expected: ${hexExpected}\n` +
-          `Received: ${hexReceived}\n`
+        `\nDiff around index ${diffIndex} (offset ${start}):\n` +
+          `Expected:\n${formattedExpected}\n` +
+          `Received:\n${formattedReceived}\n`
       );
     }
     // Re-throw the original Jest error to ensure the test fails correctly

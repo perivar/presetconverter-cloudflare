@@ -2,33 +2,62 @@
  * Converts a byte array to a hex and ASCII string representation, similar to a hex editor line.
  * @param bytes - The byte array to convert.
  * @param invert - Whether to invert the byte array before processing (default: false).
- * @returns A string representing the hex and ASCII values.
+ * @param highlightIndex - Optional index to highlight with a caret.
+ * @param bytesPerLine - The number of bytes to display per line (default: 16).
+ * @returns A multi-line string representing the hex and ASCII values with optional caret.
  */
-function toHexAndAsciiString(bytes: Uint8Array, invert = false): string {
-  let hex = "";
-  let text = "";
+export function toHexAndAsciiString(
+  bytes: Uint8Array,
+  invert = false,
+  highlightIndex?: number,
+  bytesPerLine = 16
+): string {
+  if (!bytes) {
+    return "";
+  }
 
-  if (bytes) {
-    const bytesCloned = invert ? bytes.slice().reverse() : bytes;
+  const bytesCloned = invert ? bytes.slice().reverse() : bytes;
+  const outputLines: string[] = [];
 
-    for (let i = 0; i < bytesCloned.length; i++) {
-      const byte = bytesCloned[i];
-      hex += byte.toString(16).padStart(2, "0").toUpperCase() + " ";
+  for (let i = 0; i < bytesCloned.length; i += bytesPerLine) {
+    const lineBytes = bytesCloned.slice(i, i + bytesPerLine);
+    let hexPart = "";
+    let asciiPart = "";
 
-      // Check if the character is printable ASCII (32-126)
+    for (let j = 0; j < lineBytes.length; j++) {
+      const byte = lineBytes[j];
+      hexPart += byte.toString(16).padStart(2, "0").toUpperCase() + " ";
+
       if (byte >= 32 && byte <= 126) {
-        text += String.fromCharCode(byte);
+        asciiPart += String.fromCharCode(byte);
       } else {
-        text += ".";
+        asciiPart += ".";
       }
     }
 
-    // Pad the hex string to align the ASCII part (16 bytes * 3 chars/byte = 48)
-    const hexPadded = hex.padEnd(48);
-    return `${hexPadded} ${text}`;
-  } else {
-    return ""; // Return empty string for null/undefined input
+    // Each byte is 2 hex chars + 1 space
+    const line = `${hexPart.padEnd(bytesPerLine * 3)} ${asciiPart}`;
+    outputLines.push(line);
+
+    // Check if highlightIndex falls within this line
+    if (
+      highlightIndex !== undefined &&
+      highlightIndex >= i &&
+      highlightIndex < i + bytesPerLine
+    ) {
+      const relativeHighlightIndex = highlightIndex - i;
+      const hexCaretPos = relativeHighlightIndex * 3;
+      const asciiCaretPos = relativeHighlightIndex;
+
+      const hexCaretPart = " ".repeat(hexCaretPos) + "^^";
+      const asciiCaretPart = " ".repeat(asciiCaretPos) + "^";
+
+      const caretLine = `${hexCaretPart.padEnd(bytesPerLine * 3)} ${asciiCaretPart}`;
+      outputLines.push(caretLine);
+    }
   }
+
+  return outputLines.join("\n");
 }
 
 /**
@@ -56,11 +85,18 @@ export function toHexEditorString(
       output += "Byte Data:\n";
     }
 
+    // Now toHexAndAsciiString handles multi-line, so we can just call it once
+    // and then slice the result if maxNumberOfLines is less than totalLines.
+    const fullHexAsciiString = toHexAndAsciiString(
+      byteData,
+      invert,
+      undefined,
+      splitLength
+    );
+    const lines = fullHexAsciiString.split("\n"); // Changed to double quotes
+
     for (let i = 0; i < linesToShow; i++) {
-      const start = i * splitLength;
-      const end = start + splitLength;
-      const lineBytes = byteData.slice(start, end);
-      output += toHexAndAsciiString(lineBytes, invert) + "\n";
+      output += lines[i] + "\n";
     }
 
     // Remove the last newline character
@@ -167,4 +203,35 @@ export function getFileNameWithoutExtension(fileName: string): string {
   return fileName.includes(".")
     ? fileName.substring(0, fileName.lastIndexOf("."))
     : fileName;
+}
+
+/**
+ * Trims leading/trailing whitespace from each line and replaces multiple whitespace characters with a single space.
+ * Also replaces various newline characters with a single space.
+ * @param text The input string.
+ * @returns The processed string.
+ */
+export function trimMultiLine(text: string): string {
+  if (!text) {
+    return "";
+  }
+  // Replace various newline characters with a single space
+  let processedText = text.replace(/(\r\n|\n|\r)/gm, " ");
+  // Replace multiple spaces with a single space
+  processedText = processedText.replace(/\s\s+/g, " ");
+  // Trim leading/trailing whitespace
+  processedText = processedText.trim();
+  return processedText;
+}
+
+/**
+ * Ensures the given string ends with a single trailing space.
+ * If the string already ends with a space, it returns the string unchanged.
+ * Otherwise, it appends one space character at the end.
+ *
+ * @param str - The input string to check.
+ * @returns The input string guaranteed to end with a single space.
+ */
+export function ensureTrailingSpace(str: string): string {
+  return str.endsWith(" ") ? str : str + " ";
 }

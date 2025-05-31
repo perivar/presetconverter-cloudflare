@@ -25,7 +25,7 @@ test("figure JSON contains correct ranges", () => {
   const fig = plotAutomationEvents([new AutomationEvent(0, 64)]);
 
   const layout = fig.layout as Partial<Layout>;
-  expect(layout.xaxis?.range).toEqual([0, 0]);
+  expect(layout.xaxis?.range).toEqual([0, 120000]);
 });
 
 test("should plot interpolated automation events to SVG", async () => {
