@@ -504,7 +504,7 @@ export abstract class VstPreset implements Preset {
       const currentPos = reader.getPosition();
 
       // Seek to list position
-      reader.seek(Number(this.ListPos));
+      reader.seek(this.ListPos);
 
       // Read list chunk
       const listChunk = reader.readString(4);
@@ -550,12 +550,16 @@ export abstract class VstPreset implements Preset {
           this.InfoXmlChunkSize = chunk.size;
           this.tryReadInfoXml(reader);
         } else if (chunk.id === VstPreset.CHUNK_COMP) {
+          this.CompDataStartPos = chunk.offset;
+          this.CompDataChunkSize = chunk.size;
           try {
             this.readCompData(reader, chunk.size);
           } catch (error) {
             console.warn(error);
           }
         } else if (chunk.id === VstPreset.CHUNK_CONT) {
+          this.ContDataStartPos = chunk.offset;
+          this.ContDataChunkSize = chunk.size;
           this.ContChunkData = reader.readBytes(chunk.size);
         }
       }
@@ -580,7 +584,7 @@ export abstract class VstPreset implements Preset {
     }
 
     // Read XML bytes with BOM
-    this.InfoXmlBytesWithBOM = reader.readBytes(Number(this.InfoXmlChunkSize));
+    this.InfoXmlBytesWithBOM = reader.readBytes(this.InfoXmlChunkSize);
 
     // Convert to string
     const textDecoder = new TextDecoder("utf-8");
@@ -674,7 +678,7 @@ export abstract class VstPreset implements Preset {
       const version = reader.readUInt32();
       const nameLength = reader.readUInt32();
 
-      const name = reader.readString(Number(nameLength));
+      const name = reader.readString(nameLength);
       this.setStringParameterWithIndex("PresetName", 0, name);
 
       const unknown = reader.readUInt32();
@@ -693,14 +697,6 @@ export abstract class VstPreset implements Preset {
           parameterNumber,
           parameterNumberValue
         );
-      }
-
-      if (this.ContDataChunkSize > 0) {
-        // seek to start of cont
-        reader.seek(Number(this.ContDataStartPos));
-
-        // read until all bytes have been read
-        this.ContChunkData = reader.readBytes(Number(this.ContDataChunkSize));
       }
 
       // try to read the info xml
@@ -786,21 +782,15 @@ export abstract class VstPreset implements Preset {
           this.setNumberParameterWithIndex(paramName, paramIndex, paramValue);
         }
 
-        // try to read the info xml
-        // this.tryReadInfoXml(reader);
-
         return;
       } else if (this.Vst3ClassID === VstClassIDs.SteinbergGrooveAgentONE) {
         // rewind 4 bytes (seek to comp data start pos)
-        reader.seek(Number(this.CompDataStartPos));
+        reader.seek(this.CompDataStartPos);
 
         // read until all bytes have been read
-        const xmlContent = reader.readString(Number(this.CompDataChunkSize));
+        const xmlContent = reader.readString(this.CompDataChunkSize);
 
         this.setStringParameterWithIndex("XmlContent", 1, xmlContent);
-
-        // try to read the info xml
-        // this.tryReadInfoXml(reader);
 
         return;
       } else if (
@@ -814,30 +804,19 @@ export abstract class VstPreset implements Preset {
         this.Vst3ClassID === VstClassIDs.SteinbergVSTAmpRack
       ) {
         // rewind 4 bytes (seek to comp data start pos)
-        reader.seek(Number(this.CompDataStartPos));
+        reader.seek(this.CompDataStartPos);
 
         // Note: the first 4 bytes (int32) of both the ComChunk and the ContChunk is the VST3PresetVersion,
         // as in:
         // <Attribute id="VST3PresetVersion" value="675282944" type="int" flags="hidden|writeProtected"/>
 
         // read until all bytes have been read
-        this.CompChunkData = reader.readBytes(Number(this.CompDataChunkSize));
-
-        // seek to cont start pos
-        if (this.ContDataChunkSize > 0) {
-          reader.seek(Number(this.ContDataStartPos));
-
-          // read until all bytes have been read
-          this.ContChunkData = reader.readBytes(Number(this.ContDataChunkSize));
-        }
-
-        // try to read the info xml
-        // this.tryReadInfoXml(reader);
+        this.CompChunkData = reader.readBytes(this.CompDataChunkSize);
 
         return;
       } else if (this.Vst3ClassID === VstClassIDs.SteinbergREVerence) {
         // rewind 4 bytes (seek to comp data start pos)
-        reader.seek(Number(this.CompDataStartPos));
+        reader.seek(this.CompDataStartPos);
 
         const wavFilePath1 = this.readStringNullAndSkip(
           reader,
@@ -901,7 +880,7 @@ export abstract class VstPreset implements Preset {
         }
 
         let parameterCounter = 0;
-        while (reader.getPosition() < Number(this.CompDataEndPosition)) {
+        while (reader.getPosition() < this.CompDataEndPosition) {
           parameterCounter++;
 
           if (parameterCount > 0 && parameterCounter > parameterCount) break;
@@ -936,13 +915,10 @@ export abstract class VstPreset implements Preset {
           );
         }
 
-        // try to read the info xml
-        // this.tryReadInfoXml(reader);
-
         return;
       } else if (this.Vst3ClassID === VstClassIDs.SteinbergStandardPanner) {
         // rewind 4 bytes (seek to comp data start pos)
-        reader.seek(Number(this.CompDataStartPos));
+        reader.seek(this.CompDataStartPos);
 
         // read floats
         this.setNumberParameterWithIndex("Unknown1", 1, reader.readFloat32()); // Corrected from readFloat
@@ -952,9 +928,6 @@ export abstract class VstPreset implements Preset {
         this.setNumberParameterWithIndex("Unknown3", 3, reader.readUInt32());
         this.setNumberParameterWithIndex("Unknown4", 4, reader.readUInt32());
         this.setNumberParameterWithIndex("Unknown5", 5, reader.readUInt32());
-
-        // try to read the info xml
-        // this.tryReadInfoXml(reader);
 
         return;
       } else if (
@@ -1028,7 +1001,7 @@ export abstract class VstPreset implements Preset {
           console.warn(`XPst content expected. Got '${xpsID}' instead.`);
         }
 
-        const xmlContent = reader.readString(Number(xmlMainLength));
+        const xmlContent = reader.readString(xmlMainLength);
         const param1Name = "XmlContent";
         this.setStringParameterWithIndex(param1Name, 1, xmlContent);
 
@@ -1040,51 +1013,18 @@ export abstract class VstPreset implements Preset {
         // read in this also
         // total size - PresetChunkXMLTree size - 32
         // e.g. 844 - 777 - 32 = 35
-        const xmlPostLength = chunkSize - Number(xmlMainLength) - 32;
-        const xmlPostContent = reader.readString(Number(xmlPostLength));
+        const xmlPostLength = chunkSize - xmlMainLength - 32;
+        const xmlPostContent = reader.readString(xmlPostLength);
         const param2Name = "XmlContentPost";
         this.setStringParameterWithIndex(param2Name, 2, xmlPostContent);
-
-        // try to read the info xml
-        // this.tryReadInfoXml(reader);
 
         return;
       } else if (this.Vst3ClassID === VstClassIDs.NIKontakt5) {
         // rewind 4 bytes (seek to comp data start pos)
-        reader.seek(Number(this.CompDataStartPos));
+        reader.seek(this.CompDataStartPos);
 
         // read until all bytes have been read
-        this.CompChunkData = reader.readBytes(Number(this.CompDataChunkSize));
-
-        // seek to cont start pos
-        if (this.ContDataChunkSize > 0) {
-          reader.seek(Number(this.ContDataStartPos));
-
-          // read until all bytes have been read
-          this.ContChunkData = reader.readBytes(Number(this.ContDataChunkSize));
-        }
-
-        // TODO: This does not seem to work for Cubase 13 ?
-        // const unknown = BinaryFile.readUInt32(reader, ByteOrder.LittleEndian);
-
-        // while (reader.getPosition() !== this.CompDataEndPosition)
-        // {
-        //     // read the null terminated string
-        //     const parameterName = reader.readStringNull();
-
-        //     // read until 128 bytes have been read
-        //     const ignore = reader.readBytes(128 - parameterName.length - 1);
-
-        //     const parameterNumber = reader.readUInt32();
-
-        //     // Note! For some reason bf.ReadDouble() doesn't work, neither with LittleEndian or BigEndian
-        //     const parameterNumberValue = new DataView(reader.readBytes(8).buffer).getFloat64(0, true);
-
-        //     this.setNumberParameterWithIndex(parameterName, parameterNumber, parameterNumberValue);
-        // }
-
-        // try to read the info xml
-        // this.tryReadInfoXml(reader);
+        this.CompChunkData = reader.readBytes(this.CompDataChunkSize);
 
         return;
       } else if (
@@ -1092,25 +1032,14 @@ export abstract class VstPreset implements Preset {
         this.Vst3ClassID === VstClassIDs.EastWestPlayx64
       ) {
         // rewind 4 bytes (seek to comp data start pos)
-        reader.seek(Number(this.CompDataStartPos));
+        reader.seek(this.CompDataStartPos);
 
         // Note: the first 4 bytes (int32) of both the ComChunk and the ContChunk is the VST3PresetVersion,
         // as in:
         // <Attribute id="VST3PresetVersion" value="675282944" type="int" flags="hidden|writeProtected"/>
 
         // read until all bytes have been read
-        this.CompChunkData = reader.readBytes(Number(this.CompDataChunkSize));
-
-        // seek to cont start pos
-        if (this.ContDataChunkSize > 0) {
-          reader.seek(Number(this.ContDataStartPos));
-
-          // read until all bytes have been read
-          this.ContChunkData = reader.readBytes(Number(this.ContDataChunkSize));
-        }
-
-        // try to read the info xml
-        // this.tryReadInfoXml(reader);
+        this.CompChunkData = reader.readBytes(this.CompDataChunkSize);
 
         return;
       } else if (
@@ -1120,48 +1049,26 @@ export abstract class VstPreset implements Preset {
         this.Vst3ClassID === VstClassIDs.MusicLabRealStrat
       ) {
         // rewind 4 bytes (seek to comp data start pos)
-        reader.seek(Number(this.CompDataStartPos));
+        reader.seek(this.CompDataStartPos);
 
         // Note: the first 4 bytes (int32) of both the ComChunk and the ContChunk is the VST3PresetVersion,
         // as in:
         // <Attribute id="VST3PresetVersion" value="675282944" type="int" flags="hidden|writeProtected"/>
 
         // read until all bytes have been read
-        this.CompChunkData = reader.readBytes(Number(this.CompDataChunkSize));
-
-        // seek to cont start pos
-        if (this.ContDataChunkSize > 0) {
-          reader.seek(Number(this.ContDataStartPos));
-
-          // read until all bytes have been read
-          this.ContChunkData = reader.readBytes(Number(this.ContDataChunkSize));
-        }
-
-        // try to read the info xml
-        // this.tryReadInfoXml(reader);
+        this.CompChunkData = reader.readBytes(this.CompDataChunkSize);
 
         return;
       } else {
         // rewind 4 bytes (seek to comp data start pos)
-        reader.seek(Number(this.CompDataStartPos));
+        reader.seek(this.CompDataStartPos);
 
         // Note: the first 4 bytes (int32) of both the ComChunk and the ContChunk is the VST3PresetVersion,
         // as in:
         // <Attribute id="VST3PresetVersion" value="675282944" type="int" flags="hidden|writeProtected"/>
 
         // read until all bytes have been read
-        this.CompChunkData = reader.readBytes(Number(this.CompDataChunkSize));
-
-        // seek to cont start pos
-        if (this.ContDataChunkSize > 0) {
-          reader.seek(Number(this.ContDataStartPos));
-
-          // read until all bytes have been read
-          this.ContChunkData = reader.readBytes(Number(this.ContDataChunkSize));
-        }
-
-        // try to read the info xml
-        // this.tryReadInfoXml(reader);
+        this.CompChunkData = reader.readBytes(this.CompDataChunkSize);
 
         throw new Error(
           "Data does not contain any known formats or FXB or FXP data (1)"
