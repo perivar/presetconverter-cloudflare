@@ -48,46 +48,50 @@ export function CompressorLimiterGraph({ comp }: CompressorLimiterGraphProps) {
   }
 
   return (
-    <ResponsiveContainer width="100%" height={300}>
-      <LineChart data={data}>
-        <CartesianGrid strokeDasharray="3 3" />
-        <XAxis
-          dataKey="input"
-          domain={[-60, 0]}
-          tickCount={11} // For every 6 dB from -60 to 0 (11 ticks: -60, -54, ..., 0)
-          label={{
-            value: "Input Level (dB)",
-            position: "insideBottom",
-            dy: 10,
-            fontSize: 12,
-          }}
-        />
-        <YAxis
-          domain={[-60, 0]} // Set Y-axis domain to match X-axis for consistency
-          tickCount={11} // For every 6 dB from -60 to 0 (11 ticks: -60, -54, ..., 0)
-          label={{
-            value: "Output Level (dB)",
-            angle: -90,
-            position: "insideLeft",
-            fontSize: 12,
-          }}
-        />
-        <Tooltip formatter={(value: number) => `${value.toFixed(2)} dB`} />
-        <Line
-          type="monotone"
-          dataKey="output"
-          stroke="hsl(var(--primary))"
-          strokeWidth={2}
-          dot={false}
-        />
-        <Line
-          dataKey="threshold"
-          stroke="#ff0000" // Red color for threshold line
-          strokeDasharray="3 3" // Dotted line
-          dot={false}
-          isAnimationActive={false} // No animation for static line
-        />
-      </LineChart>
-    </ResponsiveContainer>
+    <div className="h-[300px]">
+      <ResponsiveContainer width="100%" height="100%">
+        <LineChart data={data}>
+          <CartesianGrid strokeDasharray="3 3" />
+          <XAxis
+            dataKey="input"
+            domain={[-60, 0]}
+            tickCount={11} // For every 6 dB from -60 to 0 (11 ticks: -60, -54, ..., 0)
+            tick={{ fontSize: 10 }}
+            height={50} // Allocate space for label
+            label={{
+              value: "Input Level (dB)",
+              position: "insideBottom",
+              fontSize: 12,
+            }}
+          />
+          <YAxis
+            domain={[-60, 0]} // Set Y-axis domain to match X-axis for consistency
+            tickCount={11} // For every 6 dB from -60 to 0 (11 ticks: -60, -54, ..., 0)
+            tick={{ fontSize: 10 }}
+            label={{
+              value: "Output Level (dB)",
+              angle: -90,
+              position: "insideLeft",
+              fontSize: 12,
+            }}
+          />
+          <Tooltip formatter={(value: number) => `${value.toFixed(2)} dB`} />
+          <Line
+            type="monotone"
+            dataKey="output"
+            stroke="hsl(var(--primary))"
+            strokeWidth={2}
+            dot={false}
+          />
+          <Line
+            dataKey="threshold"
+            stroke="#ff0000" // Red color for threshold line
+            strokeDasharray="3 3" // Dotted line
+            dot={false}
+            isAnimationActive={false} // No animation for static line
+          />
+        </LineChart>
+      </ResponsiveContainer>
+    </div>
   );
 }

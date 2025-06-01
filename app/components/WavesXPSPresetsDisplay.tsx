@@ -102,12 +102,12 @@ export function WavesXPSPresetsDisplay({
                           {genericCompLimitPreset.Name}
                         </h3>
 
-                        <div className="mb-2 flex items-center justify-between text-sm text-muted-foreground">
-                          <span>
-                            Ratio: {genericCompLimitPreset.getRatioLabel()}
-                          </span>
+                        <div className="mb-2 flex items-center justify-around text-sm text-muted-foreground">
                           <span>
                             Threshold: {genericCompLimitPreset.Threshold} dB
+                          </span>
+                          <span>
+                            Ratio: {genericCompLimitPreset.getRatioLabel()}
                           </span>
                         </div>
 
