@@ -1,13 +1,11 @@
+import { WavesSSLCompToGenericCompressorLimiter } from "~/utils/converters/WavesSSLCompToGenericCompressorLimiter";
 import { WavesSSLToGenericEQ } from "~/utils/converters/WavesSSLToGenericEQ";
+import { GenericCompressorLimiter } from "~/utils/preset/GenericCompressorLimiter";
 import { GenericEQPreset } from "~/utils/preset/GenericEQPreset";
 import { Preset } from "~/utils/preset/Preset";
 import { WavesPreset } from "~/utils/preset/WavesPreset";
 import { WavesSSLChannel } from "~/utils/preset/WavesSSLChannel";
-import {
-  getWavesSSLCompNumericRatio,
-  getWavesSSLCompRatioLabel,
-  WavesSSLComp,
-} from "~/utils/preset/WavesSSLComp";
+import { WavesSSLComp } from "~/utils/preset/WavesSSLComp";
 import { ChevronsUpDown } from "lucide-react";
 import { useTranslation } from "react-i18next";
 
@@ -20,7 +18,7 @@ import {
 } from "~/components/ui/collapsible";
 import { TargetConversion } from "~/components/TargetConversion";
 
-import { CompressorGraph } from "./CompressorGraph";
+import { CompressorLimiterGraph } from "./CompressorLimiterGraph";
 import { EqualizerChart } from "./EqualizerChart";
 
 interface WavesXPSPresetsDisplayProps {
@@ -65,7 +63,13 @@ export function WavesXPSPresetsDisplay({
                 if (preset instanceof WavesSSLChannel) {
                   genericEQPreset = WavesSSLToGenericEQ.convertBase(preset);
                 }
-                // If WavesSSLComp needs conversion to GenericEQPreset, a new converter would be needed.
+
+                let genericCompLimitPreset: GenericCompressorLimiter | null =
+                  null;
+                if (preset instanceof WavesSSLComp) {
+                  genericCompLimitPreset =
+                    WavesSSLCompToGenericCompressorLimiter.convertBase(preset);
+                }
 
                 return (
                   <div key={index} className="border-b py-2 last:border-0">
@@ -85,25 +89,23 @@ export function WavesXPSPresetsDisplay({
                       </div>
                     )}
 
-                    {preset instanceof WavesSSLComp && (
+                    {genericCompLimitPreset && (
                       <div className="my-6">
                         <h3 className="mb-1 text-lg font-medium">
-                          {preset.PresetName}
+                          {genericCompLimitPreset.Name}
                         </h3>
 
                         <div className="mb-2 flex items-center justify-between text-sm text-muted-foreground">
                           <span>
-                            Ratio: {getWavesSSLCompRatioLabel(preset.Ratio)}
+                            Ratio: {genericCompLimitPreset.getRatioLabel()}
                           </span>
-                          <span>Threshold: {preset.Threshold} dB</span>
+                          <span>
+                            Threshold: {genericCompLimitPreset.Threshold} dB
+                          </span>
                         </div>
 
-                        <CompressorGraph
-                          threshold={preset.Threshold}
-                          ratio={getWavesSSLCompNumericRatio(preset.Ratio)}
-                          makeupGain={preset.MakeupGain}
-                          knee={0}
-                        />
+                        {/* Compressor Limiter Graph */}
+                        <CompressorLimiterGraph comp={genericCompLimitPreset} />
                       </div>
                     )}
 

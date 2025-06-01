@@ -1,3 +1,4 @@
+import { GenericCompressorLimiter } from "~/utils/preset/GenericCompressorLimiter";
 import {
   Line,
   LineChart,
@@ -7,19 +8,18 @@ import {
   YAxis,
 } from "recharts";
 
-type CompressorGraphProps = {
-  threshold?: number; // dB
-  ratio?: number; // compression ratio
-  makeupGain?: number; // dB
-  knee?: number; // knee width in dB
+type CompressorLimiterGraphProps = {
+  comp: GenericCompressorLimiter;
 };
 
-export function CompressorGraph({
-  threshold = -12.9,
-  ratio = 4,
-  makeupGain = 3,
-  knee = 6,
-}: CompressorGraphProps) {
+export function CompressorLimiterGraph({ comp }: CompressorLimiterGraphProps) {
+  const {
+    Threshold: threshold,
+    Ratio: ratio,
+    MakeupGain: makeupGain,
+    Knee: knee,
+  } = comp;
+
   const data = [];
   const kneeStart = threshold - knee / 2;
   const kneeEnd = threshold + knee / 2;
@@ -32,7 +32,7 @@ export function CompressorGraph({
     } else if (x > kneeEnd) {
       y = threshold + (x - threshold) / ratio;
     } else {
-      // Apply soft knee curve (quadratic interpolation)
+      // Soft knee interpolation (quadratic blend)
       const t = (x - kneeStart) / knee;
       const compressed = threshold + (x - threshold) / ratio;
       y =

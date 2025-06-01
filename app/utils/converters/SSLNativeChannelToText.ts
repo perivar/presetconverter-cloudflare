@@ -19,7 +19,7 @@ export const SSLNativeChannelToText: MultiFormatConverter<
     {
       formatId: "text",
       extension: ".txt",
-      displayName: "Text File",
+      displayName: "Text Format",
       convert(preset: SSLNativeChannel): string | undefined {
         return preset.toString();
       },

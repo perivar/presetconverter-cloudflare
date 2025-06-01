@@ -9,29 +9,6 @@ export enum RatioType {
   Ratio_10_1 = 2,
 }
 
-export function getWavesSSLCompRatioLabel(ratio: RatioType): string {
-  switch (ratio) {
-    case RatioType.Ratio_2_1:
-      return "2:1";
-    case RatioType.Ratio_4_1:
-      return "4:1";
-    case RatioType.Ratio_10_1:
-      return "10:1";
-    default:
-      return "1:1";
-  }
-}
-
-export function getWavesSSLCompNumericRatio(ratio?: RatioType): number {
-  const map = {
-    [RatioType.Ratio_2_1]: 2,
-    [RatioType.Ratio_4_1]: 4,
-    [RatioType.Ratio_10_1]: 10,
-  };
-
-  return map[ratio ?? RatioType.Ratio_2_1] ?? 1;
-}
-
 // Fade [Off=0 or *, Out=1, In=2]
 export enum FadeType {
   Off = 0,
