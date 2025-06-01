@@ -62,7 +62,7 @@ export class SSLNativeChannel extends SteinbergVstPreset {
     this.PlugInVendor = "SSL";
   }
 
-  public static loadFromFile(fileContent: string): SSLNativeChannel {
+  public static parseXml(fileContent: string): SSLNativeChannel {
     const parser = new XMLParser({
       ignoreAttributes: false,
       attributeNamePrefix: "@_",
@@ -72,14 +72,17 @@ export class SSLNativeChannel extends SteinbergVstPreset {
     return SSLNativeChannel.fromXml(xml);
   }
 
-  public saveToFile(): string {
-    const xml = this.toXml();
-    return XmlWriter(xml, {
+  public toXmlString(xmlObject: object): string {
+    const xmlContent = XmlWriter(xmlObject, {
       OmitXmlDeclaration: true,
+      Encoding: Encoding.UTF8,
       Indent: true,
       IndentChars: "    ",
-      NewLineHandling: NewLineHandling.None, // SSL Native Channel does not use newlines
+      NewLineChars: "\n",
+      NewLineHandling: NewLineHandling.Replace,
     });
+
+    return xmlContent;
   }
 
   protected preparedForWriting(): boolean {
@@ -90,15 +93,7 @@ export class SSLNativeChannel extends SteinbergVstPreset {
   }
 
   protected initCompChunkData(): void {
-    const xml = this.toXml();
-    const xmlContent = XmlWriter(xml, {
-      OmitXmlDeclaration: true,
-      Encoding: Encoding.UTF8,
-      Indent: true,
-      IndentChars: "    ",
-      NewLineChars: "\n",
-      NewLineHandling: NewLineHandling.Replace,
-    });
+    const xmlContent = this.toXmlString(this.generatePresetXML());
     this.CompChunkData = new TextEncoder().encode(xmlContent);
   }
 
@@ -200,18 +195,15 @@ export class SSLNativeChannel extends SteinbergVstPreset {
     return sb.join("\n");
   }
 
-  private static paramToXml(
+  private static paramToXmlAttribute(
     paramName: string,
-    paramValue: number | boolean,
-    IsNonAutoParam: boolean = false
+    paramValue: number | boolean
   ): object {
     const value =
       typeof paramValue === "boolean" ? (paramValue ? 1.0 : 0.0) : paramValue;
     return {
-      [IsNonAutoParam ? "PARAM_NON_AUTO" : "PARAM"]: {
-        "@_id": paramName,
-        "@_value": value.toFixed(4), // Keep up to 4 decimal places
-      },
+      "@_id": paramName,
+      "@_value": value.toFixed(4), // Keep up to 4 decimal places
     };
   }
 
@@ -232,8 +224,8 @@ export class SSLNativeChannel extends SteinbergVstPreset {
       ? processorState[paramType]
       : [processorState[paramType]];
 
-    const param = params.find((p: any) => p?.id === paramId);
-    return Number.parseFloat(param?.value ?? "0");
+    const param = params.find((p: any) => p?.["@_id"] === paramId);
+    return Number.parseFloat(param?.["@_value"] ?? "0");
   }
 
   private static fromXml(xml: any): SSLNativeChannel {
@@ -245,9 +237,9 @@ export class SSLNativeChannel extends SteinbergVstPreset {
       return preset;
     }
 
-    preset.PlugInName = xml?.SSL_PRESET?.PluginName ?? "";
-    preset.PresetVersion = xml?.SSL_PRESET?.Version ?? "";
-    preset.PresetType = xml?.SSL_PRESET?.PresetType ?? "";
+    preset.PlugInName = xml?.SSL_PRESET?.["@_PluginName"] ?? "";
+    preset.PresetVersion = xml?.SSL_PRESET?.["@_Version"] ?? "";
+    preset.PresetType = xml?.SSL_PRESET?.["@_PresetType"] ?? "";
 
     // all values are stored as double
     preset.Bypass = SSLNativeChannel.paramFromXml(xml, "Bypass") !== 0.0;
@@ -310,128 +302,131 @@ export class SSLNativeChannel extends SteinbergVstPreset {
     return preset;
   }
 
-  private toXml(): object {
+  private generatePresetXML(): object {
     const xml = {
       SSL_PRESET: {
         "@_PluginName": this.PlugInName,
         "@_Version": this.PresetVersion,
         "@_PresetType": this.PresetType,
         PROCESSOR_STATE: {
-          ...SSLNativeChannel.paramToXml("Bypass", this.Bypass),
-          ...SSLNativeChannel.paramToXml("CompFastAttack", this.CompFastAttack),
-          ...SSLNativeChannel.paramToXml("CompMix", this.CompMix),
-          ...SSLNativeChannel.paramToXml("CompPeak", this.CompPeak),
-          ...SSLNativeChannel.paramToXml("CompRatio", this.CompRatio),
-          ...SSLNativeChannel.paramToXml("CompRelease", this.CompRelease),
-          ...SSLNativeChannel.paramToXml("CompThreshold", this.CompThreshold),
-          ...SSLNativeChannel.paramToXml("DynamicsIn", this.DynamicsIn),
-          ...SSLNativeChannel.paramToXml("DynamicsPreEq", this.DynamicsPreEq),
-          ...SSLNativeChannel.paramToXml("EqE", this.EqE),
-          ...SSLNativeChannel.paramToXml("EqIn", this.EqIn),
-          ...SSLNativeChannel.paramToXml("EqToSidechain", this.EqToSidechain),
-          ...SSLNativeChannel.paramToXml("FaderLevel", this.FaderLevel),
-          ...SSLNativeChannel.paramToXml("FiltersToInput", this.FiltersToInput),
-          ...SSLNativeChannel.paramToXml(
-            "FiltersToSidechain",
-            this.FiltersToSidechain
-          ),
-          ...SSLNativeChannel.paramToXml(
-            "GateExpander",
-            this.GateDisabledExpEnabled
-          ),
-          ...SSLNativeChannel.paramToXml("GateFastAttack", this.GateFastAttack),
-          ...SSLNativeChannel.paramToXml("GateHold", this.GateHold),
-          ...SSLNativeChannel.paramToXml("GateRange", this.GateRange),
-          ...SSLNativeChannel.paramToXml("GateRelease", this.GateRelease),
-          ...SSLNativeChannel.paramToXml("GateThreshold", this.GateThreshold),
-          ...SSLNativeChannel.paramToXml("HighEqBell", this.HighEqBell),
-          ...SSLNativeChannel.paramToXml("HighEqFreq", this.HighEqFreq),
-          ...SSLNativeChannel.paramToXml("HighEqGain", this.HighEqGain),
-          ...SSLNativeChannel.paramToXml("HighMidEqFreq", this.HighMidEqFreq),
-          ...SSLNativeChannel.paramToXml("HighMidEqGain", this.HighMidEqGain),
-          ...SSLNativeChannel.paramToXml("HighMidEqQ", this.HighMidEqQ),
-          ...SSLNativeChannel.paramToXml("HighPassFreq", this.HighPassFreq),
-          ...SSLNativeChannel.paramToXml("InputTrim", this.InputTrim),
-          ...SSLNativeChannel.paramToXml("LowEqBell", this.LowEqBell),
-          ...SSLNativeChannel.paramToXml("LowEqFreq", this.LowEqFreq),
-          ...SSLNativeChannel.paramToXml("LowEqGain", this.LowEqGain),
-          ...SSLNativeChannel.paramToXml("LowMidEqFreq", this.LowMidEqFreq),
-          ...SSLNativeChannel.paramToXml("LowMidEqGain", this.LowMidEqGain),
-          ...SSLNativeChannel.paramToXml("LowMidEqQ", this.LowMidEqQ),
-          ...SSLNativeChannel.paramToXml("LowPassFreq", this.LowPassFreq),
-          ...SSLNativeChannel.paramToXml("OutputTrim", this.OutputTrim),
-          ...SSLNativeChannel.paramToXml("Pan", this.Pan),
-          ...SSLNativeChannel.paramToXml("PhaseInvert", this.PhaseInvert),
-          ...SSLNativeChannel.paramToXml(
-            "SidechainListen",
-            this.SidechainListen
-          ),
-          ...SSLNativeChannel.paramToXml("UseExternalKey", this.UseExternalKey),
-          ...SSLNativeChannel.paramToXml("Width", this.Width),
-          ...SSLNativeChannel.paramToXml("HighQuality", this.HighQuality, true),
+          PARAM: [
+            SSLNativeChannel.paramToXmlAttribute("Bypass", this.Bypass),
+            SSLNativeChannel.paramToXmlAttribute(
+              "CompFastAttack",
+              this.CompFastAttack
+            ),
+            SSLNativeChannel.paramToXmlAttribute("CompMix", this.CompMix),
+            SSLNativeChannel.paramToXmlAttribute("CompPeak", this.CompPeak),
+            SSLNativeChannel.paramToXmlAttribute("CompRatio", this.CompRatio),
+            SSLNativeChannel.paramToXmlAttribute(
+              "CompRelease",
+              this.CompRelease
+            ),
+            SSLNativeChannel.paramToXmlAttribute(
+              "CompThreshold",
+              this.CompThreshold
+            ),
+            SSLNativeChannel.paramToXmlAttribute("DynamicsIn", this.DynamicsIn),
+            SSLNativeChannel.paramToXmlAttribute(
+              "DynamicsPreEq",
+              this.DynamicsPreEq
+            ),
+            SSLNativeChannel.paramToXmlAttribute("EqE", this.EqE),
+            SSLNativeChannel.paramToXmlAttribute("EqIn", this.EqIn),
+            SSLNativeChannel.paramToXmlAttribute(
+              "EqToSidechain",
+              this.EqToSidechain
+            ),
+            SSLNativeChannel.paramToXmlAttribute("FaderLevel", this.FaderLevel),
+            SSLNativeChannel.paramToXmlAttribute(
+              "FiltersToInput",
+              this.FiltersToInput
+            ),
+            SSLNativeChannel.paramToXmlAttribute(
+              "FiltersToSidechain",
+              this.FiltersToSidechain
+            ),
+            SSLNativeChannel.paramToXmlAttribute(
+              "GateExpander",
+              this.GateDisabledExpEnabled
+            ),
+            SSLNativeChannel.paramToXmlAttribute(
+              "GateFastAttack",
+              this.GateFastAttack
+            ),
+            SSLNativeChannel.paramToXmlAttribute("GateHold", this.GateHold),
+            SSLNativeChannel.paramToXmlAttribute("GateRange", this.GateRange),
+            SSLNativeChannel.paramToXmlAttribute(
+              "GateRelease",
+              this.GateRelease
+            ),
+            SSLNativeChannel.paramToXmlAttribute(
+              "GateThreshold",
+              this.GateThreshold
+            ),
+            SSLNativeChannel.paramToXmlAttribute("HighEqBell", this.HighEqBell),
+            SSLNativeChannel.paramToXmlAttribute("HighEqFreq", this.HighEqFreq),
+            SSLNativeChannel.paramToXmlAttribute("HighEqGain", this.HighEqGain),
+            SSLNativeChannel.paramToXmlAttribute(
+              "HighMidEqFreq",
+              this.HighMidEqFreq
+            ),
+            SSLNativeChannel.paramToXmlAttribute(
+              "HighMidEqGain",
+              this.HighMidEqGain
+            ),
+            SSLNativeChannel.paramToXmlAttribute("HighMidEqQ", this.HighMidEqQ),
+            SSLNativeChannel.paramToXmlAttribute(
+              "HighPassFreq",
+              this.HighPassFreq
+            ),
+            SSLNativeChannel.paramToXmlAttribute("InputTrim", this.InputTrim),
+            SSLNativeChannel.paramToXmlAttribute("LowEqBell", this.LowEqBell),
+            SSLNativeChannel.paramToXmlAttribute("LowEqFreq", this.LowEqFreq),
+            SSLNativeChannel.paramToXmlAttribute("LowEqGain", this.LowEqGain),
+            SSLNativeChannel.paramToXmlAttribute(
+              "LowMidEqFreq",
+              this.LowMidEqFreq
+            ),
+            SSLNativeChannel.paramToXmlAttribute(
+              "LowMidEqGain",
+              this.LowMidEqGain
+            ),
+            SSLNativeChannel.paramToXmlAttribute("LowMidEqQ", this.LowMidEqQ),
+            SSLNativeChannel.paramToXmlAttribute(
+              "LowPassFreq",
+              this.LowPassFreq
+            ),
+            SSLNativeChannel.paramToXmlAttribute("OutputTrim", this.OutputTrim),
+            SSLNativeChannel.paramToXmlAttribute("Pan", this.Pan),
+            SSLNativeChannel.paramToXmlAttribute(
+              "PhaseInvert",
+              this.PhaseInvert
+            ),
+            SSLNativeChannel.paramToXmlAttribute(
+              "SidechainListen",
+              this.SidechainListen
+            ),
+            SSLNativeChannel.paramToXmlAttribute(
+              "UseExternalKey",
+              this.UseExternalKey
+            ),
+            SSLNativeChannel.paramToXmlAttribute("Width", this.Width),
+          ],
+          PARAM_NON_AUTO: [
+            SSLNativeChannel.paramToXmlAttribute(
+              "HighQuality",
+              this.HighQuality
+            ),
+          ],
         },
       },
     };
     return xml;
   }
 
+  // Reads parameters from the internal Parameters map populated by the base class constructor
   public initFromParameters(): void {
-    // This method is called by the base class after reading the VST preset file.
-    // We need to populate the public properties from the `Parameters` map.
-    this.Bypass = this.getNumberParameter("Bypass") !== 0.0;
-    this.CompFastAttack = this.getNumberParameter("CompFastAttack") !== 0.0;
-    this.CompMix = this.getNumberParameter("CompMix") ?? this.CompMix;
-    this.CompPeak = this.getNumberParameter("CompPeak") ?? this.CompPeak;
-    this.CompRatio = this.getNumberParameter("CompRatio") ?? this.CompRatio;
-    this.CompRelease =
-      this.getNumberParameter("CompRelease") ?? this.CompRelease;
-    this.CompThreshold =
-      this.getNumberParameter("CompThreshold") ?? this.CompThreshold;
-    this.DynamicsIn = this.getNumberParameter("DynamicsIn") !== 0.0;
-    this.DynamicsPreEq = this.getNumberParameter("DynamicsPreEq") !== 0.0;
-    this.EqE = this.getNumberParameter("EqE") !== 0.0;
-    this.EqIn = this.getNumberParameter("EqIn") !== 0.0;
-    this.EqToSidechain = this.getNumberParameter("EqToSidechain") !== 0.0;
-    this.FaderLevel = this.getNumberParameter("FaderLevel") ?? this.FaderLevel;
-    this.FiltersToInput = this.getNumberParameter("FiltersToInput") !== 0.0;
-    this.FiltersToSidechain =
-      this.getNumberParameter("FiltersToSidechain") !== 0.0;
-    this.GateDisabledExpEnabled =
-      this.getNumberParameter("GateExpander") !== 0.0; // Note: C# uses "GateExpander"
-    this.GateFastAttack = this.getNumberParameter("GateFastAttack") !== 0.0;
-    this.GateHold = this.getNumberParameter("GateHold") ?? this.GateHold;
-    this.GateRange = this.getNumberParameter("GateRange") ?? this.GateRange;
-    this.GateRelease =
-      this.getNumberParameter("GateRelease") ?? this.GateRelease;
-    this.GateThreshold =
-      this.getNumberParameter("GateThreshold") ?? this.GateThreshold;
-    this.HighEqBell = this.getNumberParameter("HighEqBell") !== 0.0;
-    this.HighEqFreq = this.getNumberParameter("HighEqFreq") ?? this.HighEqFreq;
-    this.HighEqGain = this.getNumberParameter("HighEqGain") ?? this.HighEqGain;
-    this.HighMidEqFreq =
-      this.getNumberParameter("HighMidEqFreq") ?? this.HighMidEqFreq;
-    this.HighMidEqGain =
-      this.getNumberParameter("HighMidEqGain") ?? this.HighMidEqGain;
-    this.HighMidEqQ = this.getNumberParameter("HighMidEqQ") ?? this.HighMidEqQ;
-    this.HighPassFreq =
-      this.getNumberParameter("HighPassFreq") ?? this.HighPassFreq;
-    this.InputTrim = this.getNumberParameter("InputTrim") ?? this.InputTrim;
-    this.LowEqBell = this.getNumberParameter("LowEqBell") !== 0.0;
-    this.LowEqFreq = this.getNumberParameter("LowEqFreq") ?? this.LowEqFreq;
-    this.LowEqGain = this.getNumberParameter("LowEqGain") ?? this.LowEqGain;
-    this.LowMidEqFreq =
-      this.getNumberParameter("LowMidEqFreq") ?? this.LowMidEqFreq;
-    this.LowMidEqGain =
-      this.getNumberParameter("LowMidEqGain") ?? this.LowMidEqGain;
-    this.LowMidEqQ = this.getNumberParameter("LowMidEqQ") ?? this.LowMidEqQ;
-    this.LowPassFreq =
-      this.getNumberParameter("LowPassFreq") ?? this.LowPassFreq;
-    this.OutputTrim = this.getNumberParameter("OutputTrim") ?? this.OutputTrim;
-    this.Pan = this.getNumberParameter("Pan") ?? this.Pan;
-    this.PhaseInvert = this.getNumberParameter("PhaseInvert") !== 0.0;
-    this.SidechainListen = this.getNumberParameter("SidechainListen") !== 0.0;
-    this.UseExternalKey = this.getNumberParameter("UseExternalKey") !== 0.0;
-    this.Width = this.getNumberParameter("Width") ?? this.Width;
-    this.HighQuality = this.getNumberParameter("HighQuality") !== 0.0; // PARAM_NON_AUTO
+    // Not implemented for SSL Native Channel presets as parameters are read from XML
   }
 }

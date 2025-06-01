@@ -699,9 +699,6 @@ export abstract class VstPreset implements Preset {
         );
       }
 
-      // try to read the info xml
-      // this.tryReadInfoXml(reader);
-
       return;
     } else {
       if (
@@ -744,15 +741,15 @@ export abstract class VstPreset implements Preset {
         this.Vst3ClassID === VstClassIDs.SteinbergRotary
       ) {
         // rewind 4 bytes (seek to comp data start pos)
-        reader.seek(reader.getPosition() - 4);
+        reader.seek(this.CompDataStartPos);
 
         // Read version bytes (4 bytes)
         const versionBytes = reader.readBytes(4);
-        const versionNumber = new DataView(versionBytes.buffer).getInt32(
+        const _versionNumber = new DataView(versionBytes.buffer).getInt32(
           0,
           true
         );
-        console.debug("Version number: ", versionNumber);
+        // console.debug("Version number: ", _versionNumber);
 
         this.setBytesParameter("StartBytes", versionBytes);
 
@@ -767,8 +764,10 @@ export abstract class VstPreset implements Preset {
 
           // Read remaining bytes to complete 128 bytes
           const remainingBytes = 128 - paramName.length - 1;
-          const ignore = reader.readBytes(remainingBytes); // Ignore these bytes
-          console.debug(`Ignored bytes length (Steinberg): ${ignore.length}`);
+          const _ignoredBytes = reader.readBytes(remainingBytes); // Ignore these bytes
+          // console.debug(
+          //   `Ignored bytes length (Steinberg): ${_ignoredBytes.length}`
+          // );
 
           const paramIndex = reader.readInt32();
           const paramValue = new DataView(
@@ -973,7 +972,7 @@ export abstract class VstPreset implements Preset {
         this.Vst3ClassID === VstClassIDs.WavesVocalRiderStereo
       ) {
         // rewind 4 bytes (seek to comp data start pos)
-        reader.seek(reader.getPosition() - 4);
+        reader.seek(this.CompDataStartPos);
 
         const unknown1 = BinaryFile.readUInt32(reader, ByteOrder.BigEndian);
         const unknown2 = BinaryFile.readUInt32(reader, ByteOrder.BigEndian);
@@ -1017,6 +1016,16 @@ export abstract class VstPreset implements Preset {
         const xmlPostContent = reader.readString(xmlPostLength);
         const param2Name = "XmlContentPost";
         this.setStringParameterWithIndex(param2Name, 2, xmlPostContent);
+
+        return;
+      } else if (this.Vst3ClassID === VstClassIDs.SSLNativeChannel2) {
+        // rewind 4 bytes (seek to comp data start pos)
+        reader.seek(this.CompDataStartPos);
+
+        const xmlMainLength = this.CompDataChunkSize;
+        const xmlContent = reader.readString(xmlMainLength);
+        const param1Name = "XmlContent";
+        this.setStringParameterWithIndex(param1Name, 1, xmlContent);
 
         return;
       } else if (this.Vst3ClassID === VstClassIDs.NIKontakt5) {
@@ -1113,9 +1122,6 @@ export abstract class VstPreset implements Preset {
 
     // Set the chunk data using FXP
     this.setCompChunkDataFromFXP(this.FXP);
-
-    // try to read the info xml
-    // this.tryReadInfoXml(reader);
   }
 
   protected readStringNullAndSkip(

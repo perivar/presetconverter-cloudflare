@@ -69,11 +69,12 @@ export class VstPresetFactory {
       preset.Vst3ClassID = vst3ClassID;
       preset.read(presetBytes);
 
-      // Handle Waves presets after initial read
+      // Handle some presets after initial read where preset.read does not properly populate the internal properties
       if (
         preset.Vst3ClassID === VstClassIDs.WavesSSLChannelStereo ||
         preset.Vst3ClassID === VstClassIDs.WavesSSLCompStereo
       ) {
+        // Read Waves presets expecting to find that XmlContent was found during readCompData while reading VstPreset
         const xmlContent = preset.Parameters.get("XmlContent")?.Value as
           | string
           | undefined;
@@ -107,6 +108,28 @@ export class VstPresetFactory {
             wavesPreset.FXP = preset.FXP; // Keep FXP if it exists
 
             preset = wavesPreset; // Reassign preset to the Waves-specific instance
+          }
+        }
+      } else if (preset.Vst3ClassID === VstClassIDs.SSLNativeChannel2) {
+        // Read SSL Native presets expecting to find that XmlContent was found during readCompData while reading VstPreset
+        const xmlContent = preset.Parameters.get("XmlContent")?.Value as
+          | string
+          | undefined;
+        if (xmlContent) {
+          const sslNativePreset = SSLNativeChannel.parseXml(xmlContent);
+
+          if (sslNativePreset) {
+            // Copy common properties from the initially created preset
+            sslNativePreset.Vst3ClassID = preset.Vst3ClassID;
+            sslNativePreset.CompDataStartPos = preset.CompDataStartPos;
+            sslNativePreset.CompDataChunkSize = preset.CompDataChunkSize;
+            sslNativePreset.ContDataStartPos = preset.ContDataStartPos;
+            sslNativePreset.ContDataChunkSize = preset.ContDataChunkSize;
+            sslNativePreset.InfoXmlStartPos = preset.InfoXmlStartPos;
+            sslNativePreset.Parameters = preset.Parameters; // Keep the parameters map
+            sslNativePreset.FXP = preset.FXP; // Keep FXP if it exists
+
+            preset = sslNativePreset; // Reassign preset to the Waves-specific instance
           }
         }
       }

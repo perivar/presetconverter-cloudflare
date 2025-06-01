@@ -8,7 +8,13 @@ import { GenericXMLConverter } from "../converters/GenericXMLConverter";
 import { REWToFabFilterProQ } from "../converters/REWToFabFilterProQ";
 import { REWToFabFilterProQ2 } from "../converters/REWToFabFilterProQ2";
 import { REWToFabFilterProQ3 } from "../converters/REWToFabFilterProQ3";
+import { SSLNativeChannelToText } from "../converters/SSLNativeChannelToText";
+import { SSLNativeToGenericEQ } from "../converters/SSLNativeToGenericEQ";
+import { SSLNativeToWavesSSLChannel } from "../converters/SSLNativeToWavesSSLChannel";
 import { SteinbergFrequencyToGenericEQ } from "../converters/SteinbergFrequencyToGenericEQ";
+import { WavesSSLChannelToText } from "../converters/WavesSSLChannelToText";
+import { WavesSSLToGenericEQ } from "../converters/WavesSSLToGenericEQ";
+import { WavesSSLToSSLNativeChannel } from "../converters/WavesSSLToSSLNativeChannel";
 import { ConverterRegistration } from "./converterRegistry";
 
 export const allConverters: ConverterRegistration[] = [
@@ -32,4 +38,10 @@ export const allConverters: ConverterRegistration[] = [
   { fromTypes: ["REWText"], converter: REWToFabFilterProQ3 },
   { fromTypes: ["GenericFXP"], converter: GenericFXPConverter },
   { fromTypes: ["GenericXML"], converter: GenericXMLConverter },
+  { fromTypes: ["WavesSSLChannel"], converter: WavesSSLToSSLNativeChannel },
+  { fromTypes: ["WavesSSLChannel"], converter: WavesSSLToGenericEQ },
+  { fromTypes: ["SSLNativeChannel"], converter: SSLNativeToGenericEQ },
+  { fromTypes: ["SSLNativeChannel"], converter: SSLNativeToWavesSSLChannel },
+  { fromTypes: ["WavesSSLChannel"], converter: WavesSSLChannelToText },
+  { fromTypes: ["SSLNativeChannel"], converter: SSLNativeChannelToText },
 ];

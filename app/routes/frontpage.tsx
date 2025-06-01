@@ -12,7 +12,9 @@ import {
   convertToMidi,
 } from "~/utils/ableton/Midi";
 import { FabFilterToGenericEQ } from "~/utils/converters/FabFilterToGenericEQ";
+import { SSLNativeToGenericEQ } from "~/utils/converters/SSLNativeToGenericEQ";
 import { SteinbergFrequencyToGenericEQ } from "~/utils/converters/SteinbergFrequencyToGenericEQ";
+import { WavesSSLToGenericEQ } from "~/utils/converters/WavesSSLToGenericEQ";
 import { FabFilterProQ } from "~/utils/preset/FabFilterProQ";
 import { FabFilterProQ2 } from "~/utils/preset/FabFilterProQ2";
 import { FabFilterProQ3 } from "~/utils/preset/FabFilterProQ3";
@@ -21,8 +23,11 @@ import { FxChunkSet, FXP, FxProgramSet } from "~/utils/preset/FXP";
 import { FXPPresetFactory } from "~/utils/preset/FXPPresetFactory";
 import { GenericEQBand, GenericEQPreset } from "~/utils/preset/GenericEQPreset";
 import { Preset } from "~/utils/preset/Preset";
+import { SSLNativeChannel } from "~/utils/preset/SSLNativeChannel";
 import { SteinbergFrequency } from "~/utils/preset/SteinbergFrequency";
 import { VstPresetFactory } from "~/utils/preset/VstPresetFactory";
+import { WavesSSLChannel } from "~/utils/preset/WavesSSLChannel";
+import { WavesSSLComp } from "~/utils/preset/WavesSSLComp";
 import { ChevronsUpDown } from "lucide-react";
 import { MidiData } from "midi-file";
 import { useDropzone } from "react-dropzone";
@@ -216,7 +221,7 @@ export default function Index() {
 
               if (vstPreset && vstPreset instanceof FabFilterProQBase) {
                 console.log(
-                  "FabFilterProQ[1|2|3] preset:",
+                  "FabFilterProQ[1|2|3] preset:\n",
                   vstPreset.toString()
                 );
                 setSourceFormat(vstPreset.PlugInName);
@@ -228,10 +233,32 @@ export default function Index() {
                 setSourceFormat(`${vstPreset.constructor.name}`);
                 setSourceData(vstPreset);
 
-                console.log("SteinbergFrequency preset:", vstPreset.toString());
+                console.log(
+                  "SteinbergFrequency preset:\n",
+                  vstPreset.toString()
+                );
                 const eqPreset =
                   SteinbergFrequencyToGenericEQ.convertBase(vstPreset);
                 setParsedGenericData(eqPreset);
+              } else if (vstPreset && vstPreset instanceof SSLNativeChannel) {
+                setSourceFormat(`${vstPreset.constructor.name}`);
+                setSourceData(vstPreset);
+
+                console.log("SSLNativeChannel preset:\n", vstPreset.toString());
+                const eqPreset = SSLNativeToGenericEQ.convertBase(vstPreset);
+                setParsedGenericData(eqPreset);
+              } else if (vstPreset && vstPreset instanceof WavesSSLChannel) {
+                setSourceFormat(`${vstPreset.constructor.name}`);
+                setSourceData(vstPreset);
+
+                console.log("WavesSSLChannel preset:\n", vstPreset.toString());
+                const eqPreset = WavesSSLToGenericEQ.convertBase(vstPreset);
+                setParsedGenericData(eqPreset);
+              } else if (vstPreset && vstPreset instanceof WavesSSLComp) {
+                setSourceFormat(`${vstPreset.constructor.name}`);
+                setSourceData(vstPreset);
+
+                console.log("WavesSSLComp preset:\n", vstPreset.toString());
               } else if (vstPreset) {
                 setSourceFormat(`${vstPreset.constructor.name}`);
                 setSourceData(vstPreset);
