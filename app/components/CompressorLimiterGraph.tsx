@@ -29,20 +29,21 @@ export function CompressorLimiterGraph({ comp }: CompressorLimiterGraphProps) {
 
     if (x < kneeStart) {
       y = x;
+    } else if (knee === 0) {
+      // Hard knee
+      y = threshold + (x - threshold) / ratio;
     } else if (x > kneeEnd) {
       y = threshold + (x - threshold) / ratio;
     } else {
       // Soft knee interpolation (quadratic blend)
-      const t = (x - kneeStart) / knee;
-      const compressed = threshold + (x - threshold) / ratio;
-      y =
-        (1 - t) ** 2 * x +
-        2 * (1 - t) * t * ((x + compressed) / 2) +
-        t ** 2 * compressed;
+      const t = (x - kneeStart) / knee; // t goes from 0 to 1
+      const gainReductionAtKneeEnd = (knee / 2) * (1 - 1 / ratio);
+      const currentGainReduction = gainReductionAtKneeEnd * t * t; // Quadratic increase in gain reduction
+      y = x - currentGainReduction;
     }
 
     y += makeupGain;
-    data.push({ input: x, output: y });
+    data.push({ input: x, output: y, threshold: threshold });
   }
 
   return (
@@ -55,6 +56,7 @@ export function CompressorLimiterGraph({ comp }: CompressorLimiterGraphProps) {
             value: "Input Level (dB)",
             position: "insideBottom",
             dy: 10,
+            fontSize: 12,
           }}
         />
         <YAxis
@@ -62,6 +64,7 @@ export function CompressorLimiterGraph({ comp }: CompressorLimiterGraphProps) {
             value: "Output Level (dB)",
             angle: -90,
             position: "insideLeft",
+            fontSize: 12,
           }}
         />
         <Tooltip formatter={(value: number) => `${value.toFixed(2)} dB`} />
@@ -71,6 +74,13 @@ export function CompressorLimiterGraph({ comp }: CompressorLimiterGraphProps) {
           stroke="#00d2ff"
           strokeWidth={2}
           dot={false}
+        />
+        <Line
+          dataKey="threshold"
+          stroke="#ff0000" // Red color for threshold line
+          strokeDasharray="3 3" // Dotted line
+          dot={false}
+          isAnimationActive={false} // No animation for static line
         />
       </LineChart>
     </ResponsiveContainer>

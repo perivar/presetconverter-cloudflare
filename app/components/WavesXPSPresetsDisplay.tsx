@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { WavesSSLCompToGenericCompressorLimiter } from "~/utils/converters/WavesSSLCompToGenericCompressorLimiter";
 import { WavesSSLToGenericEQ } from "~/utils/converters/WavesSSLToGenericEQ";
 import { GenericCompressorLimiter } from "~/utils/preset/GenericCompressorLimiter";
@@ -6,7 +7,7 @@ import { Preset } from "~/utils/preset/Preset";
 import { WavesPreset } from "~/utils/preset/WavesPreset";
 import { WavesSSLChannel } from "~/utils/preset/WavesSSLChannel";
 import { WavesSSLComp } from "~/utils/preset/WavesSSLComp";
-import { ChevronsUpDown } from "lucide-react";
+import { ChevronDown, ChevronUp } from "lucide-react";
 import { useTranslation } from "react-i18next";
 
 import { Button } from "~/components/ui/button";
@@ -31,6 +32,7 @@ export function WavesXPSPresetsDisplay({
   originalFileName,
 }: WavesXPSPresetsDisplayProps) {
   const { t } = useTranslation();
+  const [isOpen, setIsOpen] = useState(false); // State for collapsible
 
   if (!wavesXPSPresets || wavesXPSPresets.length === 0) {
     return null;
@@ -42,18 +44,23 @@ export function WavesXPSPresetsDisplay({
         <CardTitle>{t("waves.xpsPresets.title")}</CardTitle>
       </CardHeader>
       <CardContent>
-        <Collapsible defaultOpen={false}>
-          <div className="flex items-center justify-between">
-            <h4 className="text-sm font-semibold">
-              {`${t("waves.xpsPresets.description")} (${wavesXPSPresets.length})`}
-            </h4>
-            <CollapsibleTrigger asChild>
-              <Button variant="ghost" size="sm" className="w-9 p-0">
-                <ChevronsUpDown className="size-4" />
+        <Collapsible open={isOpen} onOpenChange={setIsOpen}>
+          <CollapsibleTrigger asChild>
+            <div className="flex items-center justify-between">
+              <h4
+                className={`text-sm font-semibold ${isOpen ? "font-bold" : ""}`}>
+                {`${t("waves.xpsPresets.description")} (${wavesXPSPresets.length})`}
+              </h4>
+              <Button variant="outline" size="sm" className="w-9 p-0">
+                {isOpen ? (
+                  <ChevronUp className="size-4" />
+                ) : (
+                  <ChevronDown className="size-4" />
+                )}
                 <span className="sr-only">Toggle</span>
               </Button>
-            </CollapsibleTrigger>
-          </div>
+            </div>
+          </CollapsibleTrigger>
           <CollapsibleContent>
             <div>
               {wavesXPSPresets.map((preset, index) => {

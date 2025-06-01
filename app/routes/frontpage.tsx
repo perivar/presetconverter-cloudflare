@@ -28,7 +28,7 @@ import { SteinbergFrequency } from "~/utils/preset/SteinbergFrequency";
 import { VstPresetFactory } from "~/utils/preset/VstPresetFactory";
 import { WavesSSLChannel } from "~/utils/preset/WavesSSLChannel";
 import { WavesSSLComp } from "~/utils/preset/WavesSSLComp";
-import { ChevronsUpDown } from "lucide-react";
+import { ChevronDown, ChevronUp } from "lucide-react";
 import { MidiData } from "midi-file";
 import { useDropzone } from "react-dropzone";
 import { useTranslation } from "react-i18next";
@@ -125,6 +125,7 @@ export default function Index() {
     setAbletonAutomationConversionResult,
   ] = useState<AutomationConversionResult | null>(null);
   const [wavesXPSPresets, setWavesXPSPresets] = useState<Preset[] | null>(null);
+  const [isBandDetailsOpen, setIsBandDetailsOpen] = useState(false); // State for band details collapsible
 
   const onDrop = useCallback(
     (acceptedFiles: File[]) => {
@@ -467,16 +468,25 @@ export default function Index() {
                   />
                 </div>
                 <div className="mt-4">
-                  <Collapsible defaultOpen={false}>
-                    <div className="flex items-center justify-between">
-                      <strong>{t("fileInfo.bandDetails")}:</strong>
-                      <CollapsibleTrigger asChild>
-                        <Button variant="ghost" size="sm" className="w-9 p-0">
-                          <ChevronsUpDown className="size-4" />
+                  <Collapsible
+                    open={isBandDetailsOpen}
+                    onOpenChange={setIsBandDetailsOpen}>
+                    <CollapsibleTrigger asChild>
+                      <div className="flex items-center justify-between">
+                        <h4
+                          className={`text-sm font-semibold ${isBandDetailsOpen ? "font-bold" : ""}`}>
+                          {t("fileInfo.bandDetails")}:
+                        </h4>
+                        <Button variant="outline" size="sm" className="w-9 p-0">
+                          {isBandDetailsOpen ? (
+                            <ChevronUp className="size-4" />
+                          ) : (
+                            <ChevronDown className="size-4" />
+                          )}
                           <span className="sr-only">Toggle</span>
                         </Button>
-                      </CollapsibleTrigger>
-                    </div>
+                      </div>
+                    </CollapsibleTrigger>
                     <CollapsibleContent>
                       <EqualizerBandTable
                         preset={parsedGenericData}

@@ -96,7 +96,7 @@ export const WavesSSLCompToGenericCompressorLimiter: MultiFormatConverter<
       preset.MakeupGain,
       attackMs,
       releaseS,
-      0, // Waves SSLComp doesn't have a direct 'knee' parameter, default to 0
+      6, // Waves SSLComp doesn't have a direct 'knee' parameter, default to 6 = Moderate soft knee (common)
       fadeValue,
       preset.RateS,
       preset.In,

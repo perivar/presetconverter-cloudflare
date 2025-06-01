@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { AbletonDevicePreset } from "~/utils/ableton/AbletonDevicePreset";
 import { unwrapAbletonDevicePreset } from "~/utils/ableton/AbletonDevicePresetUnwrapper";
-import { ChevronsUpDown } from "lucide-react";
+import { ChevronDown, ChevronUp } from "lucide-react";
 import { useTranslation } from "react-i18next";
 
 import { Button } from "~/components/ui/button";
@@ -34,6 +34,7 @@ export function AbletonDevicePresetsDisplay({
   const [unwrappedPresets, setUnwrappedPresets] = useState<UnwrappedPreset[]>(
     []
   );
+  const [isOpen, setIsOpen] = useState(false); // State for collapsible
   const { t } = useTranslation();
 
   useEffect(() => {
@@ -84,18 +85,23 @@ export function AbletonDevicePresetsDisplay({
             {error}
           </div>
         )}
-        <Collapsible defaultOpen={false}>
-          <div className="flex items-center justify-between">
-            <h4 className="text-sm font-semibold">
-              {`${t("ableton.devicePresets.description")} (${unwrappedPresets.length})`}
-            </h4>
-            <CollapsibleTrigger asChild>
-              <Button variant="ghost" size="sm" className="w-9 p-0">
-                <ChevronsUpDown className="size-4" />
+        <Collapsible open={isOpen} onOpenChange={setIsOpen}>
+          <CollapsibleTrigger asChild>
+            <div className="flex items-center justify-between">
+              <h4
+                className={`text-sm font-semibold ${isOpen ? "font-bold" : ""}`}>
+                {`${t("ableton.devicePresets.description")} (${unwrappedPresets.length})`}
+              </h4>
+              <Button variant="outline" size="sm" className="w-9 p-0">
+                {isOpen ? (
+                  <ChevronUp className="size-4" />
+                ) : (
+                  <ChevronDown className="size-4" />
+                )}
                 <span className="sr-only">Toggle</span>
               </Button>
-            </CollapsibleTrigger>
-          </div>
+            </div>
+          </CollapsibleTrigger>
           <CollapsibleContent>
             <div>
               {unwrappedPresets.map((unwrappedPreset, index) => (
