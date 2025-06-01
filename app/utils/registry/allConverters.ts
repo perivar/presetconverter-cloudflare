@@ -13,6 +13,7 @@ import { SSLNativeToGenericEQ } from "../converters/SSLNativeToGenericEQ";
 import { SSLNativeToWavesSSLChannel } from "../converters/SSLNativeToWavesSSLChannel";
 import { SteinbergFrequencyToGenericEQ } from "../converters/SteinbergFrequencyToGenericEQ";
 import { WavesSSLChannelToText } from "../converters/WavesSSLChannelToText";
+import { WavesSSLCompToText } from "../converters/WavesSSLCompToText";
 import { WavesSSLToGenericEQ } from "../converters/WavesSSLToGenericEQ";
 import { WavesSSLToSSLNativeChannel } from "../converters/WavesSSLToSSLNativeChannel";
 import { ConverterRegistration } from "./converterRegistry";
@@ -44,4 +45,5 @@ export const allConverters: ConverterRegistration[] = [
   { fromTypes: ["SSLNativeChannel"], converter: SSLNativeToWavesSSLChannel },
   { fromTypes: ["WavesSSLChannel"], converter: WavesSSLChannelToText },
   { fromTypes: ["SSLNativeChannel"], converter: SSLNativeChannelToText },
+  { fromTypes: ["WavesSSLComp"], converter: WavesSSLCompToText },
 ];
