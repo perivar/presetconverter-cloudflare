@@ -1,5 +1,6 @@
 import { GenericCompressorLimiter } from "~/utils/preset/GenericCompressorLimiter";
 import {
+  CartesianGrid,
   Line,
   LineChart,
   ResponsiveContainer,
@@ -49,9 +50,11 @@ export function CompressorLimiterGraph({ comp }: CompressorLimiterGraphProps) {
   return (
     <ResponsiveContainer width="100%" height={300}>
       <LineChart data={data}>
+        <CartesianGrid strokeDasharray="3 3" />
         <XAxis
           dataKey="input"
           domain={[-60, 0]}
+          tickCount={11} // For every 6 dB from -60 to 0 (11 ticks: -60, -54, ..., 0)
           label={{
             value: "Input Level (dB)",
             position: "insideBottom",
@@ -60,6 +63,8 @@ export function CompressorLimiterGraph({ comp }: CompressorLimiterGraphProps) {
           }}
         />
         <YAxis
+          domain={[-60, 0]} // Set Y-axis domain to match X-axis for consistency
+          tickCount={11} // For every 6 dB from -60 to 0 (11 ticks: -60, -54, ..., 0)
           label={{
             value: "Output Level (dB)",
             angle: -90,
@@ -71,7 +76,7 @@ export function CompressorLimiterGraph({ comp }: CompressorLimiterGraphProps) {
         <Line
           type="monotone"
           dataKey="output"
-          stroke="#00d2ff"
+          stroke="hsl(var(--primary))"
           strokeWidth={2}
           dot={false}
         />
