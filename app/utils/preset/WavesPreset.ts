@@ -171,9 +171,19 @@ export abstract class WavesPreset extends VstPreset {
 
     try {
       const result = parser.parse(xmlString);
-      const presetNodes = Array.isArray(result?.PresetChunkXMLTree?.Preset)
-        ? result.PresetChunkXMLTree.Preset
-        : [result?.PresetChunkXMLTree?.Preset];
+      let presetNodes: any[] = [];
+
+      if (result?.PresetChunkXMLTree?.Preset) {
+        // Assume a VST preset chunk
+        presetNodes = Array.isArray(result.PresetChunkXMLTree.Preset)
+          ? result.PresetChunkXMLTree.Preset
+          : [result.PresetChunkXMLTree.Preset];
+      } else if (result?.PresetXMLTree?.Preset) {
+        // Assume an XPS preset collection file
+        presetNodes = Array.isArray(result.PresetXMLTree.Preset)
+          ? result.PresetXMLTree.Preset
+          : [result.PresetXMLTree.Preset];
+      }
 
       const parsedPresets: T[] = [];
       for (const presetNode of presetNodes) {
@@ -260,9 +270,9 @@ export abstract class WavesPreset extends VstPreset {
         : presetDataNode.Parameters;
 
       if (parametersNode && parametersNode["#text"]) {
-        const trimmed = parametersNode["#text"];
+        const text = parametersNode["#text"];
         realWorldParamsMap.set(setupKey, {
-          realWorldParameters: trimmed,
+          realWorldParameters: text,
           presetSetupName: setupName,
           isActive,
         });
