@@ -35,7 +35,7 @@
     "dropHere": "Drop the file here",
     "loading": "Loading...",
     "prompt": "Drag and drop a daw project file or a preset file here, or click to select",
-    "supportedFormats": "Supported formats: .ffp, .fxp, .vstpreset, .als",
+    "supportedFormats": "Supported formats: .ffp, .fxp, .vstpreset, .als, .xps",
     "title": "Upload DAW project or preset"
   },
   "error": {
@@ -75,5 +75,11 @@
     "theme_light": "Light",
     "title": "Settings"
   },
-  "title": "Preset Converter"
+  "title": "Preset Converter",
+  "waves": {
+    "xpsPresets": {
+      "description": "Show all Waves XPS preset files",
+      "title": "Waves XPS Preset Files"
+    }
+  }
 }

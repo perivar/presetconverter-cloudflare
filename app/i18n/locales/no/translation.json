@@ -35,7 +35,7 @@
     "dropHere": "Slipp filen her",
     "loading": "Laster...",
     "prompt": "Dra og slipp en daw prosjekt-fil eller en preset-fil her, eller klikk for å velge",
-    "supportedFormats": "Støttede formater: .ffp, .fxp, .vstpreset, .als",
+    "supportedFormats": "Støttede formater: .ffp, .fxp, .vstpreset, .als, .xps",
     "title": "Last opp DAW prosjekt eller preset"
   },
   "error": {
@@ -75,5 +75,11 @@
     "theme_light": "Lys",
     "title": "Innstillinger"
   },
-  "title": "Preset konverterer"
+  "title": "Preset konverterer",
+  "waves": {
+    "xpsPresets": {
+      "description": "Vis alle Waves XPS preset-filer",
+      "title": "Waves XPS preset-filer"
+    }
+  }
 }

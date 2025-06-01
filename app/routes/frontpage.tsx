@@ -46,6 +46,7 @@ import { AbletonMidiFileDisplay } from "~/components/AbletonMidiFileDisplay";
 import { EqualizerBandTable } from "~/components/EqualizerBandTable";
 import { EqualizerChart } from "~/components/EqualizerChart";
 import { TargetConversion } from "~/components/TargetConversion";
+import { WavesXPSPresetsDisplay } from "~/components/WavesXPSPresetsDisplay";
 
 export async function loader({ request }: LoaderFunctionArgs) {
   const t = await i18next.getFixedT(request);
@@ -123,6 +124,7 @@ export default function Index() {
     abletonAutomationConversionResult,
     setAbletonAutomationConversionResult,
   ] = useState<AutomationConversionResult | null>(null);
+  const [wavesXPSPresets, setWavesXPSPresets] = useState<Preset[] | null>(null);
 
   const onDrop = useCallback(
     (acceptedFiles: File[]) => {
@@ -134,6 +136,7 @@ export default function Index() {
       setAbletonDevicePresets(null);
       setAbletonMidiFile(null);
       setAbletonAutomationConversionResult(null);
+      setWavesXPSPresets(null); // Clear XPS presets on new drop
       setIsLoading(true);
 
       if (acceptedFiles.length === 0) {
@@ -271,6 +274,41 @@ export default function Index() {
             } catch (_err) {
               setError(t("error.unsupportedFormat", { fileName: file.name }));
             }
+          } else if (ext === "xps") {
+            try {
+              const fileContentXPS = new TextDecoder().decode(data);
+              const allXPSPresets: Preset[] = [];
+
+              // Try parsing as WavesSSLChannel XPS
+              const wavesSSLChannels = WavesSSLChannel.parseXml(
+                fileContentXPS,
+                WavesSSLChannel
+              );
+              allXPSPresets.push(...wavesSSLChannels);
+
+              // Try parsing as WavesSSLComp XPS
+              const wavesSSLComps = WavesSSLComp.parseXml(
+                fileContentXPS,
+                WavesSSLComp
+              );
+              allXPSPresets.push(...wavesSSLComps);
+
+              if (allXPSPresets.length > 0) {
+                setWavesXPSPresets(allXPSPresets);
+                setSourceFormat("Waves XPS Collection"); // Indicate it's a collection
+                console.log(
+                  `Parsed ${allXPSPresets.length} Waves XPS presets.`
+                );
+              } else {
+                setError(t("error.unsupportedFormat", { fileName: file.name }));
+              }
+            } catch (err) {
+              console.error("XPS parsing error:", err);
+              const message = err instanceof Error ? err.message : String(err);
+              setError(
+                t("error.parsingError", { fileName: file.name, message })
+              );
+            }
           } else if (ext === "als") {
             try {
               const result = await AbletonHandlers.HandleAbletonLiveProject(
@@ -335,7 +373,7 @@ export default function Index() {
     onDrop,
     accept: {
       "audio/fxp": [".fxp"],
-      "application/octet-stream": [".ffp", ".vstpreset"],
+      "application/octet-stream": [".ffp", ".vstpreset", ".xps"],
       "application/x-ableton-live": [".als"],
     },
     multiple: false,
@@ -468,6 +506,12 @@ export default function Index() {
       {/* Display Ableton Automation Conversion Result */}
       <AbletonAutomationResultDisplay
         abletonAutomationConversionResult={abletonAutomationConversionResult}
+      />
+
+      {/* Display Waves XPS Presets */}
+      <WavesXPSPresetsDisplay
+        wavesXPSPresets={wavesXPSPresets}
+        originalFileName={droppedFile?.name || null}
       />
 
       {parsedGenericData && (
