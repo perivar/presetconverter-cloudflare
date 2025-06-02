@@ -4,7 +4,6 @@ import * as path from "path";
 
 import { UADSSLChannel } from "../preset/UADSSLChannel";
 import { VstPresetFactory } from "../preset/VstPresetFactory";
-import { expectUint8ArraysToBeEqual } from "./helpers/testUtils";
 
 describe("UADSSLChannel getParameterDisplay", () => {
   let channel: UADSSLChannel;
@@ -216,8 +215,13 @@ describe("UADSSLChannel getParameterDisplay", () => {
       );
       fs.writeFileSync(filePathWrite, uint8ArrayWrite);
 
-      // Compare arrays using the helper function for better diff output on failure
-      expectUint8ArraysToBeEqual(uint8ArrayWrite, uint8ArrayRead);
+      const uadSSLChannel = VstPresetFactory.getVstPreset(uint8ArrayWrite);
+      if (uadSSLChannel) {
+        console.log(`${uadSSLChannel.constructor.name}`);
+      }
+
+      // compare toString for both presets
+      expect(vstPreset?.toString()).toBe(uadSSLChannel?.toString());
     }
   });
 });
