@@ -111,6 +111,29 @@ export class BinaryFile {
   }
 
   /**
+   * Writes a string to the writer, converting it to a Uint8Array of a given length.
+   * If the string is shorter than the specified length, the array will be padded with zeros.
+   * @param writer The BinaryWriter instance.
+   * @param str The string to write.
+   * @param length The desired length of the Uint8Array.
+   * @returns The number of bytes written (equal to length).
+   */
+  static writeString(
+    writer: BinaryWriter,
+    str: string,
+    length: number
+  ): number {
+    const byteArray = BinaryFile.stringToByteArray(str, length);
+    byteArray.forEach(byte => writer.writeInt8(byte));
+    return length;
+  }
+
+  writeString(str: string, length: number): number {
+    if (!this.binaryWriter) throw new Error("binaryWriter is null");
+    return BinaryFile.writeString(this.binaryWriter, str, length);
+  }
+
+  /**
    * Reads a 16-bit signed integer from the reader using the specified byte order.
    * Temporarily sets the reader's endianness for this operation.
    * @param reader The BinaryReader instance.
@@ -308,5 +331,27 @@ export class BinaryFile {
     const value = BinaryFile.readFloat64(this.binaryReader, targetEndian);
     this.position = this.binaryReader.getPosition();
     return value;
+  }
+
+  /**
+   * Converts a string to a Uint8Array of a given length.
+   * If the string is shorter than the specified length, the array will be padded with zeros.
+   * @param str The string to convert.
+   * @param length The desired length of the Uint8Array.
+   * @returns A Uint8Array representation of the string, padded to the specified length.
+   */
+  static stringToByteArray(str: string, length: number): Uint8Array {
+    const encoder = new TextEncoder();
+    const encoded = encoder.encode(str);
+    const byteArray = new Uint8Array(length);
+
+    for (let i = 0; i < length; i++) {
+      if (i < encoded.length) {
+        byteArray[i] = encoded[i];
+      } else {
+        byteArray[i] = 0; // Pad with zeros
+      }
+    }
+    return byteArray;
   }
 }

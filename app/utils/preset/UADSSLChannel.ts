@@ -1,4 +1,4 @@
-import { XMLParser } from "fast-xml-parser"; // Import XMLParser directly
+import { XMLParser } from "fast-xml-parser";
 
 import { BinaryFile, ByteOrder } from "../binary/BinaryFile";
 import { FxChunkSet, FxContent, FXP, FxProgramSet } from "./FXP";
@@ -12,42 +12,42 @@ export class UADSSLChannel extends VstPreset {
   public PresetHeaderVar2: number = 2;
 
   // Parameter Variable Names
-  public Input: number = 0;
-  public Phase: number = 0;
-  public HPFreq: number = 0;
-  public LPFreq: number = 0;
-  public HP_LPDynSC: number = 0;
-  public CompRatio: number = 0;
-  public CompThresh: number = 0;
-  public CompRelease: number = 0;
-  public CompAttack: number = 0;
-  public StereoLink: number = 0;
-  public Select: number = 0;
-  public ExpThresh: number = 0;
-  public ExpRange: number = 0;
-  public ExpRelease: number = 0;
-  public ExpAttack: number = 0;
-  public DynIn: number = 0;
-  public CompIn: number = 0;
-  public ExpIn: number = 0;
-  public LFGain: number = 0;
-  public LFFreq: number = 0;
-  public LFBell: number = 0;
-  public LMFGain: number = 0;
-  public LMFFreq: number = 0;
-  public LMFQ: number = 0;
-  public HMFQ: number = 0;
-  public HMFGain: number = 0;
-  public HMFFreq: number = 0;
-  public HFGain: number = 0;
-  public HFFreq: number = 0;
-  public HFBell: number = 0;
-  public EQIn: number = 0;
-  public EQDynSC: number = 0;
-  public PreDyn: number = 0;
-  public Output: number = 0;
-  public EQType: number = 0;
-  public Power: number = 0;
+  public Input: number = 0; // (-20.0 dB -> 20.0 dB)
+  public Phase: number = 0; // (Normal -> Inverted)
+  public HPFreq: number = 0; // (Out -> 304 Hz)
+  public LPFreq: number = 0; // (Out -> 3.21 k)
+  public HP_LPDynSC: number = 0; // (Off -> On)
+  public CompRatio: number = 0; // (1.00:1 -> Limit)
+  public CompThresh: number = 0; // (10.0 dB -> -20.0 dB)
+  public CompRelease: number = 0; // (0.10 s -> 4.00 s)
+  public CompAttack: number = 0; // (Auto -> Fast)
+  public StereoLink: number = 0; // (UnLink -> Link)
+  public Select: number = 0; // (Expand -> Gate 2)
+  public ExpThresh: number = 0; // (-30.0 dB -> 10.0 dB)
+  public ExpRange: number = 0; // (0.0 dB -> 40.0 dB)
+  public ExpRelease: number = 0; // (0.10 s -> 4.00 s)
+  public ExpAttack: number = 0; // (Auto -> Fast)
+  public DynIn: number = 0; // (Out -> In)
+  public CompIn: number = 0; // (Out -> In)
+  public ExpIn: number = 0; // (Out -> In)
+  public LFGain: number = 0; // (-10.0 dB -> 10.0 dB)
+  public LFFreq: number = 0; // (36.1 Hz -> 355 Hz)
+  public LFBell: number = 0; // (Shelf -> Bell)
+  public LMFGain: number = 0; // (-15.6 dB -> 15.6 dB)
+  public LMFFreq: number = 0; // (251 Hz -> 2.17 k)
+  public LMFQ: number = 0; // (2.50 -> 2.50)
+  public HMFQ: number = 0; // (4.00 -> 0.40)
+  public HMFGain: number = 0; // (-16.5 dB -> 16.5 dB)
+  public HMFFreq: number = 0; // (735 Hz -> 6.77 k)
+  public HFGain: number = 0; // (-16.0 dB -> 16.1 dB)
+  public HFFreq: number = 0; // (6.93 k -> 21.7 k)
+  public HFBell: number = 0; // (Shelf -> Bell)
+  public EQIn: number = 0; // (Out -> In)
+  public EQDynSC: number = 0; // (Off -> On)
+  public PreDyn: number = 0; // (Off -> On)
+  public Output: number = 0; // (-20.0 dB -> 20.0 dB)
+  public EQType: number = 0; // (Black -> Brown)
+  public Power: number = 0; // (Off -> On)
 
   // lists to store lookup values - now static
   private static displayTextDict: { [key: string]: string[] } = {};
@@ -66,9 +66,11 @@ export class UADSSLChannel extends VstPreset {
   }
 
   public initFromParameters(): void {
-    // This method is required by the VstPreset abstract class.
-    // The UADSSLChannel's parameters are read directly from the FXP chunk data
-    // in readFXP, so this method can remain empty for now.
+    if (this.FXP) {
+      this.readFXP(this.FXP);
+    } else {
+      console.warn("FXP content not found.");
+    }
   }
 
   public static initializeMappingTables(): void {
@@ -269,6 +271,13 @@ export class UADSSLChannel extends VstPreset {
 
     const bFile = new BinaryFile(chunkData, ByteOrder.LittleEndian);
 
+    if (fxp.content.FxMagic === "FBCh") {
+      // FBCh = FXB (bank)
+      bFile.binaryReader?.readUInt32(); // PresetHeaderVar1
+      bFile.binaryReader?.readUInt32(); // PresetHeaderVar2
+      bFile.binaryReader?.readUInt32(); // PresetName
+    }
+
     this.PresetHeaderVar1 = bFile.binaryReader?.readInt32() || 0;
     this.PresetHeaderVar2 = bFile.binaryReader?.readInt32() || 0;
     this.presetName =
@@ -335,9 +344,10 @@ export class UADSSLChannel extends VstPreset {
 
     fxp.content = fxpContent;
     fxpContent.ChunkMagic = "CcnK";
-    fxpContent.ByteSize = 0;
+    fxpContent.ByteSize = 0; // will be set correctly by FXP class
 
-    fxpContent.FxMagic = isBank ? "FBCh" : "FPCh";
+    // Preset (Program) (.fxp) with chunk (magic = 'FPCh')
+    fxpContent.FxMagic = isBank ? "FBCh" : "FPCh"; // FBCh = FXB (bank), FPCh = FXP (preset)
     fxpContent.Version = 1;
     fxpContent.FxID = "J9AU";
     fxpContent.FxVersion = 1;
@@ -359,15 +369,18 @@ export class UADSSLChannel extends VstPreset {
     const bf = new BinaryFile(undefined, ByteOrder.LittleEndian);
 
     if (fxMagic === "FBCh") {
-      bf.binaryWriter?.writeUInt32(3);
-      bf.binaryWriter?.writeUInt32(0);
-      bf.binaryWriter?.writeUInt32(32);
+      // FBCh = FXB (bank)
+      bf.binaryWriter?.writeUInt32(3); // PresetHeaderVar1
+      bf.binaryWriter?.writeUInt32(0); // PresetHeaderVar2
+      bf.binaryWriter?.writeUInt32(32); // PresetName
     }
 
+    // Write UAD Preset Header information
     bf.binaryWriter?.writeInt32(this.PresetHeaderVar1);
     bf.binaryWriter?.writeInt32(this.PresetHeaderVar2);
-    bf.writeStringPadded(this.presetName, 32);
+    bf.writeString(this.presetName, 32);
 
+    // Write Parameters
     bf.binaryWriter?.writeFloat32(this.Input);
     bf.binaryWriter?.writeFloat32(this.Phase);
     bf.binaryWriter?.writeFloat32(this.HPFreq);

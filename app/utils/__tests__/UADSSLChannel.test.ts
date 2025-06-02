@@ -1,8 +1,10 @@
 // app/utils/__tests__/UADSSLChannel.test.ts
-// import * as fs from "fs";
-// import * as path from "path";
+import * as fs from "fs";
+import * as path from "path";
 
 import { UADSSLChannel } from "../preset/UADSSLChannel";
+import { VstPresetFactory } from "../preset/VstPresetFactory";
+import { expectUint8ArraysToBeEqual } from "./helpers/testUtils";
 
 describe("UADSSLChannel getParameterDisplay", () => {
   let channel: UADSSLChannel;
@@ -191,5 +193,31 @@ describe("UADSSLChannel getParameterDisplay", () => {
       displayNumber: 0.4,
       displayText: "0.40",
     });
+  });
+
+  test("UADSSLChannel-readVstPreset-PhilTanFemaleVocal-array", () => {
+    const filePath = path.join(
+      __dirname,
+      "data/UAD/UAD SSL E Channel Strip Legacy/Phil Tan Female Vocal (Rihanna - Diam).vstpreset"
+    );
+    const fileContent = fs.readFileSync(filePath);
+    const uint8ArrayRead = new Uint8Array(fileContent);
+
+    const vstPreset = VstPresetFactory.getVstPreset(uint8ArrayRead);
+    if (vstPreset) {
+      console.log(`${vstPreset.constructor.name}`);
+    }
+
+    const uint8ArrayWrite = vstPreset?.write();
+    if (uint8ArrayWrite) {
+      const filePathWrite = path.join(
+        __dirname,
+        "data/UAD/UAD SSL E Channel Strip Legacy/Phil Tan Female Vocal (Rihanna - Diam)_tmp.vstpreset"
+      );
+      fs.writeFileSync(filePathWrite, uint8ArrayWrite);
+
+      // Compare arrays using the helper function for better diff output on failure
+      expectUint8ArraysToBeEqual(uint8ArrayWrite, uint8ArrayRead);
+    }
   });
 });

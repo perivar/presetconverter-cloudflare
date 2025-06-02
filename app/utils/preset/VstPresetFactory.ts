@@ -5,6 +5,7 @@ import { SSLNativeChannel } from "./SSLNativeChannel";
 import { SteinbergCompressor } from "./SteinbergCompressor";
 import { SteinbergFrequency } from "./SteinbergFrequency";
 import { SteinbergVstPreset } from "./SteinbergVstPreset";
+import { UADSSLChannel } from "./UADSSLChannel";
 import { VstClassIDs } from "./VstClassIDs";
 import { VstPreset } from "./VstPreset";
 import { WavesPreset } from "./WavesPreset";
@@ -57,6 +58,9 @@ export class VstPresetFactory {
           break;
         case VstClassIDs.SSLNativeChannel2:
           preset = new SSLNativeChannel();
+          break;
+        case VstClassIDs.UADSSLEChannel:
+          preset = new UADSSLChannel();
           break;
         case VstClassIDs.SteinbergCompressor:
           preset = new SteinbergCompressor();
