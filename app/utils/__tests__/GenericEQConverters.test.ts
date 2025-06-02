@@ -1,7 +1,7 @@
 import * as fs from "fs";
 import * as path from "path";
 
-import { FabFilterToGenericEQ } from "../converters/FabFilterToGenericEQ";
+import { FabFilterProQBaseToGenericEQ } from "../converters/FabFilterProQBaseToGenericEQ";
 import { SteinbergFrequencyToGenericEQ } from "../converters/SteinbergFrequencyToGenericEQ";
 import { FabFilterProQ } from "../preset/FabFilterProQ";
 import { FabFilterProQ2 } from "../preset/FabFilterProQ2";
@@ -22,13 +22,13 @@ const loadPresetFile = (filePath: string): Uint8Array => {
 };
 
 describe("GenericEQ Converters", () => {
-  describe("FabFilterToGenericEQ", () => {
+  describe("FabFilterProQBaseToGenericEQ", () => {
     test("should convert FabFilter Pro-Q 1 preset correctly", () => {
       const presetData = loadPresetFile("data/Fabfilter/Q1-Vocal.ffp");
       const proQ = new FabFilterProQ();
       proQ.readFFP(presetData);
 
-      const genericPreset = FabFilterToGenericEQ.convertBase(proQ);
+      const genericPreset = FabFilterProQBaseToGenericEQ.convertBase(proQ);
 
       // --- Assertions for ProQ1 conversion ---
       // Note: ProQ1 FFP doesn't store name/vendor in a standard way the parser reads
@@ -102,7 +102,7 @@ describe("GenericEQ Converters", () => {
       const proQ2 = new FabFilterProQ2();
       proQ2.readFFP(presetData);
 
-      const genericPreset = FabFilterToGenericEQ.convertBase(proQ2);
+      const genericPreset = FabFilterProQBaseToGenericEQ.convertBase(proQ2);
 
       // --- Assertions for ProQ2 conversion ---
       expect(genericPreset.Name).toBe("FabFilter Pro-Q 2");
@@ -176,7 +176,7 @@ describe("GenericEQ Converters", () => {
       const proQ3 = new FabFilterProQ3();
       proQ3.readFFP(presetData);
 
-      const genericPreset = FabFilterToGenericEQ.convertBase(proQ3);
+      const genericPreset = FabFilterProQBaseToGenericEQ.convertBase(proQ3);
 
       // --- Assertions for ProQ3 conversion ---
       expect(genericPreset.Name).toBe("FabFilter Pro-Q 3");

@@ -5,64 +5,64 @@ import {
   GenericEQSlope,
   GenericEQStereoPlacement,
 } from "../preset/GenericEQPreset";
-import { WavesSSLChannel } from "../preset/WavesSSLChannel";
+import { SSLNativeChannel } from "../preset/SSLNativeChannel";
 import { MultiFormatConverter } from "./MultiFormatConverter";
 
-export const WavesSSLToGenericEQ: MultiFormatConverter<
-  WavesSSLChannel,
+export const SSLNativeChannelToGenericEQ: MultiFormatConverter<
+  SSLNativeChannel,
   GenericEQPreset
 > = {
-  from: "WavesSSLChannel",
+  from: "SSLNativeChannel",
   to: "GenericEQPreset",
   displayName: "Generic EQ Preset",
 
-  convertBase(preset: WavesSSLChannel) {
+  convertBase(preset: SSLNativeChannel) {
     const genericEQPreset = new GenericEQPreset(
-      preset.PresetName || "Waves SSLChannel Preset",
+      preset.PresetName || "SSL Native Channel Preset",
       [],
-      "1", // Version is not available
+      preset.PresetVersion,
       preset.PlugInVendor
     );
 
-    // Low Pass Filter
-    if (preset.LPFrq > 0) {
+    // High Pass Filter
+    if (preset.HighPassFreq > 0) {
       genericEQPreset.Bands.push(
         new GenericEQBand(
           true,
-          preset.LPFrq * 1000, // KHz to Hz
-          0, // LP filter usually has 0 gain
+          preset.HighPassFreq,
+          0, // HP filter usually has 0 gain
           0.707, // Default Q for filters
-          GenericEQShape.HighCut,
-          GenericEQSlope.Slope12dB_oct, // Waves SSLChannel LP is 12 dB/octave
+          GenericEQShape.LowCut,
+          GenericEQSlope.Slope18dB_oct, // SSL Native HP is 18 dB/octave
           GenericEQStereoPlacement.Stereo
         )
       );
     }
 
-    // High Pass Filter
-    if (preset.HPFrq > 0) {
+    // Low Pass Filter
+    if (preset.LowPassFreq > 0) {
       genericEQPreset.Bands.push(
         new GenericEQBand(
           true,
-          preset.HPFrq,
-          0, // HP filter usually has 0 gain
+          preset.LowPassFreq * 1000, // KHz to Hz
+          0, // LP filter usually has 0 gain
           0.707, // Default Q for filters
-          GenericEQShape.LowCut,
-          GenericEQSlope.Slope18dB_oct, // Waves SSLChannel HP is 18 dB/octave
+          GenericEQShape.HighCut,
+          GenericEQSlope.Slope12dB_oct, // SSL Native LP is 12 dB/octave
           GenericEQStereoPlacement.Stereo
         )
       );
     }
 
     // Low Frequency EQ
-    if (preset.LFGain !== 0) {
+    if (preset.LowEqGain !== 0) {
       genericEQPreset.Bands.push(
         new GenericEQBand(
           true,
-          preset.LFFrq,
-          preset.LFGain,
+          preset.LowEqFreq,
+          preset.LowEqGain,
           0.707, // Default Q for shelves
-          preset.LFTypeBell ? GenericEQShape.Bell : GenericEQShape.LowShelf,
+          preset.LowEqBell ? GenericEQShape.Bell : GenericEQShape.LowShelf,
           GenericEQSlope.Slope24dB_oct, // Default slope
           GenericEQStereoPlacement.Stereo
         )
@@ -70,13 +70,13 @@ export const WavesSSLToGenericEQ: MultiFormatConverter<
     }
 
     // Low Mid Frequency EQ
-    if (preset.LMFGain !== 0) {
+    if (preset.LowMidEqGain !== 0) {
       genericEQPreset.Bands.push(
         new GenericEQBand(
           true,
-          preset.LMFFrq * 1000, // KHz to Hz
-          preset.LMFGain,
-          preset.LMFQ,
+          preset.LowMidEqFreq * 1000, // KHz to Hz
+          preset.LowMidEqGain,
+          preset.LowMidEqQ,
           GenericEQShape.Bell,
           GenericEQSlope.Slope24dB_oct, // Default slope
           GenericEQStereoPlacement.Stereo
@@ -85,13 +85,13 @@ export const WavesSSLToGenericEQ: MultiFormatConverter<
     }
 
     // High Mid Frequency EQ
-    if (preset.HMFGain !== 0) {
+    if (preset.HighMidEqGain !== 0) {
       genericEQPreset.Bands.push(
         new GenericEQBand(
           true,
-          preset.HMFFrq * 1000, // KHz to Hz
-          preset.HMFGain,
-          preset.HMFQ,
+          preset.HighMidEqFreq * 1000, // KHz to Hz
+          preset.HighMidEqGain,
+          preset.HighMidEqQ,
           GenericEQShape.Bell,
           GenericEQSlope.Slope24dB_oct, // Default slope
           GenericEQStereoPlacement.Stereo
@@ -100,14 +100,14 @@ export const WavesSSLToGenericEQ: MultiFormatConverter<
     }
 
     // High Frequency EQ
-    if (preset.HFGain !== 0) {
+    if (preset.HighEqGain !== 0) {
       genericEQPreset.Bands.push(
         new GenericEQBand(
           true,
-          preset.HFFrq * 1000, // KHz to Hz
-          preset.HFGain,
+          preset.HighEqFreq * 1000, // KHz to Hz
+          preset.HighEqGain,
           0.707, // Default Q for shelves
-          preset.HFTypeBell ? GenericEQShape.Bell : GenericEQShape.HighShelf,
+          preset.HighEqBell ? GenericEQShape.Bell : GenericEQShape.HighShelf,
           GenericEQSlope.Slope24dB_oct, // Default slope
           GenericEQStereoPlacement.Stereo
         )
@@ -123,8 +123,8 @@ export const WavesSSLToGenericEQ: MultiFormatConverter<
       formatId: "txt",
       extension: ".txt",
       displayName: "Text Format",
-      convert(preset: WavesSSLChannel) {
-        const result = WavesSSLToGenericEQ.convertBase(preset);
+      convert(preset: SSLNativeChannel) {
+        const result = SSLNativeChannelToGenericEQ.convertBase(preset);
         return result.toString();
       },
     },

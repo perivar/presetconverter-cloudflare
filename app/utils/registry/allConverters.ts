@@ -1,34 +1,38 @@
-import { AbletonToFabFilterProQ3 } from "../converters/AbletonToFabFilterProQ3";
-import { AbletonToSteinbergFrequency } from "../converters/AbletonToSteinbergFrequency";
-import { FabFilterToGenericEQ } from "../converters/FabFilterToGenericEQ";
-import { FabFilterToSteinbergFrequency } from "../converters/FabFilterToSteinbergFrequency";
+import { AbletonEq8ToFabFilterProQ3 } from "../converters/AbletonEq8ToFabFilterProQ3";
+import { AbletonEq8ToSteinbergFrequency } from "../converters/AbletonEq8ToSteinbergFrequency";
+import { FabFilterProQBaseToGenericEQ } from "../converters/FabFilterProQBaseToGenericEQ";
+import { FabFilterProQBaseToSteinbergFrequency } from "../converters/FabFilterProQBaseToSteinbergFrequency";
 import { GenericEQToSteinbergFrequency } from "../converters/GenericEQToSteinbergFrequency";
 import { GenericFXPConverter } from "../converters/GenericFXPConverter"; // Import GenericFXPConverter
 import { GenericXMLConverter } from "../converters/GenericXMLConverter";
 import { REWToFabFilterProQ } from "../converters/REWToFabFilterProQ";
 import { REWToFabFilterProQ2 } from "../converters/REWToFabFilterProQ2";
 import { REWToFabFilterProQ3 } from "../converters/REWToFabFilterProQ3";
+import { SSLNativeChannelToGenericEQ } from "../converters/SSLNativeChannelToGenericEQ";
 import { SSLNativeChannelToText } from "../converters/SSLNativeChannelToText";
-import { SSLNativeToGenericEQ } from "../converters/SSLNativeToGenericEQ";
-import { SSLNativeToWavesSSLChannel } from "../converters/SSLNativeToWavesSSLChannel";
+import { SSLNativeChannelToWavesSSLChannel } from "../converters/SSLNativeChannelToWavesSSLChannel";
 import { SteinbergFrequencyToGenericEQ } from "../converters/SteinbergFrequencyToGenericEQ";
+import { UADSSLChannelToGenericEQ } from "../converters/UADSSLChannelToGenericEQ";
+import { UADSSLChannelToText } from "../converters/UADSSLChannelToText";
+import { UADSSLChannelToWavesSSLChannel } from "../converters/UADSSLChannelToWavesSSLChannel";
+import { WavesSSLChannelToGenericEQ } from "../converters/WavesSSLChannelToGenericEQ";
+import { WavesSSLChannelToSSLNativeChannel } from "../converters/WavesSSLChannelToSSLNativeChannel";
 import { WavesSSLChannelToText } from "../converters/WavesSSLChannelToText";
+import { WavesSSLChannelToUADSSLChannel } from "../converters/WavesSSLChannelToUADSSLChannel";
 import { WavesSSLCompToGenericCompressorLimiter } from "../converters/WavesSSLCompToGenericCompressorLimiter";
 import { WavesSSLCompToText } from "../converters/WavesSSLCompToText";
-import { WavesSSLToGenericEQ } from "../converters/WavesSSLToGenericEQ";
-import { WavesSSLToSSLNativeChannel } from "../converters/WavesSSLToSSLNativeChannel";
 import { ConverterRegistration } from "./converterRegistry";
 
 export const allConverters: ConverterRegistration[] = [
-  { fromTypes: ["AbletonEq8"], converter: AbletonToFabFilterProQ3 },
-  { fromTypes: ["AbletonEq8"], converter: AbletonToSteinbergFrequency },
+  { fromTypes: ["AbletonEq8"], converter: AbletonEq8ToFabFilterProQ3 },
+  { fromTypes: ["AbletonEq8"], converter: AbletonEq8ToSteinbergFrequency },
   {
     fromTypes: ["FabFilter Pro-Q", "FabFilter Pro-Q 2", "FabFilter Pro-Q 3"],
-    converter: FabFilterToGenericEQ,
+    converter: FabFilterProQBaseToGenericEQ,
   },
   {
     fromTypes: ["FabFilter Pro-Q", "FabFilter Pro-Q 2", "FabFilter Pro-Q 3"],
-    converter: FabFilterToSteinbergFrequency,
+    converter: FabFilterProQBaseToSteinbergFrequency,
   },
   { fromTypes: ["GenericEQPreset"], converter: GenericEQToSteinbergFrequency },
   {
@@ -40,12 +44,22 @@ export const allConverters: ConverterRegistration[] = [
   { fromTypes: ["REWText"], converter: REWToFabFilterProQ3 },
   { fromTypes: ["GenericFXP"], converter: GenericFXPConverter },
   { fromTypes: ["GenericXML"], converter: GenericXMLConverter },
-  { fromTypes: ["WavesSSLChannel"], converter: WavesSSLToSSLNativeChannel },
-  { fromTypes: ["WavesSSLChannel"], converter: WavesSSLToGenericEQ },
-  { fromTypes: ["SSLNativeChannel"], converter: SSLNativeToGenericEQ },
-  { fromTypes: ["SSLNativeChannel"], converter: SSLNativeToWavesSSLChannel },
+  {
+    fromTypes: ["WavesSSLChannel"],
+    converter: WavesSSLChannelToSSLNativeChannel,
+  },
+  { fromTypes: ["WavesSSLChannel"], converter: WavesSSLChannelToGenericEQ },
+  { fromTypes: ["WavesSSLChannel"], converter: WavesSSLChannelToUADSSLChannel },
   { fromTypes: ["WavesSSLChannel"], converter: WavesSSLChannelToText },
+  { fromTypes: ["SSLNativeChannel"], converter: SSLNativeChannelToGenericEQ },
+  {
+    fromTypes: ["SSLNativeChannel"],
+    converter: SSLNativeChannelToWavesSSLChannel,
+  },
   { fromTypes: ["SSLNativeChannel"], converter: SSLNativeChannelToText },
+  { fromTypes: ["UADSSLChannel"], converter: UADSSLChannelToWavesSSLChannel },
+  { fromTypes: ["UADSSLChannel"], converter: UADSSLChannelToGenericEQ },
+  { fromTypes: ["UADSSLChannel"], converter: UADSSLChannelToText },
   { fromTypes: ["WavesSSLComp"], converter: WavesSSLCompToText },
   {
     fromTypes: ["WavesSSLComp"],

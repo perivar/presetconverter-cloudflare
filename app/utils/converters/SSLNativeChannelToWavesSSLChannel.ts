@@ -2,7 +2,7 @@ import { SSLNativeChannel } from "../preset/SSLNativeChannel";
 import { WavesSSLChannel } from "../preset/WavesSSLChannel";
 import { MultiFormatConverter } from "./MultiFormatConverter";
 
-export const SSLNativeToWavesSSLChannel: MultiFormatConverter<
+export const SSLNativeChannelToWavesSSLChannel: MultiFormatConverter<
   SSLNativeChannel,
   WavesSSLChannel
 > = {
@@ -70,7 +70,7 @@ export const SSLNativeToWavesSSLChannel: MultiFormatConverter<
       extension: ".vstpreset",
       displayName: "Steinberg VSTPreset",
       convert(preset: SSLNativeChannel) {
-        const result = SSLNativeToWavesSSLChannel.convertBase(preset);
+        const result = SSLNativeChannelToWavesSSLChannel.convertBase(preset);
         return result.write();
       },
     },

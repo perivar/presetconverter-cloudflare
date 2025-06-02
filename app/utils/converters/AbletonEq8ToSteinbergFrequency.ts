@@ -10,7 +10,7 @@ import {
 } from "../preset/SteinbergFrequency";
 import { MultiFormatConverter } from "./MultiFormatConverter";
 
-export const AbletonToSteinbergFrequency: MultiFormatConverter<
+export const AbletonEq8ToSteinbergFrequency: MultiFormatConverter<
   AbletonEq8,
   SteinbergFrequency
 > = {
@@ -98,7 +98,7 @@ export const AbletonToSteinbergFrequency: MultiFormatConverter<
       extension: ".vstpreset",
       displayName: "Steinberg VSTPreset",
       convert(preset: AbletonEq8) {
-        const result = AbletonToSteinbergFrequency.convertBase(preset);
+        const result = AbletonEq8ToSteinbergFrequency.convertBase(preset);
         return result.write();
       },
     },

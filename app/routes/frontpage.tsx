@@ -11,10 +11,11 @@ import {
   convertAutomationToMidi,
   convertToMidi,
 } from "~/utils/ableton/Midi";
-import { FabFilterToGenericEQ } from "~/utils/converters/FabFilterToGenericEQ";
-import { SSLNativeToGenericEQ } from "~/utils/converters/SSLNativeToGenericEQ";
+import { FabFilterProQBaseToGenericEQ } from "~/utils/converters/FabFilterProQBaseToGenericEQ";
+import { SSLNativeChannelToGenericEQ } from "~/utils/converters/SSLNativeChannelToGenericEQ";
 import { SteinbergFrequencyToGenericEQ } from "~/utils/converters/SteinbergFrequencyToGenericEQ";
-import { WavesSSLToGenericEQ } from "~/utils/converters/WavesSSLToGenericEQ";
+import { UADSSLChannelToGenericEQ } from "~/utils/converters/UADSSLChannelToGenericEQ";
+import { WavesSSLChannelToGenericEQ } from "~/utils/converters/WavesSSLChannelToGenericEQ";
 import { FabFilterProQ } from "~/utils/preset/FabFilterProQ";
 import { FabFilterProQ2 } from "~/utils/preset/FabFilterProQ2";
 import { FabFilterProQ3 } from "~/utils/preset/FabFilterProQ3";
@@ -25,6 +26,7 @@ import { GenericEQBand, GenericEQPreset } from "~/utils/preset/GenericEQPreset";
 import { Preset } from "~/utils/preset/Preset";
 import { SSLNativeChannel } from "~/utils/preset/SSLNativeChannel";
 import { SteinbergFrequency } from "~/utils/preset/SteinbergFrequency";
+import { UADSSLChannel } from "~/utils/preset/UADSSLChannel";
 import { VstPresetFactory } from "~/utils/preset/VstPresetFactory";
 import { WavesSSLChannel } from "~/utils/preset/WavesSSLChannel";
 import { WavesSSLComp } from "~/utils/preset/WavesSSLComp";
@@ -174,7 +176,7 @@ export default function Index() {
 
                 // convert to common eqpreset format
                 const eqPreset =
-                  FabFilterToGenericEQ.convertBase(fabfilterEQPreset);
+                  FabFilterProQBaseToGenericEQ.convertBase(fabfilterEQPreset);
                 setParsedGenericData(eqPreset);
 
                 setIsLoading(false);
@@ -194,7 +196,7 @@ export default function Index() {
               setSourceFormat(proQ3.PlugInName);
               setSourceData(proQ3);
 
-              const eqPreset = FabFilterToGenericEQ.convertBase(proQ3);
+              const eqPreset = FabFilterProQBaseToGenericEQ.convertBase(proQ3);
               setParsedGenericData(eqPreset);
             } else {
               const proQ2 = new FabFilterProQ2();
@@ -202,7 +204,8 @@ export default function Index() {
                 setSourceFormat(proQ2.PlugInName);
                 setSourceData(proQ2);
 
-                const eqPreset = FabFilterToGenericEQ.convertBase(proQ2);
+                const eqPreset =
+                  FabFilterProQBaseToGenericEQ.convertBase(proQ2);
                 setParsedGenericData(eqPreset);
               } else {
                 const proQ1 = new FabFilterProQ();
@@ -210,7 +213,8 @@ export default function Index() {
                   setSourceFormat(proQ1.PlugInName);
                   setSourceData(proQ1);
 
-                  const eqPreset = FabFilterToGenericEQ.convertBase(proQ1);
+                  const eqPreset =
+                    FabFilterProQBaseToGenericEQ.convertBase(proQ1);
                   setParsedGenericData(eqPreset);
                 } else {
                   setError(
@@ -231,7 +235,8 @@ export default function Index() {
                 setSourceFormat(vstPreset.PlugInName);
                 setSourceData(vstPreset);
 
-                const eqPreset = FabFilterToGenericEQ.convertBase(vstPreset);
+                const eqPreset =
+                  FabFilterProQBaseToGenericEQ.convertBase(vstPreset);
                 setParsedGenericData(eqPreset);
               } else if (vstPreset && vstPreset instanceof SteinbergFrequency) {
                 setSourceFormat(`${vstPreset.constructor.name}`);
@@ -244,19 +249,29 @@ export default function Index() {
                 const eqPreset =
                   SteinbergFrequencyToGenericEQ.convertBase(vstPreset);
                 setParsedGenericData(eqPreset);
+              } else if (vstPreset && vstPreset instanceof UADSSLChannel) {
+                setSourceFormat(`${vstPreset.constructor.name}`);
+                setSourceData(vstPreset);
+
+                console.log("UADSSLChannel preset:\n", vstPreset.toString());
+                const eqPreset =
+                  UADSSLChannelToGenericEQ.convertBase(vstPreset);
+                setParsedGenericData(eqPreset);
               } else if (vstPreset && vstPreset instanceof SSLNativeChannel) {
                 setSourceFormat(`${vstPreset.constructor.name}`);
                 setSourceData(vstPreset);
 
                 console.log("SSLNativeChannel preset:\n", vstPreset.toString());
-                const eqPreset = SSLNativeToGenericEQ.convertBase(vstPreset);
+                const eqPreset =
+                  SSLNativeChannelToGenericEQ.convertBase(vstPreset);
                 setParsedGenericData(eqPreset);
               } else if (vstPreset && vstPreset instanceof WavesSSLChannel) {
                 setSourceFormat(`${vstPreset.constructor.name}`);
                 setSourceData(vstPreset);
 
                 console.log("WavesSSLChannel preset:\n", vstPreset.toString());
-                const eqPreset = WavesSSLToGenericEQ.convertBase(vstPreset);
+                const eqPreset =
+                  WavesSSLChannelToGenericEQ.convertBase(vstPreset);
                 setParsedGenericData(eqPreset);
               } else if (vstPreset && vstPreset instanceof WavesSSLComp) {
                 setSourceFormat(`${vstPreset.constructor.name}`);

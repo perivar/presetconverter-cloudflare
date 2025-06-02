@@ -4,14 +4,14 @@ import {
   AbletonEq8BandMode,
   AbletonEq8ChannelMode,
 } from "../ableton/AbletonEq8";
-import { AbletonToFabFilterProQ3 } from "../converters/AbletonToFabFilterProQ3";
+import { AbletonEq8ToFabFilterProQ3 } from "../converters/AbletonEq8ToFabFilterProQ3";
 import {
   ProQ3Shape,
   ProQ3Slope,
   ProQ3StereoPlacement,
 } from "../preset/FabFilterProQ3";
 
-describe("AbletonToFabFilterProQ3", () => {
+describe("AbletonEq8ToFabFilterProQ3", () => {
   it("should convert AbletonEq8 to FabFilterProQ3", () => {
     const abletonEq8 = new AbletonEq8({}); // Provide a dummy object for the constructor
     abletonEq8.Mode = AbletonEq8ChannelMode.Stereo;
@@ -36,7 +36,7 @@ describe("AbletonToFabFilterProQ3", () => {
       } as AbletonEq8Band,
     ];
 
-    const fabfilterProQ3 = AbletonToFabFilterProQ3.convertBase(abletonEq8);
+    const fabfilterProQ3 = AbletonEq8ToFabFilterProQ3.convertBase(abletonEq8);
 
     expect(fabfilterProQ3).toBeDefined();
     expect(fabfilterProQ3.Bands.length).toBe(2);
@@ -68,7 +68,7 @@ describe("AbletonToFabFilterProQ3", () => {
     const abletonEq8 = new AbletonEq8({}); // Provide a dummy object for the constructor
     abletonEq8.Mode = AbletonEq8ChannelMode.LeftRight; // Assuming LeftRight is a non-stereo mode
 
-    expect(() => AbletonToFabFilterProQ3.convertBase(abletonEq8)).toThrow(
+    expect(() => AbletonEq8ToFabFilterProQ3.convertBase(abletonEq8)).toThrow(
       "Only Stereo conversion is supported. ChannelMode was 1!"
     ); // Assuming ChannelMode.LeftRight is 1
   });

@@ -1,6 +1,6 @@
 import { useState } from "react";
+import { WavesSSLChannelToGenericEQ } from "~/utils/converters/WavesSSLChannelToGenericEQ";
 import { WavesSSLCompToGenericCompressorLimiter } from "~/utils/converters/WavesSSLCompToGenericCompressorLimiter";
-import { WavesSSLToGenericEQ } from "~/utils/converters/WavesSSLToGenericEQ";
 import { GenericCompressorLimiter } from "~/utils/preset/GenericCompressorLimiter";
 import { GenericEQPreset } from "~/utils/preset/GenericEQPreset";
 import { Preset } from "~/utils/preset/Preset";
@@ -68,7 +68,8 @@ export function WavesXPSPresetsDisplay({
                 let genericEQPreset: GenericEQPreset | null = null;
 
                 if (preset instanceof WavesSSLChannel) {
-                  genericEQPreset = WavesSSLToGenericEQ.convertBase(preset);
+                  genericEQPreset =
+                    WavesSSLChannelToGenericEQ.convertBase(preset);
                 }
 
                 let genericCompLimitPreset: GenericCompressorLimiter | null =

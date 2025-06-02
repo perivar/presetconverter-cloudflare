@@ -14,7 +14,7 @@ import {
 } from "../preset/FabFilterProQ3";
 import { MultiFormatConverter } from "./MultiFormatConverter";
 
-export const AbletonToFabFilterProQ3: MultiFormatConverter<
+export const AbletonEq8ToFabFilterProQ3: MultiFormatConverter<
   AbletonEq8,
   FabFilterProQ3
 > = {
@@ -94,7 +94,7 @@ export const AbletonToFabFilterProQ3: MultiFormatConverter<
       extension: ".ffp",
       displayName: "FabFilter FFP",
       convert(preset: AbletonEq8) {
-        const result = AbletonToFabFilterProQ3.convertBase(preset);
+        const result = AbletonEq8ToFabFilterProQ3.convertBase(preset);
         return result.writeFFP();
       },
     },
@@ -103,7 +103,7 @@ export const AbletonToFabFilterProQ3: MultiFormatConverter<
       extension: ".fxp",
       displayName: "FXP Format",
       convert(preset: AbletonEq8) {
-        const result = AbletonToFabFilterProQ3.convertBase(preset);
+        const result = AbletonEq8ToFabFilterProQ3.convertBase(preset);
         return result.writeFXP("AbletonToFabFilter");
       },
     },
@@ -112,7 +112,7 @@ export const AbletonToFabFilterProQ3: MultiFormatConverter<
       extension: ".vstpreset",
       displayName: "Steinberg VSTPreset",
       convert(preset: AbletonEq8) {
-        const result = AbletonToFabFilterProQ3.convertBase(preset);
+        const result = AbletonEq8ToFabFilterProQ3.convertBase(preset);
         return result.write();
       },
     },
