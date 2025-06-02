@@ -2,6 +2,7 @@ import { XMLParser } from "fast-xml-parser"; // Import XMLParser directly
 
 import { BinaryFile, ByteOrder } from "../binary/BinaryFile";
 import { FxChunkSet, FxContent, FXP, FxProgramSet } from "./FXP";
+import xmlContent from "./UADSSLChannelParametersMap.xml?raw"; // ?raw is using Vite's raw import feature
 import { VstClassIDs } from "./VstClassIDs";
 import { VstPreset } from "./VstPreset";
 
@@ -54,14 +55,14 @@ export class UADSSLChannel extends VstPreset {
     {};
   private static valuesDict: { [key: string]: number[] } = {};
 
-  constructor(xmlContent: string) {
+  constructor() {
     super();
     this.Vst3ClassID = VstClassIDs.UADSSLEChannel;
     this.PlugInCategory = "Fx|Channel Strip";
     this.PlugInName = "UAD SSL E Channel Strip";
     this.PlugInVendor = "Universal Audio, Inc.";
 
-    UADSSLChannel.initializeMappingTables(xmlContent);
+    UADSSLChannel.initializeMappingTables();
   }
 
   public initFromParameters(): void {
@@ -70,7 +71,7 @@ export class UADSSLChannel extends VstPreset {
     // in readFXP, so this method can remain empty for now.
   }
 
-  public static initializeMappingTables(xmlContent: string): void {
+  public static initializeMappingTables(): void {
     // Instantiate XMLParser directly within the class
     const parser = new XMLParser({
       ignoreAttributes: false,

@@ -17,6 +17,11 @@ const config: Config.InitialOptions = {
   transformIgnorePatterns: [
     `node_modules/(?!${untranspiledModulePatterns.join("|")})`,
   ],
+  moduleNameMapper: {
+    "^.+/UADSSLChannelParametersMap\\.xml\\?raw$":
+      "<rootDir>/__mocks__/UADSSLChannelParametersMapRawMock.ts",
+    // Add more XML files as needed
+  },
   verbose: true,
 };
 

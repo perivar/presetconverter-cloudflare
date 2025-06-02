@@ -1,6 +1,6 @@
 // app/utils/__tests__/UADSSLChannel.test.ts
-import * as fs from "fs";
-import * as path from "path";
+// import * as fs from "fs";
+// import * as path from "path";
 
 import { UADSSLChannel } from "../preset/UADSSLChannel";
 
@@ -9,15 +9,16 @@ describe("UADSSLChannel getParameterDisplay", () => {
   let xmlContent: string;
 
   beforeAll(() => {
-    const xmlFilePath = path.join(
-      __dirname,
-      "../preset/UADSSLChannelParametersMap.xml"
-    );
-    xmlContent = fs.readFileSync(xmlFilePath, "utf-8");
+    // const xmlFilePath = path.join(
+    //   __dirname,
+    //   "../preset/UADSSLChannelParametersMap.xml"
+    // );
+    // xmlContent = fs.readFileSync(xmlFilePath, "utf-8");
   });
 
   beforeEach(() => {
-    channel = new UADSSLChannel(xmlContent);
+    // channel = new UADSSLChannel(xmlContent);
+    channel = new UADSSLChannel();
   });
 
   // Test Linear Parameters
