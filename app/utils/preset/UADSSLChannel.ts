@@ -60,13 +60,14 @@ export class UADSSLChannel extends VstPreset {
     this.PlugInCategory = "Fx|Channel Strip";
     this.PlugInName = "UAD SSL E Channel Strip";
     this.PlugInVendor = "Universal Audio, Inc.";
+
     UADSSLChannel.initializeMappingTables(xmlContent);
   }
 
   public initFromParameters(): void {
     // This method is required by the VstPreset abstract class.
     // The UADSSLChannel's parameters are read directly from the FXP chunk data
-    // in readFXPFromByteArray, so this method can remain empty for now.
+    // in readFXP, so this method can remain empty for now.
   }
 
   public static initializeMappingTables(xmlContent: string): void {

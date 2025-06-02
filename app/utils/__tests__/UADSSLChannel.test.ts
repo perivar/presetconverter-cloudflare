@@ -11,7 +11,7 @@ describe("UADSSLChannel getParameterDisplay", () => {
   beforeAll(() => {
     const xmlFilePath = path.join(
       __dirname,
-      "../../../DotNet/UADSSLChannelParametersMap.xml"
+      "../preset/UADSSLChannelParametersMap.xml"
     );
     xmlContent = fs.readFileSync(xmlFilePath, "utf-8");
   });
