@@ -5,6 +5,7 @@ import { FabFilterProQBase } from "./FabFilterProQBase";
 import { FXP } from "./FXP";
 import { Preset } from "./Preset"; // Assuming the new factory will return a generic Preset or specific types
 import { ReaEQ } from "./ReaEQ";
+import { UADSSLChannel } from "./UADSSLChannel";
 
 /**
  * A helper class to get a Preset object from FXP data
@@ -39,6 +40,11 @@ export class FXPPresetFactory {
           source = "FabFilterProQ3";
           presetInstance = new FabFilterProQ3();
           break;
+        case "J9AU":
+          source = "UADSSLChannel";
+          presetInstance = new UADSSLChannel();
+          presetInstance.read(presetBytes);
+          break;
         case "reeq":
           source = "ReaEQ";
           presetInstance = new ReaEQ();
@@ -66,17 +72,19 @@ export class FXPPresetFactory {
 
       // Initialize from FXP parameters. The concrete implementations will use the attached FXP object or parameters.
       // This assumes all Preset classes have an initFromParameters method or similar
-      if (
-        "initFromParameters" in presetInstance &&
-        typeof presetInstance.initFromParameters === "function"
-      ) {
-        presetInstance.initFromParameters();
-      } else if (presetInstance instanceof FXP) {
-        // If the preset is the FXP itself, no initFromParameters needed
-      } else {
-        console.warn(
-          `Preset instance of type ${presetInstance?.constructor.name} does not have an initFromParameters method.`
-        );
+      if (presetInstance) {
+        if (
+          "initFromParameters" in presetInstance &&
+          typeof presetInstance.initFromParameters === "function"
+        ) {
+          presetInstance.initFromParameters();
+        } else if (presetInstance instanceof FXP) {
+          // If the preset is the FXP itself, no initFromParameters needed
+        } else {
+          console.warn(
+            `Preset instance of type ${presetInstance?.constructor.name} does not have an initFromParameters method.`
+          );
+        }
       }
 
       return { preset: presetInstance, source: source };
