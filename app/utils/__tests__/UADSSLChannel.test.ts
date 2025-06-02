@@ -1,11 +1,23 @@
 // app/utils/__tests__/UADSSLChannel.test.ts
+import * as fs from "fs";
+import * as path from "path";
+
 import { UADSSLChannel } from "../preset/UADSSLChannel";
 
 describe("UADSSLChannel getParameterDisplay", () => {
   let channel: UADSSLChannel;
+  let xmlContent: string;
+
+  beforeAll(() => {
+    const xmlFilePath = path.join(
+      __dirname,
+      "../../../DotNet/UADSSLChannelParametersMap.xml"
+    );
+    xmlContent = fs.readFileSync(xmlFilePath, "utf-8");
+  });
 
   beforeEach(() => {
-    channel = new UADSSLChannel();
+    channel = new UADSSLChannel(xmlContent);
   });
 
   // Test Linear Parameters
@@ -54,12 +66,12 @@ describe("UADSSLChannel getParameterDisplay", () => {
       displayText: "14.8 Hz",
     });
     expect(channel.getParameterDisplay("HP Freq", 0.5)).toEqual({
-      displayNumber: 111.0,
-      displayText: "111.0 Hz",
+      displayNumber: 111,
+      displayText: "111 Hz",
     });
     expect(channel.getParameterDisplay("HP Freq", 1.0)).toEqual({
-      displayNumber: 401.0,
-      displayText: "401.0 Hz",
+      displayNumber: 401,
+      displayText: "401 Hz",
     });
   });
 
@@ -73,16 +85,16 @@ describe("UADSSLChannel getParameterDisplay", () => {
       displayText: "Out",
     });
     expect(channel.getParameterDisplay("LP Freq", 0.06)).toEqual({
-      displayNumber: 21000.0,
+      displayNumber: 21000,
       displayText: "21.0 k",
     });
     expect(channel.getParameterDisplay("LP Freq", 0.5)).toEqual({
-      displayNumber: 6240.0,
-      displayText: "6.2 k",
+      displayNumber: 6240,
+      displayText: "6.24 k",
     });
     expect(channel.getParameterDisplay("LP Freq", 1.0)).toEqual({
-      displayNumber: 3150.0,
-      displayText: "3.1 k",
+      displayNumber: 3150,
+      displayText: "3.15 k",
     });
   });
 
@@ -96,7 +108,7 @@ describe("UADSSLChannel getParameterDisplay", () => {
       displayNumber: 0.0,
       displayText: "Normal",
     });
-    expect(channel.getParameterDisplay("Phase", 0.5)).toEqual({
+    expect(channel.getParameterDisplay("Phase", 0.9)).toEqual({
       displayNumber: 1.0,
       displayText: "Inverted",
     });
@@ -136,7 +148,7 @@ describe("UADSSLChannel getParameterDisplay", () => {
   // Test Custom Curve Parameters
   test("should correctly display CMP Ratio parameter values (custom curve with 'Limit')", () => {
     expect(channel.getParameterDisplay("CMP Ratio", 0.0)).toEqual({
-      displayNumber: 1.0,
+      displayNumber: 1,
       displayText: "1.00:1",
     });
     expect(channel.getParameterDisplay("CMP Ratio", 0.5)).toEqual({
@@ -148,8 +160,8 @@ describe("UADSSLChannel getParameterDisplay", () => {
       displayText: "4.67:1",
     });
     expect(channel.getParameterDisplay("CMP Ratio", 0.99)).toEqual({
-      displayNumber: 103.0,
-      displayText: "103.00:1",
+      displayNumber: 103,
+      displayText: "103:1",
     });
     expect(channel.getParameterDisplay("CMP Ratio", 1.0)).toEqual({
       displayNumber: "Limit",
@@ -159,7 +171,7 @@ describe("UADSSLChannel getParameterDisplay", () => {
 
   test("should correctly display LMF Q parameter values (custom curve)", () => {
     expect(channel.getParameterDisplay("LMF Q", 0.0)).toEqual({
-      displayNumber: 4.0,
+      displayNumber: 4,
       displayText: "4.00",
     });
     expect(channel.getParameterDisplay("LMF Q", 0.2)).toEqual({

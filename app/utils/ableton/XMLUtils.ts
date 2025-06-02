@@ -8,7 +8,6 @@ import {
 const parser = new XMLParser({
   ignoreAttributes: false,
   attributeNamePrefix: "@_",
-  parseAttributeValue: true,
 });
 
 const builder = new XMLBuilder({

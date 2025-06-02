@@ -5,7 +5,6 @@ import { FabFilterProQBase } from "./FabFilterProQBase";
 import { FXP } from "./FXP";
 import { Preset } from "./Preset"; // Assuming the new factory will return a generic Preset or specific types
 import { ReaEQ } from "./ReaEQ";
-import { UADSSLChannel } from "./UADSSLChannel";
 
 /**
  * A helper class to get a Preset object from FXP data
@@ -40,11 +39,11 @@ export class FXPPresetFactory {
           source = "FabFilterProQ3";
           presetInstance = new FabFilterProQ3();
           break;
-        case "J9AU":
-          source = "UADSSLChannel";
-          presetInstance = new UADSSLChannel();
-          presetInstance.read(presetBytes);
-          break;
+        // case "J9AU":
+        //   source = "UADSSLChannel";
+        //   presetInstance = new UADSSLChannel();
+        //   presetInstance.read(presetBytes);
+        //   break;
         case "reeq":
           source = "ReaEQ";
           presetInstance = new ReaEQ();
