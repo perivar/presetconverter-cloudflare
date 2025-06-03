@@ -323,9 +323,13 @@ export class UADSSLChannel extends VstPreset {
     return true;
   }
 
-  public writeFXPToByteArray(): Uint8Array {
+  public writeFXP(): Uint8Array | undefined {
     const fxp = this.generateFXP(false);
-    return new Uint8Array(fxp.writeFile() || new ArrayBuffer(0)); // Ensure it returns Uint8Array
+    const fxpContent = fxp.writeFile();
+    if (!fxpContent) {
+      return undefined;
+    }
+    return new Uint8Array(fxpContent);
   }
 
   private generateFXP(isBank: boolean): FXP {

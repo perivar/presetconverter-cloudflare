@@ -1,5 +1,6 @@
 import { AbletonEq8ToFabFilterProQ3 } from "../converters/AbletonEq8ToFabFilterProQ3";
 import { AbletonEq8ToSteinbergFrequency } from "../converters/AbletonEq8ToSteinbergFrequency";
+import { FabFilterProQ3ToGenericFXP } from "../converters/FabFilterProQ3ToGenericFXP";
 import { FabFilterProQBaseToGenericEQ } from "../converters/FabFilterProQBaseToGenericEQ";
 import { FabFilterProQBaseToSteinbergFrequency } from "../converters/FabFilterProQBaseToSteinbergFrequency";
 import { GenericEQToSteinbergFrequency } from "../converters/GenericEQToSteinbergFrequency";
@@ -34,6 +35,8 @@ export const allConverters: ConverterRegistration[] = [
     fromTypes: ["FabFilter Pro-Q", "FabFilter Pro-Q 2", "FabFilter Pro-Q 3"],
     converter: FabFilterProQBaseToSteinbergFrequency,
   },
+  { fromTypes: ["FabFilter Pro-Q 3"], converter: FabFilterProQ3ToGenericFXP },
+
   { fromTypes: ["GenericEQPreset"], converter: GenericEQToSteinbergFrequency },
   {
     fromTypes: ["SteinbergFrequency"],
