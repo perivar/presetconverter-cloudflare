@@ -106,7 +106,7 @@ export const WavesSSLCompToGenericCompressorLimiter: MultiFormatConverter<
 
   outputFormats: [
     {
-      formatId: "txt",
+      formatId: "text",
       extension: ".txt",
       displayName: "Text",
       convert(preset: WavesSSLComp) {

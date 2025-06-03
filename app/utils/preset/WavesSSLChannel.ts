@@ -167,7 +167,7 @@ export class WavesSSLChannel extends WavesPreset {
       `\tHP Frequency (18 dB/octave): ${this.HPFrq.toFixed(2)} Hz (16 - 350 Hz)`
     );
     sb.push(
-      `\tLP Frequency (12 dB/octave): ${this.LPFrq.toFixed(2)} KHz (22 - 3 KHz)`
+      `\tLP Frequency (12 dB/octave): ${this.LPFrq.toFixed(2)} KHz (22 - 30 KHz)`
     );
     sb.push(`\tFilter Split (Filters before Dynamics): ${this.FilterSplit}`);
     sb.push(""); // Empty line

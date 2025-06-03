@@ -51,7 +51,7 @@ export const UADSSLChannelToWavesSSLChannel: MultiFormatConverter<
     ) as number;
 
     wavesSSLChannel.DynToChannelOut = uadSSLChannel.PreDyn === 1;
-    wavesSSLChannel.FilterSplit = false; // Hardcoded as false in C#
+    wavesSSLChannel.FilterSplit = false;
     wavesSSLChannel.DynToByPass = uadSSLChannel.DynIn === 0;
 
     wavesSSLChannel.LFTypeBell = uadSSLChannel.LFBell === 1;
@@ -125,8 +125,8 @@ export const UADSSLChannelToWavesSSLChannel: MultiFormatConverter<
       "Output",
       uadSSLChannel.Output
     ) as number;
-    wavesSSLChannel.Analog = false; // Hardcoded as false in C#
-    wavesSSLChannel.VUShowOutput = true; // Hardcoded as true in C#
+    wavesSSLChannel.Analog = false;
+    wavesSSLChannel.VUShowOutput = true;
     wavesSSLChannel.PhaseReverse = uadSSLChannel.Phase === 1;
     wavesSSLChannel.InputTrim = uadSSLChannel.findClosestParameterValue(
       "Input",

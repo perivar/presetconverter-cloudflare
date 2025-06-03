@@ -96,7 +96,7 @@ export function ConversionButtonList({
               className="text-xs">
               {conv.displayName} <Download className="ml-1 size-3" />
             </Button>
-            {conv.formatId === "txt" && (
+            {conv.formatId === "text" && (
               <Dialog
                 open={isViewTextDialogOpen}
                 onOpenChange={setIsViewTextDialogOpen}>
