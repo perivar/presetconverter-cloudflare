@@ -56,7 +56,7 @@ export const UADSSLChannelToGenericEQ: MultiFormatConverter<
       genericEQPreset.Bands.push(
         new GenericEQBand(
           true,
-          lpFreqValue * 1000, // KHz to Hz
+          lpFreqValue,
           0, // LP filter usually has 0 gain
           0.707, // Default Q for filters
           GenericEQShape.HighCut,
@@ -72,10 +72,14 @@ export const UADSSLChannelToGenericEQ: MultiFormatConverter<
       preset.LFGain
     ) as number;
     if (lfGainValue !== 0) {
+      const lfFreqValue = preset.findClosestParameterValue(
+        "LF Freq",
+        preset.LFFreq
+      ) as number;
       genericEQPreset.Bands.push(
         new GenericEQBand(
           true,
-          preset.findClosestParameterValue("LF Freq", preset.LFFreq) as number,
+          lfFreqValue,
           lfGainValue,
           0.707, // Default Q for shelves
           preset.LFBell === 1 ? GenericEQShape.Bell : GenericEQShape.LowShelf,
@@ -91,13 +95,14 @@ export const UADSSLChannelToGenericEQ: MultiFormatConverter<
       preset.LMFGain
     ) as number;
     if (lmfGainValue !== 0) {
+      const lmfFreqValue = preset.findClosestParameterValue(
+        "LMF Freq",
+        preset.LMFFreq
+      ) as number;
       genericEQPreset.Bands.push(
         new GenericEQBand(
           true,
-          (preset.findClosestParameterValue(
-            "LMF Freq",
-            preset.LMFFreq
-          ) as number) * 1000, // KHz to Hz
+          lmfFreqValue,
           lmfGainValue,
           preset.findClosestParameterValue("LMF Q", preset.LMFQ) as number,
           GenericEQShape.Bell,
@@ -113,13 +118,14 @@ export const UADSSLChannelToGenericEQ: MultiFormatConverter<
       preset.HMFGain
     ) as number;
     if (hmfGainValue !== 0) {
+      const hmfFreqValue = preset.findClosestParameterValue(
+        "HMF Freq",
+        preset.HMFFreq
+      ) as number;
       genericEQPreset.Bands.push(
         new GenericEQBand(
           true,
-          (preset.findClosestParameterValue(
-            "HMF Freq",
-            preset.HMFFreq
-          ) as number) * 1000, // KHz to Hz
+          hmfFreqValue,
           hmfGainValue,
           preset.findClosestParameterValue("HMF Q", preset.HMFQ) as number,
           GenericEQShape.Bell,
@@ -135,13 +141,14 @@ export const UADSSLChannelToGenericEQ: MultiFormatConverter<
       preset.HFGain
     ) as number;
     if (hfGainValue !== 0) {
+      const hfFreqValue = preset.findClosestParameterValue(
+        "HF Freq",
+        preset.HFFreq
+      ) as number;
       genericEQPreset.Bands.push(
         new GenericEQBand(
           true,
-          (preset.findClosestParameterValue(
-            "HF Freq",
-            preset.HFFreq
-          ) as number) * 1000, // KHz to Hz
+          hfFreqValue,
           hfGainValue,
           0.707, // Default Q for shelves
           preset.HFBell === 1 ? GenericEQShape.Bell : GenericEQShape.HighShelf,
@@ -159,7 +166,7 @@ export const UADSSLChannelToGenericEQ: MultiFormatConverter<
     {
       formatId: "txt",
       extension: ".txt",
-      displayName: "Text Format",
+      displayName: "Text",
       convert(preset: UADSSLChannel) {
         const result = UADSSLChannelToGenericEQ.convertBase(preset);
         return result.toString();

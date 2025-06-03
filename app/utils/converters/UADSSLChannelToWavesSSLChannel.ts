@@ -140,7 +140,7 @@ export const UADSSLChannelToWavesSSLChannel: MultiFormatConverter<
     {
       formatId: "vstpreset",
       extension: ".vstpreset",
-      displayName: "Steinberg VSTPreset",
+      displayName: "VSTPreset",
       convert(preset: UADSSLChannel) {
         const result = UADSSLChannelToWavesSSLChannel.convertBase(preset);
         return result.write();

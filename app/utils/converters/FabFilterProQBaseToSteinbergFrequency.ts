@@ -89,7 +89,7 @@ export const FabFilterProQBaseToSteinbergFrequency: MultiFormatConverter<
     {
       formatId: "vstpreset",
       extension: ".vstpreset",
-      displayName: "Steinberg VSTPreset",
+      displayName: "VSTPreset",
       convert(preset: FabFilterProQBase) {
         const result =
           FabFilterProQBaseToSteinbergFrequency.convertBase(preset);

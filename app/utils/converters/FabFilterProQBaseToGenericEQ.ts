@@ -49,7 +49,7 @@ export const FabFilterProQBaseToGenericEQ: MultiFormatConverter<
     {
       formatId: "txt",
       extension: ".txt",
-      displayName: "Text Format",
+      displayName: "Text",
       convert(preset: FabFilterProQBase) {
         const result = FabFilterProQBaseToGenericEQ.convertBase(preset);
         return result.toString();

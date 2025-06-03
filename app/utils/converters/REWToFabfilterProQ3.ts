@@ -94,7 +94,7 @@ export const REWToFabFilterProQ3: MultiFormatConverter<
     {
       formatId: "vstpreset",
       extension: ".vstpreset",
-      displayName: "Steinberg VSTPreset",
+      displayName: "VSTPreset",
       convert(preset: REWEQFilters) {
         const result = REWToFabFilterProQ3.convertBase(preset);
         return result.write();

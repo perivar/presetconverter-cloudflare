@@ -122,7 +122,7 @@ export const WavesSSLChannelToGenericEQ: MultiFormatConverter<
     {
       formatId: "txt",
       extension: ".txt",
-      displayName: "Text Format",
+      displayName: "Text",
       convert(preset: WavesSSLChannel) {
         const result = WavesSSLChannelToGenericEQ.convertBase(preset);
         return result.toString();

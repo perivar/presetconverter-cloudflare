@@ -110,7 +110,7 @@ export const AbletonEq8ToFabFilterProQ3: MultiFormatConverter<
     {
       formatId: "vstpreset",
       extension: ".vstpreset",
-      displayName: "Steinberg VSTPreset",
+      displayName: "VSTPreset",
       convert(preset: AbletonEq8) {
         const result = AbletonEq8ToFabFilterProQ3.convertBase(preset);
         return result.write();

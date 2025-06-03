@@ -64,7 +64,7 @@ export const GenericEQToSteinbergFrequency: MultiFormatConverter<
     {
       formatId: "vstpreset",
       extension: ".vstpreset",
-      displayName: "Steinberg VSTPreset",
+      displayName: "VSTPreset",
       convert(preset: GenericEQPreset) {
         const result = GenericEQToSteinbergFrequency.convertBase(preset);
         return result.write();

@@ -122,7 +122,7 @@ export const SSLNativeChannelToGenericEQ: MultiFormatConverter<
     {
       formatId: "txt",
       extension: ".txt",
-      displayName: "Text Format",
+      displayName: "Text",
       convert(preset: SSLNativeChannel) {
         const result = SSLNativeChannelToGenericEQ.convertBase(preset);
         return result.toString();

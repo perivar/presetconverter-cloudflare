@@ -68,7 +68,7 @@ export const SSLNativeChannelToWavesSSLChannel: MultiFormatConverter<
     {
       formatId: "vstpreset",
       extension: ".vstpreset",
-      displayName: "Steinberg VSTPreset",
+      displayName: "VSTPreset",
       convert(preset: SSLNativeChannel) {
         const result = SSLNativeChannelToWavesSSLChannel.convertBase(preset);
         return result.write();

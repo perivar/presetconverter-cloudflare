@@ -225,7 +225,7 @@ export const SteinbergFrequencyToGenericEQ: MultiFormatConverter<
     {
       formatId: "txt",
       extension: ".txt",
-      displayName: "Text Format",
+      displayName: "Text",
       convert(preset: SteinbergFrequency) {
         const result = SteinbergFrequencyToGenericEQ.convertBase(preset);
         return result.toString();

@@ -19,7 +19,7 @@ export const WavesSSLChannelToText: MultiFormatConverter<
     {
       formatId: "text",
       extension: ".txt",
-      displayName: "Text Format",
+      displayName: "Text",
       convert(preset: WavesSSLChannel): string | undefined {
         return preset.toString();
       },

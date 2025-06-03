@@ -16,7 +16,7 @@ export const WavesSSLCompToText: MultiFormatConverter<WavesSSLComp, string> = {
     {
       formatId: "text",
       extension: ".txt",
-      displayName: "Text Format",
+      displayName: "Text",
       convert(preset: WavesSSLComp): string | undefined {
         return preset.toString();
       },

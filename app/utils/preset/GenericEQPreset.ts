@@ -2,6 +2,8 @@
  * Standardized EQ types that can represent multiple EQ plugin formats
  */
 
+import { formatWithMetric } from "../formatWithMetric";
+
 export enum GenericEQShape {
   Bell = 0,
   LowShelf = 1,
@@ -79,7 +81,7 @@ export class GenericEQBand {
 
     return (
       `${this.Enabled ? "Enabled" : "Disabled"} | ${placementStr} | ` +
-      `${shapeStr} @ ${this.Frequency.toFixed(1)} Hz | ` +
+      `${shapeStr} @ ${formatWithMetric(this.Frequency, "Hz", 1)} Hz | ` +
       `Gain: ${this.Gain.toFixed(1)} dB | Q: ${this.Q.toFixed(2)} | ` +
       `${slopeStr}${dynamicStr}`
     );

@@ -1,3 +1,4 @@
+import { formatWithMetric } from "~/utils/formatWithMetric";
 import {
   GenericEQPreset,
   GenericEQShape,
@@ -68,7 +69,7 @@ export function EqualizerBandTable({
               }>
               <TableCell>{index + 1}</TableCell>
               <TableCell>{t(`${getShapeName(band.Shape)}`)}</TableCell>
-              <TableCell>{band.Frequency.toFixed(2)} Hz</TableCell>
+              <TableCell>{formatWithMetric(band.Frequency, "Hz", 1)}</TableCell>
               <TableCell>{band.Gain.toFixed(2)} dB</TableCell>
               <TableCell>{band.Q.toFixed(2)}</TableCell>
               <TableCell>

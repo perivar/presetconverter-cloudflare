@@ -17,7 +17,7 @@ export const UADSSLChannelToText: MultiFormatConverter<UADSSLChannel, string> =
       {
         formatId: "txt",
         extension: ".txt",
-        displayName: "Text Format",
+        displayName: "Text",
         convert(preset: UADSSLChannel): string | undefined {
           return preset.toString();
         },

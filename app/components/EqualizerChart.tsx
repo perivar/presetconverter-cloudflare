@@ -1,4 +1,5 @@
 import { useMemo, useState } from "react";
+import { formatWithMetric } from "~/utils/formatWithMetric";
 import {
   GenericEQShape,
   GenericEQSlope,
@@ -392,11 +393,7 @@ const CustomScatterTooltip = ({
     return (
       <div className="rounded-lg border border-border bg-background p-2 text-sm text-foreground shadow-lg">
         <p className="font-medium">
-          Freq:{" "}
-          {band.Frequency >= 1000
-            ? `${(band.Frequency / 1000).toFixed(1)}k`
-            : band.Frequency.toFixed(1)}{" "}
-          Hz
+          Freq: {formatWithMetric(band.Frequency, "Hz", 1)}
         </p>
         <p>Gain: {band.Gain.toFixed(1)} dB</p>
         <p>Q: {band.Q.toFixed(2)}</p>

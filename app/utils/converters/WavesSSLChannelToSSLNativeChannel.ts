@@ -77,7 +77,7 @@ export const WavesSSLChannelToSSLNativeChannel: MultiFormatConverter<
     {
       formatId: "vstpreset",
       extension: ".vstpreset",
-      displayName: "Steinberg VSTPreset",
+      displayName: "VSTPreset",
       convert(preset: WavesSSLChannel) {
         const result = WavesSSLChannelToSSLNativeChannel.convertBase(preset);
         return result.write();

@@ -96,7 +96,7 @@ export const AbletonEq8ToSteinbergFrequency: MultiFormatConverter<
     {
       formatId: "vstpreset",
       extension: ".vstpreset",
-      displayName: "Steinberg VSTPreset",
+      displayName: "VSTPreset",
       convert(preset: AbletonEq8) {
         const result = AbletonEq8ToSteinbergFrequency.convertBase(preset);
         return result.write();
