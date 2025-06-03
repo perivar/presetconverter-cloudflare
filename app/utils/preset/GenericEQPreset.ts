@@ -2,7 +2,7 @@
  * Standardized EQ types that can represent multiple EQ plugin formats
  */
 
-import { formatWithMetric } from "../formatWithMetric";
+import { formatToMetric } from "../formatToMetric";
 
 export enum GenericEQShape {
   Bell = 0,
@@ -71,18 +71,47 @@ export class GenericEQBand {
   }
 
   toString(): string {
+    const enabledStr = this.Enabled ? "Enabled" : "Disabled";
     const shapeStr = GenericEQShape[this.Shape];
     const slopeStr = GenericEQSlope[this.Slope];
     const placementStr = GenericEQStereoPlacement[this.StereoPlacement];
+    const gainFormatted = this.Gain.toFixed(1);
+    const qFormatted = this.Q.toFixed(2);
+
     const dynamicStr =
       this.DynamicRange !== undefined && this.DynamicThreshold !== undefined
         ? ` | Dynamic Range: ${this.DynamicRange.toFixed(1)} dB | Threshold: ${this.DynamicThreshold === 1 ? "Auto" : this.DynamicThreshold.toFixed(1) + " dB"}`
         : "";
 
+    // Define padding lengths for alignment
+    const PADDING_ENABLED = 8; // e.g., "Disabled"
+    const PADDING_PLACEMENT = 6; // e.g., "Stereo"
+    const PADDING_GAIN = 13; // e.g., "Gain: -99.9 dB"
+    const PADDING_Q = 8; // e.g., "Q: 99.99"
+    const PADDING_FREQ_VALUE = 8; // e.g., "1,000.00"
+    const PADDING_UNIT = 3; // e.g., "kHz"
+    const PADDING_SHAPE = 9; // e.g., "TiltShelf"
+
+    // New frequency formatting
+    const formatter = new Intl.NumberFormat(undefined, {
+      style: "decimal",
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2,
+    });
+    const metric = formatToMetric(this.Frequency);
+    const formattedFreqValue = formatter.format(metric.value);
+    const freqValuePadded = formattedFreqValue.padStart(PADDING_FREQ_VALUE);
+    const unitPadded = `${metric.shortUnit}Hz`.padEnd(PADDING_UNIT);
+
+    const freqPart = `${shapeStr.padEnd(PADDING_SHAPE)} @ ${freqValuePadded} ${unitPadded}`;
+
     return (
-      `${this.Enabled ? "Enabled" : "Disabled"} | ${placementStr} | ` +
-      `${shapeStr} @ ${formatWithMetric(this.Frequency, "Hz", 1)} Hz | ` +
-      `Gain: ${this.Gain.toFixed(1)} dB | Q: ${this.Q.toFixed(2)} | ` +
+      `${enabledStr.padEnd(PADDING_ENABLED)} | ${placementStr.padEnd(PADDING_PLACEMENT)} | ` +
+      `${freqPart} | ` +
+      `Gain: ${gainFormatted} dB`.padEnd(PADDING_GAIN) +
+      ` | ` +
+      `Q: ${qFormatted}`.padEnd(PADDING_Q) +
+      ` | ` +
       `${slopeStr}${dynamicStr}`
     );
   }
@@ -107,9 +136,10 @@ export class GenericEQPreset {
   }
 
   toString(): string {
-    const bandStrings = this.Bands.map(
-      (band, index) => `Band ${index + 1}: ${band.toString()}`
-    );
+    const bandStrings = this.Bands.map((band, index) => {
+      const PADDING_BAND_INDEX = 2;
+      return `Band ${String(index + 1).padEnd(PADDING_BAND_INDEX)}: ${band.toString()}`;
+    });
     return bandStrings.join("\n") || "No bands defined";
   }
 }

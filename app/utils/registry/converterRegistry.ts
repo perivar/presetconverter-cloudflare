@@ -29,7 +29,6 @@ export type ConverterRegistration = {
   converter: MultiFormatConverter<any, any>;
 };
 
-let isRegistered = false;
 const converterRegistry: ConverterRegistry = {};
 
 /**
@@ -55,11 +54,10 @@ export function registerConverter(
  * @param converters An array of ConverterRegistration objects.
  */
 export function registerAllConverters(converters: ConverterRegistration[]) {
-  if (isRegistered) {
-    console.debug("Converters already registered. Skipping.");
-    return;
+  // Clear existing registry to allow re-registration on HMR
+  for (const fromType in converterRegistry) {
+    delete converterRegistry[fromType];
   }
-  isRegistered = true;
 
   converters.forEach(({ fromTypes, converter }) => {
     fromTypes.forEach(from => {

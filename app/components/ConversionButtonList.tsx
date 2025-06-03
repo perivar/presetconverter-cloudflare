@@ -132,7 +132,7 @@ export function ConversionButtonList({
                       value={viewTextContent}
                       readOnly
                       rows={20}
-                      className="font-mono text-sm"
+                      className="font-mono"
                     />
                   </div>
                 </DialogContent>
