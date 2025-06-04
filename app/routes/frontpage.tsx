@@ -16,12 +16,14 @@ import { SSLNativeChannelToGenericEQ } from "~/utils/converters/SSLNativeChannel
 import { SteinbergFrequencyToGenericEQ } from "~/utils/converters/SteinbergFrequencyToGenericEQ";
 import { UADSSLChannelToGenericEQ } from "~/utils/converters/UADSSLChannelToGenericEQ";
 import { WavesSSLChannelToGenericEQ } from "~/utils/converters/WavesSSLChannelToGenericEQ";
+import { WavesSSLCompToGenericCompressorLimiter } from "~/utils/converters/WavesSSLCompToGenericCompressorLimiter";
 import { FabFilterProQ } from "~/utils/preset/FabFilterProQ";
 import { FabFilterProQ2 } from "~/utils/preset/FabFilterProQ2";
 import { FabFilterProQ3 } from "~/utils/preset/FabFilterProQ3";
 import { FabFilterProQBase } from "~/utils/preset/FabFilterProQBase";
 import { FxChunkSet, FXP, FxProgramSet } from "~/utils/preset/FXP";
 import { FXPPresetFactory } from "~/utils/preset/FXPPresetFactory";
+import { GenericCompressorLimiter } from "~/utils/preset/GenericCompressorLimiter";
 import { GenericEQBand, GenericEQPreset } from "~/utils/preset/GenericEQPreset";
 import { Preset } from "~/utils/preset/Preset";
 import { SSLNativeChannel } from "~/utils/preset/SSLNativeChannel";
@@ -45,6 +47,7 @@ import {
 import { AbletonAutomationResultDisplay } from "~/components/AbletonAutomationResultDisplay";
 import { AbletonDevicePresetsDisplay } from "~/components/AbletonDevicePresetsDisplay";
 import { AbletonMidiFileDisplay } from "~/components/AbletonMidiFileDisplay";
+import { CompressorLimiterGraph } from "~/components/CompressorLimiterGraph";
 import { EqualizerBandTable } from "~/components/EqualizerBandTable";
 import { EqualizerChart } from "~/components/EqualizerChart";
 import { TargetConversion } from "~/components/TargetConversion";
@@ -115,8 +118,12 @@ export default function Index() {
   const [droppedFile, setDroppedFile] = useState<File | null>(null);
   const [sourceFormat, setSourceFormat] = useState<string | null>(null);
   const [sourceData, setSourceData] = useState<Preset | null>(null);
-  const [parsedGenericData, setParsedGenericData] =
+
+  const [genericEQPreset, setGenericEQPreset] =
     useState<GenericEQPreset | null>(null);
+  const [genericCompLimitPreset, setGenericCompLimitPreset] =
+    useState<GenericCompressorLimiter | null>(null);
+
   const [hoveredFrequency, setHoveredFrequency] = useState<number | null>(null);
   const [abletonDevicePresets, setAbletonDevicePresets] = useState<
     AbletonDevicePreset[] | null
@@ -134,7 +141,8 @@ export default function Index() {
       setError(null);
       setSourceFormat(null);
       setSourceData(null);
-      setParsedGenericData(null);
+      setGenericEQPreset(null);
+      setGenericCompLimitPreset(null);
       setDroppedFile(null);
       setAbletonDevicePresets(null);
       setAbletonMidiFile(null);
@@ -174,10 +182,14 @@ export default function Index() {
                 setSourceFormat(fabfilterEQPreset.PlugInName);
                 setSourceData(fabfilterEQPreset);
 
-                // convert to common eqpreset format
+                console.log(
+                  "fabfilterEQP preset:\n",
+                  fabfilterEQPreset.toString()
+                );
+
                 const eqPreset =
                   FabFilterProQBaseToGenericEQ.convertBase(fabfilterEQPreset);
-                setParsedGenericData(eqPreset);
+                setGenericEQPreset(eqPreset);
 
                 setIsLoading(false);
                 return;
@@ -196,26 +208,32 @@ export default function Index() {
               setSourceFormat(proQ3.PlugInName);
               setSourceData(proQ3);
 
+              console.log("FabFilterProQ3 preset:\n", proQ3.toString());
+
               const eqPreset = FabFilterProQBaseToGenericEQ.convertBase(proQ3);
-              setParsedGenericData(eqPreset);
+              setGenericEQPreset(eqPreset);
             } else {
               const proQ2 = new FabFilterProQ2();
               if (proQ2.readFFP(chunkData)) {
                 setSourceFormat(proQ2.PlugInName);
                 setSourceData(proQ2);
 
+                console.log("FabFilterProQ2 preset:\n", proQ2.toString());
+
                 const eqPreset =
                   FabFilterProQBaseToGenericEQ.convertBase(proQ2);
-                setParsedGenericData(eqPreset);
+                setGenericEQPreset(eqPreset);
               } else {
                 const proQ1 = new FabFilterProQ();
                 if (proQ1.readFFP(chunkData)) {
                   setSourceFormat(proQ1.PlugInName);
                   setSourceData(proQ1);
 
+                  console.log("FabFilterProQ preset:\n", proQ1.toString());
+
                   const eqPreset =
                     FabFilterProQBaseToGenericEQ.convertBase(proQ1);
-                  setParsedGenericData(eqPreset);
+                  setGenericEQPreset(eqPreset);
                 } else {
                   setError(
                     t("error.unsupportedFormat", { fileName: file.name })
@@ -228,16 +246,16 @@ export default function Index() {
               const vstPreset = VstPresetFactory.getVstPreset(data);
 
               if (vstPreset && vstPreset instanceof FabFilterProQBase) {
+                setSourceFormat(vstPreset.PlugInName);
+                setSourceData(vstPreset);
+
                 console.log(
                   "FabFilterProQ[1|2|3] preset:\n",
                   vstPreset.toString()
                 );
-                setSourceFormat(vstPreset.PlugInName);
-                setSourceData(vstPreset);
-
                 const eqPreset =
                   FabFilterProQBaseToGenericEQ.convertBase(vstPreset);
-                setParsedGenericData(eqPreset);
+                setGenericEQPreset(eqPreset);
               } else if (vstPreset && vstPreset instanceof SteinbergFrequency) {
                 setSourceFormat(`${vstPreset.constructor.name}`);
                 setSourceData(vstPreset);
@@ -248,7 +266,7 @@ export default function Index() {
                 );
                 const eqPreset =
                   SteinbergFrequencyToGenericEQ.convertBase(vstPreset);
-                setParsedGenericData(eqPreset);
+                setGenericEQPreset(eqPreset);
               } else if (vstPreset && vstPreset instanceof UADSSLChannel) {
                 setSourceFormat(`${vstPreset.constructor.name}`);
                 setSourceData(vstPreset);
@@ -256,7 +274,7 @@ export default function Index() {
                 console.log("UADSSLChannel preset:\n", vstPreset.toString());
                 const eqPreset =
                   UADSSLChannelToGenericEQ.convertBase(vstPreset);
-                setParsedGenericData(eqPreset);
+                setGenericEQPreset(eqPreset);
               } else if (vstPreset && vstPreset instanceof SSLNativeChannel) {
                 setSourceFormat(`${vstPreset.constructor.name}`);
                 setSourceData(vstPreset);
@@ -264,7 +282,7 @@ export default function Index() {
                 console.log("SSLNativeChannel preset:\n", vstPreset.toString());
                 const eqPreset =
                   SSLNativeChannelToGenericEQ.convertBase(vstPreset);
-                setParsedGenericData(eqPreset);
+                setGenericEQPreset(eqPreset);
               } else if (vstPreset && vstPreset instanceof WavesSSLChannel) {
                 setSourceFormat(`${vstPreset.constructor.name}`);
                 setSourceData(vstPreset);
@@ -272,12 +290,16 @@ export default function Index() {
                 console.log("WavesSSLChannel preset:\n", vstPreset.toString());
                 const eqPreset =
                   WavesSSLChannelToGenericEQ.convertBase(vstPreset);
-                setParsedGenericData(eqPreset);
+                setGenericEQPreset(eqPreset);
               } else if (vstPreset && vstPreset instanceof WavesSSLComp) {
                 setSourceFormat(`${vstPreset.constructor.name}`);
                 setSourceData(vstPreset);
 
                 console.log("WavesSSLComp preset:\n", vstPreset.toString());
+
+                const compLimitPreset =
+                  WavesSSLCompToGenericCompressorLimiter.convertBase(vstPreset);
+                setGenericCompLimitPreset(compLimitPreset);
               } else if (vstPreset) {
                 setSourceFormat(`${vstPreset.constructor.name}`);
                 setSourceData(vstPreset);
@@ -462,23 +484,22 @@ export default function Index() {
                 <strong>{t("fileInfo.detectedFormat")}:</strong> {sourceFormat}
               </p>
             )}
-            {parsedGenericData && (
+            {genericEQPreset && (
               <p>
                 <strong>{t("fileInfo.bands")}:</strong>{" "}
                 {
-                  parsedGenericData.Bands.filter(
-                    (b: GenericEQBand) => b.Enabled
-                  ).length
+                  genericEQPreset.Bands.filter((b: GenericEQBand) => b.Enabled)
+                    .length
                 }{" "}
                 enabled
               </p>
             )}
-            {parsedGenericData && parsedGenericData.Bands.length > 0 && (
+            {genericEQPreset && genericEQPreset.Bands.length > 0 && (
               <div>
                 <div className="mt-4">
                   {/* EQ Graph */}
                   <EqualizerChart
-                    preset={parsedGenericData}
+                    preset={genericEQPreset}
                     onFrequencyHover={setHoveredFrequency}
                   />
                 </div>
@@ -504,12 +525,27 @@ export default function Index() {
                     </CollapsibleTrigger>
                     <CollapsibleContent>
                       <EqualizerBandTable
-                        preset={parsedGenericData}
+                        preset={genericEQPreset}
                         hoveredFrequency={hoveredFrequency}
                       />
                     </CollapsibleContent>
                   </Collapsible>
                 </div>
+              </div>
+            )}
+            {genericCompLimitPreset && (
+              <div className="my-6">
+                <h3 className="mb-1 text-lg font-medium">
+                  {genericCompLimitPreset.Name}
+                </h3>
+
+                <div className="mb-2 flex items-center justify-around text-sm text-muted-foreground">
+                  <span>Threshold: {genericCompLimitPreset.Threshold} dB</span>
+                  <span>Ratio: {genericCompLimitPreset.getRatioLabel()}</span>
+                </div>
+
+                {/* Compressor Limiter Graph */}
+                <CompressorLimiterGraph comp={genericCompLimitPreset} />
               </div>
             )}
           </CardContent>
@@ -539,14 +575,12 @@ export default function Index() {
         originalFileName={droppedFile?.name || null}
       />
 
-      {parsedGenericData && (
-        <TargetConversion
-          title={t("conversion.title")}
-          sourceData={sourceData}
-          originalFileName={droppedFile?.name || null}
-          sourceFormatId={sourceFormat || "unknown"}
-        />
-      )}
+      <TargetConversion
+        title={t("conversion.title")}
+        sourceData={sourceData}
+        originalFileName={droppedFile?.name || null}
+        sourceFormatId={sourceFormat || "unknown"}
+      />
     </div>
   );
 }

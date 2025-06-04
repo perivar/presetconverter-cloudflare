@@ -11,9 +11,11 @@ import { REWToFabFilterProQ2 } from "../converters/REWToFabFilterProQ2";
 import { REWToFabFilterProQ3 } from "../converters/REWToFabFilterProQ3";
 import { SSLNativeChannelToGenericEQ } from "../converters/SSLNativeChannelToGenericEQ";
 import { SSLNativeChannelToText } from "../converters/SSLNativeChannelToText";
+import { SSLNativeChannelToUADSSLChannel } from "../converters/SSLNativeChannelToUADSSLChannel";
 import { SSLNativeChannelToWavesSSLChannel } from "../converters/SSLNativeChannelToWavesSSLChannel";
 import { SteinbergFrequencyToGenericEQ } from "../converters/SteinbergFrequencyToGenericEQ";
 import { UADSSLChannelToGenericEQ } from "../converters/UADSSLChannelToGenericEQ";
+import { UADSSLChannelToSSLNativeChannel } from "../converters/UADSSLChannelToSSLNativeChannel";
 import { UADSSLChannelToText } from "../converters/UADSSLChannelToText";
 import { UADSSLChannelToWavesSSLChannel } from "../converters/UADSSLChannelToWavesSSLChannel";
 import { WavesSSLChannelToGenericEQ } from "../converters/WavesSSLChannelToGenericEQ";
@@ -59,8 +61,13 @@ export const allConverters: ConverterRegistration[] = [
     fromTypes: ["SSLNativeChannel"],
     converter: SSLNativeChannelToWavesSSLChannel,
   },
+  {
+    fromTypes: ["SSLNativeChannel"],
+    converter: SSLNativeChannelToUADSSLChannel,
+  },
   { fromTypes: ["SSLNativeChannel"], converter: SSLNativeChannelToText },
   { fromTypes: ["UADSSLChannel"], converter: UADSSLChannelToWavesSSLChannel },
+  { fromTypes: ["UADSSLChannel"], converter: UADSSLChannelToSSLNativeChannel },
   { fromTypes: ["UADSSLChannel"], converter: UADSSLChannelToGenericEQ },
   { fromTypes: ["UADSSLChannel"], converter: UADSSLChannelToText },
   { fromTypes: ["WavesSSLComp"], converter: WavesSSLCompToText },
