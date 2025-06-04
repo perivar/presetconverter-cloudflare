@@ -604,7 +604,8 @@ export abstract class VstPreset implements Preset {
       const parser = new XMLParser({
         ignoreAttributes: false,
         attributeNamePrefix: "@_",
-        parseAttributeValue: true,
+        parseAttributeValue: false, // do not convert strings to number automatically
+        parseTagValue: false, // do not convert strings to number automatically
       });
 
       const result = parser.parse(xmlString);
@@ -661,6 +662,7 @@ export abstract class VstPreset implements Preset {
     console.debug(`Data chunk ID: '${dataChunkID}'`);
 
     if (dataChunkID === "VstW") {
+      // VstW indicates we have found a VST 2 preset or bank
       // https://searchcode.com/codesearch/view/90021517/
 
       // Read VstW chunk size

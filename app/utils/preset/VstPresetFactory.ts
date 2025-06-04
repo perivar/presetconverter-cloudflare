@@ -119,48 +119,64 @@ export class VstPresetFactory {
           }
         }
       } else if (preset.Vst3ClassID === VstClassIDs.SSLNativeChannel2) {
+        let sslNativePreset: SSLNativeChannel | undefined = undefined;
+
         // Read SSL Native presets expecting to find that XmlContent was found during readCompData while reading VstPreset
         const xmlContent = preset.Parameters.get("XmlContent")?.Value as
           | string
           | undefined;
+
         if (xmlContent) {
-          const sslNativePreset = SSLNativeChannel.parseXml(xmlContent);
+          sslNativePreset = SSLNativeChannel.parseXml(xmlContent);
+        } else {
+          // we might have found a vst2 preset wrapped vst3 preset and stored as FXP
+          // thus the xmlContent is saved within the fxp instead
+          const xmlObject = preset.FXP?.xmlContent;
+          sslNativePreset = SSLNativeChannel.fromXml(xmlObject);
+        }
 
-          if (sslNativePreset) {
-            // Copy common properties from the initially created preset
-            sslNativePreset.Vst3ClassID = preset.Vst3ClassID;
-            sslNativePreset.CompDataStartPos = preset.CompDataStartPos;
-            sslNativePreset.CompDataChunkSize = preset.CompDataChunkSize;
-            sslNativePreset.ContDataStartPos = preset.ContDataStartPos;
-            sslNativePreset.ContDataChunkSize = preset.ContDataChunkSize;
-            sslNativePreset.InfoXmlStartPos = preset.InfoXmlStartPos;
-            sslNativePreset.Parameters = preset.Parameters; // Keep the parameters map
-            sslNativePreset.FXP = preset.FXP; // Keep FXP if it exists
+        if (sslNativePreset) {
+          // Copy common properties from the initially created preset
+          sslNativePreset.Vst3ClassID = preset.Vst3ClassID;
+          sslNativePreset.CompDataStartPos = preset.CompDataStartPos;
+          sslNativePreset.CompDataChunkSize = preset.CompDataChunkSize;
+          sslNativePreset.ContDataStartPos = preset.ContDataStartPos;
+          sslNativePreset.ContDataChunkSize = preset.ContDataChunkSize;
+          sslNativePreset.InfoXmlStartPos = preset.InfoXmlStartPos;
+          sslNativePreset.Parameters = preset.Parameters; // Keep the parameters map
+          sslNativePreset.FXP = preset.FXP; // Keep FXP if it exists
 
-            preset = sslNativePreset; // Reassign preset to the Waves-specific instance
-          }
+          preset = sslNativePreset; // Reassign preset to the Waves-specific instance
         }
       } else if (preset.Vst3ClassID === VstClassIDs.SSLNativeBusCompressor2) {
+        let sslNativePreset: SSLNativeBusCompressor | undefined = undefined;
+
         // Read SSL Native presets expecting to find that XmlContent was found during readCompData while reading VstPreset
         const xmlContent = preset.Parameters.get("XmlContent")?.Value as
           | string
           | undefined;
+
         if (xmlContent) {
-          const sslNativePreset = SSLNativeBusCompressor.parseXml(xmlContent);
+          sslNativePreset = SSLNativeBusCompressor.parseXml(xmlContent);
+        } else {
+          // we might have found a vst2 preset wrapped vst3 preset and stored as FXP
+          // thus the xmlContent is saved within the fxp instead
+          const xmlObject = preset.FXP?.xmlContent;
+          sslNativePreset = SSLNativeBusCompressor.fromXml(xmlObject);
+        }
 
-          if (sslNativePreset) {
-            // Copy common properties from the initially created preset
-            sslNativePreset.Vst3ClassID = preset.Vst3ClassID;
-            sslNativePreset.CompDataStartPos = preset.CompDataStartPos;
-            sslNativePreset.CompDataChunkSize = preset.CompDataChunkSize;
-            sslNativePreset.ContDataStartPos = preset.ContDataStartPos;
-            sslNativePreset.ContDataChunkSize = preset.ContDataChunkSize;
-            sslNativePreset.InfoXmlStartPos = preset.InfoXmlStartPos;
-            sslNativePreset.Parameters = preset.Parameters; // Keep the parameters map
-            sslNativePreset.FXP = preset.FXP; // Keep FXP if it exists
+        if (sslNativePreset) {
+          // Copy common properties from the initially created preset
+          sslNativePreset.Vst3ClassID = preset.Vst3ClassID;
+          sslNativePreset.CompDataStartPos = preset.CompDataStartPos;
+          sslNativePreset.CompDataChunkSize = preset.CompDataChunkSize;
+          sslNativePreset.ContDataStartPos = preset.ContDataStartPos;
+          sslNativePreset.ContDataChunkSize = preset.ContDataChunkSize;
+          sslNativePreset.InfoXmlStartPos = preset.InfoXmlStartPos;
+          sslNativePreset.Parameters = preset.Parameters; // Keep the parameters map
+          sslNativePreset.FXP = preset.FXP; // Keep FXP if it exists
 
-            preset = sslNativePreset; // Reassign preset to the Waves-specific instance
-          }
+          preset = sslNativePreset; // Reassign preset to the Waves-specific instance
         }
       }
 

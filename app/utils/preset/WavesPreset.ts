@@ -134,7 +134,8 @@ export abstract class WavesPreset extends VstPreset {
     const parser = new XMLParser({
       ignoreAttributes: false,
       attributeNamePrefix: "@_",
-      parseAttributeValue: true,
+      parseAttributeValue: false, // do not convert strings to number automatically
+      parseTagValue: false, // do not convert strings to number automatically
     });
 
     try {
@@ -166,7 +167,8 @@ export abstract class WavesPreset extends VstPreset {
     const parser = new XMLParser({
       ignoreAttributes: false,
       attributeNamePrefix: "@_",
-      parseAttributeValue: true,
+      parseAttributeValue: false, // do not convert strings to number automatically
+      parseTagValue: false, // do not convert strings to number automatically
     });
 
     try {
@@ -208,7 +210,8 @@ export abstract class WavesPreset extends VstPreset {
     const parser = new XMLParser({
       ignoreAttributes: false,
       attributeNamePrefix: "@_",
-      parseAttributeValue: true,
+      parseAttributeValue: false, // do not convert strings to number automatically
+      parseTagValue: false, // do not convert strings to number automatically
     });
 
     try {

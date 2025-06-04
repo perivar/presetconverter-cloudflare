@@ -449,7 +449,8 @@ export class FXP {
       const parser = new XMLParser({
         ignoreAttributes: false,
         attributeNamePrefix: "@_",
-        parseAttributeValue: true,
+        parseAttributeValue: false, // do not convert strings to number automatically
+        parseTagValue: false, // do not convert strings to number automatically
       });
 
       // Parse the XML

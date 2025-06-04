@@ -8,6 +8,8 @@ import {
 const parser = new XMLParser({
   ignoreAttributes: false,
   attributeNamePrefix: "@_",
+  parseAttributeValue: false, // do not convert strings to number automatically
+  parseTagValue: false, // do not convert strings to number automatically
 });
 
 const builder = new XMLBuilder({

@@ -1,14 +1,10 @@
 import { XMLParser } from "fast-xml-parser";
 
-import { Encoding, NewLineHandling, XmlWriter } from "../XmlWriter";
-import { SteinbergVstPreset } from "./SteinbergVstPreset";
+import { SSLNativePresetBase } from "./SSLNativePresetBase";
 import { VstClassIDs } from "./VstClassIDs";
 
-export class SSLNativeBusCompressor extends SteinbergVstPreset {
-  public PresetName: string = "";
-  public PresetVersion: string = "";
-  public PresetType: string = "";
-  public StateASelected: boolean = true; // New property
+export class SSLNativeBusCompressor extends SSLNativePresetBase {
+  public StateASelected: boolean = true;
 
   // Public Fields (Parameters)
   public Attack: number = 4.0;
@@ -21,7 +17,9 @@ export class SSLNativeBusCompressor extends SteinbergVstPreset {
   public SidechainHPF: number = 20.0;
   public Threshold: number = 20.0;
   public UseExternalKey: boolean = false;
+
   public GroupSense: number = 0.0;
+
   public GuiSlotIndex: number = -1.0; // PARAM_NON_AUTO
   public SessionDataId: number = 0.0; // PARAM_NON_AUTO
   public PluginIdent: number = 0.0; // PARAM_NON_AUTO
@@ -39,30 +37,11 @@ export class SSLNativeBusCompressor extends SteinbergVstPreset {
     const parser = new XMLParser({
       ignoreAttributes: false,
       attributeNamePrefix: "@_",
-      parseAttributeValue: true,
+      parseAttributeValue: false, // do not convert strings to number automatically
+      parseTagValue: false, // do not convert strings to number automatically
     });
     const xml = parser.parse(fileContent);
     return SSLNativeBusCompressor.fromXml(xml);
-  }
-
-  public toXmlString(xmlObject: object): string {
-    const xmlContent = XmlWriter(xmlObject, {
-      OmitXmlDeclaration: true,
-      Encoding: Encoding.UTF8,
-      Indent: true,
-      IndentChars: "    ",
-      NewLineChars: "\n",
-      NewLineHandling: NewLineHandling.Replace,
-    });
-
-    return xmlContent;
-  }
-
-  protected preparedForWriting(): boolean {
-    this.initCompChunkData();
-    this.initInfoXml();
-    this.calculateBytePositions();
-    return true;
   }
 
   protected initCompChunkData(): void {
@@ -74,60 +53,40 @@ export class SSLNativeBusCompressor extends SteinbergVstPreset {
     const sb: string[] = [];
 
     sb.push(`PresetName: ${this.PresetName}`);
-    sb.push("");
+    sb.push(`StateASelected: ${this.StateASelected}`);
+    sb.push(""); // Empty line
 
     sb.push("Compression:");
+    sb.push(`\tThreshold: ${this.Threshold.toFixed(2)} dB`);
+    sb.push(`\tMakeup Gain: ${this.MakeupGain.toFixed(2)} dB`);
     sb.push(`\tAttack: ${this.Attack.toFixed(2)} ms`);
     sb.push(`\tRelease: ${this.Release.toFixed(2)} s`);
     sb.push(`\tRatio: ${this.Ratio.toFixed(2)}:1`);
-    sb.push(`\tThreshold: ${this.Threshold.toFixed(2)} dB`);
-    sb.push(`\tMakeup Gain: ${this.MakeupGain.toFixed(2)} dB`);
     sb.push(`\tDry/Wet Mix: ${this.DryWetMix.toFixed(2)} %`);
     sb.push(`\tSidechain HPF: ${this.SidechainHPF.toFixed(2)} Hz`);
     sb.push(`\tOversampling: ${this.Oversampling}`);
     sb.push(`\tBypass: ${this.CompBypass}`);
     sb.push(`\tUse External Key: ${this.UseExternalKey}`);
+
+    sb.push(""); // Empty line
+
     sb.push(`\tGroup Sense: ${this.GroupSense}`);
+    sb.push(`\tGuiSlotIndex: ${this.GuiSlotIndex}`);
+    sb.push(`\tSessionDataId: ${this.SessionDataId}`);
+    sb.push(`\tPluginIdent: ${this.PluginIdent}`);
+    sb.push(`\tUniqueId: ${this.UniqueId}`);
 
     return sb.join("\n");
   }
 
-  private static paramToXmlAttribute(
-    paramName: string,
-    paramValue: number | boolean
-  ): object {
-    const value =
-      typeof paramValue === "boolean" ? (paramValue ? 1.0 : 0.0) : paramValue;
-    return {
-      "@_id": paramName,
-      "@_value": value.toFixed(4), // Keep up to 4 decimal places
-    };
-  }
-
-  private static findParamValue(
-    paramsContainer: any,
-    paramType: string, // "PARAM" or "PARAM_NON_AUTO"
-    paramId: string
-  ): number {
-    if (!paramsContainer || !paramsContainer[paramType]) {
-      return 0;
-    }
-
-    const params = Array.isArray(paramsContainer[paramType])
-      ? paramsContainer[paramType]
-      : [paramsContainer[paramType]];
-    const param = params.find((p: any) => p?.["@_id"] === paramId);
-
-    return Number.parseFloat(param?.["@_value"] ?? "0");
-  }
-
-  private static fromXml(xml: any): SSLNativeBusCompressor {
+  public static fromXml(xml: any): SSLNativeBusCompressor {
     const preset = new SSLNativeBusCompressor();
 
     preset.PlugInName = xml?.SSL_PLUGIN_STATE?.["@_PluginName"] ?? "";
     preset.PresetVersion = xml?.SSL_PLUGIN_STATE?.["@_Version"] ?? "";
-    preset.StateASelected =
-      (xml?.SSL_PLUGIN_STATE?.["@_StateASelected"] ?? "1") === "1";
+
+    const stateASelected = xml?.SSL_PLUGIN_STATE?.["@_StateASelected"] ?? "";
+    preset.StateASelected = stateASelected === "1";
 
     const useAState = preset.StateASelected;
     const processorState =
@@ -140,80 +99,80 @@ export class SSLNativeBusCompressor extends SteinbergVstPreset {
     }
 
     // all values are stored as double
-    preset.Attack = SSLNativeBusCompressor.findParamValue(
+    preset.Attack = SSLNativePresetBase.findParamValue(
       processorState,
       "PARAM",
       "Attack"
     );
     preset.CompBypass =
-      SSLNativeBusCompressor.findParamValue(
+      SSLNativePresetBase.findParamValue(
         processorState,
         "PARAM",
         "CompBypass"
       ) !== 0.0;
-    preset.DryWetMix = SSLNativeBusCompressor.findParamValue(
+    preset.DryWetMix = SSLNativePresetBase.findParamValue(
       processorState,
       "PARAM",
       "DryWetMix"
     );
-    preset.MakeupGain = SSLNativeBusCompressor.findParamValue(
+    preset.MakeupGain = SSLNativePresetBase.findParamValue(
       processorState,
       "PARAM",
       "MakeupGain"
     );
-    preset.Oversampling = SSLNativeBusCompressor.findParamValue(
+    preset.Oversampling = SSLNativePresetBase.findParamValue(
       processorState,
       "PARAM",
       "Oversampling"
     );
-    preset.Ratio = SSLNativeBusCompressor.findParamValue(
+    preset.Ratio = SSLNativePresetBase.findParamValue(
       processorState,
       "PARAM",
       "Ratio"
     );
-    preset.Release = SSLNativeBusCompressor.findParamValue(
+    preset.Release = SSLNativePresetBase.findParamValue(
       processorState,
       "PARAM",
       "Release"
     );
-    preset.SidechainHPF = SSLNativeBusCompressor.findParamValue(
+    preset.SidechainHPF = SSLNativePresetBase.findParamValue(
       processorState,
       "PARAM",
       "SidechainHPF"
     );
-    preset.Threshold = SSLNativeBusCompressor.findParamValue(
+    preset.Threshold = SSLNativePresetBase.findParamValue(
       processorState,
       "PARAM",
       "Threshold"
     );
     preset.UseExternalKey =
-      SSLNativeBusCompressor.findParamValue(
+      SSLNativePresetBase.findParamValue(
         processorState,
         "PARAM",
         "UseExternalKey"
       ) !== 0.0;
 
-    preset.GuiSlotIndex = SSLNativeBusCompressor.findParamValue(
+    preset.GuiSlotIndex = SSLNativePresetBase.findParamValue(
       rootPluginState,
       "PARAM_NON_AUTO",
       "GuiSlotIndex"
     );
-    preset.SessionDataId = SSLNativeBusCompressor.findParamValue(
+    preset.SessionDataId = SSLNativePresetBase.findParamValue(
       rootPluginState,
       "PARAM_NON_AUTO",
       "SessionDataId"
     );
-    preset.PluginIdent = SSLNativeBusCompressor.findParamValue(
+    preset.PluginIdent = SSLNativePresetBase.findParamValue(
       rootPluginState,
       "PARAM_NON_AUTO",
       "PluginIdent"
     );
-    preset.UniqueId = SSLNativeBusCompressor.findParamValue(
+    preset.UniqueId = SSLNativePresetBase.findParamValue(
       rootPluginState,
       "PARAM_NON_AUTO",
       "UniqueId"
     );
-    preset.GroupSense = SSLNativeBusCompressor.findParamValue(
+    preset.GroupSense = SSLNativePresetBase.findParamValue(
       rootPluginState,
       "PARAM",
       "GroupSense"
@@ -222,7 +181,7 @@ export class SSLNativeBusCompressor extends SteinbergVstPreset {
     return preset;
   }
 
-  private generatePresetXML(): object {
+  protected generatePresetXML(): object {
     const xml = {
       SSL_PLUGIN_STATE: {
         "@_PluginName": this.PlugInName,
@@ -234,37 +193,34 @@ export class SSLNativeBusCompressor extends SteinbergVstPreset {
           //   "C:\\ProgramData\\Solid State Logic\\PlugIns\\Presets\\BusCompressor2\\Default Preset.xml",
           PROCESSOR_STATE: {
             PARAM: [
-              SSLNativeBusCompressor.paramToXmlAttribute("Attack", this.Attack),
-              SSLNativeBusCompressor.paramToXmlAttribute(
+              SSLNativePresetBase.paramToXmlAttribute("Attack", this.Attack),
+              SSLNativePresetBase.paramToXmlAttribute(
                 "CompBypass",
                 this.CompBypass
               ),
-              SSLNativeBusCompressor.paramToXmlAttribute(
+              SSLNativePresetBase.paramToXmlAttribute(
                 "DryWetMix",
                 this.DryWetMix
               ),
-              SSLNativeBusCompressor.paramToXmlAttribute(
+              SSLNativePresetBase.paramToXmlAttribute(
                 "MakeupGain",
                 this.MakeupGain
               ),
-              SSLNativeBusCompressor.paramToXmlAttribute(
+              SSLNativePresetBase.paramToXmlAttribute(
                 "Oversampling",
                 this.Oversampling
               ),
-              SSLNativeBusCompressor.paramToXmlAttribute("Ratio", this.Ratio),
-              SSLNativeBusCompressor.paramToXmlAttribute(
-                "Release",
-                this.Release
-              ),
-              SSLNativeBusCompressor.paramToXmlAttribute(
+              SSLNativePresetBase.paramToXmlAttribute("Ratio", this.Ratio),
+              SSLNativePresetBase.paramToXmlAttribute("Release", this.Release),
+              SSLNativePresetBase.paramToXmlAttribute(
                 "SidechainHPF",
                 this.SidechainHPF
               ),
-              SSLNativeBusCompressor.paramToXmlAttribute(
+              SSLNativePresetBase.paramToXmlAttribute(
                 "Threshold",
                 this.Threshold
               ),
-              SSLNativeBusCompressor.paramToXmlAttribute(
+              SSLNativePresetBase.paramToXmlAttribute(
                 "UseExternalKey",
                 this.UseExternalKey
               ),
@@ -276,37 +232,34 @@ export class SSLNativeBusCompressor extends SteinbergVstPreset {
           //   "C:\\ProgramData\\Solid State Logic\\PlugIns\\Presets\\BusCompressor2\\Default Preset.xml",
           PROCESSOR_STATE: {
             PARAM: [
-              SSLNativeBusCompressor.paramToXmlAttribute("Attack", this.Attack),
-              SSLNativeBusCompressor.paramToXmlAttribute(
+              SSLNativePresetBase.paramToXmlAttribute("Attack", this.Attack),
+              SSLNativePresetBase.paramToXmlAttribute(
                 "CompBypass",
                 this.CompBypass
               ),
-              SSLNativeBusCompressor.paramToXmlAttribute(
+              SSLNativePresetBase.paramToXmlAttribute(
                 "DryWetMix",
                 this.DryWetMix
               ),
-              SSLNativeBusCompressor.paramToXmlAttribute(
+              SSLNativePresetBase.paramToXmlAttribute(
                 "MakeupGain",
                 this.MakeupGain
               ),
-              SSLNativeBusCompressor.paramToXmlAttribute(
+              SSLNativePresetBase.paramToXmlAttribute(
                 "Oversampling",
                 this.Oversampling
               ),
-              SSLNativeBusCompressor.paramToXmlAttribute("Ratio", this.Ratio), // Note: Ratio is 1.0 in B state in example, but using A state default
-              SSLNativeBusCompressor.paramToXmlAttribute(
-                "Release",
-                this.Release
-              ), // Note: Release is 6.0 in B state in example, but using A state default
-              SSLNativeBusCompressor.paramToXmlAttribute(
+              SSLNativePresetBase.paramToXmlAttribute("Ratio", this.Ratio), // Note: Ratio is 1.0 in B state in example, but using A state default
+              SSLNativePresetBase.paramToXmlAttribute("Release", this.Release), // Note: Release is 6.0 in B state in example, but using A state default
+              SSLNativePresetBase.paramToXmlAttribute(
                 "SidechainHPF",
                 this.SidechainHPF
               ),
-              SSLNativeBusCompressor.paramToXmlAttribute(
+              SSLNativePresetBase.paramToXmlAttribute(
                 "Threshold",
                 this.Threshold
               ),
-              SSLNativeBusCompressor.paramToXmlAttribute(
+              SSLNativePresetBase.paramToXmlAttribute(
                 "UseExternalKey",
                 this.UseExternalKey
               ),
@@ -314,23 +267,23 @@ export class SSLNativeBusCompressor extends SteinbergVstPreset {
           },
         },
         PARAM_NON_AUTO: [
-          SSLNativeBusCompressor.paramToXmlAttribute(
+          SSLNativePresetBase.paramToXmlAttribute(
             "GuiSlotIndex",
             this.GuiSlotIndex
           ),
-          SSLNativeBusCompressor.paramToXmlAttribute(
+          SSLNativePresetBase.paramToXmlAttribute(
             "SessionDataId",
             this.SessionDataId
           ),
-          SSLNativeBusCompressor.paramToXmlAttribute(
+          SSLNativePresetBase.paramToXmlAttribute(
             "PluginIdent",
             this.PluginIdent
           ),
-          SSLNativeBusCompressor.paramToXmlAttribute("UniqueId", this.UniqueId),
+          SSLNativePresetBase.paramToXmlAttribute("UniqueId", this.UniqueId),
         ],
         PARAM: [
           // GroupSense is a PARAM, but outside PROCESSOR_STATE
-          SSLNativeBusCompressor.paramToXmlAttribute(
+          SSLNativePresetBase.paramToXmlAttribute(
             "GroupSense",
             this.GroupSense
           ),
