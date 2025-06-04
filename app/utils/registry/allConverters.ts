@@ -9,6 +9,9 @@ import { GenericXMLConverter } from "../converters/GenericXMLConverter";
 import { REWToFabFilterProQ } from "../converters/REWToFabFilterProQ";
 import { REWToFabFilterProQ2 } from "../converters/REWToFabFilterProQ2";
 import { REWToFabFilterProQ3 } from "../converters/REWToFabFilterProQ3";
+import { SSLNativeBusCompressorToGenericCompressorLimiter } from "../converters/SSLNativeBusCompressorToGenericCompressorLimiter";
+import { SSLNativeBusCompressorToText } from "../converters/SSLNativeBusCompressorToText";
+import { SSLNativeBusCompressorToWavesSSLComp } from "../converters/SSLNativeBusCompressorToWavesSSLComp";
 import { SSLNativeChannelToGenericEQ } from "../converters/SSLNativeChannelToGenericEQ";
 import { SSLNativeChannelToText } from "../converters/SSLNativeChannelToText";
 import { SSLNativeChannelToUADSSLChannel } from "../converters/SSLNativeChannelToUADSSLChannel";
@@ -23,6 +26,7 @@ import { WavesSSLChannelToSSLNativeChannel } from "../converters/WavesSSLChannel
 import { WavesSSLChannelToText } from "../converters/WavesSSLChannelToText";
 import { WavesSSLChannelToUADSSLChannel } from "../converters/WavesSSLChannelToUADSSLChannel";
 import { WavesSSLCompToGenericCompressorLimiter } from "../converters/WavesSSLCompToGenericCompressorLimiter";
+import { WavesSSLCompToSSLNativeBusCompressor } from "../converters/WavesSSLCompToSSLNativeBusCompressor";
 import { WavesSSLCompToText } from "../converters/WavesSSLCompToText";
 import { ConverterRegistration } from "./converterRegistry";
 
@@ -74,5 +78,21 @@ export const allConverters: ConverterRegistration[] = [
   {
     fromTypes: ["WavesSSLComp"],
     converter: WavesSSLCompToGenericCompressorLimiter,
+  },
+  {
+    fromTypes: ["WavesSSLComp"],
+    converter: WavesSSLCompToSSLNativeBusCompressor,
+  },
+  {
+    fromTypes: ["SSLNativeBusCompressor"],
+    converter: SSLNativeBusCompressorToText,
+  },
+  {
+    fromTypes: ["SSLNativeBusCompressor"],
+    converter: SSLNativeBusCompressorToGenericCompressorLimiter,
+  },
+  {
+    fromTypes: ["SSLNativeBusCompressor"],
+    converter: SSLNativeBusCompressorToWavesSSLComp,
   },
 ];

@@ -128,7 +128,7 @@ export class SSLNativeChannel extends SteinbergVstPreset {
       `\tHP Frequency (18 dB/octave): ${this.HighPassFreq.toFixed(2)} Hz (16 - 350 Hz)`
     );
     sb.push(
-      `\tLP Frequency (12 dB/octave): ${this.LowPassFreq.toFixed(2)} KHz (22 - 3 KHz)`
+      `\tLP Frequency (12 dB/octave): ${this.LowPassFreq.toFixed(2)} KHz (22 - 35 KHz)`
     );
     sb.push("");
 
@@ -207,97 +207,250 @@ export class SSLNativeChannel extends SteinbergVstPreset {
     };
   }
 
-  private static paramFromXml(
-    xml: any,
-    paramId: string,
-    IsNonAutoParam: boolean = false
+  private static findParamValue(
+    paramsContainer: any,
+    paramType: string, // "PARAM" or "PARAM_NON_AUTO"
+    paramId: string
   ): number {
-    const paramType = IsNonAutoParam ? "PARAM_NON_AUTO" : "PARAM";
-    const processorState = xml?.SSL_PRESET?.PROCESSOR_STATE;
-
-    if (!processorState) {
+    if (!paramsContainer || !paramsContainer[paramType]) {
       return 0;
     }
 
-    // Ensure processorState[paramType] is an array, even if it's a single object
-    const params = Array.isArray(processorState[paramType])
-      ? processorState[paramType]
-      : [processorState[paramType]];
-
+    const params = Array.isArray(paramsContainer[paramType])
+      ? paramsContainer[paramType]
+      : [paramsContainer[paramType]];
     const param = params.find((p: any) => p?.["@_id"] === paramId);
+
     return Number.parseFloat(param?.["@_value"] ?? "0");
   }
 
   private static fromXml(xml: any): SSLNativeChannel {
     const preset = new SSLNativeChannel();
     const processorState = xml?.SSL_PRESET?.PROCESSOR_STATE;
+    const rootPreset = xml?.SSL_PRESET; // For HighQuality (PARAM_NON_AUTO)
 
     if (!processorState) {
       console.warn("PROCESSOR_STATE not found in XML.");
       return preset;
     }
 
-    preset.PlugInName = xml?.SSL_PRESET?.["@_PluginName"] ?? "";
-    preset.PresetVersion = xml?.SSL_PRESET?.["@_Version"] ?? "";
-    preset.PresetType = xml?.SSL_PRESET?.["@_PresetType"] ?? "";
+    preset.PlugInName = rootPreset?.["@_PluginName"] ?? "";
+    preset.PresetVersion = rootPreset?.["@_Version"] ?? "";
+    preset.PresetType = rootPreset?.["@_PresetType"] ?? "";
 
     // all values are stored as double
-    preset.Bypass = SSLNativeChannel.paramFromXml(xml, "Bypass") !== 0.0;
+    preset.Bypass =
+      SSLNativeChannel.findParamValue(processorState, "PARAM", "Bypass") !==
+      0.0;
     preset.CompFastAttack =
-      SSLNativeChannel.paramFromXml(xml, "CompFastAttack") !== 0.0;
-    preset.CompMix = SSLNativeChannel.paramFromXml(xml, "CompMix");
-    preset.CompPeak = SSLNativeChannel.paramFromXml(xml, "CompPeak");
-    preset.CompRatio = SSLNativeChannel.paramFromXml(xml, "CompRatio");
-    preset.CompRelease = SSLNativeChannel.paramFromXml(xml, "CompRelease");
-    preset.CompThreshold = SSLNativeChannel.paramFromXml(xml, "CompThreshold");
+      SSLNativeChannel.findParamValue(
+        processorState,
+        "PARAM",
+        "CompFastAttack"
+      ) !== 0.0;
+    preset.CompMix = SSLNativeChannel.findParamValue(
+      processorState,
+      "PARAM",
+      "CompMix"
+    );
+    preset.CompPeak = SSLNativeChannel.findParamValue(
+      processorState,
+      "PARAM",
+      "CompPeak"
+    );
+    preset.CompRatio = SSLNativeChannel.findParamValue(
+      processorState,
+      "PARAM",
+      "CompRatio"
+    );
+    preset.CompRelease = SSLNativeChannel.findParamValue(
+      processorState,
+      "PARAM",
+      "CompRelease"
+    );
+    preset.CompThreshold = SSLNativeChannel.findParamValue(
+      processorState,
+      "PARAM",
+      "CompThreshold"
+    );
     preset.DynamicsIn =
-      SSLNativeChannel.paramFromXml(xml, "DynamicsIn") !== 0.0;
+      SSLNativeChannel.findParamValue(processorState, "PARAM", "DynamicsIn") !==
+      0.0;
     preset.DynamicsPreEq =
-      SSLNativeChannel.paramFromXml(xml, "DynamicsPreEq") !== 0.0;
-    preset.EqE = SSLNativeChannel.paramFromXml(xml, "EqE") !== 0.0;
-    preset.EqIn = SSLNativeChannel.paramFromXml(xml, "EqIn") !== 0.0;
+      SSLNativeChannel.findParamValue(
+        processorState,
+        "PARAM",
+        "DynamicsPreEq"
+      ) !== 0.0;
+    preset.EqE =
+      SSLNativeChannel.findParamValue(processorState, "PARAM", "EqE") !== 0.0;
+    preset.EqIn =
+      SSLNativeChannel.findParamValue(processorState, "PARAM", "EqIn") !== 0.0;
     preset.EqToSidechain =
-      SSLNativeChannel.paramFromXml(xml, "EqToSidechain") !== 0.0;
-    preset.FaderLevel = SSLNativeChannel.paramFromXml(xml, "FaderLevel");
+      SSLNativeChannel.findParamValue(
+        processorState,
+        "PARAM",
+        "EqToSidechain"
+      ) !== 0.0;
+    preset.FaderLevel = SSLNativeChannel.findParamValue(
+      processorState,
+      "PARAM",
+      "FaderLevel"
+    );
     preset.FiltersToInput =
-      SSLNativeChannel.paramFromXml(xml, "FiltersToInput") !== 0.0;
+      SSLNativeChannel.findParamValue(
+        processorState,
+        "PARAM",
+        "FiltersToInput"
+      ) !== 0.0;
     preset.FiltersToSidechain =
-      SSLNativeChannel.paramFromXml(xml, "FiltersToSidechain") !== 0.0;
+      SSLNativeChannel.findParamValue(
+        processorState,
+        "PARAM",
+        "FiltersToSidechain"
+      ) !== 0.0;
     preset.GateDisabledExpEnabled =
-      SSLNativeChannel.paramFromXml(xml, "GateExpander") !== 0.0;
+      SSLNativeChannel.findParamValue(
+        processorState,
+        "PARAM",
+        "GateExpander"
+      ) !== 0.0;
     preset.GateFastAttack =
-      SSLNativeChannel.paramFromXml(xml, "GateFastAttack") !== 0.0;
-    preset.GateHold = SSLNativeChannel.paramFromXml(xml, "GateHold");
-    preset.GateRange = SSLNativeChannel.paramFromXml(xml, "GateRange");
-    preset.GateRelease = SSLNativeChannel.paramFromXml(xml, "GateRelease");
-    preset.GateThreshold = SSLNativeChannel.paramFromXml(xml, "GateThreshold");
+      SSLNativeChannel.findParamValue(
+        processorState,
+        "PARAM",
+        "GateFastAttack"
+      ) !== 0.0;
+    preset.GateHold = SSLNativeChannel.findParamValue(
+      processorState,
+      "PARAM",
+      "GateHold"
+    );
+    preset.GateRange = SSLNativeChannel.findParamValue(
+      processorState,
+      "PARAM",
+      "GateRange"
+    );
+    preset.GateRelease = SSLNativeChannel.findParamValue(
+      processorState,
+      "PARAM",
+      "GateRelease"
+    );
+    preset.GateThreshold = SSLNativeChannel.findParamValue(
+      processorState,
+      "PARAM",
+      "GateThreshold"
+    );
     preset.HighEqBell =
-      SSLNativeChannel.paramFromXml(xml, "HighEqBell") !== 0.0;
-    preset.HighEqFreq = SSLNativeChannel.paramFromXml(xml, "HighEqFreq");
-    preset.HighEqGain = SSLNativeChannel.paramFromXml(xml, "HighEqGain");
-    preset.HighMidEqFreq = SSLNativeChannel.paramFromXml(xml, "HighMidEqFreq");
-    preset.HighMidEqGain = SSLNativeChannel.paramFromXml(xml, "HighMidEqGain");
-    preset.HighMidEqQ = SSLNativeChannel.paramFromXml(xml, "HighMidEqQ");
-    preset.HighPassFreq = SSLNativeChannel.paramFromXml(xml, "HighPassFreq");
-    preset.InputTrim = SSLNativeChannel.paramFromXml(xml, "InputTrim");
-    preset.LowEqBell = SSLNativeChannel.paramFromXml(xml, "LowEqBell") !== 0.0;
-    preset.LowEqFreq = SSLNativeChannel.paramFromXml(xml, "LowEqFreq");
-    preset.LowEqGain = SSLNativeChannel.paramFromXml(xml, "LowEqGain");
-    preset.LowMidEqFreq = SSLNativeChannel.paramFromXml(xml, "LowMidEqFreq");
-    preset.LowMidEqGain = SSLNativeChannel.paramFromXml(xml, "LowMidEqGain");
-    preset.LowMidEqQ = SSLNativeChannel.paramFromXml(xml, "LowMidEqQ");
-    preset.LowPassFreq = SSLNativeChannel.paramFromXml(xml, "LowPassFreq");
-    preset.OutputTrim = SSLNativeChannel.paramFromXml(xml, "OutputTrim");
-    preset.Pan = SSLNativeChannel.paramFromXml(xml, "Pan");
+      SSLNativeChannel.findParamValue(processorState, "PARAM", "HighEqBell") !==
+      0.0;
+    preset.HighEqFreq = SSLNativeChannel.findParamValue(
+      processorState,
+      "PARAM",
+      "HighEqFreq"
+    );
+    preset.HighEqGain = SSLNativeChannel.findParamValue(
+      processorState,
+      "PARAM",
+      "HighEqGain"
+    );
+    preset.HighMidEqFreq = SSLNativeChannel.findParamValue(
+      processorState,
+      "PARAM",
+      "HighMidEqFreq"
+    );
+    preset.HighMidEqGain = SSLNativeChannel.findParamValue(
+      processorState,
+      "PARAM",
+      "HighMidEqGain"
+    );
+    preset.HighMidEqQ = SSLNativeChannel.findParamValue(
+      processorState,
+      "PARAM",
+      "HighMidEqQ"
+    );
+    preset.HighPassFreq = SSLNativeChannel.findParamValue(
+      processorState,
+      "PARAM",
+      "HighPassFreq"
+    );
+    preset.InputTrim = SSLNativeChannel.findParamValue(
+      processorState,
+      "PARAM",
+      "InputTrim"
+    );
+    preset.LowEqBell =
+      SSLNativeChannel.findParamValue(processorState, "PARAM", "LowEqBell") !==
+      0.0;
+    preset.LowEqFreq = SSLNativeChannel.findParamValue(
+      processorState,
+      "PARAM",
+      "LowEqFreq"
+    );
+    preset.LowEqGain = SSLNativeChannel.findParamValue(
+      processorState,
+      "PARAM",
+      "LowEqGain"
+    );
+    preset.LowMidEqFreq = SSLNativeChannel.findParamValue(
+      processorState,
+      "PARAM",
+      "LowMidEqFreq"
+    );
+    preset.LowMidEqGain = SSLNativeChannel.findParamValue(
+      processorState,
+      "PARAM",
+      "LowMidEqGain"
+    );
+    preset.LowMidEqQ = SSLNativeChannel.findParamValue(
+      processorState,
+      "PARAM",
+      "LowMidEqQ"
+    );
+    preset.LowPassFreq = SSLNativeChannel.findParamValue(
+      processorState,
+      "PARAM",
+      "LowPassFreq"
+    );
+    preset.OutputTrim = SSLNativeChannel.findParamValue(
+      processorState,
+      "PARAM",
+      "OutputTrim"
+    );
+    preset.Pan = SSLNativeChannel.findParamValue(
+      processorState,
+      "PARAM",
+      "Pan"
+    );
     preset.PhaseInvert =
-      SSLNativeChannel.paramFromXml(xml, "PhaseInvert") !== 0.0;
+      SSLNativeChannel.findParamValue(
+        processorState,
+        "PARAM",
+        "PhaseInvert"
+      ) !== 0.0;
     preset.SidechainListen =
-      SSLNativeChannel.paramFromXml(xml, "SidechainListen") !== 0.0;
+      SSLNativeChannel.findParamValue(
+        processorState,
+        "PARAM",
+        "SidechainListen"
+      ) !== 0.0;
     preset.UseExternalKey =
-      SSLNativeChannel.paramFromXml(xml, "UseExternalKey") !== 0.0;
-    preset.Width = SSLNativeChannel.paramFromXml(xml, "Width");
+      SSLNativeChannel.findParamValue(
+        processorState,
+        "PARAM",
+        "UseExternalKey"
+      ) !== 0.0;
+    preset.Width = SSLNativeChannel.findParamValue(
+      processorState,
+      "PARAM",
+      "Width"
+    );
     preset.HighQuality =
-      SSLNativeChannel.paramFromXml(xml, "HighQuality", true) !== 0.0;
+      SSLNativeChannel.findParamValue(
+        rootPreset,
+        "PARAM_NON_AUTO",
+        "HighQuality"
+      ) !== 0.0;
 
     return preset;
   }

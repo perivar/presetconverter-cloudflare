@@ -1,6 +1,7 @@
 import { FabFilterProQ } from "./FabFilterProQ";
 import { FabFilterProQ2 } from "./FabFilterProQ2";
 import { FabFilterProQ3 } from "./FabFilterProQ3";
+import { SSLNativeBusCompressor } from "./SSLNativeBusCompressor";
 import { SSLNativeChannel } from "./SSLNativeChannel";
 import { SteinbergCompressor } from "./SteinbergCompressor";
 import { SteinbergFrequency } from "./SteinbergFrequency";
@@ -58,6 +59,9 @@ export class VstPresetFactory {
           break;
         case VstClassIDs.SSLNativeChannel2:
           preset = new SSLNativeChannel();
+          break;
+        case VstClassIDs.SSLNativeBusCompressor2:
+          preset = new SSLNativeBusCompressor();
           break;
         case VstClassIDs.UADSSLEChannel:
           preset = new UADSSLChannel();
@@ -121,6 +125,28 @@ export class VstPresetFactory {
           | undefined;
         if (xmlContent) {
           const sslNativePreset = SSLNativeChannel.parseXml(xmlContent);
+
+          if (sslNativePreset) {
+            // Copy common properties from the initially created preset
+            sslNativePreset.Vst3ClassID = preset.Vst3ClassID;
+            sslNativePreset.CompDataStartPos = preset.CompDataStartPos;
+            sslNativePreset.CompDataChunkSize = preset.CompDataChunkSize;
+            sslNativePreset.ContDataStartPos = preset.ContDataStartPos;
+            sslNativePreset.ContDataChunkSize = preset.ContDataChunkSize;
+            sslNativePreset.InfoXmlStartPos = preset.InfoXmlStartPos;
+            sslNativePreset.Parameters = preset.Parameters; // Keep the parameters map
+            sslNativePreset.FXP = preset.FXP; // Keep FXP if it exists
+
+            preset = sslNativePreset; // Reassign preset to the Waves-specific instance
+          }
+        }
+      } else if (preset.Vst3ClassID === VstClassIDs.SSLNativeBusCompressor2) {
+        // Read SSL Native presets expecting to find that XmlContent was found during readCompData while reading VstPreset
+        const xmlContent = preset.Parameters.get("XmlContent")?.Value as
+          | string
+          | undefined;
+        if (xmlContent) {
+          const sslNativePreset = SSLNativeBusCompressor.parseXml(xmlContent);
 
           if (sslNativePreset) {
             // Copy common properties from the initially created preset

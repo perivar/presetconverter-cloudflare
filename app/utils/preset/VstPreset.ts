@@ -1028,6 +1028,16 @@ export abstract class VstPreset implements Preset {
         this.setStringParameterWithIndex(param1Name, 1, xmlContent);
 
         return;
+      } else if (this.Vst3ClassID === VstClassIDs.SSLNativeBusCompressor2) {
+        // rewind 4 bytes (seek to comp data start pos)
+        reader.seek(this.CompDataStartPos);
+
+        const xmlMainLength = this.CompDataChunkSize;
+        const xmlContent = reader.readString(xmlMainLength);
+        const param1Name = "XmlContent";
+        this.setStringParameterWithIndex(param1Name, 1, xmlContent);
+
+        return;
       } else if (this.Vst3ClassID === VstClassIDs.NIKontakt5) {
         // rewind 4 bytes (seek to comp data start pos)
         reader.seek(this.CompDataStartPos);

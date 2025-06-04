@@ -97,6 +97,7 @@ export const VstClassIDs = {
 
   // Solid State Logic
   SSLNativeChannel2: "5653544E43533273736C206E61746976",
+  SSLNativeBusCompressor2: "5653544E42433273736C206E61746976",
 
   // Native Instruments
   NIKontakt5: "5653544E694F356B6F6E74616B742035",

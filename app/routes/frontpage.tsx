@@ -12,6 +12,7 @@ import {
   convertToMidi,
 } from "~/utils/ableton/Midi";
 import { FabFilterProQBaseToGenericEQ } from "~/utils/converters/FabFilterProQBaseToGenericEQ";
+import { SSLNativeBusCompressorToGenericCompressorLimiter } from "~/utils/converters/SSLNativeBusCompressorToGenericCompressorLimiter";
 import { SSLNativeChannelToGenericEQ } from "~/utils/converters/SSLNativeChannelToGenericEQ";
 import { SteinbergFrequencyToGenericEQ } from "~/utils/converters/SteinbergFrequencyToGenericEQ";
 import { UADSSLChannelToGenericEQ } from "~/utils/converters/UADSSLChannelToGenericEQ";
@@ -26,6 +27,7 @@ import { FXPPresetFactory } from "~/utils/preset/FXPPresetFactory";
 import { GenericCompressorLimiter } from "~/utils/preset/GenericCompressorLimiter";
 import { GenericEQBand, GenericEQPreset } from "~/utils/preset/GenericEQPreset";
 import { Preset } from "~/utils/preset/Preset";
+import { SSLNativeBusCompressor } from "~/utils/preset/SSLNativeBusCompressor";
 import { SSLNativeChannel } from "~/utils/preset/SSLNativeChannel";
 import { SteinbergFrequency } from "~/utils/preset/SteinbergFrequency";
 import { UADSSLChannel } from "~/utils/preset/UADSSLChannel";
@@ -283,6 +285,22 @@ export default function Index() {
                 const eqPreset =
                   SSLNativeChannelToGenericEQ.convertBase(vstPreset);
                 setGenericEQPreset(eqPreset);
+              } else if (
+                vstPreset &&
+                vstPreset instanceof SSLNativeBusCompressor
+              ) {
+                setSourceFormat(`${vstPreset.constructor.name}`);
+                setSourceData(vstPreset);
+
+                console.log(
+                  "SSLNativeBusCompressor preset:\n",
+                  vstPreset.toString()
+                );
+                const compLimitPreset =
+                  SSLNativeBusCompressorToGenericCompressorLimiter.convertBase(
+                    vstPreset
+                  );
+                setGenericCompLimitPreset(compLimitPreset);
               } else if (vstPreset && vstPreset instanceof WavesSSLChannel) {
                 setSourceFormat(`${vstPreset.constructor.name}`);
                 setSourceData(vstPreset);
