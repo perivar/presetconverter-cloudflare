@@ -14,9 +14,10 @@
     "editorHint.foreground": "#db6165"
   },
   "editor.codeActionsOnSave": {
-    "source.fixAll.eslint": "explicit"
+    "source.fixAll": "never",
+    "source.fixAll.eslint": "never"
   },
-  "editor.formatOnSave": true,
+  "editor.formatOnSave": false,
   "[javascript]": {
     "editor.formatOnSave": false
   },

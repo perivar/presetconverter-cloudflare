@@ -15,6 +15,13 @@ export enum ParameterType {
 }
 
 export class Parameter {
+  /**
+   * Creates an instance of Parameter.
+   * @param Key - The key of the parameter.
+   * @param Index - The index of the parameter.
+   * @param Value - The value of the parameter.
+   * @param Type - The type of the parameter.
+   */
   constructor(
     public Key: string,
     public Index: number,
@@ -22,6 +29,10 @@ export class Parameter {
     public Type: ParameterType
   ) {}
 
+  /**
+   * Returns a string representation of the Parameter.
+   * @returns A formatted string displaying the parameter's key, index, and value.
+   */
   public toString(): string {
     switch (this.Type) {
       case ParameterType.Number:
@@ -87,17 +98,16 @@ export abstract class VstPreset implements Preset {
     EOF +---------------------------+   
   */
 
-  /// <summary>
-  /// Ensure all variables are ready and populated before writing the preset
-  /// I.e. the binary content (ChunkData, MetaXmlBytesWithBOM etc.)
-  /// and the calculated positions (ListPos etc.)
-  /// </summary>
-  /// <returns>true if ready</returns>
+  /**
+   * Ensures all variables are ready and populated before writing the preset.
+   * This includes binary content (ChunkData, MetaXmlBytesWithBOM etc.) and calculated positions (ListPos etc.).
+   * @returns True if the preset is ready for writing, otherwise false.
+   */
   protected abstract preparedForWriting(): boolean;
 
-  // <summary>
-  // Reads parameters from the internal Parameters map populated by the base class constructor
-  // </summary>
+  /**
+   * Reads parameters from the internal Parameters map populated by the base class constructor.
+   */
   public abstract initFromParameters(): void;
 
   protected static readonly CLASS_ID_SIZE = 32;
@@ -132,16 +142,32 @@ export abstract class VstPreset implements Preset {
   public Parameters: Map<string, Parameter> = new Map();
   public FXP: FXP | null = null;
 
+  /**
+   * Retrieves a parameter by its name.
+   * @param name - The name of the parameter to retrieve.
+   * @returns The Parameter object if found, otherwise undefined.
+   */
   public getParameter(name: string): Parameter | undefined {
     return this.Parameters.get(name);
   }
 
+  /**
+   * Retrieves the value of a parameter by its key.
+   * @param key - The key of the parameter whose value to retrieve.
+   * @returns The value of the parameter if found, otherwise undefined.
+   */
   public getParameterValue(
     key: string
   ): number | string | Uint8Array | undefined {
     return this.Parameters.get(key)?.Value;
   }
 
+  /**
+   * Sets a number parameter with a specific index.
+   * @param key - The key of the parameter.
+   * @param index - The index of the parameter.
+   * @param value - The number value to set.
+   */
   public setNumberParameterWithIndex(
     key: string,
     index: number,
@@ -153,10 +179,20 @@ export abstract class VstPreset implements Preset {
     );
   }
 
+  /**
+   * Sets a number parameter, assigning it the next available index.
+   * @param key - The key of the parameter.
+   * @param value - The number value to set.
+   */
   public setNumberParameter(key: string, value: number): void {
     return this.setNumberParameterWithIndex(key, this.Parameters.size, value);
   }
 
+  /**
+   * Retrieves a number parameter by its key.
+   * @param key - The key of the parameter to retrieve.
+   * @returns The number value of the parameter if found and is of type Number, otherwise undefined.
+   */
   public getNumberParameter(key: string): number | undefined {
     if (
       this.Parameters.has(key) &&
@@ -169,6 +205,12 @@ export abstract class VstPreset implements Preset {
     return undefined;
   }
 
+  /**
+   * Sets a string parameter with a specific index.
+   * @param key - The key of the parameter.
+   * @param index - The index of the parameter.
+   * @param value - The string value to set.
+   */
   public setStringParameterWithIndex(
     key: string,
     index: number,
@@ -180,10 +222,20 @@ export abstract class VstPreset implements Preset {
     );
   }
 
+  /**
+   * Sets a string parameter, assigning it the next available index.
+   * @param key - The key of the parameter.
+   * @param value - The string value to set.
+   */
   public setStringParameter(key: string, value: string): void {
     return this.setStringParameterWithIndex(key, this.Parameters.size, value);
   }
 
+  /**
+   * Retrieves a string parameter by its key.
+   * @param key - The key of the parameter to retrieve.
+   * @returns The string value of the parameter if found and is of type String, otherwise undefined.
+   */
   public getStringParameter(key: string): string | undefined {
     if (
       this.Parameters.has(key) &&
@@ -196,6 +248,12 @@ export abstract class VstPreset implements Preset {
     return undefined;
   }
 
+  /**
+   * Sets a bytes parameter with a specific index.
+   * @param key - The key of the parameter.
+   * @param index - The index of the parameter.
+   * @param value - The Uint8Array value to set.
+   */
   public setBytesParameterWithIndex(
     key: string,
     index: number,
@@ -207,10 +265,20 @@ export abstract class VstPreset implements Preset {
     );
   }
 
+  /**
+   * Sets a bytes parameter, assigning it the next available index.
+   * @param key - The key of the parameter.
+   * @param value - The Uint8Array value to set.
+   */
   public setBytesParameter(key: string, value: Uint8Array): void {
     return this.setBytesParameterWithIndex(key, this.Parameters.size, value);
   }
 
+  /**
+   * Retrieves a bytes parameter by its key.
+   * @param key - The key of the parameter to retrieve.
+   * @returns The Uint8Array value of the parameter if found and is of type Bytes, otherwise undefined.
+   */
   public getBytesParameter(key: string): Uint8Array | undefined {
     if (
       this.Parameters.has(key) &&
@@ -223,11 +291,18 @@ export abstract class VstPreset implements Preset {
     return undefined;
   }
 
+  /**
+   * Checks if InfoXmlBytesWithBOM has been initialized and has content.
+   * @returns True if InfoXmlBytesWithBOM has content, otherwise false.
+   */
   protected hasInfoXml(): boolean {
-    // Check if InfoXmlBytesWithBOM has been initialized and has content
     return this.InfoXmlBytesWithBOM && this.InfoXmlBytesWithBOM.length > 3; // BOM is 3 bytes
   }
 
+  /**
+   * Checks if the 'CompChunkData' parameter exists and is of type Bytes.
+   * @returns True if 'CompChunkData' exists and is of type Bytes, otherwise false.
+   */
   protected hasCompChunkData(): boolean {
     const key = "CompChunkData";
     if (
@@ -239,7 +314,25 @@ export abstract class VstPreset implements Preset {
     return false;
   }
 
-  // Getter for CompChunkData
+  /**
+   * Checks if the 'ContChunkData' parameter exists and is of type Bytes.
+   * @returns True if 'ContChunkData' exists and is of type Bytes, otherwise false.
+   */
+  protected hasContChunkData(): boolean {
+    const key = "ContChunkData";
+    if (
+      this.Parameters.has(key) &&
+      this.Parameters.get(key)?.Type === ParameterType.Bytes
+    ) {
+      return true;
+    }
+    return false;
+  }
+
+  /**
+   * Gets the component chunk data.
+   * @returns The component chunk data as a Uint8Array, or undefined if not set.
+   */
   public get CompChunkData(): Uint8Array | undefined {
     const param = this.getParameter("CompChunkData");
     if (param && param.Type === ParameterType.Bytes) {
@@ -248,7 +341,10 @@ export abstract class VstPreset implements Preset {
     return undefined;
   }
 
-  // Setter for CompChunkData
+  /**
+   * Sets the component chunk data.
+   * @param value - The Uint8Array containing the component chunk data.
+   */
   public set CompChunkData(value: Uint8Array) {
     const key = "CompChunkData";
     if (!this.hasCompChunkData()) {
@@ -277,18 +373,10 @@ export abstract class VstPreset implements Preset {
     }
   }
 
-  protected hasContChunkData(): boolean {
-    const key = "ContChunkData";
-    if (
-      this.Parameters.has(key) &&
-      this.Parameters.get(key)?.Type === ParameterType.Bytes
-    ) {
-      return true;
-    }
-    return false;
-  }
-
-  // Getter for ContChunkData
+  /**
+   * Gets the controller chunk data.
+   * @returns The controller chunk data as a Uint8Array, or undefined if not set.
+   */
   public get ContChunkData(): Uint8Array | undefined {
     const param = this.getParameter("ContChunkData");
     if (param && param.Type === ParameterType.Bytes) {
@@ -297,7 +385,10 @@ export abstract class VstPreset implements Preset {
     return undefined;
   }
 
-  // Setter for ContChunkData
+  /**
+   * Sets the controller chunk data.
+   * @param value - The Uint8Array containing the controller chunk data.
+   */
   public set ContChunkData(value: Uint8Array) {
     const key = "ContChunkData";
     if (!this.hasContChunkData()) {
@@ -331,6 +422,13 @@ export abstract class VstPreset implements Preset {
    */
   public get CompDataEndPosition(): number {
     return this.CompDataStartPos + this.CompDataChunkSize;
+  }
+
+  /**
+   * Gets the zero-based position where the chunk data ends (Cont).
+   */
+  public get ContDataEndPosition(): number {
+    return this.ContDataStartPos + this.ContDataChunkSize;
   }
 
   /**
@@ -375,6 +473,11 @@ export abstract class VstPreset implements Preset {
     }
   }
 
+  /**
+   * Initializes the Info XML content based on plugin metadata.
+   * This method generates an XML string with attributes like MediaType, PlugInCategory, PlugInName, and PlugInVendor,
+   * then converts it to UTF-8 bytes with a Byte Order Mark (BOM).
+   */
   protected initInfoXml(): void {
     const metaInfoObject = {
       MetaInfo: {
@@ -426,6 +529,11 @@ export abstract class VstPreset implements Preset {
     this.InfoXmlBytesWithBOM.set(xmlBytes, bom.length);
   }
 
+  /**
+   * Calculates the byte positions and sizes of various chunks within the VST3 preset file.
+   * This method sets `CompDataStartPos`, `CompDataChunkSize`, `ContDataStartPos`, `ContDataChunkSize`,
+   * `InfoXmlStartPos`, `InfoXmlChunkSize`, and `ListPos`.
+   */
   protected calculateBytePositions(): void {
     this.CompDataStartPos = 48; // Fixed header size (VST3(4) + version(4) + classId(32) + listPosOffset(8) = 48)
 
@@ -450,6 +558,10 @@ export abstract class VstPreset implements Preset {
     this.ListPos = this.InfoXmlStartPos + this.InfoXmlChunkSize;
   }
 
+  /**
+   * Parses a parameter chunk from the provided Uint8Array and populates the Parameters map.
+   * @param data - The Uint8Array containing the parameter chunk data.
+   */
   protected parseParameterChunk(data: Uint8Array): void {
     const view = new DataView(data.buffer);
     let offset = 0;
@@ -476,6 +588,48 @@ export abstract class VstPreset implements Preset {
     }
   }
 
+  /**
+   * Extracts the Vst3ClassID from a Uint8Array without reading the entire preset.
+   * Returns undefined if the header or version is incorrect.
+   * @param data - The preset bytes.
+   * @returns The Vst3ClassID as a string, or undefined if not found or invalid.
+   */
+  public static extractVst3ClassID(data: Uint8Array): string | undefined {
+    try {
+      const bf = new BinaryFile(data, ByteOrder.LittleEndian);
+      const reader = bf.binaryReader;
+      if (!reader) {
+        throw new Error("Failed to create binary reader");
+      }
+
+      const header = reader.readString(4);
+      if (header !== VstPreset.HEADER) {
+        console.warn("Invalid VST3 preset file header:", header);
+        return undefined;
+      }
+
+      const version = reader.readInt32();
+      if (version !== VstPreset.VERSION) {
+        console.warn(`Unsupported VST3 preset version: ${version}`);
+        return undefined;
+      }
+
+      // Read 32-byte ASCII-encoded class ID
+      const vst3ClassID = reader.readString(VstPreset.CLASS_ID_SIZE);
+      return vst3ClassID;
+    } catch (error) {
+      console.error("Error extracting Vst3ClassID:", error);
+      return undefined;
+    }
+  }
+
+  /**
+   * Reads the VST3 preset data from a Uint8Array.
+   * This method parses the header, class ID, chunk list, and various data chunks (Info, Comp, Cont).
+   * @param data - The Uint8Array containing the VST3 preset data.
+   * @returns True if the preset was read successfully, otherwise false.
+   * @throws Error if the header, version, or list chunk is invalid.
+   */
   read(data: Uint8Array): boolean {
     try {
       const bf = new BinaryFile(data, ByteOrder.LittleEndian);
@@ -572,6 +726,12 @@ export abstract class VstPreset implements Preset {
     }
   }
 
+  /**
+   * Attempts to read and parse the Info XML chunk from the binary reader.
+   * This method seeks to the Info XML's starting position, reads its bytes (including BOM),
+   * decodes it to a string, and then initializes plugin information from it.
+   * @param reader - The BinaryReader instance.
+   */
   protected tryReadInfoXml(reader: BinaryReader): void {
     // Get current position before reading XML
     const currentPos = reader.getPosition();
@@ -594,6 +754,11 @@ export abstract class VstPreset implements Preset {
     this.initFromInfoXml();
   }
 
+  /**
+   * Initializes plugin information from the parsed Info XML content.
+   * This method removes the Byte Order Mark (BOM) if present, parses the XML string,
+   * and extracts values for `PlugInCategory`, `PlugInName`, and `PlugInVendor`.
+   */
   protected initFromInfoXml(): void {
     if (!this.InfoXml) return;
 
@@ -629,6 +794,11 @@ export abstract class VstPreset implements Preset {
     }
   }
 
+  /**
+   * Removes the Byte Order Mark (BOM) from the beginning and end of a string if present.
+   * @param value - The input string.
+   * @returns The string with BOM removed.
+   */
   protected removeByteOrderMark(value: string): string {
     // Convert string to UTF-8 bytes
     const encoder = new TextEncoder();
@@ -654,6 +824,13 @@ export abstract class VstPreset implements Preset {
     return decoder.decode(bytes);
   }
 
+  /**
+   * Reads and processes the component chunk data based on the VST3 Class ID.
+   * This method handles various formats including VstW, FabF, and specific Steinberg/Waves/Native Instruments formats.
+   * @param reader - The BinaryReader instance to read from.
+   * @param chunkSize - The size of the component chunk data.
+   * @throws Error if the data does not contain any known formats or FXB/FXP data.
+   */
   protected readCompData(reader: BinaryReader, chunkSize: number): void {
     // Some presets start with a chunkID here,
     // Others start with the preset content
@@ -1003,8 +1180,7 @@ export abstract class VstPreset implements Preset {
         }
 
         const xmlContent = reader.readString(xmlMainLength);
-        const param1Name = "XmlContent";
-        this.setStringParameterWithIndex(param1Name, 1, xmlContent);
+        this.setStringParameterWithIndex("XmlContent", 1, xmlContent);
 
         const postTypeBytes = reader.readBytes(4);
         // const postType = String.fromCharCode(...postTypeBytes);
@@ -1016,28 +1192,19 @@ export abstract class VstPreset implements Preset {
         // e.g. 844 - 777 - 32 = 35
         const xmlPostLength = chunkSize - xmlMainLength - 32;
         const xmlPostContent = reader.readString(xmlPostLength);
-        const param2Name = "XmlContentPost";
-        this.setStringParameterWithIndex(param2Name, 2, xmlPostContent);
+        this.setStringParameterWithIndex("XmlContentPost", 2, xmlPostContent);
 
         return;
-      } else if (this.Vst3ClassID === VstClassIDs.SSLNativeChannel2) {
+      } else if (
+        this.Vst3ClassID === VstClassIDs.SSLNativeChannel2 ||
+        this.Vst3ClassID === VstClassIDs.SSLNativeBusCompressor2
+      ) {
         // rewind 4 bytes (seek to comp data start pos)
         reader.seek(this.CompDataStartPos);
 
         const xmlMainLength = this.CompDataChunkSize;
         const xmlContent = reader.readString(xmlMainLength);
-        const param1Name = "XmlContent";
-        this.setStringParameterWithIndex(param1Name, 1, xmlContent);
-
-        return;
-      } else if (this.Vst3ClassID === VstClassIDs.SSLNativeBusCompressor2) {
-        // rewind 4 bytes (seek to comp data start pos)
-        reader.seek(this.CompDataStartPos);
-
-        const xmlMainLength = this.CompDataChunkSize;
-        const xmlContent = reader.readString(xmlMainLength);
-        const param1Name = "XmlContent";
-        this.setStringParameterWithIndex(param1Name, 1, xmlContent);
+        this.setStringParameterWithIndex("XmlContent", 1, xmlContent);
 
         return;
       } else if (this.Vst3ClassID === VstClassIDs.NIKontakt5) {
@@ -1136,6 +1303,14 @@ export abstract class VstPreset implements Preset {
     this.setCompChunkDataFromFXP(this.FXP);
   }
 
+  /**
+   * Reads a null-terminated string from the binary reader and then skips a specified number of bytes.
+   * This is useful for reading fixed-size string fields where the actual string might be shorter than the allocated space.
+   * @param reader - The BinaryReader instance.
+   * @param encoding - The character encoding to use for decoding the string (e.g., "utf-16le").
+   * @param totalBytes - The total number of bytes allocated for the string field, including the null terminator and any padding.
+   * @returns The decoded string.
+   */
   protected readStringNullAndSkip(
     reader: BinaryReader,
     encoding: BufferEncoding,
@@ -1153,6 +1328,12 @@ export abstract class VstPreset implements Preset {
     return text;
   }
 
+  /**
+   * Writes the VST3 preset data to a Uint8Array.
+   * This method constructs the VST3 preset file including header, class ID, binary content, and chunk list.
+   * @returns A Uint8Array containing the VST3 preset data, or undefined if writing failed.
+   * @throws Error if the binary writer cannot be created or if the preset is not ready for writing.
+   */
   write(): Uint8Array | undefined {
     const bf = new BinaryFile(undefined, ByteOrder.LittleEndian);
     const writer = bf.binaryWriter;
@@ -1224,7 +1405,6 @@ export abstract class VstPreset implements Preset {
 
     if (this.Parameters.size > 0) {
       // Output parameters - Note: Map iteration order isn't guaranteed,
-      // but matches the C# Dictionary behavior in this context.
       for (const parameter of this.Parameters.values()) {
         lines.push(parameter.toString());
       }

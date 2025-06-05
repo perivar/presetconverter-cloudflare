@@ -30,17 +30,13 @@ export class VstPresetFactory {
     pluginName?: string
   ): T | null {
     let preset: VstPreset;
-    let vst3ClassID = guid;
 
     try {
-      if (!vst3ClassID) {
-        // If no guid provided, read from preset bytes
-        const tempPreset = new SteinbergVstPreset();
-        tempPreset.read(presetBytes);
-        vst3ClassID = tempPreset.Vst3ClassID;
+      const vst3ClassID = guid ?? VstPreset.extractVst3ClassID(presetBytes);
+      if (vst3ClassID === undefined) {
+        return null;
       }
 
-      // Create appropriate preset based on guid
       switch (vst3ClassID) {
         case VstClassIDs.FabFilterProQ:
         case VstClassIDs.FabFilterProQx64:
@@ -77,119 +73,64 @@ export class VstPresetFactory {
       preset.Vst3ClassID = vst3ClassID;
       preset.read(presetBytes);
 
-      // Handle some presets after initial read where preset.read does not properly populate the internal properties
-      if (
-        preset.Vst3ClassID === VstClassIDs.WavesSSLChannelStereo ||
-        preset.Vst3ClassID === VstClassIDs.WavesSSLCompStereo
-      ) {
-        // Read Waves presets expecting to find that XmlContent was found during readCompData while reading VstPreset
-        const xmlContent = preset.Parameters.get("XmlContent")?.Value as
-          | string
-          | undefined;
-        if (xmlContent) {
-          let wavesPreset: WavesSSLChannel | WavesSSLComp | undefined;
-          if (preset.Vst3ClassID === VstClassIDs.WavesSSLChannelStereo) {
-            const channelPresetList = WavesPreset.parseXml<WavesSSLChannel>(
-              xmlContent,
-              WavesSSLChannel
-            );
-            wavesPreset =
-              channelPresetList.length > 0 ? channelPresetList[0] : undefined;
-          } else if (preset.Vst3ClassID === VstClassIDs.WavesSSLCompStereo) {
-            const compPresetList = WavesPreset.parseXml<WavesSSLComp>(
-              xmlContent,
-              WavesSSLComp
-            );
-            wavesPreset =
-              compPresetList.length > 0 ? compPresetList[0] : undefined;
-          }
+      // Try parsing XML to replace base class with a more specific one if needed
+      const xml = preset.getStringParameter("XmlContent");
+      const fxpXml = preset.FXP?.xmlContent;
+      let vstPreset: VstPreset | undefined;
 
-          if (wavesPreset) {
-            // Copy common properties from the initially created preset
-            wavesPreset.Vst3ClassID = preset.Vst3ClassID;
-            wavesPreset.CompDataStartPos = preset.CompDataStartPos;
-            wavesPreset.CompDataChunkSize = preset.CompDataChunkSize;
-            wavesPreset.ContDataStartPos = preset.ContDataStartPos;
-            wavesPreset.ContDataChunkSize = preset.ContDataChunkSize;
-            wavesPreset.InfoXmlStartPos = preset.InfoXmlStartPos;
-            wavesPreset.Parameters = preset.Parameters; // Keep the parameters map
-            wavesPreset.FXP = preset.FXP; // Keep FXP if it exists
-
-            preset = wavesPreset; // Reassign preset to the Waves-specific instance
-          }
+      switch (preset.Vst3ClassID) {
+        case VstClassIDs.WavesSSLChannelStereo: {
+          const list = xml
+            ? WavesPreset.parseXml<WavesSSLChannel>(xml, WavesSSLChannel)
+            : [];
+          vstPreset = list[0];
+          break;
         }
-      } else if (preset.Vst3ClassID === VstClassIDs.SSLNativeChannel2) {
-        let sslNativePreset: SSLNativeChannel | undefined = undefined;
-
-        // Read SSL Native presets expecting to find that XmlContent was found during readCompData while reading VstPreset
-        const xmlContent = preset.Parameters.get("XmlContent")?.Value as
-          | string
-          | undefined;
-
-        if (xmlContent) {
-          sslNativePreset = SSLNativeChannel.parseXml(xmlContent);
-        } else {
-          // we might have found a vst2 preset wrapped vst3 preset and stored as FXP
-          // thus the xmlContent is saved within the fxp instead
-          const xmlObject = preset.FXP?.xmlContent;
-          sslNativePreset = SSLNativeChannel.fromXml(xmlObject);
+        case VstClassIDs.WavesSSLCompStereo: {
+          const list = xml
+            ? WavesPreset.parseXml<WavesSSLComp>(xml, WavesSSLComp)
+            : [];
+          vstPreset = list[0];
+          break;
         }
-
-        if (sslNativePreset) {
-          // Copy common properties from the initially created preset
-          sslNativePreset.Vst3ClassID = preset.Vst3ClassID;
-          sslNativePreset.CompDataStartPos = preset.CompDataStartPos;
-          sslNativePreset.CompDataChunkSize = preset.CompDataChunkSize;
-          sslNativePreset.ContDataStartPos = preset.ContDataStartPos;
-          sslNativePreset.ContDataChunkSize = preset.ContDataChunkSize;
-          sslNativePreset.InfoXmlStartPos = preset.InfoXmlStartPos;
-          sslNativePreset.Parameters = preset.Parameters; // Keep the parameters map
-          sslNativePreset.FXP = preset.FXP; // Keep FXP if it exists
-
-          preset = sslNativePreset; // Reassign preset to the Waves-specific instance
+        case VstClassIDs.SSLNativeChannel2: {
+          vstPreset =
+            typeof xml === "string"
+              ? SSLNativeChannel.parseXml(xml)
+              : SSLNativeChannel.fromXml(fxpXml);
+          break;
         }
-      } else if (preset.Vst3ClassID === VstClassIDs.SSLNativeBusCompressor2) {
-        let sslNativePreset: SSLNativeBusCompressor | undefined = undefined;
-
-        // Read SSL Native presets expecting to find that XmlContent was found during readCompData while reading VstPreset
-        const xmlContent = preset.Parameters.get("XmlContent")?.Value as
-          | string
-          | undefined;
-
-        if (xmlContent) {
-          sslNativePreset = SSLNativeBusCompressor.parseXml(xmlContent);
-        } else {
-          // we might have found a vst2 preset wrapped vst3 preset and stored as FXP
-          // thus the xmlContent is saved within the fxp instead
-          const xmlObject = preset.FXP?.xmlContent;
-          sslNativePreset = SSLNativeBusCompressor.fromXml(xmlObject);
-        }
-
-        if (sslNativePreset) {
-          // Copy common properties from the initially created preset
-          sslNativePreset.Vst3ClassID = preset.Vst3ClassID;
-          sslNativePreset.CompDataStartPos = preset.CompDataStartPos;
-          sslNativePreset.CompDataChunkSize = preset.CompDataChunkSize;
-          sslNativePreset.ContDataStartPos = preset.ContDataStartPos;
-          sslNativePreset.ContDataChunkSize = preset.ContDataChunkSize;
-          sslNativePreset.InfoXmlStartPos = preset.InfoXmlStartPos;
-          sslNativePreset.Parameters = preset.Parameters; // Keep the parameters map
-          sslNativePreset.FXP = preset.FXP; // Keep FXP if it exists
-
-          preset = sslNativePreset; // Reassign preset to the Waves-specific instance
+        case VstClassIDs.SSLNativeBusCompressor2: {
+          vstPreset =
+            typeof xml === "string"
+              ? SSLNativeBusCompressor.parseXml(xml)
+              : SSLNativeBusCompressor.fromXml(fxpXml);
+          break;
         }
       }
 
-      // Set position/size properties
+      if (vstPreset) {
+        // Copy common properties
+        vstPreset.Vst3ClassID = preset.Vst3ClassID;
+        vstPreset.CompDataStartPos = preset.CompDataStartPos;
+        vstPreset.CompDataChunkSize = preset.CompDataChunkSize;
+        vstPreset.ContDataStartPos = preset.ContDataStartPos;
+        vstPreset.ContDataChunkSize = preset.ContDataChunkSize;
+        vstPreset.InfoXmlStartPos = preset.InfoXmlStartPos;
+        vstPreset.Parameters = preset.Parameters;
+        vstPreset.FXP = preset.FXP;
+
+        preset = vstPreset;
+      }
+
+      // Finalize chunk positions
       preset.CompDataStartPos = 0;
       preset.CompDataChunkSize = presetBytes.length;
       preset.ContDataStartPos = presetBytes.length;
       preset.ContDataChunkSize = 0;
       preset.InfoXmlStartPos = presetBytes.length;
 
-      // Reads parameters from the internal Parameters map populated by the base class constructor
       preset.initFromParameters();
-
       return preset as T;
     } catch (error) {
       console.error(
