@@ -558,7 +558,9 @@ export default function Index() {
                 </h3>
 
                 <div className="mb-2 flex items-center justify-around text-sm text-muted-foreground">
-                  <span>Threshold: {genericCompLimitPreset.Threshold} dB</span>
+                  <span>
+                    Threshold: {genericCompLimitPreset.Threshold.toFixed(2)} dB
+                  </span>
                   <span>Ratio: {genericCompLimitPreset.getRatioLabel()}</span>
                 </div>
 

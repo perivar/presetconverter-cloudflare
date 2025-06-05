@@ -56,7 +56,7 @@ export class SSLNativeBusCompressor extends SSLNativePresetBase {
     sb.push(`\tMakeup Gain: ${this.MakeupGain.toFixed(2)} dB`);
     sb.push(`\tAttack: ${this.Attack.toFixed(2)} ms`);
     sb.push(`\tRelease: ${this.Release.toFixed(2)} s`);
-    sb.push(`\tRatio: ${this.Ratio.toFixed(2)}:1`);
+    sb.push(`\tRatio: ${this.Ratio}:1`);
     sb.push(`\tDry/Wet Mix: ${this.DryWetMix.toFixed(2)} %`);
     sb.push(`\tSidechain HPF: ${this.SidechainHPF.toFixed(2)} Hz`);
     sb.push(`\tOversampling: ${this.Oversampling}`);

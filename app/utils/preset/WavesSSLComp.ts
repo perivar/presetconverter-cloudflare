@@ -175,7 +175,19 @@ export class WavesSSLComp extends WavesPreset {
       sb.push(`\tRelease: ${release} s`);
     }
 
-    sb.push(`\tRatio: ${this.Ratio}`);
+    let ratio = "";
+    switch (this.Ratio) {
+      case RatioType.Ratio_2_1:
+        ratio = "2:1";
+        break;
+      case RatioType.Ratio_4_1:
+        ratio = "4:1";
+        break;
+      case RatioType.Ratio_10_1:
+        ratio = "10:1";
+        break;
+    }
+    sb.push(`\tRatio: ${ratio}`);
     sb.push(`\tRate-S (Autofade duration): ${this.RateS} s`);
     sb.push(`\tIn: ${this.In}`);
     sb.push(`\tAnalog: ${this.Analog}`);

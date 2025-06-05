@@ -68,6 +68,7 @@ export function CompressorLimiterGraph({ comp }: CompressorLimiterGraphProps) {
             domain={[-60, 0]} // Set Y-axis domain to match X-axis for consistency
             tickCount={11} // For every 6 dB from -60 to 0 (11 ticks: -60, -54, ..., 0)
             tick={{ fontSize: 10 }}
+            tickFormatter={(value: number) => value.toFixed(2)}
             label={{
               value: "Output Level (dB)",
               angle: -90,
