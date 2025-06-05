@@ -44,11 +44,6 @@ export class SSLNativeBusCompressor extends SSLNativePresetBase {
     return SSLNativeBusCompressor.fromXml(xml);
   }
 
-  protected initCompChunkData(): void {
-    const xmlContent = this.toXmlString(this.generatePresetXML());
-    this.CompChunkData = new TextEncoder().encode(xmlContent);
-  }
-
   public toString(): string {
     const sb: string[] = [];
 
