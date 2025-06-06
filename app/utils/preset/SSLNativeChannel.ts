@@ -577,7 +577,23 @@ export class SSLNativeChannel extends SSLNativePresetBase {
     return xml;
   }
 
-  public initFromParameters(): void {
-    // Not implemented for SSL Native Channel presets as parameters are read from XML
+  public override initFromParameters(): void {
+    super.initFromParameters();
+    const xml = this.getStringParameter("XmlContent");
+    const fxpXmlObject = this.FXP?.xmlContent;
+
+    let parsedPreset: SSLNativeChannel | undefined;
+
+    if (xml) {
+      parsedPreset = SSLNativeChannel.parseXml(xml);
+    } else if (fxpXmlObject) {
+      parsedPreset = SSLNativeChannel.fromXml(fxpXmlObject);
+    }
+
+    if (parsedPreset) {
+      Object.assign(this, parsedPreset);
+      // Preserve specific properties
+      this.Vst3ClassID = VstClassIDs.SSLNativeChannel2;
+    }
   }
 }

@@ -40,10 +40,7 @@ export abstract class WavesPreset extends VstPreset {
     super(input);
   }
 
-  // Reads parameters from the internal Parameters map populated by the base class constructor
-  public initFromParameters(): void {
-    // Not implemented for Waves presets as parameters are read from XML
-  }
+  public abstract initFromParameters(): void;
 
   /**
    * Reads an FXP file and extracts the chunk data.

@@ -58,6 +58,24 @@ export class WavesSSLChannel extends WavesPreset {
     this.PlugInVendor = "Waves";
   }
 
+  public override initFromParameters(): void {
+    const xml = this.getStringParameter("XmlContent");
+    let parsedPreset: WavesSSLChannel | undefined;
+
+    if (xml) {
+      const list = WavesPreset.parseXml<WavesSSLChannel>(xml, WavesSSLChannel);
+      if (list.length > 0) {
+        parsedPreset = list[0];
+      }
+    }
+
+    if (parsedPreset) {
+      Object.assign(this, parsedPreset);
+      // Preserve specific properties from the original instance
+      this.Vst3ClassID = VstClassIDs.WavesSSLChannelStereo;
+    }
+  }
+
   protected readRealWorldParameters(): boolean {
     if (this.PresetPluginName === "SSLChannel") {
       // Check if PresetRealWorldParameters exists and has entries

@@ -288,8 +288,23 @@ export class SSLNativeBusCompressor extends SSLNativePresetBase {
     return xml;
   }
 
-  // Reads parameters from the internal Parameters map populated by the base class constructor
-  public initFromParameters(): void {
-    // Not implemented for SSL Native Bus Compressor presets as parameters are read from XML
+  public override initFromParameters(): void {
+    super.initFromParameters();
+    const xml = this.getStringParameter("XmlContent");
+    const fxpXmlObject = this.FXP?.xmlContent;
+
+    let parsedPreset: SSLNativeBusCompressor | undefined;
+
+    if (xml) {
+      parsedPreset = SSLNativeBusCompressor.parseXml(xml);
+    } else if (fxpXmlObject) {
+      parsedPreset = SSLNativeBusCompressor.fromXml(fxpXmlObject);
+    }
+
+    if (parsedPreset) {
+      Object.assign(this, parsedPreset);
+      // Preserve specific properties
+      this.Vst3ClassID = VstClassIDs.SSLNativeBusCompressor2;
+    }
   }
 }

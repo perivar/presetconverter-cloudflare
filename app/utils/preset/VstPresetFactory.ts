@@ -9,7 +9,6 @@ import { SteinbergVstPreset } from "./SteinbergVstPreset";
 import { UADSSLChannel } from "./UADSSLChannel";
 import { VstClassIDs } from "./VstClassIDs";
 import { VstPreset } from "./VstPreset";
-import { WavesPreset } from "./WavesPreset";
 import { WavesSSLChannel } from "./WavesSSLChannel";
 import { WavesSSLComp } from "./WavesSSLComp";
 
@@ -53,6 +52,12 @@ export class VstPresetFactory {
         case VstClassIDs.SteinbergFrequency:
           preset = new SteinbergFrequency();
           break;
+        case VstClassIDs.WavesSSLChannelStereo:
+          preset = new WavesSSLChannel();
+          break;
+        case VstClassIDs.WavesSSLCompStereo:
+          preset = new WavesSSLComp();
+          break;
         case VstClassIDs.SSLNativeChannel2:
           preset = new SSLNativeChannel();
           break;
@@ -72,56 +77,6 @@ export class VstPresetFactory {
 
       preset.Vst3ClassID = vst3ClassID;
       preset.read(presetBytes);
-
-      // Try parsing XML to replace base class with a more specific one if needed
-      const xml = preset.getStringParameter("XmlContent");
-      const fxpXml = preset.FXP?.xmlContent;
-      let vstPreset: VstPreset | undefined;
-
-      switch (preset.Vst3ClassID) {
-        case VstClassIDs.WavesSSLChannelStereo: {
-          const list = xml
-            ? WavesPreset.parseXml<WavesSSLChannel>(xml, WavesSSLChannel)
-            : [];
-          vstPreset = list[0];
-          break;
-        }
-        case VstClassIDs.WavesSSLCompStereo: {
-          const list = xml
-            ? WavesPreset.parseXml<WavesSSLComp>(xml, WavesSSLComp)
-            : [];
-          vstPreset = list[0];
-          break;
-        }
-        case VstClassIDs.SSLNativeChannel2: {
-          vstPreset =
-            typeof xml === "string"
-              ? SSLNativeChannel.parseXml(xml)
-              : SSLNativeChannel.fromXml(fxpXml);
-          break;
-        }
-        case VstClassIDs.SSLNativeBusCompressor2: {
-          vstPreset =
-            typeof xml === "string"
-              ? SSLNativeBusCompressor.parseXml(xml)
-              : SSLNativeBusCompressor.fromXml(fxpXml);
-          break;
-        }
-      }
-
-      if (vstPreset) {
-        // Copy common properties
-        vstPreset.Vst3ClassID = preset.Vst3ClassID;
-        vstPreset.CompDataStartPos = preset.CompDataStartPos;
-        vstPreset.CompDataChunkSize = preset.CompDataChunkSize;
-        vstPreset.ContDataStartPos = preset.ContDataStartPos;
-        vstPreset.ContDataChunkSize = preset.ContDataChunkSize;
-        vstPreset.InfoXmlStartPos = preset.InfoXmlStartPos;
-        vstPreset.Parameters = preset.Parameters;
-        vstPreset.FXP = preset.FXP;
-
-        preset = vstPreset;
-      }
 
       // Finalize chunk positions
       preset.CompDataStartPos = 0;

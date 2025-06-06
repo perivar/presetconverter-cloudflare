@@ -55,6 +55,24 @@ export class WavesSSLComp extends WavesPreset {
     this.PlugInVendor = "Waves";
   }
 
+  public override initFromParameters(): void {
+    const xml = this.getStringParameter("XmlContent");
+    let parsedPreset: WavesSSLComp | undefined;
+
+    if (xml) {
+      const list = WavesPreset.parseXml<WavesSSLComp>(xml, WavesSSLComp);
+      if (list.length > 0) {
+        parsedPreset = list[0];
+      }
+    }
+
+    if (parsedPreset) {
+      Object.assign(this, parsedPreset);
+      // Preserve specific properties from the original instance
+      this.Vst3ClassID = VstClassIDs.WavesSSLCompStereo;
+    }
+  }
+
   protected readRealWorldParameters(): boolean {
     // Note that the PresetPluginName is "SSLComp" even if the PlugInName is "SSLComp Stereo"
     if (this.PresetPluginName === "SSLComp") {
