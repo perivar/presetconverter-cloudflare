@@ -1,3 +1,4 @@
+import { amplitudeRatio2Decibel } from "../amplitudeConversions";
 import { AbletonPlugin } from "./AbletonPlugin";
 
 export enum AbletonEq3FilterSlope {
@@ -33,17 +34,6 @@ export class AbletonEq3Band {
 
 export class AbletonEq3 extends AbletonPlugin {
   Bands: AbletonEq3Band[] = [];
-
-  // --- Static Conversion Methods (Unchanged) ---
-  static amplitudeRatio2Decibel(value: number): number {
-    if (value <= 0) return -Infinity; // Avoid log(0) or log(-ve)
-    return 20 * Math.log10(value);
-  }
-
-  static decibel2AmplitudeRatio(value: number): number {
-    return Math.pow(10, value / 20);
-  }
-  // --- End Static Conversion Methods ---
 
   constructor(xElement: any) {
     super();
@@ -104,7 +94,7 @@ export class AbletonEq3 extends AbletonPlugin {
     const freq = parseFloat(freqStr);
     const gainAmplitude = parseFloat(gainStr);
     // Convert amplitude ratio to dB *during* parsing
-    const gain = AbletonEq3.amplitudeRatio2Decibel(gainAmplitude);
+    const gain = amplitudeRatio2Decibel(gainAmplitude);
     const isOn = String(onStr).toLowerCase() === "true"; // Ensure boolean conversion
     const slope = parseInt(slopeStr, 10) as AbletonEq3FilterSlope;
 

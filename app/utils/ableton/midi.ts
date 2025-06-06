@@ -14,7 +14,7 @@ import type {
   MidiTrackNameEvent,
 } from "midi-file";
 
-import { formatNumber } from "../FormatNumber";
+import { formatNumber } from "../formatNumber";
 import { getFileNameWithoutExtension, makeValidFileName } from "../StringUtils";
 import { AutomationEvent } from "./AutomationEvent";
 import { plotAutomationEvents } from "./AutomationPlot";
