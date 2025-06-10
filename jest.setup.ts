@@ -72,5 +72,9 @@ export async function puppeteerPlotlyToSVG(
 
   const svg = await localPage.$eval("#plot svg.main-svg", el => el.outerHTML);
 
+  if (!page && localPage) {
+    await localPage.close();
+  }
+
   return svg;
 }

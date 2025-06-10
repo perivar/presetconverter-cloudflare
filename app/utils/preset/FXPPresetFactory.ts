@@ -1,11 +1,11 @@
 import { FabFilterProQ } from "./FabFilterProQ";
 import { FabFilterProQ2 } from "./FabFilterProQ2";
 import { FabFilterProQ3 } from "./FabFilterProQ3";
-import { FabFilterProQBase } from "./FabFilterProQBase";
 import { FXP } from "./FXP";
 import { Preset } from "./Preset"; // Assuming the new factory will return a generic Preset or specific types
 import { ReaEQ } from "./ReaEQ";
 import { UADSSLChannel } from "./UADSSLChannel";
+import { VstPreset } from "./VstPreset";
 
 /**
  * A helper class to get a Preset object from FXP data
@@ -43,12 +43,10 @@ export class FXPPresetFactory {
         case "J9AU":
           source = "UADSSLChannel";
           presetInstance = new UADSSLChannel();
-          (presetInstance as UADSSLChannel).readFXP(fxp);
           break;
         case "reeq":
           source = "ReaEQ";
           presetInstance = new ReaEQ();
-          presetInstance.read(presetBytes);
           break;
         // Add cases for other FXP-supported classes here
         default:
@@ -62,16 +60,14 @@ export class FXPPresetFactory {
         return { preset: null, source: null };
       }
 
-      // Add the fxp object to the preset instance if it's a FabFilterProQBase
-      if (presetInstance instanceof FabFilterProQBase) {
+      // Add the fxp object to the preset instance if it's a VstPreset
+      if (presetInstance instanceof VstPreset) {
         presetInstance.FXP = fxp;
-      } else if (presetInstance instanceof FXP) {
-        // If the preset is the FXP itself, maybe handle differently?
-        // For now, assuming we instantiate a Preset class *from* FXP
       }
 
-      // Initialize from FXP parameters. The concrete implementations will use the attached FXP object or parameters.
-      // This assumes all Preset classes have an initFromParameters method or similar
+      // make sure to check it there is a initFromParameters method
+      // this makes sure that all subclasses of VstPreset are supported
+      // but also pure Preset subclasses that have implemented the optional initFromParameters method
       if (presetInstance) {
         if (
           "initFromParameters" in presetInstance &&

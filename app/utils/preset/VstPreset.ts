@@ -2,6 +2,7 @@ import { XMLParser } from "fast-xml-parser";
 
 import { BinaryFile, ByteOrder } from "../binary/BinaryFile";
 import { BinaryReader } from "../binary/BinaryReader";
+import { removeByteOrderMark } from "../removeByteOrderMark";
 import { toHexEditorString } from "../StringUtils";
 import { NewLineHandling, XmlWriter } from "../XmlWriter";
 import { FXP } from "./FXP";
@@ -763,7 +764,7 @@ export abstract class VstPreset implements Preset {
     if (!this.InfoXml) return;
 
     // Remove BOM if present
-    const xmlString = this.removeByteOrderMark(this.InfoXml);
+    const xmlString = removeByteOrderMark(this.InfoXml);
 
     try {
       const parser = new XMLParser({
@@ -792,36 +793,6 @@ export abstract class VstPreset implements Preset {
     } catch (error) {
       console.error("Error parsing Info XML:", error);
     }
-  }
-
-  /**
-   * Removes the Byte Order Mark (BOM) from the beginning and end of a string if present.
-   * @param value - The input string.
-   * @returns The string with BOM removed.
-   */
-  protected removeByteOrderMark(value: string): string {
-    // Convert string to UTF-8 bytes
-    const encoder = new TextEncoder();
-    let bytes = encoder.encode(value);
-
-    // Remove BOM from start if present
-    if (bytes[0] === 0xef && bytes[1] === 0xbb && bytes[2] === 0xbf) {
-      bytes = bytes.slice(3);
-    }
-
-    // Remove BOM from end if present
-    const byteLength = bytes.length;
-    if (
-      bytes[byteLength - 3] === 0xef &&
-      bytes[byteLength - 2] === 0xbb &&
-      bytes[byteLength - 1] === 0xbf
-    ) {
-      bytes = bytes.slice(0, -3);
-    }
-
-    // Convert back to string
-    const decoder = new TextDecoder("utf-8");
-    return decoder.decode(bytes);
   }
 
   /**
@@ -1392,6 +1363,19 @@ export abstract class VstPreset implements Preset {
       const buffer = writer.getBuffer();
       return buffer ? new Uint8Array(buffer) : undefined;
     }
+  }
+
+  /**
+   * Generates an FXP (VST preset) binary file from the current FXP object.
+   * @returns A `Uint8Array` representing the FXP file contents, or `undefined`
+   * if the FXP object is not present or failed to produce content.
+   */
+  public writeFXP(_presetName?: string): Uint8Array | undefined {
+    if (this.preparedForWriting()) {
+      const fxpContent = this.FXP?.writeFile();
+      return fxpContent ? new Uint8Array(fxpContent) : undefined;
+    }
+    return undefined;
   }
 
   /**

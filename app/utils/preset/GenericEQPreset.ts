@@ -86,7 +86,7 @@ export class GenericEQBand {
     // Define padding lengths for alignment
     const PADDING_ENABLED = 8; // e.g., "Disabled"
     const PADDING_PLACEMENT = 6; // e.g., "Stereo"
-    const PADDING_GAIN = 13; // e.g., "Gain: -99.9 dB"
+    const PADDING_GAIN = 14; // e.g., "Gain: -99.9 dB"
     const PADDING_Q = 8; // e.g., "Q: 99.99"
     const PADDING_FREQ_VALUE = 8; // e.g., "1,000.00"
     const PADDING_UNIT = 3; // e.g., "kHz"

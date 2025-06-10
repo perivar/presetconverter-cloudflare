@@ -12,6 +12,7 @@ import {
   convertToMidi,
 } from "~/utils/ableton/Midi";
 import { FabFilterProQBaseToGenericEQ } from "~/utils/converters/FabFilterProQBaseToGenericEQ";
+import { SupportsPresetFormats } from "~/utils/converters/MultiFormatConverter";
 import { SSLNativeBusCompressorToGenericCompressorLimiter } from "~/utils/converters/SSLNativeBusCompressorToGenericCompressorLimiter";
 import { SSLNativeChannelToGenericEQ } from "~/utils/converters/SSLNativeChannelToGenericEQ";
 import { SteinbergFrequencyToGenericEQ } from "~/utils/converters/SteinbergFrequencyToGenericEQ";
@@ -22,10 +23,11 @@ import { FabFilterProQ } from "~/utils/preset/FabFilterProQ";
 import { FabFilterProQ2 } from "~/utils/preset/FabFilterProQ2";
 import { FabFilterProQ3 } from "~/utils/preset/FabFilterProQ3";
 import { FabFilterProQBase } from "~/utils/preset/FabFilterProQBase";
-import { FxChunkSet, FXP, FxProgramSet } from "~/utils/preset/FXP";
 import { FXPPresetFactory } from "~/utils/preset/FXPPresetFactory";
 import { GenericCompressorLimiter } from "~/utils/preset/GenericCompressorLimiter";
 import { GenericEQBand, GenericEQPreset } from "~/utils/preset/GenericEQPreset";
+import { GenericFXP } from "~/utils/preset/GenericFXP";
+import { GenericXML } from "~/utils/preset/GenericXML";
 import { Preset } from "~/utils/preset/Preset";
 import { SSLNativeBusCompressor } from "~/utils/preset/SSLNativeBusCompressor";
 import { SSLNativeChannel } from "~/utils/preset/SSLNativeChannel";
@@ -34,6 +36,8 @@ import { UADSSLChannel } from "~/utils/preset/UADSSLChannel";
 import { VstPresetFactory } from "~/utils/preset/VstPresetFactory";
 import { WavesSSLChannel } from "~/utils/preset/WavesSSLChannel";
 import { WavesSSLComp } from "~/utils/preset/WavesSSLComp";
+import { Encoding, NewLineHandling, XmlWriter } from "~/utils/XmlWriter";
+import { XMLParser } from "fast-xml-parser";
 import { ChevronDown, ChevronUp } from "lucide-react";
 import { MidiData } from "midi-file";
 import { useDropzone } from "react-dropzone";
@@ -71,55 +75,15 @@ export const meta: MetaFunction<typeof loader> = ({ data }) => {
   ];
 };
 
-interface FxpPresetData {
-  fxId: string | null;
-  chunkData: Uint8Array | null;
-  fabfilterEQPreset: FabFilterProQBase | null;
-  fabfilterEQSource: string | null;
-}
-
-const readFxpAsFabFilterEQ = (data: Uint8Array): FxpPresetData => {
-  const fxp = new FXP();
-  fxp.readFile(data);
-
-  let fabfilterEQPreset: FabFilterProQBase | null = null;
-  let fabfilterEQSource: string | null = null;
-  let fxId: string | null = null;
-  let chunkData: Uint8Array | null = null;
-
-  // First try to parse as a Pro-Q preset using VstPresetFactory
-  if (fxp.content?.FxID) {
-    const { preset, source } = FXPPresetFactory.getPresetFromFXP(data);
-    fabfilterEQPreset = preset as FabFilterProQBase | null; // Cast back to FabFilterProQBase for existing logic
-    fabfilterEQSource = source;
-    fxId = fxp.content.FxID;
-  }
-
-  // If not a Pro-Q preset or parsing failed, get the raw chunk data
-  if (
-    !fabfilterEQPreset &&
-    fxp.content &&
-    (fxp.content instanceof FxProgramSet || fxp.content instanceof FxChunkSet)
-  ) {
-    fxId = fxp.content.FxID ?? null;
-    chunkData = fxp.content.ChunkData ?? null;
-  }
-
-  return {
-    fxId,
-    chunkData,
-    fabfilterEQPreset,
-    fabfilterEQSource,
-  };
-};
-
 export default function Index() {
   const { t } = useTranslation();
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [droppedFile, setDroppedFile] = useState<File | null>(null);
   const [sourceFormat, setSourceFormat] = useState<string | null>(null);
-  const [sourceData, setSourceData] = useState<Preset | null>(null);
+  const [sourceData, setSourceData] = useState<SupportsPresetFormats | null>(
+    null
+  );
 
   const [genericEQPreset, setGenericEQPreset] =
     useState<GenericEQPreset | null>(null);
@@ -174,39 +138,78 @@ export default function Index() {
           const data = new Uint8Array(arrayBuffer);
 
           const ext = file.name.toLowerCase().split(".").pop();
-          if (ext === "ffp" || ext === "fxp") {
-            let chunkData = data;
-            if (ext === "fxp") {
-              const { chunkData: fxpChunkData, fabfilterEQPreset } =
-                readFxpAsFabFilterEQ(data);
-              if (fabfilterEQPreset) {
-                // Successfully parsed a Pro-Q preset
-                setSourceFormat(fabfilterEQPreset.PlugInName);
-                setSourceData(fabfilterEQPreset);
 
-                console.log(
-                  "fabfilterEQP preset:\n",
-                  fabfilterEQPreset.toString()
+          if (ext === "fxp") {
+            const { preset, source } = FXPPresetFactory.getPresetFromFXP(data);
+
+            if (preset && preset instanceof FabFilterProQBase) {
+              setSourceFormat(preset.PlugInName);
+              setSourceData(preset);
+
+              console.log("FabFilterProQ[1|2|3] preset:\n", preset.toString());
+              const eqPreset = FabFilterProQBaseToGenericEQ.convertBase(preset);
+              setGenericEQPreset(eqPreset);
+            } else if (preset && preset instanceof SteinbergFrequency) {
+              setSourceFormat(`${preset.constructor.name}`);
+              setSourceData(preset);
+
+              console.log("SteinbergFrequency preset:\n", preset.toString());
+              const eqPreset =
+                SteinbergFrequencyToGenericEQ.convertBase(preset);
+              setGenericEQPreset(eqPreset);
+            } else if (preset && preset instanceof UADSSLChannel) {
+              setSourceFormat(`${preset.constructor.name}`);
+              setSourceData(preset);
+
+              console.log("UADSSLChannel preset:\n", preset.toString());
+              const eqPreset = UADSSLChannelToGenericEQ.convertBase(preset);
+              setGenericEQPreset(eqPreset);
+            } else if (preset && preset instanceof SSLNativeChannel) {
+              setSourceFormat(`${preset.constructor.name}`);
+              setSourceData(preset);
+
+              console.log("SSLNativeChannel preset:\n", preset.toString());
+              const eqPreset = SSLNativeChannelToGenericEQ.convertBase(preset);
+              setGenericEQPreset(eqPreset);
+            } else if (preset && preset instanceof SSLNativeBusCompressor) {
+              setSourceFormat(`${preset.constructor.name}`);
+              setSourceData(preset);
+
+              console.log(
+                "SSLNativeBusCompressor preset:\n",
+                preset.toString()
+              );
+              const compLimitPreset =
+                SSLNativeBusCompressorToGenericCompressorLimiter.convertBase(
+                  preset
                 );
+              setGenericCompLimitPreset(compLimitPreset);
+            } else if (preset && preset instanceof WavesSSLChannel) {
+              setSourceFormat(`${preset.constructor.name}`);
+              setSourceData(preset);
 
-                const eqPreset =
-                  FabFilterProQBaseToGenericEQ.convertBase(fabfilterEQPreset);
-                setGenericEQPreset(eqPreset);
+              console.log("WavesSSLChannel preset:\n", preset.toString());
+              const eqPreset = WavesSSLChannelToGenericEQ.convertBase(preset);
+              setGenericEQPreset(eqPreset);
+            } else if (preset && preset instanceof WavesSSLComp) {
+              setSourceFormat(`${preset.constructor.name}`);
+              setSourceData(preset);
 
-                setIsLoading(false);
-                return;
-              }
+              console.log("WavesSSLComp preset:\n", preset.toString());
 
-              // Not a Pro-Q preset but we have chunk data
-              if (fxpChunkData) {
-                chunkData = fxpChunkData.slice(4, fxpChunkData.length - 4);
-              }
+              const compLimitPreset =
+                WavesSSLCompToGenericCompressorLimiter.convertBase(preset);
+              setGenericCompLimitPreset(compLimitPreset);
+            } else if (preset) {
+              setSourceFormat(`${preset.constructor.name}`);
+              setSourceData(preset);
+
+              // If vstPreset exists but is not a supported type
+              setError(`Unsupported fxp: ${source}`);
             }
-
-            // If we get here, either it's an FFP file or FXP identification failed
-            // Try reading with each version in sequence
+          } else if (ext === "ffp") {
             const proQ3 = new FabFilterProQ3();
-            if (proQ3.readFFP(chunkData)) {
+            if (proQ3.readFFP(data)) {
               setSourceFormat(proQ3.PlugInName);
               setSourceData(proQ3);
 
@@ -216,7 +219,7 @@ export default function Index() {
               setGenericEQPreset(eqPreset);
             } else {
               const proQ2 = new FabFilterProQ2();
-              if (proQ2.readFFP(chunkData)) {
+              if (proQ2.readFFP(data)) {
                 setSourceFormat(proQ2.PlugInName);
                 setSourceData(proQ2);
 
@@ -227,7 +230,7 @@ export default function Index() {
                 setGenericEQPreset(eqPreset);
               } else {
                 const proQ1 = new FabFilterProQ();
-                if (proQ1.readFFP(chunkData)) {
+                if (proQ1.readFFP(data)) {
                   setSourceFormat(proQ1.PlugInName);
                   setSourceData(proQ1);
 
@@ -319,13 +322,93 @@ export default function Index() {
                   WavesSSLCompToGenericCompressorLimiter.convertBase(vstPreset);
                 setGenericCompLimitPreset(compLimitPreset);
               } else if (vstPreset) {
-                setSourceFormat(`${vstPreset.constructor.name}`);
-                setSourceData(vstPreset);
-
-                // If vstPreset exists but is not a supported type
-                setError(
-                  `Unsupported Vst3ClassID: ${vstPreset.Vst3ClassID} (${file.name})`
+                // first check if the vst3preset contains a vst2 FXP
+                const fxpData = vstPreset.writeFXP(
+                  `${vstPreset.constructor.name}`
                 );
+                if (fxpData) {
+                  // // check if the FXP chunk is XML
+                  // const fxp = new FXP(fxpData);
+                  // if (fxp.xmlContent) {
+                  //   const xmlString = XmlWriter(fxp.xmlContent, {
+                  //     OmitXmlDeclaration: true,
+                  //     Encoding: Encoding.UTF8,
+                  //     Indent: true,
+                  //     IndentChars: "\t",
+                  //     NewLineChars: "\n",
+                  //     NewLineHandling: NewLineHandling.Replace,
+                  //   });
+                  //   const extractedData = new GenericXML(
+                  //     xmlString,
+                  //     `${vstPreset.constructor.name}`
+                  //   );
+                  //   setSourceData(extractedData);
+                  //   setSourceFormat("GenericXML");
+                  // } else {
+                  const extractedData = new GenericFXP(
+                    fxpData,
+                    `${vstPreset.constructor.name}`
+                  );
+                  setSourceFormat("GenericFXP");
+                  setSourceData(extractedData);
+                  // }
+                } else if (vstPreset.CompChunkData) {
+                  // then check if the comp chunk data is xml
+                  try {
+                    const chunkData = vstPreset.CompChunkData;
+                    const chunkAsString = new TextDecoder("utf-8").decode(
+                      chunkData
+                    );
+                    const parser = new XMLParser({
+                      ignoreAttributes: false,
+                      attributeNamePrefix: "@_",
+                      parseAttributeValue: false, // do not convert strings to number automatically
+                      parseTagValue: false, // do not convert strings to number automatically
+                    });
+
+                    // Parse the XML
+                    const parsedResult = parser.parse(chunkAsString);
+
+                    // Check if parsing produced a meaningful result; throw error if not
+                    if (
+                      !parsedResult ||
+                      Object.keys(parsedResult).length === 0
+                    ) {
+                      throw new Error(
+                        "Failed to parse XML: Invalid or empty content"
+                      );
+                    }
+                    const xmlString = XmlWriter(parsedResult, {
+                      OmitXmlDeclaration: true,
+                      Encoding: Encoding.UTF8,
+                      Indent: true,
+                      IndentChars: "\t",
+                      NewLineChars: "\n",
+                      NewLineHandling: NewLineHandling.Replace,
+                    });
+                    const extractedData = new GenericXML(
+                      xmlString,
+                      `${vstPreset.constructor.name}`
+                    );
+                    setSourceData(extractedData);
+                    setSourceFormat("GenericXML");
+                  } catch (parseError) {
+                    console.warn(
+                      `ChunkData could not be parsed as XML:`,
+                      parseError
+                    );
+                    return undefined;
+                  }
+                } else {
+                  // otherwise we do not support this preset file
+                  setSourceFormat(`${vstPreset.constructor.name}`);
+                  setSourceData(vstPreset);
+
+                  // If vstPreset exists but is not a supported type
+                  setError(
+                    `Unsupported Vst3ClassID: ${vstPreset.Vst3ClassID} (${file.name})`
+                  );
+                }
               }
             } catch (_err) {
               setError(t("error.unsupportedFormat", { fileName: file.name }));

@@ -9,8 +9,8 @@ export class GenericFXP implements SupportsPresetFormats {
     this.pluginName = pluginName;
   }
 
-  // Implement SupportsPresetFormats
-  writeFXP(presetName: string): Uint8Array | undefined {
+  // Implement SupportsPresetFormats but ignore presetName
+  writeFXP(_presetName: string): Uint8Array | undefined {
     return this.content;
   }
 }
