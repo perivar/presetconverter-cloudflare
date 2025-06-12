@@ -22,13 +22,14 @@
     "convertButton": "Konverter",
     "converting": "Konverterer...",
     "noAvailableConversions": "Ingen tilgjengelige konverteringer",
-    "viewText": "Vis tekst",
-    "viewTextContent": "Tekstinnhold",
-    "viewTextDescription": "Rå tekstinnhold av den konverterte filen.",
-    "noSourcePreset": "Ingen forhåndsinnstilling av kilder funnet",
+    "noSourcePreset": "Ingen preset filer funnet",
+    "noSourcePresets": "Ingen preset fil funnet",
     "selectTarget": "Velg målformat",
     "selectTargetPlaceholder": "Velg et format",
-    "title": "Konverter til annet format"
+    "title": "Konverter til annet format",
+    "viewText": "Vis tekst",
+    "viewTextContent": "Tekstinnhold",
+    "viewTextDescription": "Rå tekstinnhold av den konverterte filen."
   },
   "convert": {
     "title": "Forside"

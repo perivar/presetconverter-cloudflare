@@ -23,6 +23,7 @@ import { FabFilterProQ } from "~/utils/preset/FabFilterProQ";
 import { FabFilterProQ2 } from "~/utils/preset/FabFilterProQ2";
 import { FabFilterProQ3 } from "~/utils/preset/FabFilterProQ3";
 import { FabFilterProQBase } from "~/utils/preset/FabFilterProQBase";
+import { FXP } from "~/utils/preset/FXP";
 import { FXPPresetFactory } from "~/utils/preset/FXPPresetFactory";
 import { GenericCompressorLimiter } from "~/utils/preset/GenericCompressorLimiter";
 import { GenericEQBand, GenericEQPreset } from "~/utils/preset/GenericEQPreset";
@@ -36,8 +37,8 @@ import { UADSSLChannel } from "~/utils/preset/UADSSLChannel";
 import { VstPresetFactory } from "~/utils/preset/VstPresetFactory";
 import { WavesSSLChannel } from "~/utils/preset/WavesSSLChannel";
 import { WavesSSLComp } from "~/utils/preset/WavesSSLComp";
+import { attemptXmlParse } from "~/utils/XmlUtils";
 import { Encoding, NewLineHandling, XmlWriter } from "~/utils/XmlWriter";
-import { XMLParser } from "fast-xml-parser";
 import { ChevronDown, ChevronUp } from "lucide-react";
 import { MidiData } from "midi-file";
 import { useDropzone } from "react-dropzone";
@@ -75,13 +76,17 @@ export const meta: MetaFunction<typeof loader> = ({ data }) => {
   ];
 };
 
+interface SourcePreset {
+  format: string | null;
+  data: SupportsPresetFormats | null;
+}
+
 export default function Index() {
   const { t } = useTranslation();
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [droppedFile, setDroppedFile] = useState<File | null>(null);
-  const [sourceFormat, setSourceFormat] = useState<string | null>(null);
-  const [sourceData, setSourceData] = useState<SupportsPresetFormats | null>(
+  const [sourcePresets, setSourcePresets] = useState<SourcePreset[] | null>(
     null
   );
 
@@ -105,8 +110,7 @@ export default function Index() {
   const onDrop = useCallback(
     (acceptedFiles: File[]) => {
       setError(null);
-      setSourceFormat(null);
-      setSourceData(null);
+      setSourcePresets(null);
       setGenericEQPreset(null);
       setGenericCompLimitPreset(null);
       setDroppedFile(null);
@@ -143,38 +147,36 @@ export default function Index() {
             const { preset, source } = FXPPresetFactory.getPresetFromFXP(data);
 
             if (preset && preset instanceof FabFilterProQBase) {
-              setSourceFormat(preset.PlugInName);
-              setSourceData(preset);
-
+              setSourcePresets([{ format: preset.PlugInName, data: preset }]);
               console.log("FabFilterProQ[1|2|3] preset:\n", preset.toString());
               const eqPreset = FabFilterProQBaseToGenericEQ.convertBase(preset);
               setGenericEQPreset(eqPreset);
             } else if (preset && preset instanceof SteinbergFrequency) {
-              setSourceFormat(`${preset.constructor.name}`);
-              setSourceData(preset);
-
+              setSourcePresets([
+                { format: `${preset.constructor.name}`, data: preset },
+              ]);
               console.log("SteinbergFrequency preset:\n", preset.toString());
               const eqPreset =
                 SteinbergFrequencyToGenericEQ.convertBase(preset);
               setGenericEQPreset(eqPreset);
             } else if (preset && preset instanceof UADSSLChannel) {
-              setSourceFormat(`${preset.constructor.name}`);
-              setSourceData(preset);
-
+              setSourcePresets([
+                { format: `${preset.constructor.name}`, data: preset },
+              ]);
               console.log("UADSSLChannel preset:\n", preset.toString());
               const eqPreset = UADSSLChannelToGenericEQ.convertBase(preset);
               setGenericEQPreset(eqPreset);
             } else if (preset && preset instanceof SSLNativeChannel) {
-              setSourceFormat(`${preset.constructor.name}`);
-              setSourceData(preset);
-
+              setSourcePresets([
+                { format: `${preset.constructor.name}`, data: preset },
+              ]);
               console.log("SSLNativeChannel preset:\n", preset.toString());
               const eqPreset = SSLNativeChannelToGenericEQ.convertBase(preset);
               setGenericEQPreset(eqPreset);
             } else if (preset && preset instanceof SSLNativeBusCompressor) {
-              setSourceFormat(`${preset.constructor.name}`);
-              setSourceData(preset);
-
+              setSourcePresets([
+                { format: `${preset.constructor.name}`, data: preset },
+              ]);
               console.log(
                 "SSLNativeBusCompressor preset:\n",
                 preset.toString()
@@ -185,24 +187,25 @@ export default function Index() {
                 );
               setGenericCompLimitPreset(compLimitPreset);
             } else if (preset && preset instanceof WavesSSLChannel) {
-              setSourceFormat(`${preset.constructor.name}`);
-              setSourceData(preset);
-
+              setSourcePresets([
+                { format: `${preset.constructor.name}`, data: preset },
+              ]);
               console.log("WavesSSLChannel preset:\n", preset.toString());
               const eqPreset = WavesSSLChannelToGenericEQ.convertBase(preset);
               setGenericEQPreset(eqPreset);
             } else if (preset && preset instanceof WavesSSLComp) {
-              setSourceFormat(`${preset.constructor.name}`);
-              setSourceData(preset);
-
+              setSourcePresets([
+                { format: `${preset.constructor.name}`, data: preset },
+              ]);
               console.log("WavesSSLComp preset:\n", preset.toString());
 
               const compLimitPreset =
                 WavesSSLCompToGenericCompressorLimiter.convertBase(preset);
               setGenericCompLimitPreset(compLimitPreset);
             } else if (preset) {
-              setSourceFormat(`${preset.constructor.name}`);
-              setSourceData(preset);
+              setSourcePresets([
+                { format: `${preset.constructor.name}`, data: preset },
+              ]);
 
               // If vstPreset exists but is not a supported type
               setError(`Unsupported fxp: ${source}`);
@@ -210,9 +213,7 @@ export default function Index() {
           } else if (ext === "ffp") {
             const proQ3 = new FabFilterProQ3();
             if (proQ3.readFFP(data)) {
-              setSourceFormat(proQ3.PlugInName);
-              setSourceData(proQ3);
-
+              setSourcePresets([{ format: proQ3.PlugInName, data: proQ3 }]);
               console.log("FabFilterProQ3 preset:\n", proQ3.toString());
 
               const eqPreset = FabFilterProQBaseToGenericEQ.convertBase(proQ3);
@@ -220,9 +221,7 @@ export default function Index() {
             } else {
               const proQ2 = new FabFilterProQ2();
               if (proQ2.readFFP(data)) {
-                setSourceFormat(proQ2.PlugInName);
-                setSourceData(proQ2);
-
+                setSourcePresets([{ format: proQ2.PlugInName, data: proQ2 }]);
                 console.log("FabFilterProQ2 preset:\n", proQ2.toString());
 
                 const eqPreset =
@@ -231,9 +230,7 @@ export default function Index() {
               } else {
                 const proQ1 = new FabFilterProQ();
                 if (proQ1.readFFP(data)) {
-                  setSourceFormat(proQ1.PlugInName);
-                  setSourceData(proQ1);
-
+                  setSourcePresets([{ format: proQ1.PlugInName, data: proQ1 }]);
                   console.log("FabFilterProQ preset:\n", proQ1.toString());
 
                   const eqPreset =
@@ -251,9 +248,9 @@ export default function Index() {
               const vstPreset = VstPresetFactory.getVstPreset(data);
 
               if (vstPreset && vstPreset instanceof FabFilterProQBase) {
-                setSourceFormat(vstPreset.PlugInName);
-                setSourceData(vstPreset);
-
+                setSourcePresets([
+                  { format: vstPreset.PlugInName, data: vstPreset },
+                ]);
                 console.log(
                   "FabFilterProQ[1|2|3] preset:\n",
                   vstPreset.toString()
@@ -262,9 +259,9 @@ export default function Index() {
                   FabFilterProQBaseToGenericEQ.convertBase(vstPreset);
                 setGenericEQPreset(eqPreset);
               } else if (vstPreset && vstPreset instanceof SteinbergFrequency) {
-                setSourceFormat(`${vstPreset.constructor.name}`);
-                setSourceData(vstPreset);
-
+                setSourcePresets([
+                  { format: `${vstPreset.constructor.name}`, data: vstPreset },
+                ]);
                 console.log(
                   "SteinbergFrequency preset:\n",
                   vstPreset.toString()
@@ -273,17 +270,17 @@ export default function Index() {
                   SteinbergFrequencyToGenericEQ.convertBase(vstPreset);
                 setGenericEQPreset(eqPreset);
               } else if (vstPreset && vstPreset instanceof UADSSLChannel) {
-                setSourceFormat(`${vstPreset.constructor.name}`);
-                setSourceData(vstPreset);
-
+                setSourcePresets([
+                  { format: `${vstPreset.constructor.name}`, data: vstPreset },
+                ]);
                 console.log("UADSSLChannel preset:\n", vstPreset.toString());
                 const eqPreset =
                   UADSSLChannelToGenericEQ.convertBase(vstPreset);
                 setGenericEQPreset(eqPreset);
               } else if (vstPreset && vstPreset instanceof SSLNativeChannel) {
-                setSourceFormat(`${vstPreset.constructor.name}`);
-                setSourceData(vstPreset);
-
+                setSourcePresets([
+                  { format: `${vstPreset.constructor.name}`, data: vstPreset },
+                ]);
                 console.log("SSLNativeChannel preset:\n", vstPreset.toString());
                 const eqPreset =
                   SSLNativeChannelToGenericEQ.convertBase(vstPreset);
@@ -292,9 +289,9 @@ export default function Index() {
                 vstPreset &&
                 vstPreset instanceof SSLNativeBusCompressor
               ) {
-                setSourceFormat(`${vstPreset.constructor.name}`);
-                setSourceData(vstPreset);
-
+                setSourcePresets([
+                  { format: `${vstPreset.constructor.name}`, data: vstPreset },
+                ]);
                 console.log(
                   "SSLNativeBusCompressor preset:\n",
                   vstPreset.toString()
@@ -305,17 +302,17 @@ export default function Index() {
                   );
                 setGenericCompLimitPreset(compLimitPreset);
               } else if (vstPreset && vstPreset instanceof WavesSSLChannel) {
-                setSourceFormat(`${vstPreset.constructor.name}`);
-                setSourceData(vstPreset);
-
+                setSourcePresets([
+                  { format: `${vstPreset.constructor.name}`, data: vstPreset },
+                ]);
                 console.log("WavesSSLChannel preset:\n", vstPreset.toString());
                 const eqPreset =
                   WavesSSLChannelToGenericEQ.convertBase(vstPreset);
                 setGenericEQPreset(eqPreset);
               } else if (vstPreset && vstPreset instanceof WavesSSLComp) {
-                setSourceFormat(`${vstPreset.constructor.name}`);
-                setSourceData(vstPreset);
-
+                setSourcePresets([
+                  { format: `${vstPreset.constructor.name}`, data: vstPreset },
+                ]);
                 console.log("WavesSSLComp preset:\n", vstPreset.toString());
 
                 const compLimitPreset =
@@ -326,59 +323,13 @@ export default function Index() {
                 const fxpData = vstPreset.writeFXP(
                   `${vstPreset.constructor.name}`
                 );
+
+                const presetList = [];
                 if (fxpData) {
-                  // // check if the FXP chunk is XML
-                  // const fxp = new FXP(fxpData);
-                  // if (fxp.xmlContent) {
-                  //   const xmlString = XmlWriter(fxp.xmlContent, {
-                  //     OmitXmlDeclaration: true,
-                  //     Encoding: Encoding.UTF8,
-                  //     Indent: true,
-                  //     IndentChars: "\t",
-                  //     NewLineChars: "\n",
-                  //     NewLineHandling: NewLineHandling.Replace,
-                  //   });
-                  //   const extractedData = new GenericXML(
-                  //     xmlString,
-                  //     `${vstPreset.constructor.name}`
-                  //   );
-                  //   setSourceData(extractedData);
-                  //   setSourceFormat("GenericXML");
-                  // } else {
-                  const extractedData = new GenericFXP(
-                    fxpData,
-                    `${vstPreset.constructor.name}`
-                  );
-                  setSourceFormat("GenericFXP");
-                  setSourceData(extractedData);
-                  // }
-                } else if (vstPreset.CompChunkData) {
-                  // then check if the comp chunk data is xml
-                  try {
-                    const chunkData = vstPreset.CompChunkData;
-                    const chunkAsString = new TextDecoder("utf-8").decode(
-                      chunkData
-                    );
-                    const parser = new XMLParser({
-                      ignoreAttributes: false,
-                      attributeNamePrefix: "@_",
-                      parseAttributeValue: false, // do not convert strings to number automatically
-                      parseTagValue: false, // do not convert strings to number automatically
-                    });
-
-                    // Parse the XML
-                    const parsedResult = parser.parse(chunkAsString);
-
-                    // Check if parsing produced a meaningful result; throw error if not
-                    if (
-                      !parsedResult ||
-                      Object.keys(parsedResult).length === 0
-                    ) {
-                      throw new Error(
-                        "Failed to parse XML: Invalid or empty content"
-                      );
-                    }
-                    const xmlString = XmlWriter(parsedResult, {
+                  // check if the FXP chunk is XML
+                  const fxp = new FXP(fxpData);
+                  if (fxp.xmlContent) {
+                    const xmlString = XmlWriter(fxp.xmlContent, {
                       OmitXmlDeclaration: true,
                       Encoding: Encoding.UTF8,
                       Indent: true,
@@ -390,19 +341,59 @@ export default function Index() {
                       xmlString,
                       `${vstPreset.constructor.name}`
                     );
-                    setSourceData(extractedData);
-                    setSourceFormat("GenericXML");
-                  } catch (parseError) {
-                    console.warn(
-                      `ChunkData could not be parsed as XML:`,
-                      parseError
+                    presetList.push({
+                      format: "GenericXML",
+                      data: extractedData,
+                    });
+                  }
+
+                  // always add the fxp content as a fxp object
+                  const extractedData = new GenericFXP(
+                    fxpData,
+                    `${vstPreset.constructor.name}`
+                  );
+                  presetList.push({
+                    format: "GenericFXP",
+                    data: extractedData,
+                  });
+
+                  setSourcePresets(presetList);
+                } else if (vstPreset.CompChunkData) {
+                  // then check if the comp chunk data is xml
+                  const parsedObject = attemptXmlParse(vstPreset.CompChunkData);
+
+                  if (parsedObject) {
+                    // If we get here, we are confident it's valid XML.
+                    const xmlString = XmlWriter(parsedObject, {
+                      OmitXmlDeclaration: true,
+                      Encoding: Encoding.UTF8,
+                      Indent: true,
+                      IndentChars: "\t",
+                      NewLineChars: "\n",
+                      NewLineHandling: NewLineHandling.Replace,
+                    });
+                    const extractedData = new GenericXML(
+                      xmlString,
+                      `${vstPreset.constructor.name}`
                     );
-                    return undefined;
+                    setSourcePresets([
+                      { format: "GenericXML", data: extractedData },
+                    ]);
+                  } else {
+                    // The helper function already logged the reason for failure.
+                    console.log(
+                      "ChunkData is not valid XML or is empty. No data set."
+                    );
+                    return undefined; // Or handle as needed
                   }
                 } else {
                   // otherwise we do not support this preset file
-                  setSourceFormat(`${vstPreset.constructor.name}`);
-                  setSourceData(vstPreset);
+                  setSourcePresets([
+                    {
+                      format: `${vstPreset.constructor.name}`,
+                      data: vstPreset,
+                    },
+                  ]);
 
                   // If vstPreset exists but is not a supported type
                   setError(
@@ -434,7 +425,12 @@ export default function Index() {
 
               if (allXPSPresets.length > 0) {
                 setWavesXPSPresets(allXPSPresets);
-                setSourceFormat("Waves XPS Collection"); // Indicate it's a collection
+
+                // Indicate it's a collection
+                setSourcePresets([
+                  { format: "Waves XPS Collection", data: null },
+                ]);
+
                 console.log(
                   `Parsed ${allXPSPresets.length} Waves XPS presets.`
                 );
@@ -459,7 +455,11 @@ export default function Index() {
 
               if (result?.devicePresetFiles) {
                 setAbletonDevicePresets(result.devicePresetFiles);
-                setSourceFormat("Ableton Live Project"); // Or a more specific format if needed
+
+                // Indicate it's a collection
+                setSourcePresets([
+                  { format: "Ableton Live Project", data: null },
+                ]);
               } else {
                 setError(t("error.unsupportedFormat", { fileName: file.name }));
               }
@@ -580,11 +580,6 @@ export default function Index() {
             <p>
               <strong>{t("fileInfo.size")}:</strong> {droppedFile.size} bytes
             </p>
-            {sourceFormat && (
-              <p>
-                <strong>{t("fileInfo.detectedFormat")}:</strong> {sourceFormat}
-              </p>
-            )}
             {genericEQPreset && (
               <p>
                 <strong>{t("fileInfo.bands")}:</strong>{" "}
@@ -678,12 +673,29 @@ export default function Index() {
         originalFileName={droppedFile?.name || null}
       />
 
-      <TargetConversion
-        title={t("conversion.title")}
-        sourceData={sourceData}
-        originalFileName={droppedFile?.name || null}
-        sourceFormatId={sourceFormat || "unknown"}
-      />
+      {sourcePresets && sourcePresets.length > 0 ? (
+        <Card className="mx-auto">
+          <CardHeader>
+            <CardTitle>{t("conversion.title")}</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="mt-1 flex flex-wrap gap-2">
+              {sourcePresets.map((sourcePreset, index) => {
+                return (
+                  <TargetConversion
+                    key={index}
+                    sourceData={sourcePreset.data}
+                    originalFileName={droppedFile?.name || null}
+                    sourceFormatId={sourcePreset.format || "unknown"}
+                  />
+                );
+              })}
+            </div>
+          </CardContent>
+        </Card>
+      ) : (
+        <p>{t("conversion.noSourcePresets")}</p>
+      )}
     </div>
   );
 }

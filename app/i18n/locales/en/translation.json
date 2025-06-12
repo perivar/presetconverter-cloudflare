@@ -22,13 +22,14 @@
     "convertButton": "Convert",
     "converting": "Converting...",
     "noAvailableConversions": "No available conversions",
-    "viewText": "View Text",
-    "viewTextContent": "Text Content",
-    "viewTextDescription": "Raw text content of the converted file.",
     "noSourcePreset": "No source preset found",
+    "noSourcePresets": "No source presets found",
     "selectTarget": "Select target format",
     "selectTargetPlaceholder": "Select a format",
-    "title": "Convert to another format"
+    "title": "Convert to another format",
+    "viewText": "View Text",
+    "viewTextContent": "Text Content",
+    "viewTextDescription": "Raw text content of the converted file."
   },
   "convert": {
     "title": "Frontpage"
