@@ -39,6 +39,7 @@ import { WavesSSLChannel } from "~/utils/preset/WavesSSLChannel";
 import { WavesSSLComp } from "~/utils/preset/WavesSSLComp";
 import { attemptXmlParse } from "~/utils/XmlUtils";
 import { Encoding, NewLineHandling, XmlWriter } from "~/utils/XmlWriter";
+import { attemptUnpackVstPreset } from "~/utils/ZipUtils";
 import { ChevronDown, ChevronUp } from "lucide-react";
 import { MidiData } from "midi-file";
 import { useDropzone } from "react-dropzone";
@@ -380,7 +381,11 @@ export default function Index() {
                       { format: "GenericXML", data: extractedData },
                     ]);
                   } else {
-                    // The helper function already logged the reason for failure.
+                    // const unpackedObject = await attemptUnpackVstPreset(
+                    //   vstPreset.CompChunkData
+                    // );
+
+                    // The helper function alread logged the reason for failure.
                     console.log(
                       "ChunkData is not valid XML or is empty. No data set."
                     );
