@@ -384,7 +384,19 @@ export default function Index() {
                     console.log(
                       "ChunkData is not valid XML or is empty. No data set."
                     );
-                    return undefined; // Or handle as needed
+
+                    // we do not support this preset file
+                    setSourcePresets([
+                      {
+                        format: `${vstPreset.constructor.name}`,
+                        data: vstPreset,
+                      },
+                    ]);
+
+                    // If vstPreset exists but is not a supported type
+                    setError(
+                      `Unsupported Vst3ClassID: ${vstPreset.Vst3ClassID} (${file.name})`
+                    );
                   }
                 } else {
                   // otherwise we do not support this preset file

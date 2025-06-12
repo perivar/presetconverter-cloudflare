@@ -28,20 +28,27 @@ export function attemptXmlParse(rawChunkData: Uint8Array): object | null {
 
   let chunkData = rawChunkData; // Start with the original data
 
-  // --- THE NEW, ROBUST LOGIC ---
   // Find the first meaningful byte.
-  const firstByteIndex = findFirstNonWhitespaceByteIndex(chunkData);
+  let firstByteIndex = findFirstNonWhitespaceByteIndex(chunkData);
 
-  // If the first meaningful byte is not '<' (ASCII 60), then we assume
-  // the data starts with a 4-byte binary header and we slice it off.
-  // This handles control chars (like byte 2), non-ASCII chars, etc.
+  // If the first meaningful byte is not '<' (ASCII 60),
+  // assume the data starts with a 4-byte binary header and slice it off.
   if (firstByteIndex === -1 || chunkData[firstByteIndex] !== 60) {
     console.log(
-      "Data does not appear to start with XML ('<'). Assuming 4-byte header and slicing."
+      "Data does not start with XML ('<'). Assuming 4-byte header and slicing."
     );
     // Safety check: ensure we have at least 4 bytes before slicing.
     if (chunkData.length >= 4) {
       chunkData = chunkData.slice(4);
+
+      // After slicing, check again for valid XML start
+      firstByteIndex = findFirstNonWhitespaceByteIndex(chunkData);
+      if (firstByteIndex === -1 || chunkData[firstByteIndex] !== 60) {
+        console.log(
+          "Sliced data still does not start with XML ('<'). Invalid XML."
+        );
+        return null;
+      }
     } else {
       // Not enough data to be header + XML, so it can't be valid.
       return null;
