@@ -65,9 +65,11 @@
     "q": "Q",
     "size": "Størrelse",
     "slope": "Stigning",
+    "sourceFormat": "Kildeformat",
     "stereoPlacement": "Stereoplassering",
     "title": "Filinformasjon",
-    "type": "Type"
+    "type": "Type",
+    "unknownFormat": "Ukjent format"
   },
   "help": {
     "title": "Hjelp"

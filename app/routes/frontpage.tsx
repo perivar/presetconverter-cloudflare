@@ -146,7 +146,8 @@ export default function Index() {
           const ext = file.name.toLowerCase().split(".").pop();
 
           if (ext === "fxp") {
-            const { preset, source } = FXPPresetFactory.getPresetFromFXP(data);
+            const { preset, source, fxp } =
+              FXPPresetFactory.getPresetFromFXP(data);
 
             if (preset && preset instanceof FabFilterProQBase) {
               setSourcePresets([{ format: preset.PlugInName, data: preset }]);
@@ -209,8 +210,15 @@ export default function Index() {
                 { format: `${preset.constructor.name}`, data: preset },
               ]);
 
-              // If vstPreset exists but is not a supported type
+              // If fxp preset exists but is not a supported type
               setError(`Unsupported fxp: ${source}`);
+            } else if (fxp) {
+              setError(
+                `Unsupported FXP FxID: ${fxp?.content?.FxID} (${file.name})` +
+                  (data
+                    ? `\n\nCompChunkData (hex):\n${toHexEditorString(data, false, Number.MAX_SAFE_INTEGER)}`
+                    : "")
+              );
             }
           } else if (ext === "ffp") {
             const proQ3 = new FabFilterProQ3();
@@ -481,7 +489,7 @@ export default function Index() {
                 t("error.parsingError", { fileName: file.name, message })
               );
             }
-          } else if (ext === "als") {
+          } else if (ext === "als" || ext === "adv") {
             try {
               const result = await AbletonHandlers.HandleAbletonLiveProject(
                 data,
@@ -550,7 +558,7 @@ export default function Index() {
     accept: {
       "audio/fxp": [".fxp"],
       "application/octet-stream": [".ffp", ".vstpreset", ".xps"],
-      "application/x-ableton-live": [".als"],
+      "application/x-ableton-live": [".als", ".adv"],
     },
     multiple: false,
   });
@@ -636,6 +644,16 @@ export default function Index() {
             <p>
               <strong>{t("fileInfo.size")}:</strong> {droppedFile.size} bytes
             </p>
+
+            {sourcePresets &&
+              sourcePresets.length > 0 &&
+              sourcePresets.map((sourcePreset: SourcePreset, index: number) => (
+                <p key={index}>
+                  <strong>{t("fileInfo.sourceFormat")}:</strong>{" "}
+                  {sourcePreset.format || t("fileInfo.unknownFormat")}
+                </p>
+              ))}
+
             {genericEQPreset && (
               <p>
                 <strong>{t("fileInfo.bands")}:</strong>{" "}
@@ -729,6 +747,7 @@ export default function Index() {
         originalFileName={droppedFile?.name || null}
       />
 
+      {/* Display all source presets and the conversions */}
       {sourcePresets && sourcePresets.length > 0 ? (
         <Card className="mx-auto">
           <CardHeader>

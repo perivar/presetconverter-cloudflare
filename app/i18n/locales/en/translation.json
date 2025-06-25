@@ -65,9 +65,11 @@
     "q": "Q",
     "size": "Size",
     "slope": "Slope",
+    "sourceFormat": "Source Format",
     "stereoPlacement": "Stereo Placement",
     "title": "File Information",
-    "type": "Type"
+    "type": "Type",
+    "unknownFormat": "Unknown Format"
   },
   "help": {
     "title": "Help"

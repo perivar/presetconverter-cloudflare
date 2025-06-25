@@ -20,6 +20,7 @@ export class FXPPresetFactory {
   static getPresetFromFXP(presetBytes: Uint8Array): {
     preset: Preset | null;
     source: string | null;
+    fxp: FXP | null;
   } {
     try {
       const fxp = new FXP(presetBytes);
@@ -51,13 +52,13 @@ export class FXPPresetFactory {
         // Add cases for other FXP-supported classes here
         default:
           console.warn(`Unknown or missing FxID: ${fxp.content?.FxID}`);
-          return { preset: null, source: null }; // Unknown or missing FxID
+          return { preset: null, source: null, fxp }; // Unknown or missing FxID
       }
 
       // Check if fxp.content exists before accessing parameters
       if (!fxp.content) {
         console.warn("Failed to parse FXP content.");
-        return { preset: null, source: null };
+        return { preset: null, source: null, fxp };
       }
 
       // Add the fxp object to the preset instance if it's a VstPreset
@@ -83,10 +84,10 @@ export class FXPPresetFactory {
         }
       }
 
-      return { preset: presetInstance, source: source };
+      return { preset: presetInstance, source: source, fxp };
     } catch (error) {
       console.error("Error reading or processing FXP file:", error);
-      return { preset: null, source: null }; // Error during FXP parsing or processing
+      return { preset: null, source: null, fxp: null }; // Error during FXP parsing or processing
     }
   }
 }
