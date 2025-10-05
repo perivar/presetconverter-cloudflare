@@ -1,7 +1,8 @@
 import { AbletonPlugin } from "./AbletonPlugin";
 import { getParam } from "./XMLUtils";
 
-export enum GlueCompressorAttackType { // The Attack knob’s values are in milliseconds.
+export enum GlueCompressorAttackType {
+  // The Attack knob’s values are in milliseconds.
   Attack_0_01,
   Attack_0_1,
   Attack_0_3,
@@ -11,7 +12,8 @@ export enum GlueCompressorAttackType { // The Attack knob’s values are in mill
   Attack_30,
 }
 
-export enum GlueCompressorReleaseType { // The Release knob’s values are in seconds. When Release is set to A (Auto), the release time will adjust automatically based on the incoming audio.
+export enum GlueCompressorReleaseType {
+  // The Release knob’s values are in seconds. When Release is set to A (Auto), the release time will adjust automatically based on the incoming audio.
   Release_0_1,
   Release_0_2,
   Release_0_4,

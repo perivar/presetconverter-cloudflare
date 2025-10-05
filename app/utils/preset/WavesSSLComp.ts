@@ -16,7 +16,8 @@ export enum FadeType {
   In = 2,
 }
 
-export enum AttackType { // Attack [0 - 5, .1 ms, .3 ms, 1 ms, 3 ms, 10 ms, 30 ms)
+export enum AttackType {
+  // Attack [0 - 5, .1 ms, .3 ms, 1 ms, 3 ms, 10 ms, 30 ms)
   Attack_0_1,
   Attack_0_3,
   Attack_1,
@@ -25,7 +26,8 @@ export enum AttackType { // Attack [0 - 5, .1 ms, .3 ms, 1 ms, 3 ms, 10 ms, 30 m
   Attack_30,
 }
 
-export enum ReleaseType { // Release: 0 - 4, .1 s, .3 s, .6 s, 1.2 s, Auto (-1)
+export enum ReleaseType {
+  // Release: 0 - 4, .1 s, .3 s, .6 s, 1.2 s, Auto (-1)
   Release_0_1,
   Release_0_3,
   Release_0_6,
