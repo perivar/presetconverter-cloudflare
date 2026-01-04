@@ -460,7 +460,7 @@ export function EqualizerChart({
   return (
     // Container using theme variables for colors and styling
     <div className="rounded-lg border border-border bg-card p-4 text-card-foreground">
-      <div className="h-[350px]">
+      <div className="h-87.5">
         <ResponsiveContainer width="100%" height="100%">
           <ComposedChart
             data={frequencyResponseData}
@@ -468,7 +468,7 @@ export function EqualizerChart({
           >
             <CartesianGrid
               strokeDasharray="3 3"
-              stroke="hsl(var(--muted-foreground) / 0.5)"
+              stroke="color-mix(in hsl, var(--muted-foreground) 50%, transparent)"
             />
             {/* X Axis (Frequency - Logarithmic Scale) */}
             <XAxis
@@ -481,7 +481,7 @@ export function EqualizerChart({
               tickFormatter={
                 (val: number) => (val >= 1000 ? `${val / 1000}k` : `${val}`) // Format as 'k' for kHz
               }
-              stroke="hsl(var(--foreground))"
+              stroke="var(--foreground)"
               tick={{ fontSize: 10 }}
               height={35} // Allocate space for label
             >
@@ -489,7 +489,7 @@ export function EqualizerChart({
                 value="Frequency (Hz)"
                 offset={0}
                 position="insideBottom"
-                fill="hsl(var(--foreground))"
+                fill="var(--foreground)"
                 fontSize={12}
               />
             </XAxis>
@@ -501,13 +501,13 @@ export function EqualizerChart({
               domain={[MIN_GAIN_DB, MAX_GAIN_DB]}
               ticks={[-24, -18, -12, -6, 0, 6, 12, 18, 24]}
               tickFormatter={(val: number) => `${val}`} // Show dB value
-              stroke="hsl(var(--foreground))"
+              stroke="var(--foreground)"
               tick={{ fontSize: 10 }}
               label={{
                 value: "Gain (dB)",
                 angle: -90,
                 position: "insideLeft",
-                style: { textAnchor: "middle", fill: "hsl(var(--foreground))" },
+                style: { textAnchor: "middle", fill: "var(--foreground)" },
                 fontSize: 12,
               }}
             />
@@ -526,8 +526,8 @@ export function EqualizerChart({
             <Area
               type="monotone"
               dataKey="gain"
-              stroke="hsl(var(--primary))"
-              fill="hsl(var(--primary) / 0.2)" // Use HSL with alpha for fill
+              stroke="var(--primary)"
+              fill="color-mix(in hsl, var(--primary) 20%, transparent)" // Use color-mix with alpha for fill
               strokeWidth={2}
               dot={false} // No dots on the area curve itself
               activeDot={false} // Disable default active dot behavior
@@ -542,9 +542,9 @@ export function EqualizerChart({
               xAxisId="0"
               yAxisId="0"
               dataKey="gain"
-              fill="hsl(var(--primary) / 0.5)"
+              fill="color-mix(in hsl, var(--primary) 50%, transparent)"
               r={4}
-              stroke="hsl(var(--primary))"
+              stroke="var(--primary)"
               strokeWidth={1}
               isAnimationActive={false}
               onMouseOver={handleBandHover}

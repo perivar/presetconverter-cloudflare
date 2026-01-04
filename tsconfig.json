@@ -1,11 +1,11 @@
 {
   "include": [
-    "**/*.ts",
-    "**/*.tsx",
-    "**/.server/**/*.ts",
-    "**/.server/**/*.tsx",
-    "**/.client/**/*.ts",
-    "**/.client/**/*.tsx"
+    ".react-router/types/**/*",
+    "app/**/*",
+    "app/**/.server/**/*",
+    "app/**/.client/**/*",
+    "workers/**/*",
+    "worker-configuration.d.ts",
   ],
   "compilerOptions": {
     /* Paths: */
@@ -50,13 +50,13 @@
     "lib": ["DOM", "DOM.Iterable", "ES2022"],
 
     /* Types */
-    // for some reason using typeRoots does not work, jest types are not properly included
-    // "typeRoots": ["./node_modules", "./node_modules/@types", "./app/lib/types"],
     "types": [
-      "@remix-run/cloudflare",
-      "vite/client",
-      "@cloudflare/workers-types/2023-07-01",
-      "jest"
-    ]
+        "./worker-configuration.d.ts",
+        "node", 
+        "vite/client",
+        "jest"
+    ],
+    
+    "rootDirs": [".", "./.react-router/types"],
   }
 }

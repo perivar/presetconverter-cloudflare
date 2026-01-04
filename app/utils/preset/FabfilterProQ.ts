@@ -414,7 +414,7 @@ export class FabFilterProQ extends FabFilterProQBase {
         }
 
         // always 1.0 ?
-        const unknown = bf.binaryReader.readFloat32();
+        const _unknown = bf.binaryReader.readFloat32();
 
         // check if band is enabled
         if (numActiveBands > 0 && numActiveBands > i) {

@@ -64,7 +64,7 @@ export function EqualizerBandTable({
               className={
                 hoveredFrequency &&
                 Math.abs(hoveredFrequency - band.Frequency) < 1
-                  ? "bg-primary/20 ring-1 ring-inset ring-primary"
+                  ? "bg-primary/20 ring-1 ring-primary ring-inset"
                   : undefined
               }>
               <TableCell>{index + 1}</TableCell>

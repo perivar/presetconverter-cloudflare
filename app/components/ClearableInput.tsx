@@ -38,7 +38,7 @@ const ClearableInput: React.FC<ClearableInputProps> = ({
           type="button"
           variant="ghost"
           size="sm"
-          className="absolute right-1 top-1/2 size-6 -translate-y-1/2 p-0"
+          className="absolute top-1/2 right-1 size-6 -translate-y-1/2 p-0"
           onClick={onClear}>
           <X className="size-4" />
         </Button>

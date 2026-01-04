@@ -74,6 +74,10 @@
   "help": {
     "title": "Hjelp"
   },
+  "notFound": {
+    "description": "Siden du leter etter eksisterer ikke.",
+    "title": "Siden ikke funnet"
+  },
   "settings": {
     "language": "Språk",
     "theme": "Tema",

@@ -84,7 +84,7 @@ async function findZlibBoundaryAndDecompress(buffer: Uint8Array): Promise<{
       if (actualChecksum === expectedChecksum) {
         return { decompressed: decompressed, trailing: buffer.subarray(i) };
       }
-    } catch (e) {
+    } catch (_e) {
       // This is not a valid endpoint, continue the loop.
     }
   }

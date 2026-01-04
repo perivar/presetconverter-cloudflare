@@ -1,65 +1,66 @@
-import { LoaderFunctionArgs } from "@remix-run/cloudflare";
+import { useEffect } from "react";
+import clsx from "clsx";
+import { useTranslation } from "react-i18next";
 import {
-  json,
+  data,
+  isRouteErrorResponse,
   Links,
   Meta,
   Outlet,
   Scripts,
   ScrollRestoration,
-  useLoaderData,
   useRouteLoaderData,
-} from "@remix-run/react";
-import clsx from "clsx";
+} from "react-router";
 import {
   PreventFlashOnWrongTheme,
   ThemeProvider,
   useTheme,
 } from "remix-themes";
 
+import type { Route } from "./+types/root";
 import ConfirmProvider from "./components/layout/confirm-provider";
 import ResponsiveNavBar from "./components/ResponsiveNavBar";
 import { Toaster } from "./components/ui/toaster";
+import {
+  getLocale,
+  i18nextMiddleware,
+  localeCookie,
+} from "./middleware/i18next";
+import tailwindcss from "./tailwind.css?url";
 import { themeSessionResolver } from "./theme.sessions.server";
-
-import "@fontsource-variable/montserrat/wght.css";
-import "@fontsource-variable/roboto-mono/wght.css";
-import "@fontsource-variable/roboto-slab/wght.css";
-import "./tailwind.css";
-
-import { useEffect } from "react";
-import { useTranslation } from "react-i18next";
-import { useChangeLanguage } from "remix-i18next/react";
-
-import i18next, { localeCookie } from "./i18n/i18n.server";
 import { allConverters } from "./utils/registry/allConverters";
 import { registerAllConverters } from "./utils/registry/converterRegistry";
 
-// dark mode
-// https://gist.github.com/keepforever/43c5cfa72cad8b1dad2f3982fe81b576?permalink_comment_id=5117253#gistcomment-5117253
+export const middleware = [i18nextMiddleware];
 
-// i18n
-// https://sergiodxa.com/tutorials/add-i18n-to-a-remix-vite-app
+export const links: Route.LinksFunction = () => [
+  { rel: "preconnect", href: "https://fonts.googleapis.com" },
+  {
+    rel: "preconnect",
+    href: "https://fonts.gstatic.com",
+    crossOrigin: "anonymous",
+  },
+  {
+    rel: "stylesheet",
+    href: "https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,100..900;1,100..900&family=Roboto+Mono:ital,wght@0,100..700;1,100..700&family=Roboto+Slab:wght@100..900&display=swap",
+  },
+  {
+    rel: "stylesheet",
+    href: tailwindcss,
+  },
+];
 
-export const handle = {
-  // In the handle export, we can add a i18n key with namespaces our route
-  // will need to load. This key can be a single string or an array of strings.
-  // TIP: In most cases, you should set this to your defaultNS from your i18n config
-  // or if you did not set one, set it to the i18next default namespace "translation"
-  i18n: "translation",
-};
-
-// Return the theme and the session from the session storage using the loader
-export async function loader({ request }: LoaderFunctionArgs) {
+export async function loader({ request, context }: Route.LoaderArgs) {
   // Get theme from session
   const themeSession = await themeSessionResolver(request);
   const theme = themeSession.getTheme();
   console.log("Theme: " + theme);
 
   // Get locale from i18next
-  const locale = await i18next.getLocale(request);
+  const locale = getLocale(context);
   console.log("Locale: " + locale);
 
-  return json(
+  return data(
     {
       theme,
       locale,
@@ -82,9 +83,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
       specifiedTheme={rootLoaderData?.theme ?? null}
       themeAction="/action/set-theme">
       <ConfirmProvider>
-        <InnerLayout
-          ssrTheme={Boolean(rootLoaderData?.theme)}
-          locale={rootLoaderData?.locale}>
+        <InnerLayout ssrTheme={Boolean(rootLoaderData?.theme)}>
           {children}
         </InnerLayout>
       </ConfirmProvider>
@@ -95,18 +94,19 @@ export function Layout({ children }: { children: React.ReactNode }) {
 // In order to avoid the Error: useTheme must be used within a ThemeProvider
 function InnerLayout({
   ssrTheme,
-  locale,
   children,
 }: {
   ssrTheme: boolean;
-  locale?: string;
   children: React.ReactNode;
 }) {
   const [theme] = useTheme();
   const { i18n } = useTranslation();
 
   return (
-    <html lang={locale ?? "en"} dir={i18n.dir()} className={clsx(theme)}>
+    <html
+      lang={i18n.language}
+      dir={i18n.dir(i18n.language)}
+      className={clsx(theme)}>
       <head>
         <meta charSet="utf-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1" />
@@ -126,14 +126,45 @@ function InnerLayout({
   );
 }
 
-export default function App() {
-  const { locale } = useLoaderData<typeof loader>();
-  useChangeLanguage(locale); // Change i18next language if locale changes
+export default function App({ loaderData: { locale } }: Route.ComponentProps) {
+  const { i18n } = useTranslation();
+  useEffect(() => {
+    if (i18n.language !== locale) i18n.changeLanguage(locale);
+  }, [locale, i18n]);
 
   useEffect(() => {
     registerAllConverters(allConverters); // Register converters once on the client
   }, []);
 
-  // Remix’s Outlet renders the matched route’s component, which will be wrapped by Layout.
+  // React Routers’s Outlet renders the matched route’s component, which will be wrapped by Layout.
   return <Outlet />;
+}
+
+export function ErrorBoundary({ error }: Route.ErrorBoundaryProps) {
+  let message = "Oops!";
+  let details = "An unexpected error occurred.";
+  let stack: string | undefined;
+
+  if (isRouteErrorResponse(error)) {
+    message = error.status === 404 ? "404" : "Error";
+    details =
+      error.status === 404
+        ? "The requested page could not be found."
+        : error.statusText || details;
+  } else if (import.meta.env.DEV && error && error instanceof Error) {
+    details = error.message;
+    stack = error.stack;
+  }
+
+  return (
+    <main className="container mx-auto p-4 pt-16">
+      <h1>{message}</h1>
+      <p>{details}</p>
+      {stack && (
+        <pre className="w-full overflow-x-auto p-4">
+          <code>{stack}</code>
+        </pre>
+      )}
+    </main>
+  );
 }

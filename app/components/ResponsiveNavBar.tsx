@@ -16,9 +16,9 @@ import {
   SheetTitle,
   SheetTrigger,
 } from "@/components/ui/sheet";
-import { Link } from "@remix-run/react";
 import { Command, Menu, Moon, Sun } from "lucide-react";
 import { useTranslation } from "react-i18next";
+import { Link } from "react-router";
 import { Theme, useTheme } from "remix-themes";
 
 import useIsMounted from "~/hooks/useIsMounted";
@@ -45,7 +45,13 @@ export default function ResponsiveNavBar() {
   ];
 
   return (
-    <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+    <header
+      className={`
+        sticky top-0 z-50 flex w-full border-b bg-background/95 px-4 backdrop-blur
+        supports-backdrop-filter:bg-background/60
+        sm:px-6
+        lg:px-16
+      `}>
       <div className="container flex h-14 items-center gap-2">
         <div className="hidden md:flex">
           <Link to="/" className="mr-4 flex items-center space-x-2">
@@ -73,7 +79,12 @@ export default function ResponsiveNavBar() {
             <Button
               variant="outline"
               size="icon"
-              className="text-base hover:bg-transparent focus-visible:bg-transparent focus-visible:ring-0 focus-visible:ring-offset-0 md:hidden">
+              className={`
+                text-base
+                hover:bg-transparent
+                focus-visible:bg-transparent focus-visible:ring-0 focus-visible:ring-offset-0
+                md:hidden
+              `}>
               <Menu className="size-5" />
               <span className="sr-only">Toggle Menu</span>
             </Button>
@@ -99,22 +110,22 @@ export default function ResponsiveNavBar() {
             </div>
           </SheetContent>
         </Sheet>
-        <div className="flex flex-1 items-center justify-between space-x-2 md:justify-end">
-          <div className="w-full flex-1 md:w-auto md:flex-none">
-            <Button
-              variant="outline"
-              size="icon"
-              onClick={toggleTheme}
-              className="ml-auto">
-              {isMounted() &&
-                (theme === "dark" ? (
-                  <Sun className="size-5" />
-                ) : (
-                  <Moon className="size-5" />
-                ))}
-              <span className="sr-only">Toggle theme</span>
-            </Button>
-          </div>
+      </div>
+      <div className="flex flex-1 items-center justify-end space-x-2">
+        <div className="w-full flex-1 md:w-auto md:flex-none">
+          <Button
+            variant="outline"
+            size="icon"
+            onClick={toggleTheme}
+            className="ml-auto">
+            {isMounted() &&
+              (theme === "dark" ? (
+                <Sun className="size-5" />
+              ) : (
+                <Moon className="size-5" />
+              ))}
+            <span className="sr-only">Toggle theme</span>
+          </Button>
         </div>
       </div>
     </header>

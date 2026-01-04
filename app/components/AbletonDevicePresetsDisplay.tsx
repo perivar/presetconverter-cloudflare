@@ -39,7 +39,6 @@ export function AbletonDevicePresetsDisplay({
 
   useEffect(() => {
     if (!abletonDevicePresets || abletonDevicePresets.length === 0) {
-      setUnwrappedPresets([]);
       return;
     }
 

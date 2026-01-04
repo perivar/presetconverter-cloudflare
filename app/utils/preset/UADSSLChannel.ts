@@ -178,7 +178,7 @@ export class UADSSLChannel extends VstPreset {
       // For the purpose of this task, we prioritize numerical closeness.
       // If the first element is a string and no numerical match is found,
       // it will return the first string element.
-      foundClosest = displayNumbers[0];
+      // foundClosest = displayNumbers[0];
       foundIndex = 0;
     }
 

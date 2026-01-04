@@ -14,10 +14,9 @@
     "editorHint.foreground": "#db6165"
   },
   "editor.codeActionsOnSave": {
-    "source.fixAll": "never",
-    "source.fixAll.eslint": "never"
+    "source.fixAll.eslint": "explicit"
   },
-  "editor.formatOnSave": false,
+  "editor.formatOnSave": true,
   "[javascript]": {
     "editor.formatOnSave": false
   },
@@ -33,6 +32,7 @@
   "files.autoSave": "onFocusChange",
 
   "files.associations": {
+    "wrangler.json": "jsonc",
     "*.css": "tailwindcss"
   },
 

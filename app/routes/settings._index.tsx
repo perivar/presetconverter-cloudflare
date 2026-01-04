@@ -11,33 +11,33 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { json, LoaderFunctionArgs, MetaFunction } from "@remix-run/cloudflare";
-import { useFetcher, useLoaderData } from "@remix-run/react";
-import { translatedLanguages } from "~/i18n/i18n";
-import i18next from "~/i18n/i18n.server";
+import { translatedLanguages } from "~/i18n/i18n-config";
+import { getInstance } from "~/middleware/i18next";
 import { useRootLoaderData } from "~/root";
 import { useTranslation } from "react-i18next";
+import { data, useFetcher } from "react-router";
 import { Theme, useTheme } from "remix-themes";
 
-export async function loader({ request }: LoaderFunctionArgs) {
-  const t = await i18next.getFixedT(request);
+import { Route } from "./+types/settings._index";
 
-  return json({
-    title: t("title"),
-    description: t("description"),
+export async function loader({ context }: Route.LoaderArgs) {
+  const i18next = getInstance(context);
+
+  return data({
+    title: i18next.t("title"),
+    description: i18next.t("description"),
   });
 }
 
-export const meta: MetaFunction<typeof loader> = ({ data }) => {
+export function meta({ loaderData }: Route.MetaArgs) {
   return [
-    { title: data?.title },
-    { name: "description", content: data?.description },
+    { title: loaderData?.title },
+    { name: "description", content: loaderData?.description },
   ];
-};
+}
 
 export default function SettingsView() {
   const { t } = useTranslation();
-  const data = useLoaderData<typeof loader>();
 
   // get locale from root loader
   const rootLoaderData = useRootLoaderData();
@@ -56,7 +56,7 @@ export default function SettingsView() {
   };
 
   return (
-    <div className="container mx-auto my-6 px-4 sm:px-6 lg:px-8">
+    <div className="mx-auto my-6 min-h-screen px-4 sm:px-6 lg:px-16">
       <Header title={t("settings.title")} />
 
       <ListItem

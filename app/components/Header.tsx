@@ -17,7 +17,7 @@ const Header: React.FC<HeaderProps> = ({
     <div className="mb-4">
       <div className="mb-2 flex w-full flex-col items-center justify-between sm:flex-row">
         {leftButtons.length > 0 && (
-          <div className="mb-2 flex flex-wrap items-center justify-center gap-2 sm:mb-0 sm:mr-2 sm:justify-start">
+          <div className="mb-2 flex flex-wrap items-center justify-center gap-2 sm:mr-2 sm:mb-0 sm:justify-start">
             {leftButtons}
           </div>
         )}
@@ -28,7 +28,9 @@ const Header: React.FC<HeaderProps> = ({
           <div className="text-2xl font-semibold">{title}</div>
           {description && (
             <div
-              className={`${leftButtons.length > 0 ? "text-center" : "text-center sm:text-left"} text-base text-muted-foreground`}>
+              className={`${leftButtons.length > 0 ? "text-center" : "text-center sm:text-left"}
+                text-base text-muted-foreground
+              `}>
               {description}
             </div>
           )}

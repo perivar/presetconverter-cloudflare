@@ -1,6 +1,6 @@
 // app/routes/_index.tsx
 
-import { LoaderFunction, redirect } from "@remix-run/cloudflare";
+import { LoaderFunction, redirect } from "react-router";
 
 export const loader: LoaderFunction = async () => {
   return redirect("/frontpage");

@@ -29,7 +29,7 @@ const getSortedNumberParameters = (
 };
 
 describe("SteinbergFrequency", () => {
-  it("should read a preset, write it back, and verify data consistency", () => {
+  it("should read a preset, write it back, and verify data consistency (Boost High Side)", () => {
     // --- 1. Read the original preset file ---
     const filePath = path.join(
       __dirname,
@@ -37,6 +37,90 @@ describe("SteinbergFrequency", () => {
       "Steinberg",
       "Frequency",
       "Boost High Side (Stereo).vstpreset"
+    );
+    const fileBuffer = fs.readFileSync(filePath);
+
+    // --- 2. Parse the original preset ---
+    const preset1 = new SteinbergFrequency();
+    try {
+      preset1.read(fileBuffer); // Assuming read method exists in base class
+      preset1.readParameters(); // Read specific Frequency params
+    } catch (error) {
+      console.error("Error reading original preset:", error);
+      // Optionally fail the test if reading fails critically
+      // expect(error).toBeNull();
+      // For now, let's log and continue to see if writing works
+    }
+
+    const bands1 = preset1.bands;
+    const postParams1 = preset1.postParams;
+
+    // Basic check if parameters were read
+    expect(bands1.length).toBeGreaterThan(0); // Expecting 8 bands
+    expect(postParams1).not.toBeNull();
+
+    // --- 3. Write the parsed data back to a buffer ---
+    let writtenBuffer: Uint8Array | undefined | null = null;
+    try {
+      writtenBuffer = preset1.write(); // Assuming write method exists in base class
+    } catch (error) {
+      console.error("Error writing preset:", error);
+      // Fail the test if writing fails
+      expect(error).toBeNull();
+    }
+
+    expect(writtenBuffer).not.toBeNull();
+    expect(writtenBuffer!.length).toBeGreaterThan(0);
+
+    // --- 4. Parse the written buffer ---
+    const preset2 = new SteinbergFrequency();
+    let bands2: Array<{
+      ch1: FrequencyBandParameters;
+      ch2: FrequencyBandParametersCh2;
+      shared: FrequencySharedParameters;
+    }> = [];
+    let postParams2: FrequencyPostParameters | null = null;
+
+    if (writtenBuffer) {
+      try {
+        preset2.read(writtenBuffer);
+        preset2.readParameters();
+        bands2 = preset2.bands;
+        postParams2 = preset2.postParams;
+      } catch (error) {
+        console.error("Error reading written preset:", error);
+        // Fail the test if reading the written buffer fails
+        expect(error).toBeNull();
+      }
+    }
+
+    // Basic check if parameters were read from the written buffer
+    expect(bands2.length).toBeGreaterThan(0); // Expecting 8 bands
+    expect(postParams2).not.toBeNull();
+
+    // --- 5. Compare the results ---
+    // Use toEqual for deep comparison of the arrays and objects
+    expect(bands2).toEqual(bands1);
+    expect(postParams2).toEqual(postParams1);
+
+    // Optional: More granular checks if needed
+    expect(bands2.length).toEqual(bands1.length);
+    for (let i = 0; i < bands1.length; i++) {
+      expect(bands2[i].ch1).toEqual(bands1[i].ch1);
+      expect(bands2[i].ch2).toEqual(bands1[i].ch2);
+      expect(bands2[i].shared).toEqual(bands1[i].shared);
+    }
+    expect(postParams2).toEqual(postParams1);
+  });
+
+  it("should read a preset, write it back, and verify data consistency (C15-AllBandsTest)", () => {
+    // --- 1. Read the original preset file ---
+    const filePath = path.join(
+      __dirname,
+      "data",
+      "Steinberg",
+      "Frequency",
+      "C15-AllBandsTest.vstpreset"
     );
     const fileBuffer = fs.readFileSync(filePath);
 

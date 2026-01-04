@@ -1,4 +1,9 @@
 import eslintJs from "@eslint/js";
+import eslintConfigPrettier from "eslint-config-prettier";
+// disable eslint-plugin-tailwindcss since it is not compatible with the latest version of Tailwind CSS v4
+// import pluginTailwind from "eslint-plugin-tailwindcss";
+// use eslintPluginBetterTailwindcss instead
+import eslintPluginBetterTailwindcss from "eslint-plugin-better-tailwindcss";
 import pluginImport from "eslint-plugin-import";
 import pluginJsxA11y from "eslint-plugin-jsx-a11y";
 import pluginPrettierRecommended from "eslint-plugin-prettier/recommended";
@@ -6,7 +11,6 @@ import pluginReact from "eslint-plugin-react";
 import pluginReactHooks from "eslint-plugin-react-hooks";
 import pluginReactJSXRuntime from "eslint-plugin-react/configs/jsx-runtime.js";
 import pluginReactRecommended from "eslint-plugin-react/configs/recommended.js";
-import pluginTailwind from "eslint-plugin-tailwindcss";
 import pluginUnusedImports from "eslint-plugin-unused-imports";
 import globals from "globals";
 import eslintTs from "typescript-eslint";
@@ -21,6 +25,9 @@ export default eslintTs.config(
       "build-tmp",
       "public",
       "*.config.ts",
+      ".react-router",
+      "worker-configuration.d.ts",
+      "dist",
     ],
   },
   {
@@ -47,7 +54,8 @@ export default eslintTs.config(
     files: ["**/*.{js,jsx,ts,tsx}"],
     ...pluginReactRecommended,
     ...pluginReactJSXRuntime,
-    extends: [...pluginTailwind.configs["flat/recommended"]],
+    // disabled since it is not compatible with the latest version of Tailwind CSS
+    // extends: [...pluginTailwind.configs["flat/recommended"]],
     rules: {
       // React-specific rules
       ...pluginReactRecommended.rules,
@@ -55,6 +63,26 @@ export default eslintTs.config(
       ...pluginReact.configs.recommended.rules,
       ...pluginReactHooks.configs.recommended.rules,
       ...pluginJsxA11y.configs.recommended.rules,
+      ...eslintPluginBetterTailwindcss.configs["recommended-warn"].rules,
+      ...eslintPluginBetterTailwindcss.configs["recommended-error"].rules,
+
+      // configure some better-tailwindcss rules individually
+      "better-tailwindcss/enforce-consistent-line-wrapping": [
+        "warn",
+        { group: "newLine", preferSingleLine: true, printWidth: 120 },
+      ],
+      // fix a shadcn false positive for the navigation-menu component
+      "better-tailwindcss/no-unregistered-classes": [
+        "error",
+        {
+          ignore: [
+            "origin-top-center",
+            "text-destructive-foreground",
+            "destructive",
+          ],
+        },
+      ],
+
       "react/jsx-uses-react": "off",
       "react/react-in-jsx-scope": "off",
       "react/self-closing-comp": "off",
@@ -71,6 +99,7 @@ export default eslintTs.config(
       react: pluginReact,
       "react-hooks": pluginReactHooks,
       ["jsx-a11y"]: pluginJsxA11y,
+      "better-tailwindcss": eslintPluginBetterTailwindcss,
     },
     settings: {
       react: {
@@ -83,6 +112,10 @@ export default eslintTs.config(
       ],
       "import/resolver": {
         typescript: {},
+      },
+      "better-tailwindcss": {
+        // tailwindcss 4: the path to the entry file of the css based tailwind config (eg: `src/global.css`)
+        entryPoint: "app/tailwind.css",
       },
     },
   },
@@ -129,6 +162,7 @@ export default eslintTs.config(
       "@typescript-eslint/no-non-null-asserted-optional-chain": "warn",
       "@typescript-eslint/no-empty-object-type": "off",
       "@typescript-eslint/no-explicit-any": ["off", { ignoreRestArgs: true }],
+      "@typescript-eslint/no-namespace": "warn",
     },
   },
   {
@@ -139,5 +173,8 @@ export default eslintTs.config(
         ...globals.node,
       },
     },
-  }
+  },
+
+  // Disable rules that would conflict with prettier
+  eslintConfigPrettier
 );

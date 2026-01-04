@@ -46,7 +46,7 @@ function ListItem<T>({
   return (
     <div
       className={cn(
-        "p-4 border-b border-secondary-foreground transition-colors hover:bg-primary-foreground",
+        "border-b border-secondary-foreground p-4 transition-colors hover:bg-primary/50",
         className
       )}>
       <div className="flex items-center justify-between">

@@ -40,7 +40,7 @@ export class BinaryWriter {
   }
 
   getBuffer(): ArrayBuffer {
-    return this.#dataView.buffer.slice(0, this.#length);
+    return this.#dataView.buffer.slice(0, this.#length) as ArrayBuffer;
   }
 
   getPosition(): number {

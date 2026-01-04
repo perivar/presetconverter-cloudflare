@@ -74,6 +74,10 @@
   "help": {
     "title": "Help"
   },
+  "notFound": {
+    "description": "The page you are looking for does not exist.",
+    "title": "Page not found"
+  },
   "settings": {
     "language": "Language",
     "theme": "Theme",

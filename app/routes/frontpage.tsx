@@ -1,9 +1,7 @@
 // app/routes/frontpage.tsx
 
 import { useCallback, useState } from "react";
-import type { LoaderFunctionArgs, MetaFunction } from "@remix-run/cloudflare";
-import { json } from "@remix-run/react";
-import i18next from "~/i18n/i18n.server";
+import { getInstance } from "~/middleware/i18next";
 import { AbletonDevicePreset } from "~/utils/ableton/AbletonDevicePreset";
 import { AbletonHandlers } from "~/utils/ableton/AbletonHandlers";
 import {
@@ -45,6 +43,7 @@ import { ChevronDown, ChevronUp } from "lucide-react";
 import { MidiData } from "midi-file";
 import { useDropzone } from "react-dropzone";
 import { useTranslation } from "react-i18next";
+import { data } from "react-router";
 
 import { Button } from "~/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "~/components/ui/card";
@@ -62,21 +61,23 @@ import { EqualizerChart } from "~/components/EqualizerChart";
 import { TargetConversion } from "~/components/TargetConversion";
 import { WavesXPSPresetsDisplay } from "~/components/WavesXPSPresetsDisplay";
 
-export async function loader({ request }: LoaderFunctionArgs) {
-  const t = await i18next.getFixedT(request);
+import { Route } from "./+types/frontpage";
 
-  return json({
-    title: t("title"),
-    description: t("description"),
+export async function loader({ context }: Route.LoaderArgs) {
+  const i18next = getInstance(context);
+
+  return data({
+    title: i18next.t("title"),
+    description: i18next.t("description"),
   });
 }
 
-export const meta: MetaFunction<typeof loader> = ({ data }) => {
+export function meta({ loaderData }: Route.MetaArgs) {
   return [
-    { title: data?.title },
-    { name: "description", content: data?.description },
+    { title: loaderData?.title },
+    { name: "description", content: loaderData?.description },
   ];
-};
+}
 
 interface SourcePreset {
   format: string | null;
@@ -582,7 +583,7 @@ export default function Index() {
             <>
               <div className="mt-4 font-mono text-xs">
                 <div className="mb-1 font-semibold">{hexMarker}</div>
-                <pre className="max-h-[500px] overflow-auto whitespace-pre-wrap rounded border bg-muted p-2">
+                <pre className="max-h-125 overflow-auto rounded border bg-muted p-2 whitespace-pre-wrap">
                   {hexBlock}
                 </pre>
               </div>
@@ -597,7 +598,7 @@ export default function Index() {
   }
 
   return (
-    <div className="container mx-auto min-h-screen px-4 py-12 sm:px-6 lg:px-8">
+    <div className="mx-auto min-h-screen px-4 py-12 sm:px-6 lg:px-16">
       <h1 className="mb-4 text-center text-3xl font-bold">{t("title")}</h1>
 
       <Card className="mb-4">
@@ -608,9 +609,8 @@ export default function Index() {
           <div
             {...getRootProps()}
             className={`
-              flex cursor-pointer flex-col items-center justify-center
-              rounded-md border-2 border-dashed p-12 text-center
-              transition-colors
+              flex cursor-pointer flex-col items-center justify-center rounded-md border-2 border-dashed p-12
+              text-center transition-colors
               ${
                 isDragActive
                   ? "border-primary bg-primary/10"
