@@ -3,7 +3,14 @@ import std.mem;
 import std.string;
 import std.sys;
 import std.io;
-import std.ctype;
+
+// Function to generate a color from a u32 integer
+// We use a simple hash multiplier (Golden Ratio) to ensure
+// similar IDs (like "Comp" and "Cont") get very different colors.
+fn chunk_color(u32 seed) {
+    return (seed * 0x9E3779B9) & 0xFFFFFF;
+};
+
 
 // VST3 Preset Header
 struct VST3Header {
@@ -15,10 +22,8 @@ struct VST3Header {
 
 // Generic Chunk Data
 struct VST3Chunk<auto len> {
-   char chunk_id[4];     // Chunk identifier
    u8 chunk_data[len];   // Raw chunk data
-
-   std::print(std::format("chunk_id: '{}': chunk_data len: {}", chunk_id, len));
+   std::print(std::format("chunk_data len: {}", len));
 };
 
 // Chunk Entry in List
@@ -27,8 +32,14 @@ struct VST3ChunkEntry {
    u64 offset;           // Offset to chunk data
    u64 size;             // Size of chunk data
    
+   // Convert the 4-char ID array into a single u32 integer for hashing.
+   // We cast each char to u32 and shift them into position.
+   u32 color_seed = (u32(id[0]) << 24) | (u32(id[1]) << 16) | (u32(id[2]) << 8) | u32(id[3]);
+
    std::print(std::format("id: '{}': offset: {}, size: {}", id, offset, size));
-   VST3Chunk<size> data @ offset;
+   
+   // Pass the calculated seed to the function inside the color attribute
+   VST3Chunk<size> data @ offset [[color(chunk_color(color_seed))]];
 };
 
 // Chunk List
@@ -45,6 +56,7 @@ struct VST3Preset {
    // Validate header magic
    str value = header.magic;
    str expectedValue = "VST3";
+   
    std::assert(
       value == expectedValue,
       std::format(
@@ -52,7 +64,7 @@ struct VST3Preset {
          expectedValue, value, $ - std::string::length(expectedValue)));
 
    // Chunk list at specified offset
-   VST3ChunkList chunk_list @header.list_offset;
+   VST3ChunkList chunk_list @ header.list_offset;
 };
 
-VST3Preset preset @0x00;
+VST3Preset preset @ 0x00;

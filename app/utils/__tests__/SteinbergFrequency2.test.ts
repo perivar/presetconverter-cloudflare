@@ -2,12 +2,12 @@ import fs from "fs";
 import path from "path";
 
 import {
-  FrequencyBandParameters,
-  FrequencyBandParametersCh2,
-  FrequencyPostParameters,
-  FrequencySharedParameters,
-  SteinbergFrequency,
-} from "../preset/SteinbergFrequency";
+  Frequency2BandParameters,
+  Frequency2BandParametersCh2,
+  Frequency2PostParameters,
+  Frequency2SharedParameters,
+  SteinbergFrequency2,
+} from "../preset/SteinbergFrequency2";
 import { Parameter, ParameterType } from "../preset/VstPreset"; // Correctly import Parameter types
 import { VstPresetFactory } from "../preset/VstPresetFactory";
 
@@ -28,20 +28,20 @@ const getSortedNumberParameters = (
     .sort((a, b) => a.Index - b.Index);
 };
 
-describe("SteinbergFrequency", () => {
-  it("should read a preset, write it back, and verify data consistency (Boost High Side)", () => {
+describe("SteinbergFrequency2", () => {
+  it("should read a preset, write it back, and verify data consistency (C15-AllBandsTest)", () => {
     // --- 1. Read the original preset file ---
     const filePath = path.join(
       __dirname,
       "data",
       "Steinberg",
       "Frequency",
-      "Boost High Side (Stereo).vstpreset"
+      "C15-AllBandsTest.vstpreset"
     );
     const fileBuffer = fs.readFileSync(filePath);
 
     // --- 2. Parse the original preset ---
-    const preset1 = new SteinbergFrequency();
+    const preset1 = new SteinbergFrequency2();
     try {
       preset1.read(fileBuffer); // Assuming read method exists in base class
       preset1.readParameters(); // Read specific Frequency params
@@ -73,13 +73,13 @@ describe("SteinbergFrequency", () => {
     expect(writtenBuffer!.length).toBeGreaterThan(0);
 
     // --- 4. Parse the written buffer ---
-    const preset2 = new SteinbergFrequency();
+    const preset2 = new SteinbergFrequency2();
     let bands2: Array<{
-      ch1: FrequencyBandParameters;
-      ch2: FrequencyBandParametersCh2;
-      shared: FrequencySharedParameters;
+      ch1: Frequency2BandParameters;
+      ch2: Frequency2BandParametersCh2;
+      shared: Frequency2SharedParameters;
     }> = [];
-    let postParams2: FrequencyPostParameters | null = null;
+    let postParams2: Frequency2PostParameters | null = null;
 
     if (writtenBuffer) {
       try {
@@ -88,7 +88,7 @@ describe("SteinbergFrequency", () => {
           "data",
           "Steinberg",
           "Frequency",
-          "Boost High Side (Stereo)_out_tmp.vstpreset"
+          "C15-AllBandsTest_out_tmp.vstpreset"
         );
         fs.writeFileSync(filePathWrite, writtenBuffer);
 
@@ -122,13 +122,13 @@ describe("SteinbergFrequency", () => {
     expect(postParams2).toEqual(postParams1);
   });
 
-  test("SteinbergFrequency-readVstPreset-BoostHighSide-params", () => {
+  test("SteinbergFrequency2-readVstPreset-C15-DynaMix-params", () => {
     const filePath = path.join(
       __dirname,
       "data",
       "Steinberg",
       "Frequency",
-      "Boost High Side (Stereo).vstpreset"
+      "C15-DynaMix.vstpreset"
     );
     const fileContent = fs.readFileSync(filePath);
     const uint8ArrayRead = new Uint8Array(fileContent);
@@ -153,7 +153,7 @@ describe("SteinbergFrequency", () => {
         "data",
         "Steinberg",
         "Frequency",
-        "Boost High Side (Stereo)_tmp.vstpreset"
+        "C15-DynaMix_tmp.vstpreset"
       );
       fs.writeFileSync(filePathWrite, uint8ArrayWrite);
     }
@@ -172,13 +172,13 @@ describe("SteinbergFrequency", () => {
     expect(paramsWritten).toEqual(paramsOriginal);
   });
 
-  test("SteinbergFrequency-readVstPreset-CutLowSide-params", () => {
+  test("SteinbergFrequency2-readVstPreset-C15-Reset-params", () => {
     const filePath = path.join(
       __dirname,
       "data",
       "Steinberg",
       "Frequency",
-      "Cut Low Side (Stereo).vstpreset"
+      "C15-Reset.vstpreset"
     );
     const fileContent = fs.readFileSync(filePath);
     const uint8ArrayRead = new Uint8Array(fileContent);
@@ -203,7 +203,7 @@ describe("SteinbergFrequency", () => {
         "data",
         "Steinberg",
         "Frequency",
-        "Cut Low Side (Stereo)_tmp.vstpreset"
+        "C15-Reset_tmp.vstpreset"
       );
       fs.writeFileSync(filePathWrite, uint8ArrayWrite);
     }

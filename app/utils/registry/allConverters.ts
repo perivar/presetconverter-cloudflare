@@ -3,6 +3,7 @@ import { AbletonEq8ToSteinbergFrequency } from "../converters/AbletonEq8ToSteinb
 import { FabFilterProQ3ToGenericFXP } from "../converters/FabFilterProQ3ToGenericFXP";
 import { FabFilterProQBaseToGenericEQ } from "../converters/FabFilterProQBaseToGenericEQ";
 import { FabFilterProQBaseToSteinbergFrequency } from "../converters/FabFilterProQBaseToSteinbergFrequency";
+import { FabFilterProQBaseToSteinbergFrequency2 } from "../converters/FabFilterProQBaseToSteinbergFrequency2";
 import { GenericEQToSteinbergFrequency } from "../converters/GenericEQToSteinbergFrequency";
 import { GenericFXPConverter } from "../converters/GenericFXPConverter";
 import { GenericXMLConverter } from "../converters/GenericXMLConverter";
@@ -24,6 +25,7 @@ import { UADSSLChannelToRawFXP } from "../converters/UADSSLChannelToRawFXP";
 import { UADSSLChannelToSSLNativeChannel } from "../converters/UADSSLChannelToSSLNativeChannel";
 import { UADSSLChannelToText } from "../converters/UADSSLChannelToText";
 import { UADSSLChannelToWavesSSLChannel } from "../converters/UADSSLChannelToWavesSSLChannel";
+import { VstPresetToRawText } from "../converters/VstPresetToRawText";
 import { WavesSSLChannelToGenericEQ } from "../converters/WavesSSLChannelToGenericEQ";
 import { WavesSSLChannelToRawFXP } from "../converters/WavesSSLChannelToRawFXP";
 import { WavesSSLChannelToSSLNativeChannel } from "../converters/WavesSSLChannelToSSLNativeChannel";
@@ -45,6 +47,10 @@ export const allConverters: ConverterRegistration[] = [
   {
     fromTypes: ["FabFilter Pro-Q", "FabFilter Pro-Q 2", "FabFilter Pro-Q 3"],
     converter: FabFilterProQBaseToSteinbergFrequency,
+  },
+  {
+    fromTypes: ["FabFilter Pro-Q", "FabFilter Pro-Q 2", "FabFilter Pro-Q 3"],
+    converter: FabFilterProQBaseToSteinbergFrequency2,
   },
   { fromTypes: ["FabFilter Pro-Q 3"], converter: FabFilterProQ3ToGenericFXP },
   { fromTypes: ["GenericEQPreset"], converter: GenericEQToSteinbergFrequency },
@@ -83,6 +89,10 @@ export const allConverters: ConverterRegistration[] = [
   {
     fromTypes: ["SteinbergFrequency"],
     converter: SteinbergFrequencyToGenericEQ,
+  },
+  {
+    fromTypes: ["SteinbergFrequency", "SteinbergCompressor"],
+    converter: VstPresetToRawText,
   },
   { fromTypes: ["UADSSLChannel"], converter: UADSSLChannelToGenericEQ },
   { fromTypes: ["UADSSLChannel"], converter: UADSSLChannelToRawFXP },

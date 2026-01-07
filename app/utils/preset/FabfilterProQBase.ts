@@ -1,4 +1,5 @@
 import { BinaryFile, ByteOrder } from "../binary/BinaryFile";
+import { BinaryReader } from "../binary/BinaryReader";
 import { ProQShape } from "./FabFilterProQ";
 import { ProQ2Shape } from "./FabFilterProQ2";
 import { ProQ3Shape } from "./FabFilterProQ3";
@@ -61,6 +62,41 @@ export abstract class FabFilterProQBase extends VstPreset {
     }
 
     return this.readFFPInternal(bf);
+  }
+
+  protected readCompData(reader: BinaryReader, chunkSize: number): void {
+    const dataChunkIDBytes = reader.readBytes(4);
+    const dataChunkID = String.fromCharCode(...dataChunkIDBytes);
+    if (dataChunkID === "FabF") {
+      this.readFabF(reader);
+      return;
+    } else {
+      // Rewind and call base
+      reader.seek(this.CompDataStartPos);
+      super.readCompData(reader, chunkSize);
+    }
+  }
+
+  protected readFabF(reader: BinaryReader): void {
+    const version = reader.readUInt32();
+    const nameLength = reader.readUInt32();
+    const name = reader.readString(nameLength);
+    this.setStringParameterWithIndex("PresetName", 0, name);
+    const unknown = reader.readUInt32();
+    const parameterCount = reader.readUInt32();
+    console.debug(
+      `'${name}', version: ${version}, unknown: ${unknown}, param count: ${parameterCount}`
+    );
+    for (let counter = 0; counter < parameterCount; counter++) {
+      const parameterName = `unknown${counter}`;
+      const parameterNumber = counter;
+      const parameterNumberValue = reader.readFloat32();
+      this.setNumberParameterWithIndex(
+        parameterName,
+        parameterNumber,
+        parameterNumberValue
+      );
+    }
   }
 
   /**

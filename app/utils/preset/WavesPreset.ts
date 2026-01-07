@@ -1,8 +1,9 @@
 import { XMLParser } from "fast-xml-parser";
 
 import { BinaryFile, ByteOrder } from "../binary/BinaryFile";
+import { BinaryReader } from "../binary/BinaryReader";
 import { formatNumberWithPrecision } from "../Math";
-// Assuming StringUtils exists and has trimMultiLine
+import { toHexEditorString } from "../StringUtils";
 import { Encoding, NewLineHandling, XmlWriter } from "../XmlWriter";
 import { FxChunkSet, FXP, FxProgramSet } from "./FXP";
 import { VstPreset } from "./VstPreset";
@@ -41,6 +42,46 @@ export abstract class WavesPreset extends VstPreset {
   }
 
   public abstract initFromParameters(): void;
+
+  protected readCompData(reader: BinaryReader, chunkSize: number): void {
+    const unknown1 = BinaryFile.readUInt32(reader, ByteOrder.BigEndian);
+    const unknown2 = BinaryFile.readUInt32(reader, ByteOrder.BigEndian);
+    const unknown3 = BinaryFile.readUInt32(reader, ByteOrder.BigEndian);
+
+    console.debug(
+      `Unknown vars within Waves Preset: ${unknown1}, ${unknown2}, ${unknown3}`
+    );
+
+    const presetType = reader.readString(4);
+    console.debug("PresetType: %s", presetType);
+
+    const setType = reader.readString(4);
+    console.debug("SetType: %s", setType);
+
+    const xmlMainLength = BinaryFile.readUInt32(reader, ByteOrder.BigEndian);
+
+    const xpsID = reader.readString(4);
+    if (xpsID === "XPst") {
+      console.debug("Found XPst content");
+    } else {
+      console.warn(`XPst content expected. Got '${xpsID}' instead.`);
+    }
+
+    const xmlContent = reader.readString(xmlMainLength);
+    this.setStringParameterWithIndex("XmlContent", 1, xmlContent);
+
+    const postTypeBytes = reader.readBytes(4);
+    // const postType = String.fromCharCode(...postTypeBytes);
+    console.debug(`PostType: '${toHexEditorString(postTypeBytes)}'`);
+
+    // there is some xml content after the PresetChunkXMLTree chunk
+    // read in this also
+    // total size - PresetChunkXMLTree size - 32
+    // e.g. 844 - 777 - 32 = 35
+    const xmlPostLength = chunkSize - xmlMainLength - 32;
+    const xmlPostContent = reader.readString(xmlPostLength);
+    this.setStringParameterWithIndex("XmlContentPost", 2, xmlPostContent);
+  }
 
   /**
    * Reads an FXP file and extracts the chunk data.

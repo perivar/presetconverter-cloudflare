@@ -1,3 +1,4 @@
+import { BinaryReader } from "../binary/BinaryReader";
 import { Encoding, NewLineHandling, XmlWriter } from "../XmlWriter";
 import { SteinbergVstPreset } from "./SteinbergVstPreset";
 
@@ -36,6 +37,11 @@ export abstract class SSLNativePresetBase extends SteinbergVstPreset {
   }
 
   protected abstract generatePresetXML(): object;
+
+  protected readCompData(reader: BinaryReader, chunkSize: number): void {
+    const xmlContent = reader.readString(chunkSize);
+    this.setStringParameterWithIndex("XmlContent", 1, xmlContent);
+  }
 
   protected static paramToXmlAttribute(
     paramName: string,

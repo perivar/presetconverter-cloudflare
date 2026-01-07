@@ -7,7 +7,6 @@ import { toHexEditorString } from "../StringUtils";
 import { NewLineHandling, XmlWriter } from "../XmlWriter";
 import { FXP } from "./FXP";
 import { Preset } from "./Preset";
-import { VstClassIDs } from "./VstClassIDs";
 
 export enum ParameterType {
   Number,
@@ -37,20 +36,20 @@ export class Parameter {
   public toString(): string {
     switch (this.Type) {
       case ParameterType.Number:
-        return `${this.Index.toString().padEnd(6)} | ${this.Key.padEnd(20)} | ${(this.Value as number).toFixed(2).padStart(8)}`;
+        return `${this.Index.toString().padEnd(6)} | ${this.Key.padEnd(26)} | ${(this.Value as number).toFixed(2).padStart(8)}`;
       case ParameterType.String: {
         const str = this.Value as string;
         const shortenedString =
           str.substring(0, 200) + (str.length > 200 ? " ..." : "");
-        return `${this.Index.toString().padEnd(6)} | ${this.Key.padEnd(20)} | ${shortenedString}`;
+        return `${this.Index.toString().padEnd(6)} | ${this.Key.padEnd(26)} | ${shortenedString}`;
       }
       case ParameterType.Bytes: {
         const bytes = this.Value as Uint8Array;
         const hexEditorString = toHexEditorString(bytes);
-        return `${this.Index.toString().padEnd(6)} | ${this.Key.padEnd(20)} | ${hexEditorString}`;
+        return `${this.Index.toString().padEnd(6)} | ${this.Key.padEnd(26)} | ${hexEditorString}`;
       }
       default:
-        return `${this.Index.toString().padEnd(6)} | ${this.Key.padEnd(20)} | No Values Set`;
+        return `${this.Index.toString().padEnd(6)} | ${this.Key.padEnd(26)} | No Values Set`;
     }
   }
 }
@@ -115,11 +114,14 @@ export abstract class VstPreset implements Preset {
   protected static readonly HEADER = "VST3";
   protected static readonly VERSION = 1;
   protected static readonly CHUNK_LIST_TYPE = "List";
-  protected static readonly CHUNK_INFO = "Info"; // kMetaInfo - XML metadata
-  protected static readonly CHUNK_COMP = "Comp"; // kComponentState - Component state data
-  protected static readonly CHUNK_CONT = "Cont"; // kControllerState - Controller state data
-  protected static readonly CHUNK_DATA = "Data"; // kProgramData - Program data (parameters)
+  public static readonly CHUNK_INFO = "Info"; // kMetaInfo - XML metadata
+  public static readonly CHUNK_COMP = "Comp"; // kComponentState - Component state data
+  public static readonly CHUNK_CONT = "Cont"; // kControllerState - Controller state data
+  public static readonly CHUNK_DATA = "Data"; // kProgramData - Program data (parameters)
   // Note: "Prog" would correspond to kProgramData as well, but is not used in this implementation
+
+  protected static readonly CHUNK_COMP_HEADER = "CompChunkDataHeader";
+  protected static readonly CHUNK_CONT_HEADER = "ContChunkDataHeader";
 
   // Vst Preset Fields
   public Vst3ClassID: string = "";
@@ -142,6 +144,13 @@ export abstract class VstPreset implements Preset {
 
   public Parameters: Map<string, Parameter> = new Map();
   public FXP: FXP | null = null;
+
+  /**
+   * Clears all parameters from the Parameters map.
+   */
+  public clearParameters(): void {
+    this.Parameters.clear();
+  }
 
   /**
    * Retrieves a parameter by its name.
@@ -186,7 +195,7 @@ export abstract class VstPreset implements Preset {
    * @param value - The number value to set.
    */
   public setNumberParameter(key: string, value: number): void {
-    return this.setNumberParameterWithIndex(key, this.Parameters.size, value);
+    return this.setNumberParameterWithIndex(key, -1, value);
   }
 
   /**
@@ -229,7 +238,7 @@ export abstract class VstPreset implements Preset {
    * @param value - The string value to set.
    */
   public setStringParameter(key: string, value: string): void {
-    return this.setStringParameterWithIndex(key, this.Parameters.size, value);
+    return this.setStringParameterWithIndex(key, -1, value);
   }
 
   /**
@@ -272,7 +281,7 @@ export abstract class VstPreset implements Preset {
    * @param value - The Uint8Array value to set.
    */
   public setBytesParameter(key: string, value: Uint8Array): void {
-    return this.setBytesParameterWithIndex(key, this.Parameters.size, value);
+    return this.setBytesParameterWithIndex(key, -1, value);
   }
 
   /**
@@ -715,7 +724,11 @@ export abstract class VstPreset implements Preset {
         } else if (chunk.id === VstPreset.CHUNK_CONT) {
           this.ContDataStartPos = chunk.offset;
           this.ContDataChunkSize = chunk.size;
-          this.ContChunkData = reader.readBytes(chunk.size);
+          try {
+            this.readContData(reader, chunk.size);
+          } catch (error) {
+            console.warn(error);
+          }
         }
       }
 
@@ -796,462 +809,28 @@ export abstract class VstPreset implements Preset {
   }
 
   /**
-   * Reads and processes the component chunk data based on the VST3 Class ID.
-   * This method handles various formats including VstW, FabF, and specific Steinberg/Waves/Native Instruments formats.
+   * Reads and processes the component chunk data.
+   * Subclasses can override for custom parsing.
    * @param reader - The BinaryReader instance to read from.
    * @param chunkSize - The size of the component chunk data.
-   * @throws Error if the data does not contain any known formats or FXB/FXP data.
    */
   protected readCompData(reader: BinaryReader, chunkSize: number): void {
-    // Some presets start with a chunkID here,
-    // Others start with the preset content
-    const dataChunkIDBytes = reader.readBytes(4);
-    const dataChunkID = String.fromCharCode(...dataChunkIDBytes);
-    console.debug(`Data chunk ID: '${dataChunkID}'`);
-
-    if (dataChunkID === "VstW") {
-      // VstW indicates we have found a VST 2 preset or bank
-      // https://searchcode.com/codesearch/view/90021517/
-
-      // Read VstW chunk size
-      const vst2ChunkSize = BinaryFile.readUInt32(reader, ByteOrder.BigEndian);
-      console.debug(`VstW chunk size: ${vst2ChunkSize}`);
-
-      // Read VstW chunk version
-      const vst2Version = BinaryFile.readUInt32(reader, ByteOrder.BigEndian);
-      console.debug(`VstW version: ${vst2Version}`);
-
-      // Read VstW bypass
-      const vst2Bypass = BinaryFile.readUInt32(reader, ByteOrder.BigEndian);
-      console.debug(`VstW bypass: ${vst2Bypass}`);
-    } else if (dataChunkID === "FabF") {
-      const version = reader.readUInt32();
-      const nameLength = reader.readUInt32();
-
-      const name = reader.readString(nameLength);
-      this.setStringParameterWithIndex("PresetName", 0, name);
-
-      const unknown = reader.readUInt32();
-      const parameterCount = reader.readUInt32();
-
-      console.debug(
-        `'${name}', version: ${version}, unknown: ${unknown}, param count: ${parameterCount}`
-      );
-
-      for (let counter = 0; counter < parameterCount; counter++) {
-        const parameterName = `unknown${counter}`; // don't have a name
-        const parameterNumber = counter;
-        const parameterNumberValue = reader.readFloat32(); // Corrected from readFloat
-        this.setNumberParameterWithIndex(
-          parameterName,
-          parameterNumber,
-          parameterNumberValue
-        );
-      }
-
-      return;
-    } else {
-      if (
-        this.Vst3ClassID === VstClassIDs.SteinbergAmpSimulator ||
-        this.Vst3ClassID === VstClassIDs.SteinbergAutoPan ||
-        this.Vst3ClassID === VstClassIDs.SteinbergBrickwallLimiter ||
-        this.Vst3ClassID === VstClassIDs.SteinbergCompressor ||
-        this.Vst3ClassID === VstClassIDs.SteinbergDeEsser ||
-        this.Vst3ClassID === VstClassIDs.SteinbergDeEsserNew ||
-        this.Vst3ClassID === VstClassIDs.SteinbergDistortion ||
-        this.Vst3ClassID === VstClassIDs.SteinbergDJEq ||
-        this.Vst3ClassID === VstClassIDs.SteinbergDualFilter ||
-        this.Vst3ClassID === VstClassIDs.SteinbergEnvelopeShaper ||
-        this.Vst3ClassID === VstClassIDs.SteinbergEQ ||
-        this.Vst3ClassID === VstClassIDs.SteinbergExpander ||
-        this.Vst3ClassID === VstClassIDs.SteinbergFrequency ||
-        this.Vst3ClassID === VstClassIDs.SteinbergGate ||
-        this.Vst3ClassID === VstClassIDs.SteinbergGEQ10 ||
-        this.Vst3ClassID === VstClassIDs.SteinbergLimiter ||
-        this.Vst3ClassID === VstClassIDs.SteinbergMagnetoII ||
-        this.Vst3ClassID === VstClassIDs.SteinbergMaximizer ||
-        this.Vst3ClassID === VstClassIDs.SteinbergModMachine ||
-        this.Vst3ClassID === VstClassIDs.SteinbergMonoDelay ||
-        this.Vst3ClassID === VstClassIDs.SteinbergMorphFilter ||
-        this.Vst3ClassID === VstClassIDs.SteinbergMultibandCompressor ||
-        this.Vst3ClassID === VstClassIDs.SteinbergMultibandEnvelopeShaper ||
-        this.Vst3ClassID === VstClassIDs.SteinbergNoiseGate ||
-        this.Vst3ClassID === VstClassIDs.SteinbergOctaver ||
-        this.Vst3ClassID === VstClassIDs.SteinbergPingPongDelay ||
-        this.Vst3ClassID === VstClassIDs.SteinbergPitchCorrect ||
-        this.Vst3ClassID === VstClassIDs.SteinbergStereoDelay ||
-        this.Vst3ClassID === VstClassIDs.SteinbergStereoEnhancer ||
-        this.Vst3ClassID === VstClassIDs.SteinbergStudioChorus ||
-        this.Vst3ClassID === VstClassIDs.SteinbergStudioEQ ||
-        this.Vst3ClassID === VstClassIDs.SteinbergTremolo ||
-        this.Vst3ClassID === VstClassIDs.SteinbergTuner ||
-        this.Vst3ClassID === VstClassIDs.SteinbergUV22HR ||
-        this.Vst3ClassID === VstClassIDs.SteinbergVintageCompressor ||
-        this.Vst3ClassID === VstClassIDs.SteinbergVSTDynamics ||
-        this.Vst3ClassID === VstClassIDs.SteinbergRotary
-      ) {
-        // rewind 4 bytes (seek to comp data start pos)
-        reader.seek(this.CompDataStartPos);
-
-        // Read version bytes (4 bytes)
-        const versionBytes = reader.readBytes(4);
-        const _versionNumber = new DataView(versionBytes.buffer).getInt32(
-          0,
-          true
-        );
-        // console.debug("Version number: ", _versionNumber);
-
-        this.setBytesParameter("StartBytes", versionBytes);
-
-        // Read parameters until end of chunk
-        while (reader.getPosition() < chunkSize) {
-          // Read null-terminated string
-          let paramName = "";
-          let byte;
-          while ((byte = reader.readUInt8()) !== 0) {
-            paramName += String.fromCharCode(byte);
-          }
-
-          // Read remaining bytes to complete 128 bytes
-          const remainingBytes = 128 - paramName.length - 1;
-          const _ignoredBytes = reader.readBytes(remainingBytes); // Ignore these bytes
-          // console.debug(
-          //   `Ignored bytes length (Steinberg): ${_ignoredBytes.length}`
-          // );
-
-          const paramIndex = reader.readInt32();
-          const paramValue = new DataView(
-            reader.readBytes(8).buffer
-          ).getFloat64(0, true);
-
-          console.debug(
-            `Found parameter ${paramName}, index: ${paramIndex}, value: ${paramValue}`
-          );
-
-          this.setNumberParameterWithIndex(paramName, paramIndex, paramValue);
-        }
-
-        return;
-      } else if (this.Vst3ClassID === VstClassIDs.SteinbergGrooveAgentONE) {
-        // rewind 4 bytes (seek to comp data start pos)
-        reader.seek(this.CompDataStartPos);
-
-        // read until all bytes have been read
-        const xmlContent = reader.readString(this.CompDataChunkSize);
-
-        this.setStringParameterWithIndex("XmlContent", 1, xmlContent);
-
-        return;
-      } else if (
-        this.Vst3ClassID === VstClassIDs.SteinbergGrooveAgentSE ||
-        this.Vst3ClassID === VstClassIDs.SteinbergHALionSonicSE ||
-        this.Vst3ClassID === VstClassIDs.SteinbergPadShop ||
-        this.Vst3ClassID === VstClassIDs.SteinbergPrologue ||
-        this.Vst3ClassID === VstClassIDs.SteinbergRetrologue ||
-        this.Vst3ClassID === VstClassIDs.SteinbergSamplerTrack ||
-        this.Vst3ClassID === VstClassIDs.SteinbergSpector ||
-        this.Vst3ClassID === VstClassIDs.SteinbergVSTAmpRack
-      ) {
-        // rewind 4 bytes (seek to comp data start pos)
-        reader.seek(this.CompDataStartPos);
-
-        // Note: the first 4 bytes (int32) of both the ComChunk and the ContChunk is the VST3PresetVersion,
-        // as in:
-        // <Attribute id="VST3PresetVersion" value="675282944" type="int" flags="hidden|writeProtected"/>
-
-        // read until all bytes have been read
-        this.CompChunkData = reader.readBytes(this.CompDataChunkSize);
-
-        return;
-      } else if (this.Vst3ClassID === VstClassIDs.SteinbergREVerence) {
-        // rewind 4 bytes (seek to comp data start pos)
-        reader.seek(this.CompDataStartPos);
-
-        const wavFilePath1 = this.readStringNullAndSkip(
-          reader,
-          "utf-16le",
-          1024
-        );
-        console.debug("Wave Path 1: %s", wavFilePath1);
-        this.setStringParameterWithIndex("wave-file-path-1", 0, wavFilePath1);
-
-        const wavCount = reader.readUInt32();
-        console.debug("Wave count: %d", wavCount);
-        this.setNumberParameterWithIndex("wave-count", 0, wavCount);
-
-        const unknown = reader.readUInt32();
-        console.debug("unknown: %d", unknown);
-
-        let parameterCount = -1;
-        if (wavCount > 0) {
-          const wavFilePath2 = this.readStringNullAndSkip(
-            reader,
-            "utf-16le",
-            1024
-          );
-          this.setStringParameterWithIndex("wave-file-path-2", 0, wavFilePath2);
-          console.debug("Wave Path 2: %s", wavFilePath2);
-
-          const wavFileName = this.readStringNullAndSkip(
-            reader,
-            "utf-16le",
-            1024
-          );
-          this.setStringParameterWithIndex("wave-file-name", 0, wavFileName);
-          console.debug("Wav filename: %s", wavFileName);
-
-          const imageCount = reader.readUInt32();
-          this.setNumberParameterWithIndex("image-count", 0, imageCount);
-          console.debug("Image count: %d", imageCount);
-
-          for (let i = 0; i < imageCount; i++) {
-            // images
-            const imagePath = this.readStringNullAndSkip(
-              reader,
-              "utf-16le",
-              1024
-            );
-            this.setStringParameterWithIndex(
-              `image-file-name-${i + 1}`,
-              0,
-              imagePath
-            );
-            console.debug(`Image ${i + 1}: ${imagePath}`);
-          }
-
-          parameterCount = reader.readInt32();
-          this.setNumberParameterWithIndex(
-            "parameter-count",
-            0,
-            parameterCount
-          );
-          console.debug("Parameter count: %d", parameterCount);
-        }
-
-        let parameterCounter = 0;
-        while (reader.getPosition() < this.CompDataEndPosition) {
-          parameterCounter++;
-
-          if (parameterCount > 0 && parameterCounter > parameterCount) break;
-
-          // read the null terminated string
-          let parameterName = "";
-          let byte;
-          while ((byte = reader.readUInt8()) !== 0) {
-            parameterName += String.fromCharCode(byte);
-          }
-          console.debug(
-            `parameterName: [${parameterCounter}] ${parameterName}`
-          );
-
-          // read until 128 bytes have been read
-          const ignore = reader.readBytes(128 - parameterName.length - 1);
-          console.debug(`Ignored bytes length (REVerence): ${ignore.length}`);
-
-          const parameterNumber = reader.readUInt32();
-          console.debug("parameterNumber: %d", parameterNumber);
-
-          // Note! For some reason bf.ReadDouble() doesn't work, neither with LittleEndian or BigEndian
-          const parameterNumberValue = new DataView(
-            reader.readBytes(8).buffer
-          ).getFloat64(0, true);
-          console.debug("parameterNumberValue: %d", parameterNumberValue);
-
-          this.setNumberParameterWithIndex(
-            parameterName,
-            parameterNumber,
-            parameterNumberValue
-          );
-        }
-
-        return;
-      } else if (this.Vst3ClassID === VstClassIDs.SteinbergStandardPanner) {
-        // rewind 4 bytes (seek to comp data start pos)
-        reader.seek(this.CompDataStartPos);
-
-        // read floats
-        this.setNumberParameterWithIndex("Unknown1", 1, reader.readFloat32()); // Corrected from readFloat
-        this.setNumberParameterWithIndex("Unknown2", 2, reader.readFloat32()); // Corrected from readFloat
-
-        // read ints
-        this.setNumberParameterWithIndex("Unknown3", 3, reader.readUInt32());
-        this.setNumberParameterWithIndex("Unknown4", 4, reader.readUInt32());
-        this.setNumberParameterWithIndex("Unknown5", 5, reader.readUInt32());
-
-        return;
-      } else if (
-        this.Vst3ClassID === VstClassIDs.WavesAPI2500Mono ||
-        this.Vst3ClassID === VstClassIDs.WavesBassRiderStereo ||
-        this.Vst3ClassID === VstClassIDs.WavesC1CompStereo ||
-        this.Vst3ClassID === VstClassIDs.WavesC4Stereo ||
-        this.Vst3ClassID === VstClassIDs.WavesCLAGuitarsStereo ||
-        this.Vst3ClassID === VstClassIDs.WavesDeBreathMono ||
-        this.Vst3ClassID === VstClassIDs.WavesDeEsserStereo ||
-        this.Vst3ClassID === VstClassIDs.WavesDoubler2Stereo ||
-        this.Vst3ClassID === VstClassIDs.WavesDoubler4Stereo ||
-        this.Vst3ClassID === VstClassIDs.WavesHDelayStereo ||
-        this.Vst3ClassID === VstClassIDs.WavesKramerTapeStereo ||
-        this.Vst3ClassID === VstClassIDs.WavesL3LLMultiStereo ||
-        this.Vst3ClassID === VstClassIDs.WavesL3MultiMaximizerStereo ||
-        this.Vst3ClassID === VstClassIDs.WavesLinEQLowbandStereo ||
-        this.Vst3ClassID === VstClassIDs.WavesMannyMReverbStereo ||
-        this.Vst3ClassID === VstClassIDs.WavesMaseratiACGStereo ||
-        this.Vst3ClassID === VstClassIDs.WavesMaseratiVX1Stereo ||
-        this.Vst3ClassID === VstClassIDs.WavesMetaFlangerStereo ||
-        this.Vst3ClassID === VstClassIDs.WavesOneKnobFilterStereo ||
-        this.Vst3ClassID === VstClassIDs.WavesPuigChild670Stereo ||
-        this.Vst3ClassID === VstClassIDs.WavesPuigTecEQP1AStereo ||
-        this.Vst3ClassID === VstClassIDs.WavesQ10Stereo ||
-        this.Vst3ClassID === VstClassIDs.WavesQ2Stereo ||
-        this.Vst3ClassID === VstClassIDs.WavesRBassStereo ||
-        this.Vst3ClassID === VstClassIDs.WavesRChannelStereo ||
-        this.Vst3ClassID === VstClassIDs.WavesRCompressorStereo ||
-        this.Vst3ClassID === VstClassIDs.WavesRDeEsserStereo ||
-        this.Vst3ClassID === VstClassIDs.WavesREQ6Stereo ||
-        this.Vst3ClassID === VstClassIDs.WavesRVerbStereo ||
-        this.Vst3ClassID === VstClassIDs.WavesS1ImagerStereo ||
-        this.Vst3ClassID === VstClassIDs.WavesSSLChannelStereo ||
-        this.Vst3ClassID === VstClassIDs.WavesSSLCompStereo ||
-        this.Vst3ClassID === VstClassIDs.WavesSSLEQMono ||
-        this.Vst3ClassID === VstClassIDs.WavesSSLEQStereo ||
-        this.Vst3ClassID === VstClassIDs.WavesSuperTap2TapsMonoStereo ||
-        this.Vst3ClassID === VstClassIDs.WavesSuperTap2TapsStereo ||
-        this.Vst3ClassID === VstClassIDs.WavesTrueVerbStereo ||
-        this.Vst3ClassID === VstClassIDs.WavesTuneLTStereo ||
-        this.Vst3ClassID === VstClassIDs.WavesVitaminStereo ||
-        this.Vst3ClassID === VstClassIDs.WavesVocalRiderStereo
-      ) {
-        // rewind 4 bytes (seek to comp data start pos)
-        reader.seek(this.CompDataStartPos);
-
-        const unknown1 = BinaryFile.readUInt32(reader, ByteOrder.BigEndian);
-        const unknown2 = BinaryFile.readUInt32(reader, ByteOrder.BigEndian);
-        const unknown3 = BinaryFile.readUInt32(reader, ByteOrder.BigEndian);
-
-        console.debug(
-          `Unknown vars within Waves Preset: ${unknown1}, ${unknown2}, ${unknown3}`
-        );
-
-        const presetType = reader.readString(4);
-        console.debug("PresetType: %s", presetType);
-
-        const setType = reader.readString(4);
-        console.debug("SetType: %s", setType);
-
-        const xmlMainLength = BinaryFile.readUInt32(
-          reader,
-          ByteOrder.BigEndian
-        );
-
-        const xpsID = reader.readString(4);
-        if (xpsID === "XPst") {
-          console.debug("Found XPst content");
-        } else {
-          console.warn(`XPst content expected. Got '${xpsID}' instead.`);
-        }
-
-        const xmlContent = reader.readString(xmlMainLength);
-        this.setStringParameterWithIndex("XmlContent", 1, xmlContent);
-
-        const postTypeBytes = reader.readBytes(4);
-        // const postType = String.fromCharCode(...postTypeBytes);
-        console.debug(`PostType: '${toHexEditorString(postTypeBytes)}'`);
-
-        // there is some xml content after the PresetChunkXMLTree chunk
-        // read in this also
-        // total size - PresetChunkXMLTree size - 32
-        // e.g. 844 - 777 - 32 = 35
-        const xmlPostLength = chunkSize - xmlMainLength - 32;
-        const xmlPostContent = reader.readString(xmlPostLength);
-        this.setStringParameterWithIndex("XmlContentPost", 2, xmlPostContent);
-
-        return;
-      } else if (
-        this.Vst3ClassID === VstClassIDs.SSLNativeChannel2 ||
-        this.Vst3ClassID === VstClassIDs.SSLNativeBusCompressor2
-      ) {
-        // rewind 4 bytes (seek to comp data start pos)
-        reader.seek(this.CompDataStartPos);
-
-        const xmlMainLength = this.CompDataChunkSize;
-        const xmlContent = reader.readString(xmlMainLength);
-        this.setStringParameterWithIndex("XmlContent", 1, xmlContent);
-
-        return;
-      } else if (this.Vst3ClassID === VstClassIDs.NIKontakt5) {
-        // rewind 4 bytes (seek to comp data start pos)
-        reader.seek(this.CompDataStartPos);
-
-        // read until all bytes have been read
-        this.CompChunkData = reader.readBytes(this.CompDataChunkSize);
-
-        return;
-      } else if (
-        this.Vst3ClassID === VstClassIDs.EastWestPlay ||
-        this.Vst3ClassID === VstClassIDs.EastWestPlayx64
-      ) {
-        // rewind 4 bytes (seek to comp data start pos)
-        reader.seek(this.CompDataStartPos);
-
-        // Note: the first 4 bytes (int32) of both the ComChunk and the ContChunk is the VST3PresetVersion,
-        // as in:
-        // <Attribute id="VST3PresetVersion" value="675282944" type="int" flags="hidden|writeProtected"/>
-
-        // read until all bytes have been read
-        this.CompChunkData = reader.readBytes(this.CompDataChunkSize);
-
-        return;
-      } else if (
-        this.Vst3ClassID === VstClassIDs.MusicLabRealEight ||
-        this.Vst3ClassID === VstClassIDs.MusicLabRealGuitarClassic ||
-        this.Vst3ClassID === VstClassIDs.MusicLabRealLPC ||
-        this.Vst3ClassID === VstClassIDs.MusicLabRealStrat
-      ) {
-        // rewind 4 bytes (seek to comp data start pos)
-        reader.seek(this.CompDataStartPos);
-
-        // Note: the first 4 bytes (int32) of both the ComChunk and the ContChunk is the VST3PresetVersion,
-        // as in:
-        // <Attribute id="VST3PresetVersion" value="675282944" type="int" flags="hidden|writeProtected"/>
-
-        // read until all bytes have been read
-        this.CompChunkData = reader.readBytes(this.CompDataChunkSize);
-
-        return;
-      } else {
-        // rewind 4 bytes (seek to comp data start pos)
-        reader.seek(this.CompDataStartPos);
-
-        // Note: the first 4 bytes (int32) of both the ComChunk and the ContChunk is the VST3PresetVersion,
-        // as in:
-        // <Attribute id="VST3PresetVersion" value="675282944" type="int" flags="hidden|writeProtected"/>
-
-        // read until all bytes have been read
-        this.CompChunkData = reader.readBytes(this.CompDataChunkSize);
-
-        throw new Error(
-          "Data does not contain any known formats or FXB or FXP data (1)"
-        );
-      }
-    }
-
-    // OK, getting here we should have access to a fxp/fxb chunk:
+    // Default: store raw bytes
+    this.CompChunkData = reader.readBytes(chunkSize);
+  }
+
+  /**
+   * Attempts to read FXP data from the current position.
+   * @param reader - The BinaryReader instance.
+   */
+  protected tryReadFXP(reader: BinaryReader): void {
     const fxpChunkStart = reader.getPosition();
     const fxpDataChunkStart = reader.readString(4);
     if (fxpDataChunkStart != "CcnK") {
-      throw new Error(
-        `Data does not contain any known formats or FXB or FXP data (DataChunkStart: ${fxpDataChunkStart})`
-      );
+      return;
     }
-
-    // OK, seems to be a valid fxb or fxp chunk.
-    // Get chunk size and add 8 bytes to include all bytes from 'CcnK' and the 4 chunk-size bytes
-    // Note: FXP chunks use BigEndian byte order
     const fxpChunkSize = BinaryFile.readUInt32(reader, ByteOrder.BigEndian) + 8;
-
-    // Read magic value to determine chunk type (FXP/FXB)
     const fxpMagicChunkID = reader.readString(4);
-
     if (
       fxpMagicChunkID != "FxCk" &&
       fxpMagicChunkID != "FPCh" &&
@@ -1262,16 +841,21 @@ export abstract class VstPreset implements Preset {
         `Data does not contain any known formats or FXB or FXP data (fxpMagicChunkID: ${fxpMagicChunkID})`
       );
     }
-
-    // Read fxp chunk data
     reader.seek(fxpChunkStart);
     const fxpChunkData = reader.readBytes(fxpChunkSize);
-
-    // Create new FXP object with chunk data
     this.FXP = new FXP(fxpChunkData);
-
-    // Set the chunk data using FXP
     this.setCompChunkDataFromFXP(this.FXP);
+  }
+
+  /**
+   * Reads controller chunk data.
+   * Subclasses can override for custom parsing.
+   * @param reader - The BinaryReader instance to read from.
+   * @param chunkSize - The size of the controller chunk data.
+   */
+  protected readContData(reader: BinaryReader, chunkSize: number): void {
+    // Default: store raw bytes
+    this.ContChunkData = reader.readBytes(chunkSize);
   }
 
   /**
@@ -1385,9 +969,10 @@ export abstract class VstPreset implements Preset {
    */
   public toString(): string {
     const lines: string[] = [];
-    lines.push(`Vst3ID: ${this.Vst3ClassID}`);
+    lines.push(`Vst3ID: ${this.Vst3ClassID}\n`);
 
     if (this.Parameters.size > 0) {
+      lines.push(`Parameters (${this.Parameters.size})`);
       // Output parameters - Note: Map iteration order isn't guaranteed,
       for (const parameter of this.Parameters.values()) {
         lines.push(parameter.toString());
@@ -1395,6 +980,7 @@ export abstract class VstPreset implements Preset {
     }
 
     if (this.InfoXml) {
+      lines.push(`\nInfoXML:`);
       lines.push(this.InfoXml);
     }
 
