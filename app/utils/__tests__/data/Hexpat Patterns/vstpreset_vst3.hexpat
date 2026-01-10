@@ -1,3 +1,6 @@
+#pragma description Vst3Preset bytecode
+#pragma magic [ 56 53 54 33 ] @ 0x00
+
 #pragma endian little
 import std.mem;
 import std.string;

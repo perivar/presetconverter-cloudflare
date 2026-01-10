@@ -2,12 +2,12 @@ import fs from "fs";
 import path from "path";
 
 import {
-  Frequency2BandParameters,
-  Frequency2BandParametersCh2,
-  Frequency2PostParameters,
-  Frequency2SharedParameters,
-  SteinbergFrequency2,
-} from "../preset/SteinbergFrequency2";
+  FrequencyBandParameters,
+  FrequencyBandParametersCh2,
+  FrequencyPostParameters,
+  FrequencySharedParameters,
+  SteinbergFrequency,
+} from "../preset/SteinbergFrequency";
 import { Parameter, ParameterType } from "../preset/VstPreset"; // Correctly import Parameter types
 import { VstPresetFactory } from "../preset/VstPresetFactory";
 
@@ -41,7 +41,7 @@ describe("SteinbergFrequency2", () => {
     const fileBuffer = fs.readFileSync(filePath);
 
     // --- 2. Parse the original preset ---
-    const preset1 = new SteinbergFrequency2();
+    const preset1 = new SteinbergFrequency(2);
     try {
       preset1.read(fileBuffer); // Assuming read method exists in base class
       preset1.readParameters(); // Read specific Frequency params
@@ -73,13 +73,13 @@ describe("SteinbergFrequency2", () => {
     expect(writtenBuffer!.length).toBeGreaterThan(0);
 
     // --- 4. Parse the written buffer ---
-    const preset2 = new SteinbergFrequency2();
+    const preset2 = new SteinbergFrequency(2);
     let bands2: Array<{
-      ch1: Frequency2BandParameters;
-      ch2: Frequency2BandParametersCh2;
-      shared: Frequency2SharedParameters;
+      ch1: FrequencyBandParameters;
+      ch2: FrequencyBandParametersCh2;
+      shared: FrequencySharedParameters;
     }> = [];
-    let postParams2: Frequency2PostParameters | null = null;
+    let postParams2: FrequencyPostParameters | null = null;
 
     if (writtenBuffer) {
       try {

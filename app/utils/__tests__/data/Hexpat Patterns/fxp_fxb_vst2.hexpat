@@ -1,3 +1,6 @@
+#pragma description Vst2Preset bytecode
+#pragma magic [ 43 63 6E 4B ] @ 0x00
+
 #pragma endian big
 
 // Hex-pat for VST2 Preset (.fxp) and Bank (.fxb) files

@@ -47,14 +47,62 @@ export abstract class FabFilterProQBase extends VstPreset {
 
   // method for reading FFBS (FabFilter Binary State)
   public readFabFilterBinaryState(data: Uint8Array): boolean {
-    const bf = new BinaryFile(data, ByteOrder.LittleEndian);
+    let bf = new BinaryFile(data, ByteOrder.LittleEndian);
     if (!bf.binaryReader) return false;
 
     try {
-      const header = bf.binaryReader.readString(4);
-      if (header !== "FFBS") {
-        console.error(`Invalid header. Expected 'FFBS', got '${header}'`);
+      let header = bf.binaryReader.readString(4);
+
+      if (header !== "FFBS" && header !== "VstW") {
+        console.error(
+          `Invalid header. Expected 'FFBS' or 'VstW', got '${header}'`
+        );
         return false;
+      } else if (header === "VstW") {
+        // VstW indicates we have found a VST 2 preset or bank
+        // https://searchcode.com/codesearch/view/90021517/
+
+        // Read VstW chunk size
+        const vst2ChunkSize = BinaryFile.readUInt32(
+          bf.binaryReader,
+          ByteOrder.BigEndian
+        );
+        console.debug(`VstW chunk size: ${vst2ChunkSize}`);
+
+        // Read VstW chunk version
+        const vst2Version = BinaryFile.readUInt32(
+          bf.binaryReader,
+          ByteOrder.BigEndian
+        );
+        console.debug(`VstW version: ${vst2Version}`);
+
+        // Read VstW bypass
+        const vst2Bypass = BinaryFile.readUInt32(
+          bf.binaryReader,
+          ByteOrder.BigEndian
+        );
+        console.debug(`VstW bypass: ${vst2Bypass}`);
+
+        // try read fxp
+        this.tryReadFXP(bf.binaryReader);
+
+        // if there is fxp data, reinitialize bf
+        if (
+          this.FXP !== null &&
+          this.FXP.content !== null &&
+          "ChunkData" in this.FXP.content!
+        ) {
+          bf = new BinaryFile(
+            this.FXP.content.ChunkData,
+            ByteOrder.LittleEndian
+          );
+
+          header = bf.binaryReader!.readString(4);
+          if (header !== "FFBS") {
+            console.error(`Invalid header. Expected 'FFBS', got '${header}'`);
+            return false;
+          }
+        }
       }
     } catch (e) {
       console.error("Error reading FXP chunk data:", e);

@@ -70,7 +70,7 @@ export class ProQ3Band implements ProQBaseBand {
       `${shapeStr} @ ${this.Frequency.toFixed(1)} Hz | ` +
       `Gain: ${this.Gain.toFixed(1)} dB | Q: ${this.Q.toFixed(2)} | ` +
       `${slopeStr} | ` +
-      `Dynamic Range: ${this.DynamicRange.toFixed(1)} dB | ` +
+      `Dyn.Rng.: ${this.DynamicRange.toFixed(1)} dB | ` +
       `Threshold: ${this.DynamicThreshold === 1 ? "Auto" : this.DynamicThreshold.toFixed(1) + " dB"}`
     );
   }

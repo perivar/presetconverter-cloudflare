@@ -71,7 +71,7 @@ export class GenericEQBand {
   }
 
   toString(): string {
-    const enabledStr = this.Enabled ? "Enabled" : "Disabled";
+    const enabledStr = this.Enabled ? "On" : "Off";
     const shapeStr = GenericEQShape[this.Shape];
     const slopeStr = GenericEQSlope[this.Slope];
     const placementStr = GenericEQStereoPlacement[this.StereoPlacement];
@@ -80,11 +80,11 @@ export class GenericEQBand {
 
     const dynamicStr =
       this.DynamicRange !== undefined && this.DynamicThreshold !== undefined
-        ? ` | Dynamic Range: ${this.DynamicRange.toFixed(1)} dB | Threshold: ${this.DynamicThreshold === 1 ? "Auto" : this.DynamicThreshold.toFixed(1) + " dB"}`
+        ? ` | Dyn.Rng.: ${this.DynamicRange.toFixed(1)} dB | Thrsh: ${this.DynamicThreshold === 1 ? "Auto" : this.DynamicThreshold.toFixed(1) + " dB"}`
         : "";
 
     // Define padding lengths for alignment
-    const PADDING_ENABLED = 8; // e.g., "Disabled"
+    const PADDING_ENABLED = 4; // e.g., "Off"
     const PADDING_PLACEMENT = 6; // e.g., "Stereo"
     const PADDING_GAIN = 14; // e.g., "Gain: -99.9 dB"
     const PADDING_Q = 8; // e.g., "Q: 99.99"

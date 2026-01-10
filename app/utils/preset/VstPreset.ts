@@ -829,7 +829,13 @@ export abstract class VstPreset implements Preset {
     if (fxpDataChunkStart != "CcnK") {
       return;
     }
+
+    // OK, seems to be a valid fxb or fxp chunk.
+    // Get chunk size and add 8 bytes to include all bytes from 'CcnK' and the 4 chunk-size bytes
+    // Note: FXP chunks use BigEndian byte order
     const fxpChunkSize = BinaryFile.readUInt32(reader, ByteOrder.BigEndian) + 8;
+
+    // Read magic value to determine chunk type (FXP/FXB)
     const fxpMagicChunkID = reader.readString(4);
     if (
       fxpMagicChunkID != "FxCk" &&
@@ -842,8 +848,14 @@ export abstract class VstPreset implements Preset {
       );
     }
     reader.seek(fxpChunkStart);
+
+    // Read fxp chunk data
     const fxpChunkData = reader.readBytes(fxpChunkSize);
+
+    // Create new FXP object with chunk data
     this.FXP = new FXP(fxpChunkData);
+
+    // Set the chunk data using FXP
     this.setCompChunkDataFromFXP(this.FXP);
   }
 
