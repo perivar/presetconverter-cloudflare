@@ -8,6 +8,7 @@ import {
   FrequencyBandMode2To7,
   SteinbergFrequency,
 } from "../preset/SteinbergFrequency";
+import { VstPreset } from "../preset/VstPreset";
 import { MultiFormatConverter } from "./MultiFormatConverter";
 
 export const AbletonEq8ToSteinbergFrequency: MultiFormatConverter<
@@ -28,8 +29,15 @@ export const AbletonEq8ToSteinbergFrequency: MultiFormatConverter<
     const frequency = new SteinbergFrequency();
 
     const setParamValue = (paramName: string, value: number) => {
-      const param = frequency.Parameters.get(paramName);
-      if (param) param.Value = value;
+      const param = frequency.Parameters.get(
+        `${VstPreset.CHUNK_COMP}${paramName}`
+      );
+      if (!param) {
+        throw new Error(
+          `Parameter ${`${VstPreset.CHUNK_COMP}${paramName}`} not found`
+        );
+      }
+      param.Value = value;
     };
 
     const isBandMode1Or8 = (bandNumber: number) =>
@@ -45,48 +53,44 @@ export const AbletonEq8ToSteinbergFrequency: MultiFormatConverter<
       setParamValue(`equalizerAfreq${bandNumber}`, band.Freq);
       setParamValue(`equalizerAq${bandNumber}`, band.Q);
 
-      const paramAtypeName = `equalizerAtype${bandNumber}`;
-      const paramAtype = frequency.Parameters.get(paramAtypeName);
-      if (!paramAtype) {
-        throw new Error(`Parameter ${paramAtypeName} not found`);
-      }
-
+      let paramValueEqType = 0;
       switch (band.Mode) {
         case AbletonEq8BandMode.LowCut48:
-          paramAtype.Value = FrequencyBandMode1And8.Cut48;
+          paramValueEqType = FrequencyBandMode1And8.Cut48;
           break;
         case AbletonEq8BandMode.LowCut12:
-          paramAtype.Value = FrequencyBandMode1And8.Cut12;
+          paramValueEqType = FrequencyBandMode1And8.Cut12;
           break;
         case AbletonEq8BandMode.LeftShelf:
-          paramAtype.Value = isBandMode1Or8(bandNumber)
+          paramValueEqType = isBandMode1Or8(bandNumber)
             ? FrequencyBandMode1And8.LowShelf
             : FrequencyBandMode2To7.LowShelf;
           break;
         case AbletonEq8BandMode.Bell:
-          paramAtype.Value = isBandMode1Or8(bandNumber)
+          paramValueEqType = isBandMode1Or8(bandNumber)
             ? FrequencyBandMode1And8.Peak
             : FrequencyBandMode2To7.Peak;
           break;
         case AbletonEq8BandMode.Notch:
-          paramAtype.Value = isBandMode1Or8(bandNumber)
+          paramValueEqType = isBandMode1Or8(bandNumber)
             ? FrequencyBandMode1And8.Notch
             : FrequencyBandMode2To7.Notch;
           break;
         case AbletonEq8BandMode.RightShelf:
-          paramAtype.Value = isBandMode1Or8(bandNumber)
+          paramValueEqType = isBandMode1Or8(bandNumber)
             ? FrequencyBandMode1And8.HighShelf
             : FrequencyBandMode2To7.HighShelf;
           break;
         case AbletonEq8BandMode.HighCut12:
-          paramAtype.Value = FrequencyBandMode1And8.Cut12;
+          paramValueEqType = FrequencyBandMode1And8.Cut12;
           break;
         case AbletonEq8BandMode.HighCut48:
-          paramAtype.Value = FrequencyBandMode1And8.Cut48;
+          paramValueEqType = FrequencyBandMode1And8.Cut48;
           break;
         default:
           throw new Error(`Unknown BandMode: ${band.Mode}`);
       }
+      setParamValue(`equalizerAtype${bandNumber}`, paramValueEqType);
     }
 
     return frequency;

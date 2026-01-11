@@ -1,5 +1,6 @@
 import { FabFilterProQBase } from "../preset/FabFilterProQBase";
 import { SteinbergFrequency } from "../preset/SteinbergFrequency";
+import { convertFabFilterProQBaseToSteinbergFrequency } from "./FabFilterProQBaseToSteinbergFrequency";
 import { MultiFormatConverter } from "./MultiFormatConverter";
 
 export const FabFilterProQBaseToSteinbergFrequency2: MultiFormatConverter<

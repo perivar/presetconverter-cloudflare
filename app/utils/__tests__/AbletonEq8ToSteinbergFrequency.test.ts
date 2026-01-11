@@ -9,6 +9,7 @@ import {
   FrequencyBandMode1And8,
   FrequencyBandMode2To7,
 } from "../preset/SteinbergFrequency";
+import { VstPreset } from "../preset/VstPreset";
 
 describe("AbletonEq8ToSteinbergFrequency", () => {
   it("should convert AbletonEq8 to SteinbergFrequency", () => {
@@ -53,39 +54,69 @@ describe("AbletonEq8ToSteinbergFrequency", () => {
     expect(steinbergFrequency.Parameters.size).toBeGreaterThan(0);
 
     // Check Band 1 (LowShelf)
-    const band1On = steinbergFrequency.Parameters.get("equalizerAbandon1");
+    const band1On = steinbergFrequency.Parameters.get(
+      `${VstPreset.CHUNK_COMP}equalizerAbandon1`
+    );
     expect(band1On?.Value).toBe(1.0);
-    const band1Gain = steinbergFrequency.Parameters.get("equalizerAgain1");
+    const band1Gain = steinbergFrequency.Parameters.get(
+      `${VstPreset.CHUNK_COMP}equalizerAgain1`
+    );
     expect(band1Gain?.Value).toBe(6.0);
-    const band1Freq = steinbergFrequency.Parameters.get("equalizerAfreq1");
+    const band1Freq = steinbergFrequency.Parameters.get(
+      `${VstPreset.CHUNK_COMP}equalizerAfreq1`
+    );
     expect(band1Freq?.Value).toBe(50.0);
-    const band1Q = steinbergFrequency.Parameters.get("equalizerAq1");
+    const band1Q = steinbergFrequency.Parameters.get(
+      `${VstPreset.CHUNK_COMP}equalizerAq1`
+    );
     expect(band1Q?.Value).toBe(0.71);
-    const band1Type = steinbergFrequency.Parameters.get("equalizerAtype1");
+    const band1Type = steinbergFrequency.Parameters.get(
+      `${VstPreset.CHUNK_COMP}equalizerAtype1`
+    );
     expect(band1Type?.Value).toBe(FrequencyBandMode1And8.LowShelf);
 
     // Check Band 4 (Bell - should be Peak in Steinberg)
-    const band4On = steinbergFrequency.Parameters.get("equalizerAbandon4");
+    const band4On = steinbergFrequency.Parameters.get(
+      `${VstPreset.CHUNK_COMP}equalizerAbandon4`
+    );
     expect(band4On?.Value).toBe(0.0); // Band is off in Ableton
-    const band4Gain = steinbergFrequency.Parameters.get("equalizerAgain4");
+    const band4Gain = steinbergFrequency.Parameters.get(
+      `${VstPreset.CHUNK_COMP}equalizerAgain4`
+    );
     expect(band4Gain?.Value).toBe(-3.0);
-    const band4Freq = steinbergFrequency.Parameters.get("equalizerAfreq4");
+    const band4Freq = steinbergFrequency.Parameters.get(
+      `${VstPreset.CHUNK_COMP}equalizerAfreq4`
+    );
     expect(band4Freq?.Value).toBe(2000.0);
-    const band4Q = steinbergFrequency.Parameters.get("equalizerAq4");
+    const band4Q = steinbergFrequency.Parameters.get(
+      `${VstPreset.CHUNK_COMP}equalizerAq4`
+    );
     expect(band4Q?.Value).toBe(3.0);
-    const band4Type = steinbergFrequency.Parameters.get("equalizerAtype4");
+    const band4Type = steinbergFrequency.Parameters.get(
+      `${VstPreset.CHUNK_COMP}equalizerAtype4`
+    );
     expect(band4Type?.Value).toBe(FrequencyBandMode2To7.Peak);
 
     // Check Band 8 (HighCut48)
-    const band8On = steinbergFrequency.Parameters.get("equalizerAbandon8");
+    const band8On = steinbergFrequency.Parameters.get(
+      `${VstPreset.CHUNK_COMP}equalizerAbandon8`
+    );
     expect(band8On?.Value).toBe(1.0); // Band is on in Ableton
-    const band8Gain = steinbergFrequency.Parameters.get("equalizerAgain8");
+    const band8Gain = steinbergFrequency.Parameters.get(
+      `${VstPreset.CHUNK_COMP}equalizerAgain8`
+    );
     expect(band8Gain?.Value).toBe(0.0);
-    const band8Freq = steinbergFrequency.Parameters.get("equalizerAfreq8");
+    const band8Freq = steinbergFrequency.Parameters.get(
+      `${VstPreset.CHUNK_COMP}equalizerAfreq8`
+    );
     expect(band8Freq?.Value).toBe(15000.0);
-    const band8Q = steinbergFrequency.Parameters.get("equalizerAq8");
+    const band8Q = steinbergFrequency.Parameters.get(
+      `${VstPreset.CHUNK_COMP}equalizerAq8`
+    );
     expect(band8Q?.Value).toBe(1.0);
-    const band8Type = steinbergFrequency.Parameters.get("equalizerAtype8");
+    const band8Type = steinbergFrequency.Parameters.get(
+      `${VstPreset.CHUNK_COMP}equalizerAtype8`
+    );
     expect(band8Type?.Value).toBe(FrequencyBandMode1And8.Cut48);
   });
 

@@ -22,6 +22,7 @@ import {
   FrequencyChannelMode,
   SteinbergFrequency,
 } from "../preset/SteinbergFrequency";
+import { VstPreset } from "../preset/VstPreset";
 import { MultiFormatConverter } from "./MultiFormatConverter";
 
 export function convertFabFilterProQBaseToSteinbergFrequency(
@@ -34,11 +35,31 @@ export function convertFabFilterProQBaseToSteinbergFrequency(
   const hasLowCutBand = eq.Bands.some(band => isLowCut((band as Band).Shape));
   const hasHighCutBand = eq.Bands.some(band => isHighCut((band as Band).Shape));
 
-  // get remaining bands that are not lowcut or highcut and sort by frequency
-  const band2To7 = eq.Bands.filter(band => {
+  // Get all bands that are not lowcut or highcut
+  let band2To7 = eq.Bands.filter(band => {
     const shape = (band as Band).Shape;
     return !isLowCut(shape) && !isHighCut(shape);
   }).sort((a, b) => a.Frequency - b.Frequency);
+
+  // If there are more than 6 bands, prioritize keeping enabled bands
+  if (band2To7.length > 6) {
+    const enabledBands = band2To7.filter(band => (band as Band).Enabled);
+    const disabledBands = band2To7.filter(band => !(band as Band).Enabled);
+
+    // If we have 6 or fewer enabled bands, keep all enabled and fill with disabled if needed
+    if (enabledBands.length <= 6) {
+      band2To7 = enabledBands.concat(
+        disabledBands.slice(0, 6 - enabledBands.length)
+      );
+    } else {
+      // If more than 6 enabled bands, keep the 6 with the highest gain change
+      band2To7 = enabledBands
+        .sort((a, b) => Math.abs(b.Gain) - Math.abs(a.Gain))
+        .slice(0, 6);
+    }
+    // Ensure the final band2To7 is sorted by frequency
+    band2To7 = band2To7.sort((a, b) => a.Frequency - b.Frequency);
+  }
 
   if (hasLowCutBand) {
     const lowCutBand = eq.Bands.filter(band =>
@@ -233,10 +254,12 @@ function setBandParameter(
   param: string,
   value: number
 ): void {
-  frequency.setNumberParameter(
-    `equalizerA${param}${bandNumber}${channel}`,
-    value
-  );
+  const paramName = `${VstPreset.CHUNK_COMP}equalizerA${param}${bandNumber}${channel}`;
+  const parameter = frequency.Parameters.get(paramName);
+  if (!parameter) {
+    throw new Error(`Parameter ${paramName} not found`);
+  }
+  parameter.Value = value;
 }
 
 export function setBand(
