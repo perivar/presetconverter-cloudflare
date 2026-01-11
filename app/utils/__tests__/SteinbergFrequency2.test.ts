@@ -10,6 +10,7 @@ import {
 } from "../preset/SteinbergFrequency";
 import { Parameter, ParameterType } from "../preset/VstPreset"; // Correctly import Parameter types
 import { VstPresetFactory } from "../preset/VstPresetFactory";
+import { expectUint8ArraysToBeEqual } from "./helpers/testUtils";
 
 // Import interfaces if needed for typing
 
@@ -88,7 +89,7 @@ describe("SteinbergFrequency2", () => {
           "data",
           "Steinberg",
           "Frequency",
-          "C15-AllBandsTest_out_tmp.vstpreset"
+          "C15-AllBandsTest_tmp.vstpreset"
         );
         fs.writeFileSync(filePathWrite, writtenBuffer);
 
@@ -120,6 +121,12 @@ describe("SteinbergFrequency2", () => {
       expect(bands2[i].shared).toEqual(bands1[i].shared);
     }
     expect(postParams2).toEqual(postParams1);
+
+    const readBuffer = new Uint8Array(fileBuffer);
+    if (readBuffer && writtenBuffer) {
+      // Compare arrays using the helper function for better diff output on failure
+      expectUint8ArraysToBeEqual(readBuffer, writtenBuffer);
+    }
   });
 
   test("SteinbergFrequency2-readVstPreset-C15-DynaMix-params", () => {
@@ -170,6 +177,9 @@ describe("SteinbergFrequency2", () => {
       vstPresetWritten.Parameters
     );
     expect(paramsWritten).toEqual(paramsOriginal);
+
+    // Compare arrays using the helper function for better diff output on failure
+    expectUint8ArraysToBeEqual(uint8ArrayRead, uint8ArrayWrite);
   });
 
   test("SteinbergFrequency2-readVstPreset-C15-Reset-params", () => {
@@ -220,5 +230,8 @@ describe("SteinbergFrequency2", () => {
       vstPresetWritten.Parameters
     );
     expect(paramsWritten).toEqual(paramsOriginal);
+
+    // Compare arrays using the helper function for better diff output on failure
+    expectUint8ArraysToBeEqual(uint8ArrayRead, uint8ArrayWrite);
   });
 });

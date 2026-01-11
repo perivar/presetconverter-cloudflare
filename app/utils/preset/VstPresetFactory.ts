@@ -50,7 +50,14 @@ export class VstPresetFactory {
           preset = new FabFilterProQ3();
           break;
         case VstClassIDs.SteinbergFrequency:
-          preset = new SteinbergFrequency();
+          // we have to check the 4 bytes starting from location 48 in presetBytes to determine version
+          const lengthBytes = presetBytes.slice(48, 52);
+          const length = new Uint32Array(lengthBytes.buffer)[0];
+          if (length === 43200) {
+            preset = new SteinbergFrequency(2);
+          } else {
+            preset = new SteinbergFrequency(1);
+          }
           break;
         case VstClassIDs.WavesSSLChannelStereo:
           preset = new WavesSSLChannel();

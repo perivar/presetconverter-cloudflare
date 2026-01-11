@@ -10,6 +10,7 @@ import {
 } from "../preset/SteinbergFrequency";
 import { Parameter, ParameterType } from "../preset/VstPreset"; // Correctly import Parameter types
 import { VstPresetFactory } from "../preset/VstPresetFactory";
+import { expectUint8ArraysToBeEqual } from "./helpers/testUtils";
 
 // Import interfaces if needed for typing
 
@@ -29,14 +30,14 @@ const getSortedNumberParameters = (
 };
 
 describe("SteinbergFrequency", () => {
-  it("should read a preset, write it back, and verify data consistency (Boost High Side)", () => {
+  it("should read a preset, write it back, and verify data consistency (Ableton - Drum Loop)", () => {
     // --- 1. Read the original preset file ---
     const filePath = path.join(
       __dirname,
       "data",
       "Steinberg",
       "Frequency",
-      "Boost High Side (Stereo).vstpreset"
+      "Ableton - Drum Loop.vstpreset"
     );
     const fileBuffer = fs.readFileSync(filePath);
 
@@ -88,7 +89,7 @@ describe("SteinbergFrequency", () => {
           "data",
           "Steinberg",
           "Frequency",
-          "Boost High Side (Stereo)_out_tmp.vstpreset"
+          "Ableton - Drum Loop_tmp.vstpreset"
         );
         fs.writeFileSync(filePathWrite, writtenBuffer);
 
@@ -120,6 +121,12 @@ describe("SteinbergFrequency", () => {
       expect(bands2[i].shared).toEqual(bands1[i].shared);
     }
     expect(postParams2).toEqual(postParams1);
+
+    const readBuffer = new Uint8Array(fileBuffer);
+    if (readBuffer && writtenBuffer) {
+      // Compare arrays using the helper function for better diff output on failure
+      expectUint8ArraysToBeEqual(readBuffer, writtenBuffer);
+    }
   });
 
   test("SteinbergFrequency-readVstPreset-BoostHighSide-params", () => {
@@ -170,6 +177,9 @@ describe("SteinbergFrequency", () => {
       vstPresetWritten.Parameters
     );
     expect(paramsWritten).toEqual(paramsOriginal);
+
+    // Compare arrays using the helper function for better diff output on failure
+    // expectUint8ArraysToBeEqual(uint8ArrayRead, uint8ArrayWrite);
   });
 
   test("SteinbergFrequency-readVstPreset-CutLowSide-params", () => {
@@ -220,5 +230,8 @@ describe("SteinbergFrequency", () => {
       vstPresetWritten.Parameters
     );
     expect(paramsWritten).toEqual(paramsOriginal);
+
+    // Compare arrays using the helper function for better diff output on failure
+    // expectUint8ArraysToBeEqual(uint8ArrayRead, uint8ArrayWrite);
   });
 });
