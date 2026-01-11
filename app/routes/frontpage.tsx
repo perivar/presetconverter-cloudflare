@@ -157,29 +157,25 @@ export default function Index() {
               setGenericEQPreset(eqPreset);
             } else if (preset && preset instanceof SteinbergFrequency) {
               setSourcePresets([
-                { format: `${preset.constructor.name}`, data: preset },
+                { format: "SteinbergFrequency", data: preset },
               ]);
               console.log("SteinbergFrequency preset:\n", preset.toString());
               const eqPreset =
                 SteinbergFrequencyToGenericEQ.convertBase(preset);
               setGenericEQPreset(eqPreset);
             } else if (preset && preset instanceof UADSSLChannel) {
-              setSourcePresets([
-                { format: `${preset.constructor.name}`, data: preset },
-              ]);
+              setSourcePresets([{ format: "UADSSLChannel", data: preset }]);
               console.log("UADSSLChannel preset:\n", preset.toString());
               const eqPreset = UADSSLChannelToGenericEQ.convertBase(preset);
               setGenericEQPreset(eqPreset);
             } else if (preset && preset instanceof SSLNativeChannel) {
-              setSourcePresets([
-                { format: `${preset.constructor.name}`, data: preset },
-              ]);
+              setSourcePresets([{ format: "SSLNativeChannel", data: preset }]);
               console.log("SSLNativeChannel preset:\n", preset.toString());
               const eqPreset = SSLNativeChannelToGenericEQ.convertBase(preset);
               setGenericEQPreset(eqPreset);
             } else if (preset && preset instanceof SSLNativeBusCompressor) {
               setSourcePresets([
-                { format: `${preset.constructor.name}`, data: preset },
+                { format: "SSLNativeBusCompressor", data: preset },
               ]);
               console.log(
                 "SSLNativeBusCompressor preset:\n",
@@ -191,16 +187,12 @@ export default function Index() {
                 );
               setGenericCompLimitPreset(compLimitPreset);
             } else if (preset && preset instanceof WavesSSLChannel) {
-              setSourcePresets([
-                { format: `${preset.constructor.name}`, data: preset },
-              ]);
+              setSourcePresets([{ format: "WavesSSLChannel", data: preset }]);
               console.log("WavesSSLChannel preset:\n", preset.toString());
               const eqPreset = WavesSSLChannelToGenericEQ.convertBase(preset);
               setGenericEQPreset(eqPreset);
             } else if (preset && preset instanceof WavesSSLComp) {
-              setSourcePresets([
-                { format: `${preset.constructor.name}`, data: preset },
-              ]);
+              setSourcePresets([{ format: "WavesSSLComp", data: preset }]);
               console.log("WavesSSLComp preset:\n", preset.toString());
 
               const compLimitPreset =
@@ -208,7 +200,7 @@ export default function Index() {
               setGenericCompLimitPreset(compLimitPreset);
             } else if (preset) {
               setSourcePresets([
-                { format: `${preset.constructor.name}`, data: preset },
+                { format: preset.constructor.name, data: preset },
               ]);
 
               // If fxp preset exists but is not a supported type
@@ -271,7 +263,7 @@ export default function Index() {
                 setGenericEQPreset(eqPreset);
               } else if (vstPreset && vstPreset instanceof SteinbergFrequency) {
                 setSourcePresets([
-                  { format: `${vstPreset.constructor.name}`, data: vstPreset },
+                  { format: "SteinbergFrequency", data: vstPreset },
                 ]);
                 console.log(
                   "SteinbergFrequency preset:\n",
@@ -282,7 +274,7 @@ export default function Index() {
                 setGenericEQPreset(eqPreset);
               } else if (vstPreset && vstPreset instanceof UADSSLChannel) {
                 setSourcePresets([
-                  { format: `${vstPreset.constructor.name}`, data: vstPreset },
+                  { format: "UADSSLChannel", data: vstPreset },
                 ]);
                 console.log("UADSSLChannel preset:\n", vstPreset.toString());
                 const eqPreset =
@@ -290,7 +282,7 @@ export default function Index() {
                 setGenericEQPreset(eqPreset);
               } else if (vstPreset && vstPreset instanceof SSLNativeChannel) {
                 setSourcePresets([
-                  { format: `${vstPreset.constructor.name}`, data: vstPreset },
+                  { format: "SSLNativeChannel", data: vstPreset },
                 ]);
                 console.log("SSLNativeChannel preset:\n", vstPreset.toString());
                 const eqPreset =
@@ -301,7 +293,7 @@ export default function Index() {
                 vstPreset instanceof SSLNativeBusCompressor
               ) {
                 setSourcePresets([
-                  { format: `${vstPreset.constructor.name}`, data: vstPreset },
+                  { format: "SSLNativeBusCompressor", data: vstPreset },
                 ]);
                 console.log(
                   "SSLNativeBusCompressor preset:\n",
@@ -314,16 +306,14 @@ export default function Index() {
                 setGenericCompLimitPreset(compLimitPreset);
               } else if (vstPreset && vstPreset instanceof WavesSSLChannel) {
                 setSourcePresets([
-                  { format: `${vstPreset.constructor.name}`, data: vstPreset },
+                  { format: "WavesSSLChannel", data: vstPreset },
                 ]);
                 console.log("WavesSSLChannel preset:\n", vstPreset.toString());
                 const eqPreset =
                   WavesSSLChannelToGenericEQ.convertBase(vstPreset);
                 setGenericEQPreset(eqPreset);
               } else if (vstPreset && vstPreset instanceof WavesSSLComp) {
-                setSourcePresets([
-                  { format: `${vstPreset.constructor.name}`, data: vstPreset },
-                ]);
+                setSourcePresets([{ format: "WavesSSLComp", data: vstPreset }]);
                 console.log("WavesSSLComp preset:\n", vstPreset.toString());
 
                 const compLimitPreset =

@@ -60,17 +60,24 @@ export function registerAllConverters(converters: ConverterRegistration[]) {
   }
 
   converters.forEach(({ fromTypes, converter }) => {
-    fromTypes.forEach(from => {
-      // Clone the converter with an overridden `from`
-      const clonedConverter: MultiFormatConverter<any, any> = {
-        ...converter,
-        from,
-      };
-      registerConverter(clonedConverter);
-    });
+    try {
+      fromTypes.forEach(from => {
+        // Clone the converter with an overridden `from`
+        const clonedConverter: MultiFormatConverter<any, any> = {
+          ...converter,
+          from,
+        };
+        registerConverter(clonedConverter);
+      });
+    } catch (error) {
+      console.error(
+        `Failed to register converter ${converter.displayName}:`,
+        error
+      );
+    }
   });
 
-  console.debug("All converters registered.");
+  console.debug(`Registered ${converters.length} converter groups.`);
 }
 
 /**
