@@ -19,8 +19,11 @@ import {
   Tooltip,
   XAxis,
   YAxis,
-  type TooltipProps, // Import TooltipProps
 } from "recharts";
+import type {
+  NameType,
+  ValueType,
+} from "recharts/types/component/DefaultTooltipContent";
 
 // Constants
 const SAMPLE_RATE = 48000; // Assume a sample rate for calculations
@@ -378,35 +381,50 @@ interface EqualizerChartProps {
 }
 
 // Custom Tooltip for Scatter points (EQ Bands)
-interface CustomScatterTooltipProps extends TooltipProps<number, string> {}
+interface CustomScatterTooltipProps {
+  active?: boolean;
+  label?: string | number;
+  payload?: Array<{
+    value?: ValueType;
+    name?: NameType;
+    payload: {
+      frequency: number;
+      gain: number;
+      bandInfo?: GenericEQBand;
+    };
+  }>;
+}
 
+// Custom tooltip for EQ bands
 const CustomScatterTooltip = ({
   active,
   payload,
 }: CustomScatterTooltipProps) => {
-  if (active && payload && payload.length) {
-    const band = payload[1].payload.bandInfo;
-    if (!band || typeof band.Frequency !== "number") return null;
+  if (!active || !payload || payload.length === 0) return null;
 
-    const shapeName = getShapeName(band.Shape);
-    const stereoPlacementName = getStereoPlacementName(band.StereoPlacement);
-    return (
-      <div className="rounded-lg border border-border bg-background p-2 text-sm text-foreground shadow-lg">
-        <p className="font-medium">
-          Freq: {formatWithMetric(band.Frequency, "Hz", 1)}
-        </p>
-        <p>Gain: {band.Gain.toFixed(1)} dB</p>
-        <p>Q: {band.Q.toFixed(2)}</p>
-        <p>Shape: {shapeName}</p>
-        {band.Shape === GenericEQShape.LowCut ||
-        band.Shape === GenericEQShape.HighCut ? (
-          <p>Slope: {getSlopeName(band.Slope)}</p>
-        ) : null}
-        <p>Placement: {stereoPlacementName}</p>
-      </div>
-    );
-  }
-  return null;
+  // Find the payload entry with bandInfo (Scatter data)
+  const bandEntry = payload.find(p => p?.payload?.bandInfo);
+  if (!bandEntry || !bandEntry.payload?.bandInfo) return null;
+
+  const band = bandEntry.payload.bandInfo;
+  const shapeName = getShapeName(band.Shape);
+  const stereoPlacementName = getStereoPlacementName(band.StereoPlacement);
+
+  return (
+    <div className="rounded-lg border border-border bg-background p-2 text-sm text-foreground shadow-lg">
+      <p className="font-medium">
+        Freq: {formatWithMetric(band.Frequency, "Hz", 1)}
+      </p>
+      <p>Gain: {band.Gain.toFixed(1)} dB</p>
+      <p>Q: {band.Q.toFixed(2)}</p>
+      <p>Shape: {shapeName}</p>
+      {band.Shape === GenericEQShape.LowCut ||
+      band.Shape === GenericEQShape.HighCut ? (
+        <p>Slope: {getSlopeName(band.Slope)}</p>
+      ) : null}
+      <p>Placement: {stereoPlacementName}</p>
+    </div>
+  );
 };
 
 export function EqualizerChart({
@@ -470,7 +488,7 @@ export function EqualizerChart({
               strokeDasharray="3 3"
               stroke="color-mix(in hsl, var(--muted-foreground) 50%, transparent)"
             />
-            {/* X Axis (Frequency - Logarithmic Scale) */}
+            {/* X Axis for Area (Frequency - Logarithmic Scale) */}
             <XAxis
               xAxisId="0" // Add ID
               dataKey="frequency"
@@ -512,16 +530,6 @@ export function EqualizerChart({
               }}
             />
 
-            {/* Tooltip - Configured to show info for the hovered band */}
-            <Tooltip
-              content={<CustomScatterTooltip />}
-              cursor={false}
-              wrapperStyle={{ zIndex: 100 }}
-              allowEscapeViewBox={{ x: true, y: true }}
-              position={{ y: -60 }}
-              isAnimationActive={false}
-            />
-
             {/* Area representing the combined frequency response */}
             <Area
               type="monotone"
@@ -539,17 +547,22 @@ export function EqualizerChart({
               key="eq-bands-scatter"
               name="EQ Bands"
               data={enabledBandsData}
-              xAxisId="0"
-              yAxisId="0"
-              dataKey="gain"
               fill="color-mix(in hsl, var(--primary) 50%, transparent)"
               r={4}
               stroke="var(--primary)"
               strokeWidth={1}
               isAnimationActive={false}
               onMouseOver={handleBandHover}
-              onMouseOut={() => handleBandHover(null)}
-            />
+              onMouseOut={() => handleBandHover(null)}>
+              {/* Tooltip only for Scatter points */}
+              <Tooltip
+                content={<CustomScatterTooltip />}
+                cursor={false}
+                wrapperStyle={{ zIndex: 100 }}
+                allowEscapeViewBox={{ x: true, y: true }}
+                isAnimationActive={false}
+              />
+            </Scatter>
           </ComposedChart>
         </ResponsiveContainer>
       </div>

@@ -76,11 +76,24 @@ export function CompressorLimiterGraph({ comp }: CompressorLimiterGraphProps) {
               fontSize: 12,
             }}
           />
-          <Tooltip formatter={(value: number) => `${value.toFixed(2)} dB`} />
+          <Tooltip
+            formatter={(value: number | string | undefined) => {
+              // 1. Guard against undefined/null
+              if (value === undefined || value === null) return "N/A";
+
+              // 2. Safely parse and format if it's a number
+              const numValue =
+                typeof value === "number" ? value : parseFloat(value as string);
+
+              return isNaN(numValue)
+                ? value.toString()
+                : `${numValue.toFixed(2)} dB`;
+            }}
+          />
           <Line
             type="monotone"
             dataKey="output"
-            stroke="hsl(var(--primary))"
+            stroke="var(--primary)"
             strokeWidth={2}
             dot={false}
           />

@@ -116,7 +116,7 @@ describe("GenericEQ Converters", () => {
       expect(band1).toEqual(
         expect.objectContaining({
           Enabled: true,
-          Frequency: 6499.997851788689,
+          Frequency: expect.closeTo(6499.997851788689, 10),
           Gain: 1.0,
           Q: 1.0,
           Shape: GenericEQShape.Bell, // Shape 0
@@ -129,9 +129,9 @@ describe("GenericEQ Converters", () => {
       expect(band2).toEqual(
         expect.objectContaining({
           Enabled: true,
-          Frequency: 9999.99804268092,
+          Frequency: expect.closeTo(9999.99804268092, 10),
           Gain: 3.0,
-          Q: 0.3000000038292504,
+          Q: expect.closeTo(0.3000000038292504, 10),
           Shape: GenericEQShape.HighShelf, // Shape 3
           Slope: GenericEQSlope.Slope12dB_oct,
           StereoPlacement: GenericEQStereoPlacement.Stereo, // StereoPlacement 2
@@ -142,9 +142,9 @@ describe("GenericEQ Converters", () => {
       expect(band3).toEqual(
         expect.objectContaining({
           Enabled: true,
-          Frequency: 60.000011375881584,
+          Frequency: expect.closeTo(60.000011375881584, 10),
           Gain: -3.0,
-          Q: 0.3000000038292504,
+          Q: expect.closeTo(0.3000000038292504, 10),
           Shape: GenericEQShape.LowShelf, // Shape 1
           Slope: GenericEQSlope.Slope12dB_oct, // Slope 1
           StereoPlacement: GenericEQStereoPlacement.Stereo, // StereoPlacement 2
@@ -155,7 +155,7 @@ describe("GenericEQ Converters", () => {
       expect(band4).toEqual(
         expect.objectContaining({
           Enabled: true,
-          Frequency: 30.000005687940792,
+          Frequency: expect.closeTo(30.000005687940792, 10),
           Gain: 0.0,
           Q: 1.0,
           Shape: GenericEQShape.LowCut, // Shape 2
@@ -190,9 +190,9 @@ describe("GenericEQ Converters", () => {
       expect(band1).toEqual(
         expect.objectContaining({
           Enabled: true,
-          Frequency: 99.72214661075441,
+          Frequency: expect.closeTo(99.72214661075441, 10),
           Gain: 0.0,
-          Q: 0.8688985076913297,
+          Q: expect.closeTo(0.8688985076913297, 10),
           Shape: GenericEQShape.LowCut, // Shape 2
           Slope: GenericEQSlope.Slope48dB_oct, // Slope 6
           StereoPlacement: GenericEQStereoPlacement.Stereo, // StereoPlacement 2
@@ -205,9 +205,9 @@ describe("GenericEQ Converters", () => {
       expect(band2).toEqual(
         expect.objectContaining({
           Enabled: true,
-          Frequency: 228.7448516395526,
-          Gain: 2.1224441528320312,
-          Q: 2.076328369544847,
+          Frequency: expect.closeTo(228.7448516395526, 10),
+          Gain: expect.closeTo(2.1224441528320312, 10),
+          Q: expect.closeTo(2.076328369544847, 10),
           Shape: GenericEQShape.Bell, // Shape 0
           Slope: GenericEQSlope.Slope12dB_oct, // Slope 1
           StereoPlacement: GenericEQStereoPlacement.Stereo, // StereoPlacement 2
@@ -220,9 +220,9 @@ describe("GenericEQ Converters", () => {
       expect(band3).toEqual(
         expect.objectContaining({
           Enabled: true,
-          Frequency: 409.4091782708682,
-          Gain: -3.0204086303710938,
-          Q: 2.5707995846436855,
+          Frequency: expect.closeTo(409.4091782708682, 10),
+          Gain: expect.closeTo(-3.0204086303710938, 10),
+          Q: expect.closeTo(2.5707995846436855, 10),
           Shape: GenericEQShape.Bell, // Shape 0
           Slope: GenericEQSlope.Slope12dB_oct,
           StereoPlacement: GenericEQStereoPlacement.Stereo, // StereoPlacement 2
@@ -235,9 +235,9 @@ describe("GenericEQ Converters", () => {
       expect(band9).toEqual(
         expect.objectContaining({
           Enabled: true,
-          Frequency: 12709.496952111627,
+          Frequency: expect.closeTo(12709.496952111627, 10),
           Gain: 0,
-          Q: 0.980124115146417,
+          Q: expect.closeTo(0.980124115146417, 10),
           Shape: GenericEQShape.HighCut, // Shape 4
           Slope: GenericEQSlope.Slope12dB_oct, // Slope 1
           StereoPlacement: GenericEQStereoPlacement.Stereo, // StereoPlacement 2

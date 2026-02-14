@@ -1,24 +1,27 @@
 import puppeteer from "puppeteer";
 import type { Browser, Page } from "puppeteer";
 
-let browser: Browser;
+let sharedBrowser: Browser | null = null;
 
-beforeAll(async () => {
-  browser = await puppeteer.launch({
-    headless: true,
-    args: ["--no-sandbox", "--disable-setuid-sandbox"],
-  });
-  (global as any).browser = browser;
-});
-
-afterAll(async () => {
-  if (browser) {
-    await browser.close();
+export async function getSharedBrowser(): Promise<Browser> {
+  if (!sharedBrowser) {
+    sharedBrowser = await puppeteer.launch({
+      headless: true,
+      args: ["--no-sandbox", "--disable-setuid-sandbox"],
+    });
   }
-});
+  return sharedBrowser;
+}
 
-export async function newPage() {
-  if (!browser) throw new Error("Browser is not initialized");
+export async function closeSharedBrowser(): Promise<void> {
+  if (sharedBrowser) {
+    await sharedBrowser.close();
+    sharedBrowser = null;
+  }
+}
+
+export async function newPage(): Promise<Page> {
+  const browser = await getSharedBrowser();
   return browser.newPage();
 }
 
@@ -30,13 +33,19 @@ export async function puppeteerPlotlyToSVG(
   const width = fig.layout.width ?? 800;
   const height = fig.layout.height ?? 400;
 
+  // Determine if we should manage browser lifecycle locally
+  const useLocalBrowser = !page;
+  let localBrowser: Browser | undefined;
   let localPage: Page | undefined = page;
 
   if (!localPage) {
-    if (!(global as any).browser) {
-      throw new Error("Global browser not initialized");
-    }
-    localPage = await (global as any).browser.newPage();
+    // Create a new browser instance for this call to avoid concurrency issues
+    // when running tests in parallel
+    localBrowser = await puppeteer.launch({
+      headless: true,
+      args: ["--no-sandbox", "--disable-setuid-sandbox"],
+    });
+    localPage = await localBrowser.newPage();
   }
 
   if (!localPage) {
@@ -72,8 +81,12 @@ export async function puppeteerPlotlyToSVG(
 
   const svg = await localPage.$eval("#plot svg.main-svg", el => el.outerHTML);
 
-  if (!page && localPage) {
+  // Clean up: close the page (and browser if we created one locally)
+  if (localPage) {
     await localPage.close();
+  }
+  if (useLocalBrowser && localBrowser) {
+    await localBrowser.close();
   }
 
   return svg;
