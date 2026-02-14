@@ -47,10 +47,8 @@ export default function ResponsiveNavBar() {
   return (
     <header
       className={`
-        sticky top-0 z-50 flex w-full border-b bg-background/95 px-4 backdrop-blur
+        sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur
         supports-backdrop-filter:bg-background/60
-        sm:px-6
-        lg:px-16
       `}>
       <div className="container flex h-14 items-center gap-2">
         <div className="hidden md:flex">
@@ -110,22 +108,22 @@ export default function ResponsiveNavBar() {
             </div>
           </SheetContent>
         </Sheet>
-      </div>
-      <div className="flex flex-1 items-center justify-end space-x-2">
-        <div className="w-full flex-1 md:w-auto md:flex-none">
-          <Button
-            variant="outline"
-            size="icon"
-            onClick={toggleTheme}
-            className="ml-auto">
-            {isMounted() &&
-              (theme === "dark" ? (
-                <Sun className="size-5" />
-              ) : (
-                <Moon className="size-5" />
-              ))}
-            <span className="sr-only">Toggle theme</span>
-          </Button>
+        <div className="flex flex-1 items-center justify-between space-x-2 md:justify-end">
+          <div className="w-full flex-1 md:w-auto md:flex-none">
+            <Button
+              variant="outline"
+              size="icon"
+              onClick={toggleTheme}
+              className="ml-auto">
+              {isMounted() &&
+                (theme === "dark" ? (
+                  <Sun className="size-5" />
+                ) : (
+                  <Moon className="size-5" />
+                ))}
+              <span className="sr-only">Toggle theme</span>
+            </Button>
+          </div>
         </div>
       </div>
     </header>
